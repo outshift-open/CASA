@@ -4,7 +4,9 @@
         "files.trimTrailingWhitespace": false
     },
     "[python]": {
-        "editor.rulers": [ 120 ],
+        "editor.rulers": [
+            120
+        ],
         "editor.tabSize": 4,
         "editor.insertSpaces": true,
         "editor.formatOnSave": true,

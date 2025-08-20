@@ -1,7 +1,9 @@
 [project]
 name = "identity_auth_server"
-description = "identity-auth-serve"
+description = "identity-auth-server"
 authors = [
+  { name="Chiara Troiani", email="chtroian@cisco.com" },
+  { name="Majed El Helou", email="melhelou@cisco.com" },
   { name="Ben Ryder", email="beryder@cisco.com" }
 ]
 readme = "README.md"
@@ -20,7 +22,8 @@ version = "0.0.1"
 # Notice: If you use PyTorch, directly or indirectly (e.g. via huggingface/transformers), don't add it here.
 #         Instead, use the template with multi-platform PyTorch support.
 dependencies = [
-  "numpy>=2.3" # This is an example dependency and can be removed
+  "fastapi[standard]>=0.116.1",
+  "mcp==1.7.1"
 ]
 
 [project.optional-dependencies]
