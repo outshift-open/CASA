@@ -124,3 +124,18 @@ test: # Run all unit tests.
 > $(VENV_ACTIVATE)
 > pytest
 .PHONY: test
+
+docker-build: # Build the Docker image.
+> @printf "$(YELLOW)Building Docker image$(NOCOLOR)\n"
+> docker build -f deployments/docker/Dockerfile -t identity-auth-server .
+.PHONY: docker-build
+
+docker-run: # Run the application using Docker Compose.
+> @printf "$(YELLOW)Starting application with Docker Compose$(NOCOLOR)\n"
+> cd deployments/docker-compose && docker compose up --build -d
+.PHONY: docker-run
+
+docker-stop: # Stop the Docker Compose services.
+> @printf "$(YELLOW)Stopping Docker Compose services$(NOCOLOR)\n"
+> cd deployments/docker-compose && docker compose down
+.PHONY: docker-stop

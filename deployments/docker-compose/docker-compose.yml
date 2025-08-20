@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  identity-auth-server:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile
+    ports:
+      - "8000:8000"

@@ -2,30 +2,9 @@
 
 # Identity Auth Server
 
-A FastAPI-based server for matching tasks with appropriate tools using Model Context Protocol (MCP) integration. This server provides intelligent tool matching capabilities for Zero Trust Architecture (ZTA) identity and authentication workflows.
-
-## Overview
-
-The Identity Auth Server provides RESTful endpoints that accept task descriptions and available tools, then returns the most appropriate tool matches using configurable matching algorithms. It supports both MCP badge-based tool extraction and direct MCP tool object matching.
-
-### Key Features
-
-- **Task-Tool Matching**: Intelligent matching of tasks to appropriate tools
-- **MCP Integration**: Support for Model Context Protocol (MCP) tools and badges  
-- **Configurable Matchers**: Pluggable matching algorithms (currently includes random matcher)
-- **FastAPI Framework**: Modern, fast web framework with automatic API documentation
-- **Type Safety**: Full Pydantic model validation and type hints
+The Identity Auth Server provides RESTful endpoints that accept a task description, a requested tool, and other available tools, then checks whether the requested tool best matches the task intention. It supports both MCP Identity badge-based tool extraction and direct MCP tool object matching.
 
 ## API Endpoints
-
-### POST `/task/intent/mcp/badge/tool-match`
-Matches tools based on MCP badge information.
-
-**Request Body:**
-- `task`: Task description string
-- `requested_tool`: Specific tool name being requested
-- `available_tools`: List of available tool names
-- `mcp_badge`: MCP identity badge containing tool objects
 
 ### POST `/task/intent/mcp/tool-match`
 Matches tools based on direct MCP tool objects.
@@ -36,6 +15,15 @@ Matches tools based on direct MCP tool objects.
 - `available_tools`: List of available tool names
 - `mcp_tools`: List of MCP tool objects
 
+### POST `/task/intent/mcp/badge/tool-match`
+Matches tools based on MCP badge information.
+
+**Request Body:**
+- `task`: Task description string
+- `requested_tool`: Specific tool name being requested
+- `available_tools`: List of available tool names
+- `mcp_badge`: MCP identity badge containing tool objects
+
 ## Prerequisites
 
 - Python 3.12 or higher
@@ -43,7 +31,9 @@ Matches tools based on direct MCP tool objects.
 
 ## Quick Start
 
-### 1. Environment Setup
+### Option 1: Local Development
+
+#### 1. Environment Setup
 After cloning the repo, initialize the development environment:
 
 ```shell
@@ -55,12 +45,12 @@ This will:
 - Install all dependencies (including dev dependencies)
 - Set up pre-commit hooks
 
-### 2. Activate Environment
+#### 2. Activate Environment
 ```shell
 source .venv/bin/activate
 ```
 
-### 3. Run the Server
+#### 3. Run the Server
 ```shell
 # Development server with auto-reload
 uvicorn identity_auth_server.api.app:app --reload
@@ -68,6 +58,38 @@ uvicorn identity_auth_server.api.app:app --reload
 # Or using FastAPI's built-in development server
 fastapi dev src/identity_auth_server/api/app.py
 ```
+
+### Option 2: Docker Setup
+
+#### Using Make Commands (Recommended)
+
+```shell
+# Build the Docker image
+make docker-build
+
+# Run with Docker Compose
+make docker-run
+
+# Stop Docker services
+make docker-stop
+```
+
+#### Manual Docker Commands
+
+```shell
+# Build the image
+docker build -f deployments/docker/Dockerfile -t identity-auth-server .
+
+# Run with Docker Compose
+cd deployments/docker-compose
+docker compose up --build -d
+
+# Stop services
+cd deployments/docker-compose
+docker compose down
+```
+
+### Accessing the API
 
 The server will be available at `http://localhost:8000` with interactive API documentation at `http://localhost:8000/docs`.
 
@@ -82,6 +104,11 @@ The server will be available at `http://localhost:8000` with interactive API doc
 - `make test` - Run unit tests with pytest
 - `make check` - Run code quality checks (linting, formatting)
 - `make build` - Build the package for distribution
+
+#### Docker Commands
+- `make docker-build` - Build the Docker image
+- `make docker-run` - Run the application using Docker Compose
+- `make docker-stop` - Stop Docker Compose services
 
 ### Code Quality
 
@@ -115,24 +142,3 @@ The server is built with a modular architecture:
 - **Pipeline Layer**: Core business logic for task-tool matching
 - **Type System**: Comprehensive type definitions using Pydantic models
 - **Factory Pattern**: Configurable matcher selection via TaskToolMatcherFactory
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run quality checks: `make check`
-5. Run tests: `make test`  
-6. Submit a pull request
-
-All commits must pass pre-commit hooks including linting, formatting, and type checking.
-
-## License
-
-See [LICENSE](LICENSE) file for details.
-
-## Authors
-
-- Chiara Troiani (chtroian@cisco.com)
-- Majed El Helou (melhelou@cisco.com)  
-- Ben Ryder (beryder@cisco.com)
