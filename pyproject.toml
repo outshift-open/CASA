@@ -1,0 +1,87 @@
+[project]
+name = "identity_auth_server"
+description = "identity-auth-serve"
+authors = [
+  { name="Ben Ryder", email="beryder@cisco.com" }
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.12"
+classifiers = [
+    "License :: Other/Proprietary License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+version = "0.0.1"
+# comma separated list of Python dependencies.
+# Notice: Add dev-only dependencies to the [project.optional-dependencies.dev] section below.
+# Notice: If you use PyTorch, directly or indirectly (e.g. via huggingface/transformers), don't add it here.
+#         Instead, use the template with multi-platform PyTorch support.
+dependencies = [
+  "numpy>=2.3" # This is an example dependency and can be removed
+]
+
+[project.optional-dependencies]
+# These dependencies are only installed in the dev environment. They will NOT be part of the
+# package requirements when the package is built.
+dev = [
+  "pre-commit~=v4.2.0",
+  "ruff~=0.12.7",
+  "mypy~=1.17.1",
+  "shellcheck-py~=0.10.0.1",
+  "jupyterlab>=4.3",
+  "ipywidgets>=8.1",
+  "pytest>=8.3",
+  "pytest-cov>=6.0",
+  "hatch>=1.14",
+  "build>=1.2",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/cisco-eti/identity-auth-server"
+"Bug Tracker" = "https://github.com/cisco-eti/identity-auth-server/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+# Allow direct references (e.g. via GitHub) to packages in dependencies
+allow-direct-references = true
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/test",
+  "/.github",
+  "/.vscode",
+  ".gitignore",
+  ".editorconfig",
+  ".pre-commit-config.yaml",
+  "Makefile",
+  "Developer_notes.md"
+]
+
+[tool.pytest.ini_options]
+minversion = "8.3"
+testpaths = [ "test" ]
+
+[tool.mypy]
+ignore_missing_imports = true
+scripts_are_modules = true
+exclude = [ 'wandb/' ]
+
+[tool.ruff]
+line-length = 120
+extend-include = ["*.ipynb"]
+exclude = [".ipynb_checkpoints"]
+
+[tool.ruff.lint]
+select = ["D", "I", "F", "N", "NPY", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["D104", "F401", "F403"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
