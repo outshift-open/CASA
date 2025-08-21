@@ -133,12 +133,3 @@ src/identity_auth_server/
 │   └── task_tool_matcher/ # Tool matching logic
 └── types.py               # Common type definitions
 ```
-
-## Architecture
-
-The server is built with a modular architecture:
-
-- **API Layer**: FastAPI endpoints handling HTTP requests/responses
-- **Pipeline Layer**: Core business logic for task-tool matching
-- **Type System**: Comprehensive type definitions using Pydantic models
-- **Factory Pattern**: Configurable matcher selection via TaskToolMatcherFactory
