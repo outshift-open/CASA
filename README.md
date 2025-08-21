@@ -133,3 +133,12 @@ src/identity_auth_server/
 │   └── task_tool_matcher/ # Tool matching logic
 └── types.py               # Common type definitions
 ```
+
+### Evaluations
+
+#### Task Tool Matcher Evaluation
+
+Initial assumptions and constraints
+- Tasks are less than 150 characters
+- Tasks should match to either a single tool or no tool
+- Distribution (40% match, 40% wrong tool, 20% no tool)
