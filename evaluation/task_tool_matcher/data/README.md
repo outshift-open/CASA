@@ -32,7 +32,7 @@ This will:
 - Load MCP server tool definitions from the `../mcp_servers/` directory
 - Generate synthetic tasks based on the configuration in `config.json`
 - Create realistic task descriptions with appropriate tool matches/mismatches
-- Save the generated dataset to `generated_data.json`
+- Save the generated dataset to `generated_data.json` and compress it to `generated_data.json.gz`
 - Display distribution analysis comparing expected vs actual match types
 
 ### Configuration
@@ -67,6 +67,8 @@ The generated dataset (`generated_data.json`) contains evaluation entries with:
 - **correct_choice** - The tool that should actually be selected (or null if no tool needed)
 - **match** - Boolean indicating if the requested tool is correct for the task
 
+By default the output file is compressed as `generated_data.json.gz` to save space.
+
 ## Dependencies
 
-The generation script depends on MCP server tool definitions being available in the `../mcp_servers/` directory. Ensure you've run the MCP tool extraction process first if needed.
+The generation script depends on MCP server tool definitions being available in the `mcp_servers/` directory. Ensure you've run the MCP tool extraction process first if needed.
