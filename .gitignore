@@ -279,3 +279,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,linux,macos,windows,git,visualstudiocode
+evaluation/task_tool_matcher/data/generated_data.json

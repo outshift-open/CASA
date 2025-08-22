@@ -45,6 +45,9 @@ async def extract_tools_from_server(name: str, config: dict) -> None:
         # Save to JSON file
         script_dir = os.path.dirname(os.path.abspath(__file__))
         output_dir = os.path.dirname(script_dir)
+
+        # replace dash with underscore in name and create output path
+        name = name.replace("-", "_")
         output_path = os.path.join(output_dir, f"{name}_tools.json")
 
         with open(output_path, "w") as f:
