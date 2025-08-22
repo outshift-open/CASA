@@ -57,7 +57,7 @@ def main():
         print_evaluation_summary(results)
 
         # Save detailed results to evaluate directory
-        output_file = save_results(results)
+        output_file = save_results(results, None)
         print(f"\nDetailed results saved to: {output_file}")
 
     except Exception as e:
