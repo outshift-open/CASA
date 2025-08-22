@@ -1,0 +1,856 @@
+[
+  {
+    "tool_name": "jira_get_user_profile",
+    "synthetic_tasks": [
+      "Please fetch the Jira user profile for sara.mendez@acme-fintech.com; I need to confirm her account is active, her display name, and her timezone before granting her access to the PAY project.",
+      "Fetch the Jira profile for sarah.nguyen@orbitfintech.com; I need to verify that her account is active and see her display name and time zone before assigning her as the owner on OPS-2145."
+    ]
+  },
+  {
+    "tool_name": "jira_get_issue",
+    "synthetic_tasks": [
+      "Please pull the full details for Jira issue MKT-2458 with all fields, expanding renderedFields, transitions, and changelog; include up to 50 comments and do not update my view history, as I need to verify its Epic link and any blocker or related-issue relationships for the Q4 website relaunch.",
+      "Pull the full details for Jira issue PAY-7421, returning all fields and expanding the changelog, transitions, and renderedFields; include up to 50 comments, show the Epic it belongs to and any linked issues, and please don\u2019t update my view history."
+    ]
+  },
+  {
+    "tool_name": "jira_search",
+    "synthetic_tasks": [
+      "Search Jira for Bugs or Tasks in the WEB and MOB projects with the checkout label that are assigned to me and currently In Progress, updated within the last 3 days, sorted by most recently updated; return summary, status, assignee, priority, labels, created, updated, and description, expand the changelog, limit to 25 results starting at 50.",
+      "Search Jira for open Bugs and Tasks in the PAY and CHKOUT projects with the label \"pii-removal\" that were updated in the last 14 days, where the assignee is either me or unassigned, sorted by most recently updated; return the fields summary,status,assignee,priority,labels,components,fixVersions,created,updated, expand the changelog, limit to 50 results starting at 50, and restrict the search to PAY,CHKOUT."
+    ]
+  },
+  {
+    "tool_name": "jira_search_fields",
+    "synthetic_tasks": [
+      "Search our Jira field definitions for anything matching \"Chargeback\"\u2014return up to 30 results and force a refresh, since we just added \"Chargeback Category\" and \"Billing Cost Center\" custom fields this morning.",
+      "Please force-refresh the Jira fields and list up to 25 results that fuzzy-match \"customer impact\"\u2014I need to find the new custom field \"Customer Impact (Score)\" we added this morning."
+    ]
+  },
+  {
+    "tool_name": "jira_get_project_issues",
+    "synthetic_tasks": [
+      "Fetch the next 25 issues for Jira project key ECOM starting at index 50; I\u2019m compiling the Q4 storefront release notes and need to review those tickets.",
+      "Please fetch 25 issues from the FINOPS project starting at index 75 so I can review that slice of the backlog for tomorrow\u2019s standup."
+    ]
+  },
+  {
+    "tool_name": "jira_get_transitions",
+    "synthetic_tasks": [
+      "For Jira issue PAY-6842 \u201cUpdate Stripe webhooks for SCA,\u201d what status transitions are currently available from its current state? I need to know if I can move it to \u201cReady for QA\u201d today.",
+      "Can you pull the available status transitions for Jira issue PAY-4821 (Checkout refund webhook retries failing)? I need to know whether I can move it from In Review to QA or if it has to go back to Dev first."
+    ]
+  },
+  {
+    "tool_name": "jira_get_worklog",
+    "synthetic_tasks": [
+      "Please pull the worklog entries for CLOUD-2891 (S3 lifecycle policy drift fix) and summarize hours per user for Aug 12\u201318, 2025, highlighting any single-day entries over 8 hours and what Alex Kim and Neha Patel logged.",
+      "Pull the detailed worklog for MOBILE-2294 (Android checkout crash in v5.3) and show who logged time each day last week along with the total hours per person."
+    ]
+  },
+  {
+    "tool_name": "jira_download_attachments",
+    "synthetic_tasks": [
+      "Please download all attachments from Jira issue PROD-5610 (payment webhook timeouts) and save them to /srv/shared/engineering/incidents/2025-07-14-PROD-5610.",
+      "Please download all attachments from Jira issue OPS-6619 and save them to /srv/projects/ops/postmortems/2025-08-22_redis-timeout/OPS-6619/attachments so I can compile the incident report."
+    ]
+  },
+  {
+    "tool_name": "jira_get_agile_boards",
+    "synthetic_tasks": [
+      "Pull all scrum boards for the PLAT project whose names include \"Q4 Roadmap,\" starting at index 0 and returning up to 25 results.",
+      "Please list the scrum boards for the ECOM project whose names contain 'Checkout'; start at index 0 and return up to 25 results so I can find the 'Mobile Checkout v2' board."
+    ]
+  },
+  {
+    "tool_name": "jira_get_board_issues",
+    "synthetic_tasks": [
+      "On the Platform Core Scrum board (ID 11802), fetch up to 20 issues starting from 0 where project = PLAT, issuetype in (Bug, Story), statusCategory != Done, labels = q3-release, and updated >= -14d, ordered by priority DESC, updated DESC. Return the fields summary, status, assignee, priority, sprint, fixVersions, duedate, labels, created, updated and expand the changelog.",
+      "On Jira board 2075 (APP Mobile Scrum), fetch all issues matching the JQL: project = APP AND issuetype in (Bug, Task, Story) AND status in ('In Progress','Code Review','Blocked') AND assignee in (currentUser(), 'sara.cho') AND updated >= -10d ORDER BY priority DESC, and return the fields summary,status,assignee,priority,labels,reporter,created,updated,description. Start at 0 with a limit of 50 results and expand changelog."
+    ]
+  },
+  {
+    "tool_name": "jira_get_sprints_from_board",
+    "synthetic_tasks": [
+      "Pull the next 20 closed sprints for the Web Checkout Scrum board (board ID 1472), starting at index 40, so I can audit what was delivered after Black Friday.",
+      "For the Mobile Payments Scrum board (ID 1842), pull the closed sprints starting at index 25 and return at most 30 results so I can review the last few release cycles."
+    ]
+  },
+  {
+    "tool_name": "jira_get_sprint_issues",
+    "synthetic_tasks": [
+      "Fetch the next page of issues for sprint 11284 (Web Revamp Sprint 5), returning up to 50 results starting at index 50, and include fields summary, status, assignee, priority, labels, reporter, issuetype, created, updated, description, and customfield_10016 (Story Points).",
+      "Please pull the first 30 issues for sprint ID 15743 (Q3 Checkout Revamp), starting at index 0, and return summary, status, assignee, priority, labels, issuetype, reporter, created, updated, and description for each."
+    ]
+  },
+  {
+    "tool_name": "jira_get_link_types",
+    "synthetic_tasks": [
+      "List all available Jira issue link types (with their inward and outward names) in our acme-corp.atlassian.net instance so I can choose how to link PROD-821 to SEC-114 for the Q3 platform hardening epic.",
+      "Before I link PAY-433 to PLAT-928 as a dependency, please fetch the full set of available Jira issue link types from our instance, including the inward and outward names, so I can pick the right relationship."
+    ]
+  },
+  {
+    "tool_name": "jira_create_issue",
+    "synthetic_tasks": [
+      "Create a Subtask in the PAY project titled \u201cInvestigate 3D Secure redirect failing on iOS Safari,\u201d under parent PAY-3421, assign it to maria.ortiz@example.com, set components to iOS and Checkout, and use this description: On iOS 17.5 Safari, after completing the 3DS challenge with Adyen test card 521234******1234, the redirect stalls on /callback and the payment remains in authorization_pending; reproduce via sandbox app v5.8.1 with Apple Pay disabled\u2014network log shows a 302 from /3ds/complete without follow\u2014expected to land on order-confirmation within ~3 seconds. Also set priority to High, add labels ios, checkout, regression, and set the due date to 2025-09-05.",
+      "Create a Story in project PAY titled \u201cImplement idempotency keys for charge capture requests,\u201d assign it to Priya Mehta (priya.mehta@example.com), link it under Epic PAY-980, set priority to High, add labels backend,idempotency,q3-initiative, set Fix Version to 2.8.0, and set components to API,Payments Gateway. Description: Add an Idempotency-Key header to the capture endpoint, persist request fingerprints for 24h to prevent duplicate charges on retries, update OpenAPI spec and client SDKs, include negative test cases for key reuse and expiry, and ensure backward compatibility; reference incident PAY-1432 and design doc https://confluence.acme.com/display/PAY/Idempotency."
+    ]
+  },
+  {
+    "tool_name": "jira_batch_create_issues",
+    "synthetic_tasks": [
+      "Please batch-create the following Jira issues: in project PAY, create a Bug titled \"3DS challenge fails on Visa cards when SCA is required\" describing that EU production payments intermittently return 3DS_AUTHENTICATION_FAILED during checkout, reproducible in staging with BIN 400000 and requiring retries; assign to mgarcia@acmecorp.com with components Gateway and 3DS; in project PAY, create a Task titled \"Add idempotency keys to the refund endpoint\" to prevent duplicate refunds on network retries, assign to jchen@acmecorp.com with components API; in project WEB, create a Story titled \"Implement passwordless login via magic links\" describing email-based one-time links with 15-minute expiry and device binding, assign to sara.lee@acmecorp.com with components Auth and Frontend; in project WEB, create a Bug titled \"Checkout page shows blank screen on Safari 17 when applying coupon codes\" noting it regresses after build 2025.08.19.1127, assign to n.patel@acmecorp.com with components Checkout and Browser-Compat; in project MOB, create a Task titled \"Add deep link support for order details (iOS)\" to open the app from acme://orders/{id}, assign to andrew.kim@acmecorp.com with components iOS; in project MOB, create a Task titled \"Add deep link support for order details (Android)\" to handle acme://orders/{id} intents, assign to priya.raman@acmecorp.com with components Android; and in project OPS, create a Spike titled \"Evaluate DataDog APM for Node services\" describing a two-day comparison of trace sampling, dashboards, and cost versus our OpenTelemetry collector, assign to devon.roberts@acmecorp.com with components Observability.",
+      "Please validate only (do not create yet) a batch of Jira issues as follows: in project ECOM create a Bug titled \u201cCheckout page returns 500 when applying an expired coupon\u201d assigned to ricardo.suarez@acmecorp.com with components Payments and Frontend and description \u201cObserved in prod on 2025-08-21 ~14:30 UTC; see Sentry event 8f2a3b1 and CloudFront request ID s3-req-91a\u201d; in project ECOM create a Task titled \u201cAdd retries to Stripe webhook handler\u201d assigned to maya.khan@acmecorp.com with components Payments and Backend and description \u201cImplement exponential backoff with jitter per ADR-42; ensure idempotency key handling is preserved\u201d; in project MOBILE create a Task titled \u201cRaise iOS minimum to 15.0 and fix deprecations\u201d assigned to ios.lead@acmecorp.com with components iOS and Build and description \u201cXcode 16 migration; remove deprecated APIs in PushKit and update CI fastlane lanes\u201d; and in project PLAT create a Bug titled \u201cKubernetes autoscaler stuck after scale-down\u201d unassigned with components Infrastructure and Observability and description \u201cCluster prod-gke-3; see PagerDuty INC-7842 and Grafana dashboard /k8s/autoscaler for saturation spikes.\u201d"
+    ]
+  },
+  {
+    "tool_name": "jira_batch_get_changelogs",
+    "synthetic_tasks": [
+      "Please pull the changelogs for issues FIN-2049, DATA-311, SEC-872, and IOS-987, but only include changes to status, assignee, priority, labels, and fixVersions, and limit the response to the most recent 25 entries per issue.",
+      "Fetch the changelogs for PAY-4132, PAY-4198, and PAY-4207, but only include entries where status, assignee, or priority changed, and limit it to the 20 most recent changes per issue."
+    ]
+  },
+  {
+    "tool_name": "jira_update_issue",
+    "synthetic_tasks": [
+      "Please update Jira issue MOB-712 by changing the summary to \"Camera permission prompt loops on first launch,\" assign it to rachel.nguyen@acme.io, set the priority to High, add labels hotfix, ios-17, and camera, move the status to In Progress, set Fix Version to 3.2.0-rc1 and the due date to 2025-08-26, and replace the description with: \"On iOS 17.5 (iPhone 14 Pro), first launch triggers an infinite camera permission loop; Steps to Reproduce: 1) Install v3.2.0-rc1 2) Launch app 3) Accept camera permission 4) App relaunches and prompts again; Expected: single prompt and proceed to Home; Actual: repeated prompts and crash after 3 cycles\"; also link it to Epic MOB-28 and set Story Points to 3. Attach /Users/rachel/Projects/acme-mobile/logs/2025-08-21_crashlog.txt,/Users/rachel/Projects/acme-mobile/screenshots/permission_loop.gif to the issue.",
+      "Update PLAT-912: assign it to mia.chen@acmecorp.com, transition the status to In Progress, set the summary to \"Stabilize feature-flag rollout before GA,\" update the description to \"Investigate and mitigate elevated 5xx rates from ff-service in eu-west-1 during canary; include rollback plan and alert tuning,\" set priority to High, labels to q3-release, customer-impact, and feature-flags, set Epic Link to PLAT-801, fix version to 2025.08.1, due date to 2025-09-05, components to Platform and Reliability, and Story Points to 5, and attach /Users/mia/Projects/feature-flags/rollout-checklist.xlsx,/Users/mia/Logs/ff-service/eu-west-1/error-log-2025-08-21.txt."
+    ]
+  },
+  {
+    "tool_name": "jira_delete_issue",
+    "synthetic_tasks": [
+      "Please delete the Jira issue PLAT-4172; it was created during a test run and duplicates PLAT-4169.",
+      "Please delete Jira issue PAY-7821 from the payments-service backlog; it was created by mistake and duplicates PAY-7769."
+    ]
+  },
+  {
+    "tool_name": "jira_add_comment",
+    "synthetic_tasks": [
+      "Please add the following Markdown comment to CHECKOUT-947: \"Post-mortem update 2025-08-22 \u2014 rolled back Checkout API to v1.12.4 at 16:07 UTC after a 5xx spike tied to `redis` connection pool exhaustion; metrics and logs: [Grafana panel](https://grafana.acme.internal/d/checkout/latency) and [Kibana query](https://kibana.acme.internal/app/discover#/?_a=checkout-errors), action items: 1) increase `redis.max_connections` from 100\u2192200, 2) add a circuit breaker around `price-service` calls, 3) re-run load test 'flash-sale-2k-rps' before redeploy; owners: @dev-ryan, @sre-jo; references: PR #1542 and incident INC-3317; ETA for fix: 24h.\"",
+      "Please add this comment to MOB-1649: Verified the crash on app v3.7.2 (build 419) on iOS 17.5; stack trace points to **null session token** in `AuthManager.refresh()`; hotfix branch `hotfix/session-refresh-null` merged in PR #2127 and deployed to staging at 2025-08-22 09:30 UTC\u2014please re-test with build 420 and confirm resolution; refs [Sentry SESS-881](https://sentry.io/organizations/acme/issues/SESS-881) and [staging logs](https://kibana.acme.internal/app/discover#/) \u2014 cc @qa-candice @ios-rahul."
+    ]
+  },
+  {
+    "tool_name": "jira_add_worklog",
+    "synthetic_tasks": [
+      "Please add a worklog to ECOM-2374 logging 1h 50m spent implementing optimistic \u201cAdd to cart\u201d updates and fixing a guest-to-user cart merge race condition (tests included; see PR #982: https://github.com/acme/shop-web/pull/982), started at 2025-08-22T10:15:00.000-0400, and update the original estimate to 1d and the remaining estimate to 3h.",
+      "Please add a worklog to ECOM-482 for 1h 50m, started at 2025-08-22T09:40:00.000-0700, with the comment \"Investigated and fixed intermittent 500s on the checkout API: rolled back the new feature flag, added retry/backoff around Redis timeouts, and added tests (all green)\", and update the estimates to original estimate 1d and remaining estimate 3h 10m."
+    ]
+  },
+  {
+    "tool_name": "jira_link_to_epic",
+    "synthetic_tasks": [
+      "Please link issue SHOP-1423 (Stripe 3DS fallback not triggering on mobile web) to epic SHOP-88 (Checkout Reliability Improvements Q3) so the work is tracked under the right initiative.",
+      "Please link the bug PAY-8342 (3DS challenge timing out on EU cards) to the epic PAY-7800 (Q3 Payment Resilience) so it rolls up under that initiative."
+    ]
+  },
+  {
+    "tool_name": "jira_create_issue_link",
+    "synthetic_tasks": [
+      "Create a 'Blocks' link from BACKEND-1043 to MOBILE-557. Add a comment noting that BACKEND-1043\u2019s migration job is blocking the TestFlight build for MOBILE-557 until the 02:00 UTC deploy, and restrict the comment to the 'jira-developers' group.",
+      "Create a 'Blocks' link from CORE-7821 to APP-3564 \u2014 the Kafka topic migration in CORE-7821 is blocking the Android checkout refactor in APP-3564; add the comment \"Blocked until new consumer group is provisioned and backfill completes; tracking doc: ENG/RFC-047; target unblocked date: 2025-09-05\" and make the comment visible only to the 'jira-developers' group."
+    ]
+  },
+  {
+    "tool_name": "jira_remove_issue_link",
+    "synthetic_tasks": [
+      "Please remove the incorrect 'relates to' link between ENG-1421 and QA-7789; the Jira issue link ID is 10567. We mislinked the mobile crash ticket to a UI test case and need it cleaned up before triage.",
+      "Remove the Jira issue link with ID 935421 that currently marks PAY-804 as \u201crelates to\u201d PAY-791\u2014it was added by mistake during triage."
+    ]
+  },
+  {
+    "tool_name": "jira_transition_issue",
+    "synthetic_tasks": [
+      "Please transition issue PAY-1384 to Done using transition ID '31', set the resolution to Fixed, update the Fix Version to 2.14.1, and add a comment: \"QA passed on build 2025.08.22-rc2; merged via PR #9876; ready for release.\"",
+      "Transition Jira issue ECOM-2198 using transition ID '31' to mark it Done, set the resolution to Fixed, and add a comment: \"Resolved by PR ecom/web#1432; QA passed on build 4.12.0; ready for production rollout on 2025-08-23.\""
+    ]
+  },
+  {
+    "tool_name": "jira_create_sprint",
+    "synthetic_tasks": [
+      "Create a Jira sprint on board 13857 named \u201c2025-Q3 Sprint 4: Checkout Revamp\u201d starting 2025-09-01T09:00:00Z and ending 2025-09-12T17:00:00Z, with the goal to stabilize the new checkout microservice in production, resolve PROD-1123 and PROD-1189, and deliver the MVP for the payment retry flow.",
+      "Create a Jira sprint called Sprint 37: Checkout Stability on board 11892 starting 2025-08-26T09:00:00Z and ending 2025-09-09T17:00:00Z. Set the goal to resolve P1 checkout bugs, complete PAY-1423 and PAY-1507, and raise purchase success rate to at least 98%."
+    ]
+  },
+  {
+    "tool_name": "jira_update_sprint",
+    "synthetic_tasks": [
+      "Update Jira sprint 10894: rename it to \"Onboarding UX Improvements - Sprint 3,\" set state to active, set the start date to 2025-09-09T09:00:00-0700 and end date to 2025-09-23T17:00:00-0700, and update the goal to \"Ship redesigned signup funnel, reduce step 2 drop-off by 15%, and complete A/B test EXP-221.\"",
+      "Please update Jira sprint ID 32847: rename it to \"Checkout Revamp \u2014 Sprint 24 (Q3 2025)\", set the state to active, set the start date to 2025-09-02T09:00:00Z and the end date to 2025-09-16T18:00:00Z, and set the goal to \"Finalize 3DS 2.2 support, cut cart abandonment by 10%, and deliver fixes for PAY-981 and PAY-1042.\""
+    ]
+  },
+  {
+    "tool_name": "jira_get_project_versions",
+    "synthetic_tasks": [
+      "Please fetch all fix versions for the CART Jira project; I need the full list to verify which versions are released versus unreleased before we schedule the 2.3.0 checkout hotfix.",
+      "Please pull every fix version for the Jira project with key CHECKOUT; I\u2019m compiling the release notes for the November v3.12 rollout and need both released and unreleased versions."
+    ]
+  },
+  {
+    "tool_name": "confluence_search",
+    "synthetic_tasks": [
+      "Search Confluence for pages titled like \u201cPCI DSS 4.0 Readiness*\u201d that contain the exact phrase \u201cCompensating Controls,\u201d have both labels \u201ccompliance\u201d and \u201cq2-2025,\u201d and were created on or after 2025-03-01, limited to the SEC and GRC spaces; return the top 15 results.",
+      "Search Confluence for go-live checklists for Orion v2.3 by running the CQL type = page AND label = \"release-readiness\" AND title ~ \"Orion v2.3\" AND created >= \"2025-06-01\", and return up to 25 results only from the ENG, QA, and PMO spaces."
+    ]
+  },
+  {
+    "tool_name": "confluence_get_page",
+    "synthetic_tasks": [
+      "Grab the Confluence page titled \u201cRunbook: Kafka Broker Failover (Prod Cluster)\u201d in the DEVOPS space, include its metadata (version, last updated, labels), and return the content as raw HTML instead of markdown so I can see the status and panel macros intact.",
+      "Please fetch the Confluence page titled \"Release Notes - v3.12.0 (July 2025)\" in the ENG space, include the full metadata (created/updated, version, labels), and return the content as raw HTML instead of markdown."
+    ]
+  },
+  {
+    "tool_name": "confluence_get_page_children",
+    "synthetic_tasks": [
+      "Fetch the first 50 child pages under the 'FY25 Platform Migration' Confluence parent page (ID 847362910), expanding version and body.storage, and include each page\u2019s content converted to markdown, starting at index 0.",
+      "Please fetch up to 50 child pages under the Confluence page \u201cPlatform Architecture\u201d (ID 87234916), include each page\u2019s content converted to Markdown, expand version and body.storage, and start from index 0 so I can export the whole section."
+    ]
+  },
+  {
+    "tool_name": "confluence_get_comments",
+    "synthetic_tasks": [
+      "Pull all comments for Confluence page ID 145067329 (Q4 Roadmap \u2013 Engineering) so I can review stakeholder feedback before tomorrow\u2019s 10:00 AM planning sync.",
+      "Pull all comments for the Confluence page \"Postmortem: API latency spike on 2025\u201107\u201114\" (page ID 983452107) so I can review the discussion before we finalize the RCA."
+    ]
+  },
+  {
+    "tool_name": "confluence_get_labels",
+    "synthetic_tasks": [
+      "Please list all labels for Confluence page ID 1428370196; it's the \"Incident Postmortem - API Timeouts on 2025-07-14\" in the SRE space, and I need to confirm whether it has the 'sev-1', 'postmortem', and 'api' labels before closing the incident.",
+      "Please list all labels applied to our Confluence page \u201cCheckout Service Runbook\u201d at https://calypso-tech.atlassian.net/wiki/spaces/SRE/pages/213847659/Checkout+Service+Runbook; I\u2019m auditing tags across the SRE docs."
+    ]
+  },
+  {
+    "tool_name": "confluence_add_label",
+    "synthetic_tasks": [
+      "Please add the label \"security-review-pending\" to the Confluence page with ID 1083746295 (SSO rollout playbook) so it shows up in our compliance dashboard.",
+      "Please add the label \"prod-critical\" to the Confluence page \"API Gateway Runbook\" (page ID 872341905) so it shows up in our on-call dashboards."
+    ]
+  },
+  {
+    "tool_name": "confluence_create_page",
+    "synthetic_tasks": [
+      "Create a new Confluence page in the PAY space titled \u201cRFC-018: Zero-Downtime Blue-Green Deployments for Payments API\u201d as a child of parent page ID 273849102, and use the following Markdown as the page content:\n\n# RFC-018: Zero-Downtime Blue-Green Deployments for Payments API\n- Status: Proposed\n- Authors: Lina Ortiz (@lortiz), Vikram Rao (@vrao)\n- Reviewers: SRE Guild, Payments Backend Team\n- Created: 2025-08-22\n- Version: 1.0\n\n## Context\nOur Payments API currently incurs 2\u20133 minutes of partial downtime during production deploys due to sequential rollouts and connection draining. This impacts checkout conversion rates and increases support tickets during maintenance windows. We need a blue-green strategy to enable rapid rollback, canary traffic shifting, and SLI-based gates.\n\n## Goals\n- Achieve zero-downtime deployments for the payments-service in prod.\n- Enable fast rollback within <60s by switching traffic.\n- Gate traffic shifts on error rate, p99 latency, and saturation metrics.\n- Support backward-compatible DB migrations (expand/contract pattern).\n\n## Non-Goals\n- Cluster upgrades or node pool rearchitecture.\n- Rewriting the deployment pipeline for non-Payments services.\n\n## Proposed Approach\nWe will maintain two identical deployments (blue and green) behind a shared VirtualService/ALB listener, shifting traffic gradually using weighted routing:\n- Green is provisioned with the new version and passes readiness checks.\n- Traffic is shifted in stages (e.g., 0% \u2192 10% \u2192 25% \u2192 50% \u2192 100%) gated by SLIs.\n- Rollback is a weight flip back to the previously stable color.\n\n### Routing Options\n- Istio VirtualService weighted routes (preferred in GKE).\n- AWS ALB Target Groups with weighted target groups (if using EKS without Istio).\n\n## Rollout Plan\n1. Deploy green to prod with 0% traffic.\n2. Run smoke tests and contract tests against green.\n3. Shift 10% traffic; monitor SLIs for 10 minutes.\n4. Shift to 50%; monitor for 15 minutes.\n5. Shift to 100%; decommission blue after 24 hours.\n6. If SLIs breach thresholds at any step, revert to previous weight.\n\n## SLI/SLO Gating\n- Error rate (5xx): <0.2% over 5m\n- p99 latency: <500ms over 5m\n- Saturation: CPU <75%, memory <80%\n- Payment auth success rate: no statistically significant drop vs baseline\n\n## Database Migration Strategy\n- Expand: additive changes first (new columns, nullable fields, dual writes if needed).\n- Code deploy with reads/writes compatible with both schemas.\n- Contract: remove deprecated columns only after a successful full-green window.\n\n## Risk Assessment and Mitigations\n- Sticky sessions/session affinity: ensure idempotent payment operations and shared Redis session store.\n- Background workers: pin workers to the stable color until final cutover.\n- Cache warming: pre-warm critical caches (currency rates, BIN metadata) on green before shifting traffic.\n- Rate limiting: maintain consistent token buckets across colors to avoid uneven throttling.\n\n## Owner Matrix and Exit Criteria\n\n| Phase | Env  | Traffic | Owner          | Exit Criteria                              |\n|------:|------|---------|----------------|--------------------------------------------|\n| 1     | Stg  | 100%    | Payments Eng   | All smoke + contract tests pass            |\n| 2     | Prod | 0%      | SRE on-call    | Green healthy, no crash loops              |\n| 3     | Prod | 10%     | SRE + Eng      | SLIs within thresholds for 10 minutes      |\n| 4     | Prod | 50%     | SRE + Eng      | SLIs within thresholds for 15 minutes      |\n| 5     | Prod | 100%    | SRE            | No incidents for 24 hours; error budget ok |\n\n## Example: GitHub Actions Snippet\n```yaml\nname: deploy-payments-blue-green\non:\n  workflow_dispatch:\n  push:\n    branches: [ \"main\" ]\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - name: Deploy green\n        run: ./scripts/deploy.sh --service=payments --env=prod --color=green\n      - name: Shift 10% traffic\n        run: ./scripts/shift_traffic.sh --env=prod --green-weight=10\n      - name: Gate on SLIs\n        run: ./scripts/check_sli.sh --env=prod --window=10m --error-threshold=0.2 --p99-threshold-ms=500\n      - name: Shift to 50%\n        if: success()\n        run: ./scripts/shift_traffic.sh --env=prod --green-weight=50\n      - name: Finalize 100%\n        if: success()\n        run: ./scripts/shift_traffic.sh --env=prod --green-weight=100\n```\n\n## Observability and Alerts\n- Add Grafana dashboard: payments-blue-green-overview.\n- Alerting: PagerDuty policy PD-PAY-DEPLOY with 5m burn-rate alerts at 2x/5x for error rate.\n\n## Rollback Procedure\n- Immediate: flip weights back to last known-good color and pause pipeline.\n- Post-incident: capture timeline, attach logs and SLI graphs, open incident postmortem (INC-7832).\n\n## Dependencies\n- Istio >= 1.21 in prod.\n- Helm chart v4.6.2 for payments-service.\n- Feature flag service (Flagger) for progressive rollouts (optional).\n\n## Open Questions\n- Do we need database read replicas per color?\n- Should we pin webhook callbacks to a single color during cutover?\n\n## References\n- Architecture Overview: DOC-1123\n- Jira: PAY-1245, INFRA-782\n- Runbooks: RBK-DEPLOY-07",
+      "In the ENG space, create a new Confluence page titled \"On-call Runbook: Payments Service (Prod)\" under parent page ID 7264183 with the following Markdown content: \n# On-call Runbook: Payments Service (Prod)\nLast updated: 2025-08-22 by J. Morales (@jmorales)\n\n## Overview\nThe Payments Service handles credit card authorizations and captures for acme.com. Primary dependencies: Stripe, Kafka topic payments.events.v2, Redis cache payments-rate-limit, and Postgres cluster pg-payments-prod.\n\n## Quick Links\n- Grafana (latency/5xx dashboards): https://grafana.acme.internal/d/8f4f12/payments-prod-latency\n- Kibana (logs): https://kibana.acme.internal/app/discover#payments-prod\n- PagerDuty Service: ACME Payments API (ID: P2Q9Z3) \u2014 https://acme.pagerduty.com/service-directory/P2Q9Z3\n- Feature Flags (LaunchDarkly): https://app.launchdarkly.com/acme/projects/payments/production\n- Runbook Chat: #oncall-payments\n\n## SLOs\n- Availability: 99.95%\n- Latency: p95 < 250ms, p99 < 500ms\n- Error rate: < 0.2% 5xx\n\n## Triage Checklist\n1. Acknowledge the PD alert; post an update in #oncall-payments with the incident link.\n2. Verify impact in Grafana (latency, error rate) vs. last 1h baseline.\n3. Check recent deploys in ArgoCD and feature flag changes within the last 30m.\n4. If customer impact > 5 minutes, page Secondary and EM; open Zoom bridge.\n\n## Common Incidents\n\n### Elevated 5xx from API Gateway\n- Likely causes: Postgres failover, Stripe outage, or bad deploy.\n- Actions:\n  - Check upstream errors in Kibana (query: service:payments-api AND status:[500 TO 599]).\n  - If deploy-related, rollback via ArgoCD app payments-api-prod to previous healthy revision.\n  - If Stripe degraded, enable circuit breaker: flag.payments.stripe.soft_fail=true.\n\n### Increased p99 latency\n- Actions:\n  - Verify Redis hit rate in panel \"Redis cache hit rate (payments)\".\n  - Scale API replicas from 6 to 12 and consumers from 4 to 8.\n\n### Kafka consumer lag on payments.events.v2\n- Actions:\n  - Inspect lag and consumer group status; ensure consumers are Healthy after scale-up.\n\n## Commands\n```bash\n# Kubernetes (prod)\nkubectl -n payments-prod get pods -l app=payments-api\nkubectl -n payments-prod rollout status deploy/payments-api\nkubectl -n payments-prod logs deploy/payments-api --since=15m | grep -i \"error\"\n\n# Scale\nkubectl -n payments-prod scale deploy/payments-api --replicas=12\nkubectl -n payments-prod scale deploy/payments-consumer --replicas=8\n\n# Kafka lag (Strimzi)\nkafka-consumer-groups.sh --bootstrap-server kafka-prod-1.acme.internal:9092 --group payments-consumer-prod --describe | grep payments.events.v2\n```\n\n## Escalation\n- Secondary: Platform On-Call (PD schedule: PLAT-Primary)\n- EM: Aisha Rahman (+1-415-555-0128)\n- DB On-Call: #db-oncall (PD schedule: DB-Primary)\n\n## Post-Incident\n- Create Jira: PAY-INCIDENT using the incident template.\n- Add timeline and root cause in child page \"Incident Writeups\".\n- Schedule a 24h follow-up review.\n\n## Changelog\n- 2025-08-22: Added Kafka lag commands (J. Morales)\n- 2025-07-30: Updated SLO thresholds (K. Tan)"
+    ]
+  },
+  {
+    "tool_name": "confluence_update_page",
+    "synthetic_tasks": [
+      "Update the Confluence page ID 742915384 by changing the title to \u201cAPI Platform On\u2011Call Runbook (v2.3 \u2014 Aug 2025)\u201d, replacing its content with the Markdown below, marking this as not a minor edit with the version comment \u201cRevamped escalation matrix, updated PagerDuty rotations, and clarified rate\u2011limit playbook\u201d, and moving it under parent page ID 31782901: \n# API Platform On\u2011Call Runbook (v2.3 \u2014 Aug 2025)\nLast updated: 2025-08-22 by J. Patel (@jpatel)\n\n## Scope\n- Services: gateway-api, auth-service, billing-edge\n- Regions: us-east-1, eu-west-1\n\n## Escalation Matrix\n1. Severity 1: page \u201cAPI Platform Primary\u201d in PagerDuty; if no ack in 5 min, auto-escalate to \u201cAPI Duty Manager\u201d.\n2. Severity 2: notify #api-oncall Slack channel and create JIRA incident ticket in INC project.\n3. Severity 3: create JIRA bug linked to service component and leave Slack summary.\n\nContacts: Duty Manager +1-415-555-0198; SRE Lead mlee@acmecorp.com.\n\n## Runbooks\n- Rate limiting spikes: check Datadog dashboard API/RateLimits; temporarily raise burst_limit in configmap api-gateway-config (max 2000 rps) and open follow-up PROJ-2841.\n- Auth failures: verify Okta status; roll back to image auth-service:3.18.4 if new deploy within last hour.\n- Billing timeouts: fail open for GET /subscriptions; add circuit-breaker override for eu-west-1.\n\n## Verification\n- Confirm error budget on SLO dashboard returns to green within 15 minutes.\n- Post-mortem template: https://confluence.acmecorp.com/x/POSTMORTEM-TEMPLATE\n- Incident Slack thread permalink must be added to the ticket.\n\n## References\n- PagerDuty schedule: https://acmecorp.pagerduty.com/schedules#API-Primary\n- Dashboards: https://app.datadoghq.com/dashboard/abc-123-api-platform\n- Deploy playbook: https://runbooks.acmecorp.com/api-platform/deployments",
+      "Update Confluence page 8732451 by renaming it to \u201c2025 Product Roadmap \u2013 Draft v3,\u201d moving it under parent page 761204, and replacing its content with the following Markdown (this is not a minor edit; version comment: \u201cUpdated KPI targets and added dependency matrix\u201d): # 2025 Product Roadmap \u2013 Draft v3\n\n## Overview\nThis draft consolidates input from Product, Sales, and CS as of 2025-08-22.\n\n## Themes\n- AI-assisted workflows for SMBs\n- Cross-platform offline sync\n- Governance & compliance (SOC 2 Type II)\n\n## Timeline\n- Q1: GA for Smart Templates (PROD-1127)\n- Q2: Beta for Offline Sync (MOB-431)\n- Q3: Admin Audit Trails (SEC-209)\n- Q4: Internationalization Phase 2 (I18N-98)\n\n## KPIs\n- Net revenue retention: 112%\n- Activation within 7 days: 65%+\n\n## Dependencies\n- Infra: Kafka migration (INFRA-784)\n- Data: Feature flag cleanup (DATA-223)\n\n## Links\n- Figma: https://figma.com/file/xyz123/roadmap-2025\n- Jira filter: https://jira.acme.com/issues/?filter=3721"
+    ]
+  },
+  {
+    "tool_name": "confluence_delete_page",
+    "synthetic_tasks": [
+      "Please delete the obsolete Confluence page \u201cDeprecated: Sprint 2022 Retro \u2014 Mobile App v4.1\u201d with page ID 386742195; we\u2019ve consolidated its content into \u201cRetrospective Archive 2022\u20132023.\u201d",
+      "Please permanently delete the Confluence page with ID 872341055 titled \u201cOKR FY24 Draft \u2013 Do Not Use\u201d in the Product Ops space; it\u2019s a duplicate and should be removed."
+    ]
+  },
+  {
+    "tool_name": "confluence_add_comment",
+    "synthetic_tasks": [
+      "Please add a comment to Confluence page ID 9834721 with the following Markdown content: Hey team \u2014 I finished cleaning up the 'ETL Runbook' section for sprint PANDAS-32; remaining items: \n- [ ] Replace the screenshot in 'Setup Grafana' \n- [ ] Update the Redshift connection string (use `jdbc:redshift://prod-analytics.x123.eu-west-1.redshift.amazonaws.com:5439/warehouse`) \n- [ ] Verify that metrics align with Looker view `fact_orders_v2` \nReference: PR https://github.com/acme-data/etl/pull/842; related tickets DEVOPS-918, DS-441; cc @maria.hernandez @li.zhang.",
+      "Please add the following Markdown comment to the Confluence page with ID 872361945: Heads up \u2014 I updated the rollout plan for Payments v2.4; **Blockers:** PROJ-981 (SSO login timeout) and OPS-224 (Helm values mismatch). **Next steps:** 1) Re-run the canary in us-east-1/prod, 2) Update [Runbook v4](https://confluence.acme.local/display/OPS/Runbook+v4), 3) Post a metrics snapshot in #release-chat; for local checks run: `curl -s -H \"X-Env: staging\" https://api.acme.com/payments/health`."
+    ]
+  },
+  {
+    "tool_name": "add_comment_to_pending_review",
+    "synthetic_tasks": [
+      "Add an inline multi-line comment to my existing pending review on PR #482 in acme-corp/inventory-service for src/main/java/com/acme/inventory/BatchProcessor.java, from line 210 to line 227 on the new (RIGHT) side, saying: \u201cThis loop mutates shared state (pendingBatches) without synchronization and swallows InterruptedException; consider using a ConcurrentHashMap or collecting changes into an immutable snapshot and applying them after the iteration, and either restore the interrupt flag or propagate the error. Also, the retry block isn\u2019t idempotent\u2014on partial failures we may double-apply updates\u2014can we key by batchId and de-dupe, and add a unit test covering the retry path?\u201d",
+      "Add this to my pending review on acme-corp/payments-service PR #214: on src/main/java/com/acme/payments/ledger/TransactionProcessor.java, comment on the new code lines 112\u2013126 (RIGHT side) saying, \u201cPlease switch amount arithmetic to BigDecimal to avoid precision errors, and extract validateSufficientFunds into a separate component; also add unit tests for zero-amount and overdraft scenarios.\u201d"
+    ]
+  },
+  {
+    "tool_name": "add_issue_comment",
+    "synthetic_tasks": [
+      "Add the following comment to issue #742 in the dataforge-labs/analytics-dashboard repo: \"Tested PR #915 on commit 8f3a2c1 (Ubuntu 22.04, Node 18.19.1, Chrome 126): the CSV export NPE is fixed, but PNG export still yields a 0-byte file when the range is >30 days; logs and HAR here: https://gist.github.com/m-lanford/3d2f9b1a8d384a1da8eec7d2a9a5c7d2 \u2014 @sophia-chen can you take a look before we close this?\"",
+      "Add a comment to issue #418 in bytecraft-io/kestrel-gateway saying: Update: we traced the memory leak to improper stream disposal in HttpProxy; PR #612 (commit 9f3a2c1) fixes it and staging (EKS us-west-2, build 2025.08.21.2) stabilized after a 24h soak with RSS dropping from ~2.1GB to ~820MB and p95 latency improving by ~12%. If CI stays green, please approve and cut v1.8.3; cc @devon-park @ops-nina."
+    ]
+  },
+  {
+    "tool_name": "add_sub_issue",
+    "synthetic_tasks": [
+      "In the acme-corp/payments-service repo, add sub-issue ID 928374662 under issue #3127, and replace its current parent if it already has one.",
+      "Add the sub-issue with ID 2315879042 to parent issue #912 in the atlas-ai/platform repository (owner: atlas-ai), and replace its current parent if it already has one."
+    ]
+  },
+  {
+    "tool_name": "assign_copilot_to_issue",
+    "synthetic_tasks": [
+      "Assign Copilot to issue #2197 in the maple-robotics/firmware-controller repository to tackle \u201cDebounce encoder inputs and fix interrupt storm on STM32F4 boards,\u201d and aim for a PR that implements the fix with unit tests and a changelog entry by Wednesday.",
+      "Assign Copilot to issue #742 in acme-inc/shop-frontend to fix the \u201cCart total shows NaN when a promo code is applied\u201d bug, and have it open a PR with regression tests covering both percentage and flat discounts across multiple currencies."
+    ]
+  },
+  {
+    "tool_name": "cancel_workflow_run",
+    "synthetic_tasks": [
+      "Cancel the GitHub Actions workflow run ID 3185276409 for red-owl-labs/inventory-service; it was triggered by an accidental v2.0.0-rc3 tag and shouldn\u2019t continue.",
+      "Cancel the GitHub Actions workflow run ID 7845203312 for the acme-inc/payments-service repository; it was triggered by an accidental push to hotfix/revert-fee-calc and we don\u2019t want it consuming build minutes."
+    ]
+  },
+  {
+    "tool_name": "create_and_submit_pull_request_review",
+    "synthetic_tasks": [
+      "Approve PR #214 in acme-corp/payments-service by submitting a review against commit 9f0c3ab8e4f10b9c1d2e3f4a5b6c7d8e9f0a1b2c with this message: All acceptance criteria for PAY-982 are met, unit and integration tests pass in CI, and the database migration is idempotent\u2014good to ship.",
+      "Submit an approval review on PR #214 in acme-corp/payments-service (commit 9f1c2d3e4b5a6c7d8e9f01a2b3c4d5e6f7a8b9c0) with the comment: \u201cLGTM \u2014 integration tests passed in CI and the PCI compliance header changes look correct; approving this for the Q3 billing rollout; please open a follow-up to drop the legacy webhook handler (BILLING-742).\u201d"
+    ]
+  },
+  {
+    "tool_name": "create_branch",
+    "synthetic_tasks": [
+      "Create a new branch named bugfix/csv-export-null-rows-1128 from release/1.12.0 in the byteforge-io/analytics-dashboard repository.",
+      "In the DataForgeHQ/kafka-connector-s3 GitHub repo, create a new branch named feature/DF-1423-sse-kms-support off the develop branch so I can start the SSE-KMS encryption work for the Q3 release."
+    ]
+  },
+  {
+    "tool_name": "create_gist",
+    "synthetic_tasks": [
+      "Create a private gist named rotate_postgres_backups.sh with the description \u201cBash script we run from cron on api-prod-01 to create gzipped pg_dump backups and prune files older than 7 days,\u201d using this content: #!/usr/bin/env bash\nset -euo pipefail\n\n# rotate_postgres_backups.sh - create compressed pg_dump and prune old backups\n# Requirements: pg_dump in PATH, $DB_URL set (e.g., postgresql://user:pass@host:5432/db)\n# Usage: KEEP_DAYS=7 BACKUP_DIR=/var/backups/postgres ./rotate_postgres_backups.sh\nKEEP_DAYS=\"${KEEP_DAYS:-7}\"\nBACKUP_DIR=\"${BACKUP_DIR:-/var/backups/postgres}\"\n\nif [[ -z \"${DB_URL:-}\" ]]; then\n  echo \"ERROR: DB_URL environment variable is not set\" >&2\n  exit 1\nfi\n\nmkdir -p \"$BACKUP_DIR\"\n\nSTAMP=\"$(date +%F-%H%M%S)\"\nOUT=\"$BACKUP_DIR/pgdump-$STAMP.sql.gz\"\n\necho \"Creating backup: $OUT\"\npg_dump \"$DB_URL\" | gzip -9 > \"$OUT\"\n\necho \"Pruning backups older than $KEEP_DAYS days in $BACKUP_DIR...\"\nfind \"$BACKUP_DIR\" -type f -name \"pgdump-*.sql.gz\" -mtime +\"$KEEP_DAYS\" -print -delete\n\necho \"Done.\"",
+      "Create a public gist with filename postgres_backfill_progress.sql, description \"SQL to monitor normalize_orders backfill progress on prod (SEV-2025-08-17)\", and the following exact content: \n-- Backfill progress monitoring for normalize_orders (ticket OPS-942), run on prod or analytics replica\n-- Usage: psql -f postgres_backfill_progress.sql\nWITH counts AS (\n  SELECT\n    SUM((migrated_at IS NULL)::int) AS pending,\n    SUM((migrated_at IS NOT NULL)::int) AS migrated\n  FROM orders\n)\nSELECT\n  pending,\n  migrated,\n  round(100.0 * migrated / nullif(pending + migrated, 0), 2) AS pct_complete\nFROM counts;\n\n-- Oldest 50 unmigrated orders (to investigate long tail)\nSELECT id, customer_id, created_at\nFROM orders\nWHERE migrated_at IS NULL\nORDER BY created_at ASC\nLIMIT 50;"
+    ]
+  },
+  {
+    "tool_name": "create_issue",
+    "synthetic_tasks": [
+      "Open a new Bug issue in acme-corp/analytics-dashboard titled \u201cIntermittent 500 on /reports when filtering by region=EMEA\u201d with issue type \u201cbug\u201d, assign it to @sarah-ng and @mike-porter, apply the labels bug, P1, and backend, set milestone 7, and use this body: \u201cSteps to reproduce: 1) Sign in as an Analyst, 2) Navigate to Reports > Sales by Region, 3) Set Region=EMEA and Date Range=Last 30 days, 4) Click Apply or Export CSV \u2014 about 1 in 5 attempts returns HTTP 500; Expected: results render/export without error; Actual: server responds 500 with traceId 9f2a7b1 and the UI shows \u2018Something went wrong\u2019; Environment: Production EU-West-1 behind CloudFront; Version: report-service v2.14.3 (commit 8f3c1d7) and frontend v5.9.0; Logs/Sentry: see Sentry issue ANALYTICS-1178 and ELK query traceId:9f2a7b1 showing NullReference in ReportQueryBuilder when region filter is combined with empty segments; Impact: blocks EMEA sales from exporting monthly reports.\u201d",
+      "Open a GitHub issue in acme-corp/checkout-service titled \u201cIntermittent 504s during payment capture on Stripe retries\u201d with a body detailing steps to reproduce (Apple Pay sandbox, 3 retry loop), expected vs actual behavior, production logs (request_id f8b9c1a, charge ch_3Nz4Q9), impact (~3% of checkouts since 2025-08-19), and the related deploy v2.18.3 (commit 9b3e2a1), asking the team to review circuit breaker thresholds and retry jitter. Assign it to maria-g and yuri-s, add labels bug, priority: high, and area: payments, set milestone 27, and set the issue type to bug."
+    ]
+  },
+  {
+    "tool_name": "create_or_update_file",
+    "synthetic_tasks": [
+      "Update the file config/feature-flags.yaml in the northwind-traders/inventory-service repository on the hotfix/log4j-patch branch using blob SHA 3f2c9a5b7e4d0c1a8b6e5d4c3b2a190f0e1d2c3b and commit it with the message \"HOTFIX-221: disable legacy importer and set 100% rollout\". Replace the file contents with exactly: \n# Feature flags - inventory-service\nenableLegacyImporter: false\nenableNewScanner: true\nrolloutPercentage: 100",
+      "Update the file config/tiers/prod.json in the lumos-labs/pricing-service repo on the release/2025.08 branch using SHA 5f3a2c1d9b8e76a4c2d1e0f9a8b7c6d5e4f3a2b1, replacing its contents with this exact JSON: {\"tiers\":[{\"name\":\"free\",\"monthly_price\":0,\"limits\":{\"projects\":1,\"seats\":1},\"overage\":{\"seats\":0}},{\"name\":\"startup\",\"monthly_price\":29,\"limits\":{\"projects\":5,\"seats\":5},\"overage\":{\"seats\":7}},{\"name\":\"startup_plus\",\"monthly_price\":59,\"limits\":{\"projects\":10,\"seats\":10},\"overage\":{\"seats\":9}},{\"name\":\"growth\",\"monthly_price\":199,\"limits\":{\"projects\":50,\"seats\":50},\"overage\":{\"seats\":12}}],\"currency\":\"USD\",\"effective_date\":\"2025-09-01\"}, and commit with the message \"PROD-2124: add startup_plus tier and bump overage rates\"."
+    ]
+  },
+  {
+    "tool_name": "create_pending_pull_request_review",
+    "synthetic_tasks": [
+      "Create a pending review for pull request #1843 in acme-corp/inventory-service, using commit 9f3a12c7e6b4c8a0d1f22c99b07c2d5f8b1e6a42, so I can add inline comments and submit it later.",
+      "Create a pending review for pull request #742 in vectorlytics/payments-gateway using commit 6f2c9b1e4a7d54b3c2d1e8f9a0b3c4d5e6f7a8b9. I want to add some inline comments before submitting the review."
+    ]
+  },
+  {
+    "tool_name": "create_pull_request",
+    "synthetic_tasks": [
+      "Open a draft pull request in sproutfin/merchant-portal merging feature/okta-sso-auth into develop, titled SPR-1724: Add Okta SSO for merchant login, and allow maintainers to edit. Use a description that covers the new /auth/okta and /auth/okta/callback routes, updates to AuthService and middleware, required env vars OKTA_ISSUER, OKTA_CLIENT_ID, OKTA_CLIENT_SECRET, added JWT validation tests, a migration note for the sessions table, that it closes issue #482, and steps to verify on staging.",
+      "Create a draft pull request in blueoak-analytics/pos-terminal titled \u201cfeat: migrate pricing engine to v2 (OPS-421)\u201d from feature/pricing-v2-OPS-421 into develop and allow maintainers to edit. Use this description: Implements the new rules-based pricing engine (v2), adds stackable discounts and region-aware tax rounding, introduces DB migration 2025-08-20-042_pricing_rules.sql, updates POS UI for promo previews, includes unit/integration tests and rollback steps; gated behind feature flag PRICING_V2; closes OPS-421 and OPS-437; please verify receipt rendering performance and run the 'pos-e2e-nightly' workflow before approval."
+    ]
+  },
+  {
+    "tool_name": "create_repository",
+    "synthetic_tasks": [
+      "Create a new private GitHub repository named terraform-aws-cost-optimizer, initialize it with a README, and set the description to \u201cTerraform modules and Lambda functions to right-size EC2 and RDS based on CloudWatch metrics for our FinOps pilot in Q4 2025.\u201d",
+      "Please create a new private repository named q4-retention-analytics, initialize it with a README, and set the description to Airflow DAGs, dbt models, and Segment integrations for our Q4 retention cohort analysis powering Snowflake and Looker dashboards."
+    ]
+  },
+  {
+    "tool_name": "delete_file",
+    "synthetic_tasks": [
+      "Please delete config/legacy/warehouse-mapping.yaml from the northwind-labs/inventory-service repository on the cleanup/remove-legacy-config branch, and commit the change with the message \"chore(config): remove legacy warehouse mapping per OPS-1734\".",
+      "Please delete .github/workflows/legacy-circleci.yml from the acme-corp/infra-scripts repository on the main branch, and commit the change with the message \"chore: remove deprecated CircleCI workflow no longer in use (INFRA-1294)\"."
+    ]
+  },
+  {
+    "tool_name": "delete_pending_pull_request_review",
+    "synthetic_tasks": [
+      "Please delete my pending review on PR #842 in acme-corp/analytics-dashboard\u2014I decided not to submit it.",
+      "Please delete my latest pending review on pull request #214 in the pinecone-labs/web-portal repository\u2014I decided not to submit it."
+    ]
+  },
+  {
+    "tool_name": "delete_workflow_run_logs",
+    "synthetic_tasks": [
+      "Please permanently delete the GitHub Actions logs for workflow run 958374621 in the acme-corp/ops-deploy repository; we\u2019ve archived the artifacts and the retention window has passed.",
+      "In the verdant-analytics/telemetry-pipeline repository, delete the logs for GitHub Actions workflow run 9283746512 to comply with our SOC 2 log-retention policy; the run finished on 2025-07-14 and we don\u2019t need its logs anymore."
+    ]
+  },
+  {
+    "tool_name": "dismiss_notification",
+    "synthetic_tasks": [
+      "Dismiss the notification thread thrd_9e7b1c4a for \u201cPR-5123: Add SSO redirect\u201d and mark it as done.",
+      "Dismiss the \"Invoice export completed for batch 2025-08-22\" notification by marking it as done in thread notif-thread-7c1e9b24-5f8a-4d2b-93a2-0f6dea347b5a."
+    ]
+  },
+  {
+    "tool_name": "download_workflow_run_artifact",
+    "synthetic_tasks": [
+      "Give me the download URL for the GitHub Actions artifact with ID 178364205 in the acme-finance/ledger-sync repository\u2014I need to forward it to the compliance auditors.",
+      "Please fetch the download URL for GitHub Actions artifact ID 9273665 from the Hawthorne-Systems/ingest-pipeline repository; it\u2019s the e2e-test-reports bundle from last night\u2019s run."
+    ]
+  },
+  {
+    "tool_name": "fork_repository",
+    "synthetic_tasks": [
+      "Please fork the GitHub repository facebook/react into the northwind-labs organization so our frontend team can trial a Suspense-based routing spike without touching upstream.",
+      "Fork the repository temporalio/samples-typescript to our GitHub organization aurora-fintech so the payments team can experiment with retry policies without affecting upstream."
+    ]
+  },
+  {
+    "tool_name": "get_code_scanning_alert",
+    "synthetic_tasks": [
+      "Fetch the full details for code scanning alert 2179 in the northwind-io/checkout-service repository; I need to verify its current status, severity, rule ID, and the file and commit it flagged.",
+      "Show me the full details for code scanning alert #742 in the helix-payments/risk-engine repository; I need the rule, severity, and exact file path it flagged to decide whether to suppress or fix it."
+    ]
+  },
+  {
+    "tool_name": "get_commit",
+    "synthetic_tasks": [
+      "Get me the full details for commit 3e2f9c7a1b4d8e0f6a3c1d2e5f7a9b0c1d2e3f45 in the octomachinery/data-pipeline GitHub repo; if the files list is paginated, use page 1 with 100 results per page, as I need to verify exactly what changed in the \u201cetl/refactor-batch-writes\u201d merge.",
+      "Please fetch the full details for commit a98f1c2b7d9e4f3ab2c57d1e6b8a9c0d4e5f6a71 from the acme-inc/storefront-web GitHub repo, including the files changed and the commit message; if the response is paginated, return page 1 with 100 items per page."
+    ]
+  },
+  {
+    "tool_name": "get_dependabot_alert",
+    "synthetic_tasks": [
+      "Show me the full details for Dependabot alert #8721 in the arcadia-retail/checkout-api repo; I need to confirm its status and the recommended fix version.",
+      "Can you pull the details for Dependabot alert #5389 in the acme-fintech/payments-gateway repository on GitHub? I want to see the affected package, severity, CVE, and current status."
+    ]
+  },
+  {
+    "tool_name": "get_discussion",
+    "synthetic_tasks": [
+      "Please fetch GitHub discussion #642 for bytebeam-labs/iot-firmware-updater; I need the accepted answer and any maintainer notes before we approve the OTA rollout.",
+      "Please pull up GitHub discussion #52123 from the vercel/next.js repository; I need to review the latest comments on the \u201capp router data fetching caches too aggressively\u201d thread."
+    ]
+  },
+  {
+    "tool_name": "get_discussion_comments",
+    "synthetic_tasks": [
+      "Fetch the next page of comments for discussion #482 in the moss-cms/content-service repository, starting after cursor 'Y3Vyc29yOnYyOpHOAGNvbnQ6NDgyLWNt', and limit the results to 75 comments.",
+      "Fetch the next page of comments for discussion #128 (\u201cPayment retries backoff policy\u201d) in the acme-corp/checkout-service repository (owner acme-corp), starting after the cursor 'Y3Vyc29yOnYyOpHMAAABc2N1cnNvcjoxMjg6Y29tbWVudDo5ODc2NQ==' and limiting the results to 50 per page."
+    ]
+  },
+  {
+    "tool_name": "get_file_contents",
+    "synthetic_tasks": [
+      "In the GitHub repo glacier-systems/ledger-service, fetch the contents of the migrations/2024-08-31-q3-close/ directory from the release/q3-close-2024 branch so I can review the migration scripts.",
+      "Show me the contents of config/overrides/prod.json in the northwind-traders/order-processing-api repo at the PR #317 head so I can verify the new rate limits before merging."
+    ]
+  },
+  {
+    "tool_name": "get_issue",
+    "synthetic_tasks": [
+      "Show me the full details for GitHub issue #1024 in northwind-tech/analytics-dashboard, including its current state, labels, assignees, and when it was last updated.",
+      "Before I finalize the React 18.3.1 release notes, pull up the details for GitHub issue #27452 in the facebook/react repository so I can review its current status, assignees, and labels."
+    ]
+  },
+  {
+    "tool_name": "get_issue_comments",
+    "synthetic_tasks": [
+      "Fetch all comments on issue #60428 in the vercel/next.js repository, starting from page 2 with 50 results per page.",
+      "Please fetch the comments for issue #28520 in the facebook/react repository, with 100 results per page starting at page 1, so I can review the latest discussion."
+    ]
+  },
+  {
+    "tool_name": "get_job_logs",
+    "synthetic_tasks": [
+      "Pull the logs for all failed jobs from GitHub Actions run 74261839 in acme-corp/payments-service and return the raw log content (not URLs), capped at the last 1200 lines per job.",
+      "From the acme-fintech/ledger-api repository, fetch the logs for all failed jobs in workflow run 2658831199, return the content here instead of URLs, and limit it to the last 1500 lines per log."
+    ]
+  },
+  {
+    "tool_name": "get_latest_release",
+    "synthetic_tasks": [
+      "Grab the latest GitHub release for hashicorp/terraform and tell me its tag and publish date so I can update the version pin in our CI pipeline.",
+      "What\u2019s the latest release for hashicorp/terraform on GitHub right now\u2014please give me the version tag and release name so I can update the pinned Terraform version in our platform-infra pipelines."
+    ]
+  },
+  {
+    "tool_name": "get_me",
+    "synthetic_tasks": [
+      "Fetch my GitHub account info and let me know my username, full name, primary email, bio, plan name, counts of public and private repos, and whether 2FA is enabled; I updated my bio to \u201cBuilding data tools at Northstar Labs\u201d and set my location to \u201cBrooklyn, NY\u201d yesterday\u2014please confirm those changes and give me my profile URL.",
+      "Please fetch my current GitHub profile details (username, full name, bio, company, blog URL, location, public email, number of public repos, followers, and following) so I can update our NimbusOps engineering directory after I changed my bio to mention the warp-sync deployment pipeline."
+    ]
+  },
+  {
+    "tool_name": "get_notification_details",
+    "synthetic_tasks": [
+      "Show me the full details for GitHub notification 905431276\u2014the one tied to PR #1287 \u201cfix: handle 429 retries in webhook client\u201d in acme-inc/platform-api\u2014including the reason it was sent, the subject info, and whether it\u2019s still unread.",
+      "Please fetch the full details for GitHub notification ID 2158397465; it's the one about the \"Fix flaky cron schedule parsing\" PR in acme-corp/scheduler, and I need to know why I was notified and whether it's still unread."
+    ]
+  },
+  {
+    "tool_name": "get_pull_request",
+    "synthetic_tasks": [
+      "Get me the details for pull request #742 in acme-fintech/payments-gateway, including its current state, mergeability, CI check results, assigned reviewers, and any linked issues.",
+      "Fetch the full details for pull request #1289 in the nimbusworks/billing-service GitHub repository; I need to check its current status, CI checks, labels, and assigned reviewers before approving."
+    ]
+  },
+  {
+    "tool_name": "get_pull_request_comments",
+    "synthetic_tasks": [
+      "Please fetch all comments for PR #587 in verdant-analytics/orchid-frontend so I can review the discussion before merging.",
+      "Show me all comments on pull request #214 in the sparrow-finance/payments-api repository so I can review the latest feedback before merging."
+    ]
+  },
+  {
+    "tool_name": "get_pull_request_diff",
+    "synthetic_tasks": [
+      "Show me the full diff for pull request #418 in the lumos-analytics/api-gateway repository so I can review the rate-limiter and auth middleware changes before tagging v2.3.0.",
+      "Show me the full diff for pull request #219 on quartzfin/ledger-service; I need to see exactly what changed in the transaction reconciliation and VAT rounding logic before sign-off."
+    ]
+  },
+  {
+    "tool_name": "get_pull_request_files",
+    "synthetic_tasks": [
+      "Show me the files changed in PR #2179 (refactor Kafka consumer backoff) for the atlas-analytics/event-ingestion repository, page 2 with 75 results per page; I want to confirm which modules were touched before I leave a review.",
+      "Show me the files changed in pull request #842 for gryphon-analytics/data-pipeline; it\u2019s a large diff, so fetch page 2 with 100 results per page."
+    ]
+  },
+  {
+    "tool_name": "get_pull_request_reviews",
+    "synthetic_tasks": [
+      "Fetch the full set of reviews for pull request #612 in the fintech-devs/api-gateway repository so I can see who approved, who requested changes, and the latest review comments before we merge.",
+      "Fetch the reviews for PR #1372 in the northwind-labs/warehouse-service repo\u2014I need to see who approved, who requested changes, and the timestamps on each review."
+    ]
+  },
+  {
+    "tool_name": "get_pull_request_status",
+    "synthetic_tasks": [
+      "Can you tell me the current status of PR #2134 in dataflow-labs/etl-pipelines? It\u2019s the 'feat/gcs-to-bq-streaming' change QA needs for the August sprint cut.",
+      "What's the current status of pull request #1289 in pinnacle-io/checkout-service? It's the \"Refactor tax calculation to support EU VAT\" PR and we need to know if it's mergeable for the 2025.8 release."
+    ]
+  },
+  {
+    "tool_name": "get_secret_scanning_alert",
+    "synthetic_tasks": [
+      "Fetch the details for secret scanning alert 8421 in the payments-api repo under the northloop-tech organization. I need to see its state, resolution, and file locations to confirm whether a Slack webhook URL was committed.",
+      "Fetch the full details for secret scanning alert 6284 in the acme-fintech/ledger-api GitHub repo, including the current status and the affected file path."
+    ]
+  },
+  {
+    "tool_name": "get_tag",
+    "synthetic_tasks": [
+      "Please retrieve the tag object details for v0.9.3-beta.2 from the nimbus-analytics/warehouse-sync GitHub repository, including the tagger info, message, and the commit SHA it references.",
+      "Get me the full details for the v1.9.2 tag in hashicorp/terraform on GitHub\u2014commit SHA, annotated message, and who tagged it\u2014so I can verify what shipped in that patch."
+    ]
+  },
+  {
+    "tool_name": "get_team_members",
+    "synthetic_tasks": [
+      "Give me the GitHub usernames of everyone in the platform-sre team for the neptune-systems organization; I\u2019m updating the CODEOWNERS for our infra repo.",
+      "List all GitHub usernames of members in the 'release-engineering' team within the 'hikari-payments' organization so I can reconcile our CODEOWNERS entries."
+    ]
+  },
+  {
+    "tool_name": "get_teams",
+    "synthetic_tasks": [
+      "For the Q3 compliance audit, retrieve the full list of teams that the user grace.chen is a member of across any organizations my account can access, and let me confirm whether she\u2019s still in the platform-eng and data-stewards teams under the Northwind Labs org.",
+      "Pull the list of all teams that sarah.chan belongs to across any organizations my current credentials can access, including team names and slugs, so I can verify her permissions for the retail-analytics initiative."
+    ]
+  },
+  {
+    "tool_name": "get_workflow_run",
+    "synthetic_tasks": [
+      "Grab the details for GitHub Actions workflow run 8412735096 in the horizon-analytics/forecasting-api repo\u2014I want to see its status, conclusion, and which commit and actor triggered it.",
+      "Please fetch the details for GitHub Actions workflow run 8132079456 in the vector-labs/payments-service repository so I can review its conclusion, timings, and artifacts from last night\u2019s deploy-prod release off tag v5.7.1 after the canary rollback."
+    ]
+  },
+  {
+    "tool_name": "get_workflow_run_logs",
+    "synthetic_tasks": [
+      "Download the complete GitHub Actions logs as a ZIP for workflow run 9138472012 in oakbyte/checkout-service; I need the archive to attach to the RCA for last night's release rollback.",
+      "Please download the complete zipped logs for GitHub Actions workflow run 10837466521 from the acme-corp/inventory-service repository; I need the full archive for our postmortem on last night\u2019s deployment."
+    ]
+  },
+  {
+    "tool_name": "get_workflow_run_usage",
+    "synthetic_tasks": [
+      "Please pull the usage metrics for the GitHub Actions workflow run 8743921103 in the blueoak-analytics/payments-gateway repository; I need the billable minutes and OS breakdown to investigate last night\u2019s spike during the staging deploy.",
+      "Please fetch the GitHub Actions usage metrics (billable minutes by OS and per job) for workflow run ID 3735718541 on the nova-payments/risk-scoring-service repository; I\u2019m reconciling last night\u2019s CI spend."
+    ]
+  },
+  {
+    "tool_name": "list_branches",
+    "synthetic_tasks": [
+      "Please list all branches for orbitware-labs/fleet-manager and return page 2 with 50 results per page\u2014I\u2019m checking which feature branches are still active ahead of the 2.3.0 release.",
+      "List the branches in the GitHub repo glacier-labs/telemetry-pipeline, but show me page 2 with 50 results per page\u2014I\u2019m checking whether a release/2025.08 branch exists."
+    ]
+  },
+  {
+    "tool_name": "list_code_scanning_alerts",
+    "synthetic_tasks": [
+      "Show me all open critical code scanning alerts for the orion-labs/checkout-api repository on the release/2025.08 branch, limited to findings from CodeQL.",
+      "In the spryte-analytics/mlops-orchestrator repository, list all open CodeQL code scanning alerts with high severity on the release/2025.08-rc1 branch."
+    ]
+  },
+  {
+    "tool_name": "list_commits",
+    "synthetic_tasks": [
+      "Show me the commits for acme-corp/payment-gateway on the release/2025-08-15 branch, filtered to author luis.cervantes@acme.dev, with 100 results per page on page 2.",
+      "List the commits for acme-corp/data-pipeline on the release/2.3.0 branch, filtered to author maria.hernandez@acme.com, 100 per page, and show me page 2."
+    ]
+  },
+  {
+    "tool_name": "list_dependabot_alerts",
+    "synthetic_tasks": [
+      "Show me all fixed high-severity Dependabot alerts for the acme-inc/payments-gateway repository so I can review what got resolved after last week\u2019s dependency upgrades.",
+      "Show me all open critical-severity Dependabot alerts for acme-corp/retail-frontend so I can prioritize them before we tag v2.4.0."
+    ]
+  },
+  {
+    "tool_name": "list_discussion_categories",
+    "synthetic_tasks": [
+      "Please list all GitHub Discussions categories (with their IDs) for the northstar-tech/cloud-infra repo; I need them to configure our triage bot\u2019s routing rules.",
+      "Please list all GitHub discussion categories with their IDs and names for the nebula-labs/platform-roadmap repository; I need them to map our Slack bot\u2019s category routing."
+    ]
+  },
+  {
+    "tool_name": "list_discussions",
+    "synthetic_tasks": [
+      "Pull the next page of up to 50 discussions for datafoundry-inc/analytics-dashboard, limited to category ID DIC_kwDOA3m5fs4CazlT, sorted by most recently updated (DESC), starting after cursor Y3Vyc29yOnYyOpHOAA==.",
+      "List the next 50 discussions for starlight-analytics/etl-pipeline in category ID DIC_kwDOBFJ9zc4CAeR1, sorted by updated time descending, using the cursor Y3Vyc29yOnYyOpHOA0xLZw==."
+    ]
+  },
+  {
+    "tool_name": "list_gists",
+    "synthetic_tasks": [
+      "Show me page 2 of GitHub user sindresorhus\u2019s gists updated since 2025-06-01T00:00:00Z, with 50 results per page, so I can scan his recent utility snippets for our CLI tooling review.",
+      "Show me sarahcodes-nyc\u2019s GitHub gists updated after 2025-06-15T00:00:00Z, and paginate the results to page 2 with 30 per page."
+    ]
+  },
+  {
+    "tool_name": "list_issue_types",
+    "synthetic_tasks": [
+      "We\u2019re standardizing our issue templates across repos\u2014can you list all supported issue types for the GitHub organization solstice-analytics so I can map them to our Jira workflow?",
+      "Can you list all supported issue types for the GitHub organization hummingbird-analytics? We\u2019re standardizing issue templates across all repos and need to know exactly which types (e.g., Bug, Feature, Task, Incident) are available under that owner."
+    ]
+  },
+  {
+    "tool_name": "list_issues",
+    "synthetic_tasks": [
+      "List the next 50 open issues for acme-corp/checkout-service updated since 2025-08-01T00:00:00Z, filtered to the bug and P1 labels and ordered by UPDATED_AT in DESC, continuing from cursor Y3Vyc29yOnYyOpHO0kV5MTAw.",
+      "Please list the open issues in vercel/next.js that have the \"good first issue\" and \"area: routing\" labels, updated since 2025-07-15T00:00:00Z, sorted by most recently updated, show 50 per page, and continue from cursor Y3Vyc29yOnYyOpHOZnVubnk6cGFnZToxMjM0NQ==."
+    ]
+  },
+  {
+    "tool_name": "list_notifications",
+    "synthetic_tasks": [
+      "What should I work on next in acme-corp/web-portal? List my participating GitHub notifications updated since 2025-08-19T00:00:00Z, 50 per page starting on page 1, so I can see pending reviews, mentions, or assignments.",
+      "I just got back online\u2014what should I work on next in acme-corp/payments-service? Show only notifications I'm participating in that were updated after 2025-08-21T00:00:00Z, capped at 50 results."
+    ]
+  },
+  {
+    "tool_name": "list_pull_requests",
+    "synthetic_tasks": [
+      "Show me the open pull requests in acme-corp/payment-service that target the release/2025.08 branch, sorted by last updated in descending order, with 50 results per page on page 1.",
+      "Show me the open pull requests in acme-corp/payments-service targeting the release/2025.08 base branch, sorted by most recently updated (descending), and give me page 2 with 25 results per page."
+    ]
+  },
+  {
+    "tool_name": "list_releases",
+    "synthetic_tasks": [
+      "Please list the releases for the kubernetes/kubernetes repository, showing page 3 with 100 results per page so I can review older tags around the v1.18 era.",
+      "Show me the releases for pallets/flask on GitHub\u2014use page 2 with 25 results per page\u2014I\u2019m trying to find the 2.3.x series release notes."
+    ]
+  },
+  {
+    "tool_name": "list_secret_scanning_alerts",
+    "synthetic_tasks": [
+      "Show me all resolved secret scanning alerts in the ventureforge/payments-service repo that were marked as revoked, limited to GitHub personal access tokens and Slack tokens.",
+      "Please list all resolved secret scanning alerts in the nebula-tech/nebula-api repository that were marked as revoked, limited to AWS access keys and Slack tokens, so I can verify the cleanup after the 2.3.0 release."
+    ]
+  },
+  {
+    "tool_name": "list_sub_issues",
+    "synthetic_tasks": [
+      "Pull the sub-issues under issue #1732 in the acme-corp/data-pipelines GitHub repo, and give me page 2 with 50 results per page so I can review progress on the real-time streaming rollout epic.",
+      "Please list all sub-issues for acme-corp/inventory-service issue #742 (Epic: Replace legacy ORM to v3). I need the second page of results with 50 items per page."
+    ]
+  },
+  {
+    "tool_name": "list_tags",
+    "synthetic_tasks": [
+      "Please list the git tags for the kubernetes/kubernetes repository, and return page 3 with 75 results per page so I can scan the 1.28.x series.",
+      "List the git tags for hashicorp/terraform on GitHub, with 50 results per page, and show me page 3 so I can scan versions around the v1.3.x releases."
+    ]
+  },
+  {
+    "tool_name": "list_workflow_jobs",
+    "synthetic_tasks": [
+      "On the riverbank-analytics/data-pipeline repository, list the jobs for GitHub Actions workflow run 874562119, showing only the latest completed ones, with 100 results per page on page 1.",
+      "Please list the jobs for GitHub Actions run 912345678 in the datafox-labs/warehouse-sync repository, filter to the latest completed jobs, and return page 2 with 25 results per page."
+    ]
+  },
+  {
+    "tool_name": "list_workflow_run_artifacts",
+    "synthetic_tasks": [
+      "Please list all artifacts for GitHub Actions run 2187649054 on finch-labs/ledger-service, page 1 with 50 results per page\u2014I\u2019m trying to find the database-snapshot and test-coverage ZIPs from that run.",
+      "Please list the artifacts for GitHub Actions run 6842395518 in the driftwood-labs/pricing-service repository, and show me page 2 with 50 results per page so I can confirm whether the \u201cperf-benchmark-results\u201d archive is present."
+    ]
+  },
+  {
+    "tool_name": "list_workflow_runs",
+    "synthetic_tasks": [
+      "Show me the last 50 completed runs triggered by push for the ci.yml workflow in fenwick-labs/platform-api on the release/2025.08 branch, only those created by the octo-ci user, starting at page 1.",
+      "List the workflow runs for acme-corp/mobile-app\u2019s android-ci.yml workflow that were completed and triggered by a push on the release/2.3.0 branch by carla-rojas, and show page 2 with 50 results."
+    ]
+  },
+  {
+    "tool_name": "list_workflows",
+    "synthetic_tasks": [
+      "Please list all GitHub Actions workflows for the acme-fintech/payments-api repository, and return page 2 with 50 per page so I can audit our CI before enabling required status checks.",
+      "Show me all workflows configured in the GitHub repo finch-banking/ledger-service\u2014use page 2 and 100 results per page\u2014so I can review our CI/CD setup."
+    ]
+  },
+  {
+    "tool_name": "manage_notification_subscription",
+    "synthetic_tasks": [
+      "Please set the notification subscription for thread notif-7d9a3c21-issue-2314-deployment-checklist to ignore; I\u2019m getting flooded by every checklist tweak for the v2.4 rollout.",
+      "Set the subscription for notification thread GH-NTF-902187365 to watch so I don\u2019t miss any updates on the security-patch/rollout PR #8723 discussion."
+    ]
+  },
+  {
+    "tool_name": "manage_repository_notification_subscription",
+    "synthetic_tasks": [
+      "Please set my notification subscription for the GitHub repository byteforge-labs/terraform-aws-eks-addon to ignore so I stop getting email alerts from it.",
+      "Delete my repository notification subscription for the legacy-php-api repo in the hinterland-apps organization\u2014it's archived and I no longer need alerts."
+    ]
+  },
+  {
+    "tool_name": "mark_all_notifications_read",
+    "synthetic_tasks": [
+      "Please mark all my notifications as read for the acme-inc/payments-service repository only, using 2025-08-22T14:45:00Z as the last time I checked.",
+      "Mark all my notifications as read in nimbus-tech/edge-gateway up to 2025-08-22T12:00:00Z so I only see new ones after the noon standup."
+    ]
+  },
+  {
+    "tool_name": "merge_pull_request",
+    "synthetic_tasks": [
+      "Please merge PR #742 in acme-corp/retail-portal using squash, with commit title PROJ-784: Fix session timeout across SSO and commit message Refresh tokens on idle, add 5-minute grace period, update Okta redirect URIs, and include regression tests; QA sign-off by @maria-santos.",
+      "Merge PR #872 in acme-fintech/payments-gateway using a squash merge, with the commit title 'PROD-912: Ensure idempotent capture on webhook retries' and the commit message 'CI is green; approved by @rachel-chen and @navid; fixes duplicate charges during Stripe event replays and adds concurrency regression tests.'"
+    ]
+  },
+  {
+    "tool_name": "push_files",
+    "synthetic_tasks": [
+      "Push the following four files to acme-inc/checkout-service on branch hotfix/payment-timeout in a single commit with the message \"PROD-2213: add timeout handler and CI check for payment retries\": docs/release-notes/2025-08-22-hotfix-payment-timeout.md with content \"# Hotfix: Payment Timeout\\nDate: 2025-08-22\\nIssue: PROD-2213\\nSummary: Adds timeout handling for payment gateway retries and basic CI validation.\", src/payments/timeout_handler.py with content \"import time\\nfrom typing import Optional\\n\\nDEFAULT_TIMEOUT_SECONDS = 15\\n\\ndef with_timeout(func, timeout: int = DEFAULT_TIMEOUT_SECONDS):\\n    start = time.time()\\n    result = func()\\n    elapsed = time.time() - start\\n    if elapsed > timeout:\\n        raise TimeoutError(f\\\"Operation exceeded {timeout}s (took {elapsed:.2f}s)\\\")\\n    return result\\n\\ndef retry_with_backoff(operation, retries: int = 3, base_delay: float = 0.5) -> Optional[object]:\\n    for attempt in range(1, retries + 1):\\n        try:\\n            return operation()\\n        except Exception as e:\\n            if attempt == retries:\\n                raise e\\n            time.sleep(base_delay * attempt)\\n    return None\", .github/workflows/ci.yml with content \"name: CI\\non:\\n  push:\\n    branches: [\\\"hotfix/payment-timeout\\\"]\\njobs:\\n  build:\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v4\\n      - uses: actions/setup-python@v5\\n        with:\\n          python-version: \\\"3.11\\\"\\n      - name: Lint\\n        run: |\\n          pip install ruff\\n          ruff check .\\n      - name: Unit tests\\n        run: |\\n          pip install -r requirements.txt\\n          pytest -q\", and config/timeout.yaml with content \"payment:\\n  timeout_seconds: 15\\n  max_retries: 3\\n  backoff:\\n    base_delay: 0.5\\n    jitter: true\".",
+      "Push these three new files to the oakridge-labs/growth-analytics repo on the feature/daily-email-digest branch in a single commit with the message \u201cAdd scheduled daily digest job, workflow, and config (OPS-2185)\u201d: .github/workflows/daily_digest.yml with content 'name: Daily Digest\\non:\\n  schedule:\\n    - cron: \"0 6 * * *\"\\njobs:\\n  run:\\n    runs-on: ubuntu-latest\\n    steps:\\n      - uses: actions/checkout@v4\\n      - uses: actions/setup-python@v5\\n        with:\\n          python-version: \"3.11\"\\n      - run: pip install -r requirements.txt\\n      - run: python services/digest_job.py --env=prod', services/digest_job.py with content '#!/usr/bin/env python3\\nimport os, smtplib\\nfrom datetime import date\\nfrom reports import build_digest\\nif __name__ == \"__main__\":\\n    env = os.getenv(\"ENV\", \"prod\")\\n    html = build_digest(date.today())\\n    with smtplib.SMTP(os.getenv(\"SMTP_HOST\"), int(os.getenv(\"SMTP_PORT\", 587))) as s:\\n        s.starttls(); s.login(os.getenv(\"SMTP_USER\"), os.getenv(\"SMTP_PASS\"));\\n        s.sendmail(os.getenv(\"FROM_EMAIL\"), os.getenv(\"TO_EMAILS\").split(\",\"), f\"Subject: Daily Digest\\\\nContent-Type: text/html; charset=UTF-8\\\\n\\\\n{html}\")\\n    print(\"Digest sent\", flush=True)', and config/digest.yml with content 'recipients: [\"team@oakridge.io\", \"ops@oakridge.io\"]\\nsubject: \"Daily Metrics Digest\"\\nfilters:\\n  - name: errors_last_24h\\n    threshold: 10\\n  - name: signups_last_24h\\n    threshold: 100'."
+    ]
+  },
+  {
+    "tool_name": "remove_sub_issue",
+    "synthetic_tasks": [
+      "Please remove the sub-issue with ID 209438672 from parent issue #784 in the pillar-tech/payments-gateway repository; we linked the wrong task during sprint 18 triage.",
+      "Remove the sub-issue with ID 982374561 from parent issue #421 in the acme-corp/customer-portal GitHub repo; it was linked by mistake during triage."
+    ]
+  },
+  {
+    "tool_name": "reprioritize_sub_issue",
+    "synthetic_tasks": [
+      "In orbitware/shop-app-android, for parent issue #1284 (Checkout UX improvements), move sub-issue ID 912876 so it appears directly after sub-issue ID 912861 in the sub-issues list.",
+      "In bluehorizon-io/retail-portal, under parent issue #1298 (Checkout Revamp), move sub-issue ID 104395 so it appears immediately after sub-issue ID 104388 in the sub-issue list."
+    ]
+  },
+  {
+    "tool_name": "request_copilot_review",
+    "synthetic_tasks": [
+      "Please kick off a GitHub Copilot code review for PR #418 in folklore-labs/streamwatch; it\u2019s the \u2018feat/kafka-retry-dlq\u2019 update introducing exponential backoff and a dead-letter topic, so have Copilot flag any issues around thread safety, idempotency, and potential message loss before we loop in human reviewers.",
+      "Run a GitHub Copilot code review on PR #214 in northwind-labs/inventory-api to get automated feedback on the batch reordering logic before I assign human reviewers."
+    ]
+  },
+  {
+    "tool_name": "rerun_failed_jobs",
+    "synthetic_tasks": [
+      "Re-run only the failed jobs from workflow run 781245993 in the acme-payments/checkout-service repository; it was triggered by PR #742 from the feature/stripe-webhooks branch and only the e2e tests flaked.",
+      "Re-run only the failed jobs for workflow run 1287645093 in the dataforge-labs/ml-pipeline repository\u2014I just pushed a fix for the flaky S3 upload step and need to verify the build."
+    ]
+  },
+  {
+    "tool_name": "rerun_workflow_run",
+    "synthetic_tasks": [
+      "Please re-run the entire workflow run 3187452096 for the stratosphere-io/dispatch-router repository\u2014the last run failed during the staging deploy due to a transient Docker registry timeout.",
+      "Please re-run the entire GitHub Actions workflow run 8745612230 for helix-payments/transaction-gateway; the flaky integration tests on hotfix/retry-headers should pass now that the Redis cluster is back up."
+    ]
+  },
+  {
+    "tool_name": "run_workflow",
+    "synthetic_tasks": [
+      "Trigger the GitHub Actions workflow deploy.yml in acme-inc/web-frontend on the v3.4.1 tag, passing inputs environment=production, image=ghcr.io/acme-inc/web-frontend:3.4.1, region=us-east-1, change_request=CR-9821, and slack_channel=#release-announcements.",
+      "Trigger the deploy.yml workflow for acme-corp/payments-service on the v2.3.1 tag, passing inputs environment=production, version=2.3.1, rollback_on_failure=true, and release_notes=\"PCI logging fixes and exponential backoff tuning\"."
+    ]
+  },
+  {
+    "tool_name": "search_code",
+    "synthetic_tasks": [
+      "Find code on GitHub matching content:\"func VerifySignature(payload []byte, secret []byte) (bool, error)\" language:Go (path:internal/auth OR path:pkg/auth) NOT is:archived, sort by indexed desc, and show me 50 results per page on page 2.",
+      "Find all occurrences of the exact string \"export function validateSsoAssertion(\" in TypeScript code under path:src/auth across org:evergreen-systems OR org:northwind-labs, with archived:false and fork:false and NOT filename:*.spec.ts, sorted by indexed descending, and return page 1 with 100 results."
+    ]
+  },
+  {
+    "tool_name": "search_issues",
+    "synthetic_tasks": [
+      "Find open issues in vercel/next.js that mention \u201cfetch cache\u201d in the title or body, are labeled either \u201capp-router\u201d or \u201cdata-fetching,\u201d were created between 2025-06-01 and 2025-08-15, have no assignee and more than 5 comments; sort by most recently updated (descending) and show me page 1 with 50 results.",
+      "In the microsoft/vscode repo, find open issues labeled bug that mention \"Remote SSH\" in the title or body, created since 2025-06-01, with no assignee, sorted by most comments in descending order, and show me 25 results on page 2."
+    ]
+  },
+  {
+    "tool_name": "search_orgs",
+    "synthetic_tasks": [
+      "Find GitHub organizations that mention \u201cobservability\u201d and are located in Berlin, created on or after 2022-01-01, and sort them by followers in descending order; show 50 results per page starting at page 1 so I can assemble a shortlist for our SRE tooling review.",
+      "Find GitHub organizations with \"open banking\" in the org name or bio, located in London and created on or after 2020-01-01; sort by repositories in descending order and show 50 results on the first page for our PSD2 vendor shortlist."
+    ]
+  },
+  {
+    "tool_name": "search_pull_requests",
+    "synthetic_tasks": [
+      "In the northwind/identity-service repo, find open pull requests targeting the release/2025.08 branch that mention OAuth in the title or body, labeled either needs-qa or critical, created by sara-chen or devops-bot between 2025-07-01 and 2025-08-15, excluding drafts and anything by dependabot; sort by most recently updated and return 50 results per page starting at page 1.",
+      "Find all open, non-draft pull requests in acme-corp/payments-service targeting main that mention BILL-732, have the \u201crelease-blocker\u201d label but not \u201con hold,\u201d and were updated on or after 2025-08-15; sort by updated descending and return 50 results on page 1."
+    ]
+  },
+  {
+    "tool_name": "search_repositories",
+    "synthetic_tasks": [
+      "Search GitHub for Python repositories that mention \"LLM evaluation\" or \"eval harness\" in the name, description, or README, created on or after 2024-01-01, with more than 300 stars, not forks or archived, with topics like llm, evaluation, or benchmark, excluding awesome lists and template repos, and give me 50 results on page 2.",
+      "I'm evaluating libraries for a local-first notes app: find TypeScript GitHub repositories that implement CRDT sync with Automerge, have the topics \"crdt\" and \"automerge,\" are MIT-licensed, have more than 200 stars, are not archived, and were pushed since 2024-06-01; search in the name, description, and readme, and return 50 results on page 1."
+    ]
+  },
+  {
+    "tool_name": "search_users",
+    "synthetic_tasks": [
+      "Find GitHub users located in San Francisco with \u201cstaff engineer\u201d in their bio who primarily use Go, joined after 2020-01-01, and have over 300 followers; sort by followers in descending order and return 50 results on page 2.",
+      "Find GitHub users based in Singapore with \u201csecurity\u201d in their profile and at least 1,000 followers, sorted by followers in descending order, and return 50 results on page 1 so I can shortlist speakers for our 2025 SecOps Summit."
+    ]
+  },
+  {
+    "tool_name": "submit_pending_pull_request_review",
+    "synthetic_tasks": [
+      "I\u2019ve already left my inline comments; please submit my pending review on PR #182 in acme-finance/ledger-sync and mark it as Request Changes, with this summary: Fix the failing tests in StatementImporter, revert the unintended package.json version bump, and add a migration note for the new reconciliation logic before we merge.",
+      "I\u2019ve already left inline comments; please submit my pending review for acme-corp/shop-frontend pull request 214 as APPROVE with this summary: \u201cAll acceptance criteria met\u2014verified CART-892 fix, reduced CLS on homepage, and checkout a11y contrast; tested on iPhone 14 Pro and Chrome 125 in staging\u2014looks good to ship.\u201d"
+    ]
+  },
+  {
+    "tool_name": "update_gist",
+    "synthetic_tasks": [
+      "Update my GitHub gist 8f3a6d1b2c4e5f7890a1b2c3d4e5f678 by replacing (or creating) the file uptime_check.py with the following content: \"#!/usr/bin/env python3\\nimport sys, time, subprocess\\nfrom datetime import datetime\\n\\ndef ping(host, timeout=1):\\n    flag = \\\"-n\\\" if sys.platform.startswith(\\\"win\\\") else \\\"-c\\\"\\n    cmd = [\\\"ping\\\", flag, \\\"1\\\", host] if sys.platform.startswith(\\\"win\\\") else [\\\"ping\\\", flag, \\\"1\\\", \\\"-W\\\", str(timeout), host]\\n    return subprocess.call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0\\n\\ndef main():\\n    import argparse\\n    p = argparse.ArgumentParser(description=\\\"Simple uptime checker\\\")\\n    p.add_argument(\\\"host\\\")\\n    p.add_argument(\\\"--retries\\\", type=int, default=3)\\n    p.add_argument(\\\"--backoff\\\", type=float, default=0.5)\\n    args = p.parse_args()\\n    attempt = 0\\n    while attempt <= args.retries:\\n        ok = ping(args.host)\\n        ts = datetime.utcnow().isoformat() + \\\"Z\\\"\\n        if ok:\\n            print(f\\\"{ts} OK {args.host}\\\")\\n            sys.exit(0)\\n        if attempt == args.retries:\\n            print(f\\\"{ts} DOWN {args.host}\\\")\\n            sys.exit(2)\\n        time.sleep(args.backoff * (2 ** attempt))\\n        attempt += 1\\n\\nif __name__ == \\\"__main__\\\":\\n    main()\\n\", and update the gist description to \"ops-tools: uptime checker with retries and exponential backoff\".",
+      "Please update my gist 7f3c2a91b9d04e8ab0f4cd81e3b1a5d2 by replacing the file cleanup_logs.py with the following content, and change the description to \"Rotate and compress app logs; adds CLI flags; tested on Ubuntu 22.04 on 2025-08-21\":\n#!/usr/bin/env python3\nimport argparse, gzip, os, shutil, time, pathlib\n\ndef rotate_log(src, max_backups=5):\n    p = pathlib.Path(src)\n    if not p.exists():\n        return\n    timestamp = time.strftime(\"%Y%m%d-%H%M%S\")\n    dst = p.with_suffix(p.suffix + f\".{timestamp}.gz\")\n    with open(p, \"rb\") as f_in, gzip.open(dst, \"wb\") as f_out:\n        shutil.copyfileobj(f_in, f_out)\n    open(p, \"w\").close()\n    backups = sorted(p.parent.glob(p.name + \".*.gz\"), reverse=True)\n    for old in backups[max_backups:]:\n        try:\n            old.unlink()\n        except FileNotFoundError:\n            pass\n\nif __name__ == \"__main__\":\n    ap = argparse.ArgumentParser(description=\"Rotate and compress log file\")\n    ap.add_argument(\"path\")\n    ap.add_argument(\"--keep\", type=int, default=5)\n    args = ap.parse_args()\n    rotate_log(args.path, args.keep)"
+    ]
+  },
+  {
+    "tool_name": "update_issue",
+    "synthetic_tasks": [
+      "In acme-inc/web-dashboard, update issue #214 by changing the title to \"Fix: flaky datepicker on Safari 17\", replacing the description with \"Root cause was a timezone parsing bug in flatpickr when the Intl API is unavailable in Safari 17; reproduced on macOS 14.5 and fixed in PR #893 with a polyfill plus an e2e test; verified on staging build 2.13.0-rc.4\", assigning to jchen and marina-l, applying the labels bug, safari, frontend, and high-priority, setting milestone 12, marking the issue type as bug, and closing the issue.",
+      "In acme-corp/payment-service, update issue #482: change the title to \u201cWebhook retries fail after 502 responses,\u201d replace the description with \u201cSince v2.6.3, the webhook retry logic stops after the first 502 from the billing provider; expected behavior is 5 retries with exponential backoff; see prod-west logs from 2025-08-20 and PR #918 for the fix,\u201d set labels to bug, priority:P1, and area:webhooks, assign it to jdoe and sarah-ng, move it to milestone 14 (v2.7.0), set the issue type to bug, and close it as fixed."
+    ]
+  },
+  {
+    "tool_name": "update_pull_request",
+    "synthetic_tasks": [
+      "Update PR #128 in acme-corp/web-frontend: change the base branch to release/2025.09, set the title to \"PROD-982: Migrate header to Polaris v3 components\", replace the description with \"Migrates the global header/navbar to Polaris v3, removes legacy CSS, fixes menu focus traps; includes visual diffs and perf notes; closes #2147; design doc: https://docs.acme.com/polaris-migration/header\", mark it ready for review (not a draft), allow maintainer edits, request reviews from @susan-lee and @qa-rahul, and keep the PR open.",
+      "Update PR #342 in acmecorp/payments-service by changing the base branch to release/2025.08, retitling it to \"feat(api-v2): finalize payout endpoints (PROJ-982)\", replacing the description with \"Finalizes v2 payout endpoints with idempotency keys, cursor-based pagination, and standardized error payloads; includes migration 20250812_add_payout_idx, rollout plan, and QA steps; references ADR-021 and RFC-117; closes PROJ-982.\", marking it ready for review (not a draft), allowing maintainer edits, and requesting reviews from mariagomez and ops-peter. Keep the pull request open."
+    ]
+  },
+  {
+    "tool_name": "update_pull_request_branch",
+    "synthetic_tasks": [
+      "Please update the branch for PR #418 in weavr-hq/order-management with the latest changes from main, and only do it if the pull request\u2019s HEAD is still at 4e1b9a7c3d2f8e5a0c6b1d9e7f3a2c5b8d0e1f2a.",
+      "Please update the branch for pull request #742 in the atlas-labs/customer-portal repo with the latest changes from main, but only proceed if the current head SHA is d4f1c2b3a9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4."
+    ]
+  }
+]
