@@ -1,0 +1,3 @@
+# Ignore all evaluation result files but keep the directory
+*.json
+!.gitignore
