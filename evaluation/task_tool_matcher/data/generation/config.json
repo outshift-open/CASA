@@ -1,0 +1,14 @@
+{
+    "mcp_servers": [
+        "atlassian_tools",
+        "github_official_tools"
+    ],
+    "num_entries_per_server": 10,
+    "task_character_limit": 150,
+    "available_tools_per_task": 5,
+    "match_distribution": {
+        "match": 0.4,
+        "wrong_tool": 0.4,
+        "no_tool": 0.2
+    }
+}
