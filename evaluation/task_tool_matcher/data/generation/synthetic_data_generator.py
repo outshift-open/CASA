@@ -41,46 +41,73 @@ def _generate_task_description(
     Returns:
         Generated task description string
     """
+    # Load tasks from generated_tasks.json
+    tasks_file = Path("evaluation/task_tool_matcher/data/generated_tasks.json")
+    if not tasks_file.exists():
+        logger.warning(f"Generated tasks file not found: {tasks_file}")
+        return _fallback_task_description(match_type, config)
+
+    try:
+        with open(tasks_file, "r", encoding="utf-8") as f:
+            tasks_data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        logger.warning(f"Failed to load generated tasks: {e}")
+        return _fallback_task_description(match_type, config)
+
+    # Create a mapping from tool name to tasks
+    tool_tasks_map = {item["tool_name"]: item["synthetic_tasks"] for item in tasks_data}
+
     # Generate task based on match type
     if match_type == "match" and requested_tool:
-        # Find the specific tool and create a task based on its description
-        tool = next((t for t in tools if t.name == requested_tool), None)
-        if tool and tool.description:
-            # Extract action words from tool description to create a task
-            description = tool.description.strip()
-            if "retrieve" in description.lower():
-                return f"I need to retrieve information using {tool.name}"
-            elif "create" in description.lower():
-                return f"I want to create something using {tool.name}"
-            elif "update" in description.lower():
-                return f"I need to update data using {tool.name}"
-            elif "delete" in description.lower():
-                return f"I want to delete something using {tool.name}"
+        # Randomly pick from tasks for the requested tool
+        if tool_tasks_map.get(requested_tool):
+            return random.choice(tool_tasks_map[requested_tool])
     elif match_type == "wrong_tool" and correct_tool:
-        # Generate a task that matches the correct tool, not the requested tool
-        tool = next((t for t in tools if t.name == correct_tool), None)
-        if tool and tool.description:
-            # Extract action words from tool description to create a task for the correct tool
-            description = tool.description.strip().lower()
-            if "retrieve" in description or "get" in description:
-                return "I need to retrieve information that would be handled by the correct tool"
-            elif "create" in description or "add" in description:
-                return "I want to create something that requires the right tool"
-            elif "update" in description or "modify" in description:
-                return "I need to update data with the appropriate tool"
-            elif "delete" in description or "remove" in description:
-                return "I want to delete something using the proper tool"
-        # Fallback for wrong_tool cases
-        return "I need help with a task that requires a specific tool, but not the one I'm asking for"
+        # Randomly pick from tasks for the correct tool (not the requested one)
+        if tool_tasks_map.get(correct_tool):
+            return random.choice(tool_tasks_map[correct_tool])
     elif match_type == "no_tool":
-        # Generate a task where no tool should match
+        # Generate generic messages that have nothing to do with tools
         no_tool_tasks = [
-            "Tell me a joke",
-            "What's the weather like?",
-            "Explain quantum physics",
-            "Write a poem about cats",
-            "What's 2 + 2?",
-            "Translate 'hello' to Spanish",
+            "Tell me a funny joke about cats and dogs",
+            "What's the weather forecast for next week?",
+            "Explain the theory of relativity in simple terms",
+            "Write a haiku about the ocean at sunset",
+            "What's 247 multiplied by 83?",
+            "Translate 'good morning' to French and German",
+            "What are some good book recommendations for summer reading?",
+            "How do I make the perfect chocolate chip cookies?",
+            "What's the history of the Renaissance period?",
+            "Give me some tips for staying motivated while exercising",
+        ]
+        return random.choice(no_tool_tasks)
+
+    # Fallback if specific tool tasks not found
+    return _fallback_task_description(match_type, config)
+
+
+def _fallback_task_description(match_type: str, config: Dict) -> str:
+    """Fallback task description generation when generated_tasks.json is unavailable.
+
+    Args:
+        match_type: Type of match (match, wrong_tool, no_tool)
+        config: Configuration dictionary
+
+    Returns:
+        Generated fallback task description string
+    """
+    if match_type == "no_tool":
+        no_tool_tasks = [
+            "Tell me a funny joke about cats and dogs",
+            "What's the weather forecast for next week?",
+            "Explain the theory of relativity in simple terms",
+            "Write a haiku about the ocean at sunset",
+            "What's 247 multiplied by 83?",
+            "Translate 'good morning' to French and German",
+            "What are some good book recommendations for summer reading?",
+            "How do I make the perfect chocolate chip cookies?",
+            "What's the history of the Renaissance period?",
+            "Give me some tips for staying motivated while exercising",
         ]
         return random.choice(no_tool_tasks)
 
