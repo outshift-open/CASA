@@ -1,5 +1,6 @@
 """Task Tool Matcher Interface and Factory."""
 
+import logging
 from abc import ABC, abstractmethod
 
 from identity_auth_server.pipelines.task_tool_matcher.types import (
@@ -12,6 +13,11 @@ from identity_auth_server.pipelines.task_tool_matcher.validators import TaskTool
 
 class TaskToolMatcher(ABC):
     """Abstract base class for task-tool matchers."""
+
+    def __init__(self):
+        """Initialize the task-tool matcher."""
+        logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+        self.logger = logging.getLogger(__name__)
 
     def _validate_input(self, input: TaskToolMatchInput) -> None:
         """Run common validations on the input.
@@ -56,9 +62,15 @@ class TaskToolMatcherFactory:
         Raises:
             ValueError: If the matcher type is not supported
         """
+        logging.getLogger(__name__).info(f"Creating TaskToolMatcher of type: {matcher_type}")
         if matcher_type == TaskToolMatcherType.RANDOM:
             from identity_auth_server.pipelines.task_tool_matcher.random.random import RandomTaskToolMatcher
 
             return RandomTaskToolMatcher()
+        if matcher_type == TaskToolMatcherType.EMBEDDINGS:
+            from identity_auth_server.pipelines.task_tool_matcher.embeddings.embeddings import EmbeddingsTaskToolMatcher
+
+            return EmbeddingsTaskToolMatcher()
         else:
+            logging.getLogger(__name__).error(f"Unsupported task tool matcher type: {matcher_type}")
             raise ValueError(f"Unsupported task tool matcher type: {matcher_type}")

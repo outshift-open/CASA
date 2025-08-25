@@ -12,6 +12,7 @@ class TaskToolMatcherType(str, Enum):
     """Available task-tool matcher types."""
 
     RANDOM = "random"
+    EMBEDDINGS = "embeddings"
 
 
 class TaskToolMatchReason(str, Enum):
@@ -24,6 +25,7 @@ class TaskToolMatchReason(str, Enum):
 
     # Matcher-specific reasons
     RANDOM_NO_MATCH = "Random matcher decided this tool doesn't match the task"
+    EMBEDDINGS_NO_MATCH = "Embeddings matcher decided this tool doesn't match the task"
 
 
 class TaskToolMatchInput(BaseModel):
