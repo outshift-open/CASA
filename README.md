@@ -134,6 +134,12 @@ src/identity_auth_server/
 └── types.py               # Common type definitions
 ```
 
+### Required Access Keys
+This project uses python-dotenv to handle secret keys.
+Make a copy of `.env.sample` and rename it `.env` in the same directory (it is already covered in gitignore, make sure it remains hidden).
+In your `.env`, fill the needed secret information that you personally have.
+
+
 ### Evaluations
 
 #### Task Tool Matcher Evaluation
