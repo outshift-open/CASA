@@ -103,7 +103,7 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
         self.logger.debug(f"Requested Tool: {requested_tool}")
         self.logger.debug(f"Matched Tool: {matched_tool}")
         self.logger.debug(f"Number of Available Tools: {len(available_tools)}")
-        self.logger.debug(f"Matched Tool Description: {tools_to_embed[matched_index]}")
+        # self.logger.debug(f"Matched Tool Description: {tools_to_embed[matched_index]}")
         self.logger.debug(f"Matched Distance: {matched_distance}")
 
         matches = matched_tool == requested_tool and matched_distance >= self.match_threshold
