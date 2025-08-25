@@ -1,5 +1,6 @@
 """Main evaluation script for task-tool matchers."""
 
+import argparse
 import json
 import os
 from datetime import datetime
@@ -44,14 +45,29 @@ def save_results(results: dict, base_output_dir: str) -> str:
 
 def main():
     """Main evaluation function."""
+    parser = argparse.ArgumentParser(description="Run TaskToolMatcher evaluation.")
+    parser.add_argument(
+        "--matcher_type",
+        type=str,
+        required=True,
+        help="Specify the TaskToolMatcherType (e.g., 'random', 'embeddings', etc.)",
+    )
+    args = parser.parse_args()
+    matcher_type_str = args.matcher_type
     try:
         # Find and load evaluation data
         data_file = find_evaluation_data_file()
         data = load_evaluation_data(data_file)
         print(f"Loaded {len(data)} evaluation entries")
 
-        # Evaluate the RANDOM matcher
-        results = evaluate_matcher(TaskToolMatcherType.RANDOM, data)
+        # Convert string to TaskToolMatcherType
+        try:
+            matcher_type = TaskToolMatcherType[matcher_type_str.upper()]
+        except KeyError:
+            raise ValueError(f"Unknown matcher type: {matcher_type_str}")
+
+        # Evaluate the matcher
+        results = evaluate_matcher(matcher_type, data)
 
         # Print summary
         print_evaluation_summary(results)

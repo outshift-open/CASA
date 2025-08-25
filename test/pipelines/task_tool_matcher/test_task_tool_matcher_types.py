@@ -32,12 +32,14 @@ class TestTaskToolMatcherType:
     def test_enum_iteration(self):
         """Test that enum can be iterated."""
         values = list(TaskToolMatcherType)
-        assert len(values) == 1
+        assert len(values) == 2
         assert TaskToolMatcherType.RANDOM in values
+        assert TaskToolMatcherType.EMBEDDINGS in values
 
     def test_enum_membership(self):
         """Test enum membership checks."""
         assert "random" in [item.value for item in TaskToolMatcherType]
+        assert "embeddings" in [item.value for item in TaskToolMatcherType]
 
     def test_enum_repr(self):
         """Test enum string representation."""
@@ -87,11 +89,12 @@ class TestTaskToolMatchReason:
     def test_enum_iteration(self):
         """Test that enum can be iterated."""
         values = list(TaskToolMatchReason)
-        assert len(values) == 4
+        assert len(values) == 5
         assert TaskToolMatchReason.TOOL_NOT_AVAILABLE in values
         assert TaskToolMatchReason.TASK_EMPTY in values
         assert TaskToolMatchReason.NO_AVAILABLE_TOOLS in values
         assert TaskToolMatchReason.RANDOM_NO_MATCH in values
+        assert TaskToolMatchReason.EMBEDDINGS_NO_MATCH in values
 
     def test_string_comparison(self):
         """Test that enum values can be compared with strings."""
