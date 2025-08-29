@@ -7,6 +7,7 @@ import time
 
 from dotenv import dotenv_values
 from openai import AsyncOpenAI
+from tqdm.asyncio import tqdm
 
 config = dotenv_values()
 
@@ -48,20 +49,57 @@ You are given the following information about the tool, as shown below:
 Your response must contain **ONLY** the generated request text and nothing else. Do not add any explanations, preambles, or markdown formatting."""
 
 
-async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, system_prompt_template: str) -> dict | None:
+OBSCURE_SYSTEM_PROMPT_TEMPLATE = """You are an expert scenario designer. Your specialty is creating realistic and detailed user task requests that require a certain tool to execute them (you are given the tool, and you generate a corresponding task).
+
+Your goal is to generate a **single, high-quality user request**. This request must be a realistic command that would require the use of the specific tool provided to you to complete it, but it should require it in a somewhat **obscure or implicit or indirect** way, **not** directly ask for the tool. This means that the connection between the task and the tool should **not** be immediately obvious.
+
+You are given the following information about the tool, as shown below:
+
+**Tool Name:**
+`[Tool Name]`
+
+**Tool Description:**
+`[Tool Description]`
+
+### Your Instructions:
+
+1.  **Be Specific and Realistic:** Do not use generic placeholders. Invent plausible details that look real and coherent. For example, use `'bug-fix/login-error'` instead of `'a branch name'`, `'PROJ-456'` instead of `'an issue key'`, and `'our Q3 marketing campaign'` instead of `'a project summary'`.
+
+2.  **Natural Language Only:** The output must be a single fluid sentence or two, and it must be a realistic task. It should **not** be a list of parameters or a JSON object.
+
+3.  **Focus on the User's Goal:** The request should describe what the user wants to *achieve*, not how the tool works. The tool is needed for the *solution* to the user's request, but the user does **not** directly request it. Make the user's intent the primary focus, with the need for the tool being a secondary inference.
+
+### Output Format:
+
+Your response must contain **ONLY** the generated request text and nothing else. Do not add any explanations, preambles, or markdown formatting."""
+
+
+async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, obscure: bool) -> dict | None:
     """Synthesizes tasks based on the description of a single MCP tool, with a generative model.
 
     Args:
         tool_data (dict): A dictionary with 'name', 'description', and 'inputSchema of MCP tools.
         semaphore (asyncio.Semaphore): To limit concurrent API calls to openai.
-        system_prompt_template (str): The template of the system prompt.
+        obscure (bool): Whether to generate an obscure task or regular.
 
     Returns:
         A dictionary with the tool_name and generated task, or None on failure.
     """
+    system_prompt_template = OBSCURE_SYSTEM_PROMPT_TEMPLATE if obscure else SYSTEM_PROMPT_TEMPLATE
+
+    tool_description = tool_data.get("description", "N/A")
+    if obscure:
+        cut_sequence = "\n\n    Args:\n        "  # cutting off input args information (applies to atlassian tools)
+        if cut_sequence in tool_description:
+            tool_description = tool_description.split(cut_sequence)[0]
+
     system_prompt = system_prompt_template.replace("[Tool Name]", tool_data.get("name", "N/A"))
-    system_prompt = system_prompt.replace("[Tool Description]", tool_data.get("description", "N/A"))
-    system_prompt = system_prompt.replace("[Input Schema]", json.dumps(tool_data.get("inputSchema", {}), indent=2))
+    system_prompt = system_prompt.replace("[Tool Description]", tool_description)
+
+    if not obscure:
+        system_prompt = system_prompt.replace("[Input Schema]", json.dumps(tool_data.get("inputSchema", {}), indent=2))
+    elif "[Input Schema]" in system_prompt:
+        system_prompt = system_prompt.replace("[Input Schema]", "")
 
     user_prompt = "Execute the user request and generate the corresponding output."
 
@@ -82,7 +120,7 @@ async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, system
             return None
 
 
-async def process_tools_files(input_paths: list[str], output_path: str, multiplier: int):
+async def process_tools_files(input_paths: list[str], output_path: str, multiplier: int, obscure: bool):
     """Reads tools from JSON files, creates their tasks in parallel, and saves the results in dict."""
     all_tools = []
     for input_path in input_paths:
@@ -95,9 +133,9 @@ async def process_tools_files(input_paths: list[str], output_path: str, multipli
     tasks = []
     for tool in all_tools:
         for _ in range(multiplier):
-            tasks.append(task_synthesizer(tool, semaphore, SYSTEM_PROMPT_TEMPLATE))
+            tasks.append(task_synthesizer(tool, semaphore, obscure))
 
-    results = await asyncio.gather(*tasks)
+    results = await tqdm.gather(*tasks)
 
     grouped_results = {}  # to regroup results by tool name
     for res in results:
@@ -136,11 +174,14 @@ async def main():
     parser.add_argument(
         "--multiplier", type=int, default=1, help="Number of synthetic tasks to generate per (MCP) tool."
     )
+    parser.add_argument(
+        "--obscure", action="store_true", help="Generate more obscure tasks (hide input schema + new sys_prompt)."
+    )
 
     args = parser.parse_args()
 
     start_time = time.time()
-    await process_tools_files(args.input_files, args.output_file, args.multiplier)
+    await process_tools_files(args.input_files, args.output_file, args.multiplier, args.obscure)
     elapsed_time = time.time() - start_time
     print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
