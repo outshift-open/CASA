@@ -13,6 +13,7 @@ class TaskToolMatcherType(str, Enum):
 
     RANDOM = "random"
     EMBEDDINGS = "embeddings"
+    HYBRID = "hybrid"
 
 
 class TaskToolMatchReason(str, Enum):
@@ -26,6 +27,7 @@ class TaskToolMatchReason(str, Enum):
     # Matcher-specific reasons
     RANDOM_NO_MATCH = "Random matcher decided this tool doesn't match the task"
     EMBEDDINGS_NO_MATCH = "Embeddings matcher decided this tool doesn't match the task"
+    HYBRID_NO_MATCH = "Hybrid matcher decided this tool doesn't match the task"
 
 
 class TaskToolMatchInput(BaseModel):
