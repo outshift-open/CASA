@@ -71,6 +71,11 @@ class TaskToolMatcherFactory:
             from identity_auth_server.pipelines.task_tool_matcher.embeddings.embeddings import EmbeddingsTaskToolMatcher
 
             return EmbeddingsTaskToolMatcher()
+
+        if matcher_type == TaskToolMatcherType.HYBRID:
+            from identity_auth_server.pipelines.task_tool_matcher.hybrid.hybrid import HybridTaskToolMatcher
+
+            return HybridTaskToolMatcher()
         else:
             logging.getLogger(__name__).error(f"Unsupported task tool matcher type: {matcher_type}")
             raise ValueError(f"Unsupported task tool matcher type: {matcher_type}")
