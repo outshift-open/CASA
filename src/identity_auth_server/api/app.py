@@ -21,7 +21,7 @@ def task_intent_mcp_badge_tool_match(
     request: IntentMcpBadgeToolMatchRequest, task_tool_matcher: TaskToolMatcherType = TaskToolMatcherType.RANDOM
 ) -> IntentMcpBadgeToolMatchResult:
     """Endpoint to match tools based on MCP badge."""
-    mcp_tools = verify_identity_service_badge_extract_tools(request.badge_token)
+    mcp_tools = verify_identity_service_badge_extract_tools(request.mcp_badge)
 
     input = IntentMcpToolMatchRequest(
         task=request.task,
