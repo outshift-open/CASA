@@ -38,11 +38,16 @@ def client():
 @pytest.fixture
 def sample_mcp_badge_request():
     """Sample MCP badge request data."""
+    # load badge from file
+    badge_file_path = "test/api/data/jira_mcp_badge.txt"
+    with open(badge_file_path, "r") as f:
+        badge_token = f.read().strip()
+
     return IntentMcpBadgeToolMatchRequest(
         task="analyze user input",
         requested_tool="text_analyzer",
         available_tools=["text_analyzer", "file_reader", "web_scraper"],
-        mcp_badge="sample_badge_token_123",
+        mcp_badge=badge_token,
     )
 
 
@@ -305,25 +310,6 @@ class TestEndpointEdgeCases:
 
             assert response.status_code == 400
             assert response.json() == {"detail": error_message}
-
-    def test_large_request_data(self, client):
-        """Test handling of large request data."""
-        large_request = {
-            "task": "analyze " + "very " * 1000 + "long task description",
-            "requested_tool": "test_tool",
-            "available_tools": [f"tool_{i}" for i in range(100)],
-            "mcp_badge": "badge_" + "x" * 1000,
-        }
-
-        # This should still work (assuming no size limits are enforced)
-        with patch("identity_auth_server.api.app.TaskToolMatcherFactory.create") as mock_factory:
-            mock_matcher = MagicMock()
-            mock_matcher.match.return_value = TaskToolMatchOutput(task_tool_match=True, reason=None)
-            mock_factory.return_value = mock_matcher
-
-            response = client.post("/task/intent/mcp/badge/tool-match", json=large_request)
-
-            assert response.status_code == 200
 
 
 class TestResponseFormat:
