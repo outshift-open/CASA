@@ -4,152 +4,109 @@ import json
 import os
 from unittest.mock import Mock, patch
 
+import jwt
 import pytest
 from identityservice.badge.mcp import McpServer
 from mcp import types as mcp_types
-from outshift.identity.service.v1alpha1.badge_pb2 import VerificationResult
 
 from identity_auth_server.api.utils import (
     convert_mcp_tools_to_mcp_types,
-    create_identity_service_client,
+    decode_badge_extract_tools,
+    decode_badge_jwt,
     parse_badge_json_to_mcp_server,
-    validate_verification_result,
-    verify_badge_with_identity_service,
-    verify_identity_service_badge_extract_tools,
+    validate_badge_payload,
 )
 
 
-class TestCreateIdentityServiceClient:
-    """Test cases for create_identity_service_client function."""
+class TestDecodeBadgeJwt:
+    """Test cases for decode_badge_jwt function."""
 
-    @patch.dict(os.environ, {"IDENTITY_SERVICE_API_KEY": "test-api-key"})
-    @patch("identity_auth_server.api.utils.sdk.IdentityServiceSdk")
-    def test_create_client_with_api_key(self, mock_sdk):
-        """Test creating client with API key from environment."""
-        mock_client = Mock()
-        mock_sdk.return_value = mock_client
+    @patch("identity_auth_server.api.utils.jwt.decode")
+    def test_decode_jwt_success(self, mock_jwt_decode):
+        """Test successful JWT decoding."""
+        expected_payload = {
+            "type": ["BADGE_TYPE_MCP_BADGE"],
+            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
+        }
+        mock_jwt_decode.return_value = expected_payload
 
-        result = create_identity_service_client()
+        result = decode_badge_jwt("test-jwt-token")
 
-        mock_sdk.assert_called_once_with(api_key="test-api-key")
-        assert result == mock_client
+        mock_jwt_decode.assert_called_once_with("test-jwt-token", options={"verify_signature": False})
+        assert result == expected_payload
 
-    @patch.dict(os.environ, {}, clear=True)
-    @patch("identity_auth_server.api.utils.sdk.IdentityServiceSdk")
-    def test_create_client_without_api_key(self, mock_sdk):
-        """Test creating client without API key."""
-        mock_client = Mock()
-        mock_sdk.return_value = mock_client
+    @patch("identity_auth_server.api.utils.jwt.decode")
+    def test_decode_jwt_invalid_token(self, mock_jwt_decode):
+        """Test JWT decoding with invalid token."""
+        mock_jwt_decode.side_effect = jwt.DecodeError("Invalid token")
 
-        result = create_identity_service_client()
-
-        mock_sdk.assert_called_once_with(api_key=None)
-        assert result == mock_client
+        with pytest.raises(jwt.DecodeError, match="Invalid token"):
+            decode_badge_jwt("invalid-token")
 
 
-class TestVerifyBadgeWithIdentityService:
-    """Test cases for verify_badge_with_identity_service function."""
-
-    def test_verify_badge_success(self):
-        """Test successful badge verification."""
-        mock_client = Mock()
-        mock_result = Mock()
-        mock_client.verify_badge.return_value = mock_result
-
-        result = verify_badge_with_identity_service("test-token", mock_client)
-
-        mock_client.verify_badge.assert_called_once_with("test-token")
-        assert result == mock_result
-
-    def test_verify_badge_client_raises_exception(self):
-        """Test badge verification when client raises an exception."""
-        mock_client = Mock()
-        mock_client.verify_badge.side_effect = Exception("Service unavailable")
-
-        with pytest.raises(Exception, match="Service unavailable"):
-            verify_badge_with_identity_service("test-token", mock_client)
-
-
-class TestValidateVerificationResult:
-    """Test cases for validate_verification_result function."""
+class TestValidateBadgePayload:
+    """Test cases for validate_badge_payload function."""
 
     def test_validate_success(self):
-        """Test successful validation of verification result."""
-        # Create a mock verification result
-        mock_result = Mock(spec=VerificationResult)
-        mock_result.status = True
-
-        # Create nested mock structure
-        mock_credential_subject = Mock()
-        mock_credential_subject.id = "test-user-id"
-        mock_document = Mock()
-        mock_document.credential_subject = mock_credential_subject
-        mock_document.type = ["BADGE_TYPE_MCP_BADGE"]
-        mock_result.document = mock_document
+        """Test successful validation of badge payload."""
+        payload = {
+            "type": ["BADGE_TYPE_MCP_BADGE"],
+            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
+        }
 
         # Should not raise any exception
-        validate_verification_result(mock_result)
+        validate_badge_payload(payload)
 
     def test_validate_wrong_type(self):
-        """Test validation fails with wrong result type."""
-        mock_result = Mock()  # Not a VerificationResult
+        """Test validation fails with wrong badge type."""
+        payload = {
+            "type": ["BADGE_TYPE_OTHER"],
+            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
+        }
 
-        with pytest.raises(ValueError, match="Unexpected result type"):
-            validate_verification_result(mock_result)
+        with pytest.raises(ValueError, match="Unexpected badge type"):
+            validate_badge_payload(payload)
 
-    def test_validate_status_false(self):
-        """Test validation fails when status is False."""
-        mock_result = Mock(spec=VerificationResult)
-        mock_result.status = False
+    def test_validate_missing_credential_subject(self):
+        """Test validation fails with missing credentialSubject."""
+        payload = {"type": ["BADGE_TYPE_MCP_BADGE"]}
 
-        with pytest.raises(ValueError, match="Badge verification failed"):
-            validate_verification_result(mock_result)
+        with pytest.raises(ValueError, match="Missing or invalid credentialSubject"):
+            validate_badge_payload(payload)
+
+    def test_validate_invalid_credential_subject(self):
+        """Test validation fails with non-dict credentialSubject."""
+        payload = {"type": ["BADGE_TYPE_MCP_BADGE"], "credentialSubject": "invalid"}
+
+        with pytest.raises(ValueError, match="Missing or invalid credentialSubject"):
+            validate_badge_payload(payload)
 
     def test_validate_empty_credential_subject_id(self):
         """Test validation fails with empty credential subject id."""
-        mock_result = Mock(spec=VerificationResult)
-        mock_result.status = True
-
-        # Create nested mock structure
-        mock_credential_subject = Mock()
-        mock_credential_subject.id = ""
-        mock_document = Mock()
-        mock_document.credential_subject = mock_credential_subject
-        mock_result.document = mock_document
+        payload = {
+            "type": ["BADGE_TYPE_MCP_BADGE"],
+            "credentialSubject": {"id": "", "badge": '{"name": "test", "url": "http://test.com"}'},
+        }
 
         with pytest.raises(ValueError, match="Unexpected credential subject id"):
-            validate_verification_result(mock_result)
+            validate_badge_payload(payload)
 
     def test_validate_non_string_credential_subject_id(self):
         """Test validation fails with non-string credential subject id."""
-        mock_result = Mock(spec=VerificationResult)
-        mock_result.status = True
-
-        # Create nested mock structure
-        mock_credential_subject = Mock()
-        mock_credential_subject.id = 123
-        mock_document = Mock()
-        mock_document.credential_subject = mock_credential_subject
-        mock_result.document = mock_document
+        payload = {
+            "type": ["BADGE_TYPE_MCP_BADGE"],
+            "credentialSubject": {"id": 123, "badge": '{"name": "test", "url": "http://test.com"}'},
+        }
 
         with pytest.raises(ValueError, match="Unexpected credential subject id"):
-            validate_verification_result(mock_result)
+            validate_badge_payload(payload)
 
-    def test_validate_wrong_document_type(self):
-        """Test validation fails with wrong document type."""
-        mock_result = Mock(spec=VerificationResult)
-        mock_result.status = True
+    def test_validate_missing_badge_field(self):
+        """Test validation fails with missing badge field."""
+        payload = {"type": ["BADGE_TYPE_MCP_BADGE"], "credentialSubject": {"id": "test-user-id"}}
 
-        # Create nested mock structure
-        mock_credential_subject = Mock()
-        mock_credential_subject.id = "test-user-id"
-        mock_document = Mock()
-        mock_document.credential_subject = mock_credential_subject
-        mock_document.type = ["BADGE_TYPE_OTHER"]
-        mock_result.document = mock_document
-
-        with pytest.raises(ValueError, match="Unexpected document type"):
-            validate_verification_result(mock_result)
+        with pytest.raises(ValueError, match="Missing badge field in credentialSubject"):
+            validate_badge_payload(payload)
 
 
 class TestParseBadgeJsonToMcpServer:
@@ -248,25 +205,23 @@ class TestConvertMcpToolsToMcpTypes:
         assert result == []
 
 
-class TestVerifyIdentityServiceBadgeExtractTools:
-    """Test cases for the main verify_identity_service_badge_extract_tools function."""
+class TestDecodeBadgeExtractTools:
+    """Test cases for the main decode_badge_extract_tools function."""
 
-    @patch("identity_auth_server.api.utils.create_identity_service_client")
-    @patch("identity_auth_server.api.utils.verify_badge_with_identity_service")
-    @patch("identity_auth_server.api.utils.validate_verification_result")
+    @patch("identity_auth_server.api.utils.decode_badge_jwt")
+    @patch("identity_auth_server.api.utils.validate_badge_payload")
     @patch("identity_auth_server.api.utils.parse_badge_json_to_mcp_server")
     @patch("identity_auth_server.api.utils.convert_mcp_tools_to_mcp_types")
-    def test_successful_badge_verification_and_extraction(
-        self, mock_convert_tools, mock_parse_badge, mock_validate, mock_verify_badge, mock_create_client
+    def test_successful_badge_decoding_and_extraction(
+        self, mock_convert_tools, mock_parse_badge, mock_validate, mock_decode_jwt
     ):
-        """Test successful end-to-end badge verification and tool extraction."""
+        """Test successful end-to-end badge decoding and tool extraction."""
         # Setup mocks
-        mock_client = Mock()
-        mock_create_client.return_value = mock_client
-
-        mock_verified_result = Mock()
-        mock_verified_result.document.credential_subject.badge = '{"name": "test", "url": "http://test.com"}'
-        mock_verify_badge.return_value = mock_verified_result
+        mock_decoded_payload = {
+            "type": ["BADGE_TYPE_MCP_BADGE"],
+            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
+        }
+        mock_decode_jwt.return_value = mock_decoded_payload
 
         mock_server = Mock()
         mock_parse_badge.return_value = mock_server
@@ -275,58 +230,49 @@ class TestVerifyIdentityServiceBadgeExtractTools:
         mock_convert_tools.return_value = expected_tools
 
         # Call the function
-        result = verify_identity_service_badge_extract_tools("test-token")
+        result = decode_badge_extract_tools("test-jwt-token")
 
         # Verify the calls
-        mock_create_client.assert_called_once()
-        mock_verify_badge.assert_called_once_with("test-token", mock_client)
-        mock_validate.assert_called_once_with(mock_verified_result)
-        mock_parse_badge.assert_called_once_with(mock_verified_result.document.credential_subject.badge)
+        mock_decode_jwt.assert_called_once_with("test-jwt-token")
+        mock_validate.assert_called_once_with(mock_decoded_payload)
+        mock_parse_badge.assert_called_once_with(mock_decoded_payload["credentialSubject"]["badge"])
         mock_convert_tools.assert_called_once_with(mock_server)
 
         assert result == expected_tools
 
-    @patch("identity_auth_server.api.utils.create_identity_service_client")
-    @patch("identity_auth_server.api.utils.verify_badge_with_identity_service")
-    def test_badge_verification_failure(self, mock_verify_badge, mock_create_client):
-        """Test when badge verification fails."""
-        mock_client = Mock()
-        mock_create_client.return_value = mock_client
-        mock_verify_badge.side_effect = Exception("Verification failed")
+    @patch("identity_auth_server.api.utils.decode_badge_jwt")
+    def test_jwt_decoding_failure(self, mock_decode_jwt):
+        """Test when JWT decoding fails."""
+        mock_decode_jwt.side_effect = jwt.DecodeError("Invalid JWT")
 
-        with pytest.raises(Exception, match="Verification failed"):
-            verify_identity_service_badge_extract_tools("invalid-token")
+        with pytest.raises(jwt.DecodeError, match="Invalid JWT"):
+            decode_badge_extract_tools("invalid-token")
 
-    @patch("identity_auth_server.api.utils.create_identity_service_client")
-    @patch("identity_auth_server.api.utils.verify_badge_with_identity_service")
-    @patch("identity_auth_server.api.utils.validate_verification_result")
-    def test_validation_failure(self, mock_validate, mock_verify_badge, mock_create_client):
-        """Test when verification result validation fails."""
-        mock_client = Mock()
-        mock_create_client.return_value = mock_client
-
-        mock_verified_result = Mock()
-        mock_verify_badge.return_value = mock_verified_result
+    @patch("identity_auth_server.api.utils.decode_badge_jwt")
+    @patch("identity_auth_server.api.utils.validate_badge_payload")
+    def test_validation_failure(self, mock_validate, mock_decode_jwt):
+        """Test when badge payload validation fails."""
+        mock_decoded_payload = {"type": ["BADGE_TYPE_OTHER"]}
+        mock_decode_jwt.return_value = mock_decoded_payload
         mock_validate.side_effect = ValueError("Validation failed")
 
         with pytest.raises(ValueError, match="Validation failed"):
-            verify_identity_service_badge_extract_tools("test-token")
+            decode_badge_extract_tools("test-token")
 
-    @patch("identity_auth_server.api.utils.create_identity_service_client")
-    @patch("identity_auth_server.api.utils.verify_badge_with_identity_service")
-    @patch("identity_auth_server.api.utils.validate_verification_result")
+    @patch("identity_auth_server.api.utils.decode_badge_jwt")
+    @patch("identity_auth_server.api.utils.validate_badge_payload")
     @patch("identity_auth_server.api.utils.parse_badge_json_to_mcp_server")
-    def test_json_parsing_failure(self, mock_parse_badge, mock_validate, mock_verify_badge, mock_create_client):
+    def test_json_parsing_failure(self, mock_parse_badge, mock_validate, mock_decode_jwt):
         """Test when badge JSON parsing fails."""
-        mock_client = Mock()
-        mock_create_client.return_value = mock_client
-
-        mock_verified_result = Mock()
-        mock_verify_badge.return_value = mock_verified_result
+        mock_decoded_payload = {
+            "type": ["BADGE_TYPE_MCP_BADGE"],
+            "credentialSubject": {"id": "test-user-id", "badge": "invalid json"},
+        }
+        mock_decode_jwt.return_value = mock_decoded_payload
         mock_parse_badge.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
 
         with pytest.raises(json.JSONDecodeError):
-            verify_identity_service_badge_extract_tools("test-token")
+            decode_badge_extract_tools("test-token")
 
 
 class TestIntegrationWithRealData:
@@ -380,9 +326,8 @@ class TestIntegrationWithRealData:
         assert "issue_key" in mcp_tools[0].inputSchema["properties"]
         assert "jql" in mcp_tools[1].inputSchema["properties"]
 
-    @patch.dict(os.environ, {"IDENTITY_SERVICE_API_KEY": "test-api-key"})
-    @patch("identity_auth_server.api.utils.sdk.IdentityServiceSdk")
-    def test_end_to_end_with_real_badge_file(self, mock_sdk):
+    @patch("identity_auth_server.api.utils.jwt.decode")
+    def test_end_to_end_with_real_badge_file(self, mock_jwt_decode):
         """Test end-to-end flow using the real badge token file (if available)."""
         # Check if the badge file exists and has content
         badge_file_path = os.path.join(
@@ -398,49 +343,42 @@ class TestIntegrationWithRealData:
         if not badge_content:
             pytest.skip("Badge file is empty")
 
-        # Mock the SDK response with realistic data
-        mock_verification_result = Mock(spec=VerificationResult)
-        mock_verification_result.status = True
-
-        # Create the nested structure
-        mock_credential_subject = Mock()
-        mock_credential_subject.id = "test-user-id"
-        mock_credential_subject.badge = json.dumps(
-            {
-                "name": "atlassian-mcp-server",
-                "url": "https://atlassian.example.com",
-                "tools": [
+        # Mock the JWT decode response with realistic data
+        mock_decoded_payload = {
+            "type": ["BADGE_TYPE_MCP_BADGE"],
+            "credentialSubject": {
+                "id": "test-user-id",
+                "badge": json.dumps(
                     {
-                        "name": "jira_get_user_profile",
-                        "description": "Retrieve profile information for a specific Jira user",
-                        "parameters": {
-                            "properties": {
-                                "user_identifier": {
-                                    "description": "User identifier (email, username, key, or account ID)",
-                                    "title": "User Identifier",
-                                    "type": "string",
-                                }
-                            },
-                            "required": ["user_identifier"],
-                            "type": "object",
-                        },
+                        "name": "atlassian-mcp-server",
+                        "url": "https://atlassian.example.com",
+                        "tools": [
+                            {
+                                "name": "jira_get_user_profile",
+                                "description": "Retrieve profile information for a specific Jira user",
+                                "parameters": {
+                                    "properties": {
+                                        "user_identifier": {
+                                            "description": "User identifier (email, username, key, or account ID)",
+                                            "title": "User Identifier",
+                                            "type": "string",
+                                        }
+                                    },
+                                    "required": ["user_identifier"],
+                                    "type": "object",
+                                },
+                            }
+                        ],
+                        "resources": [],
                     }
-                ],
-                "resources": [],
-            }
-        )
+                ),
+            },
+        }
 
-        mock_document = Mock()
-        mock_document.credential_subject = mock_credential_subject
-        mock_document.type = ["BADGE_TYPE_MCP_BADGE"]
-        mock_verification_result.document = mock_document
-
-        mock_client = Mock()
-        mock_client.verify_badge.return_value = mock_verification_result
-        mock_sdk.return_value = mock_client
+        mock_jwt_decode.return_value = mock_decoded_payload
 
         # Call the main function
-        result = verify_identity_service_badge_extract_tools(badge_content)
+        result = decode_badge_extract_tools(badge_content)
 
         # Verify results
         assert isinstance(result, list)
