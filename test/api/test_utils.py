@@ -326,13 +326,11 @@ class TestIntegrationWithRealData:
         assert "issue_key" in mcp_tools[0].inputSchema["properties"]
         assert "jql" in mcp_tools[1].inputSchema["properties"]
 
-    @patch("identity_auth_server.api.utils.jwt.decode")
-    def test_end_to_end_with_real_badge_file(self, mock_jwt_decode):
+    def test_end_to_end_with_real_badge_file(self):
         """Test end-to-end flow using the real badge token file (if available)."""
         # Check if the badge file exists and has content
-        badge_file_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "test", "api", "data", "jira_mcp_badge.txt"
-        )
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        badge_file_path = os.path.join(project_root, "test", "api", "data", "jira_mcp_badge.txt")
 
         if not os.path.exists(badge_file_path):
             pytest.skip("Badge file not available for testing")
@@ -343,46 +341,12 @@ class TestIntegrationWithRealData:
         if not badge_content:
             pytest.skip("Badge file is empty")
 
-        # Mock the JWT decode response with realistic data
-        mock_decoded_payload = {
-            "type": ["BADGE_TYPE_MCP_BADGE"],
-            "credentialSubject": {
-                "id": "test-user-id",
-                "badge": json.dumps(
-                    {
-                        "name": "atlassian-mcp-server",
-                        "url": "https://atlassian.example.com",
-                        "tools": [
-                            {
-                                "name": "jira_get_user_profile",
-                                "description": "Retrieve profile information for a specific Jira user",
-                                "parameters": {
-                                    "properties": {
-                                        "user_identifier": {
-                                            "description": "User identifier (email, username, key, or account ID)",
-                                            "title": "User Identifier",
-                                            "type": "string",
-                                        }
-                                    },
-                                    "required": ["user_identifier"],
-                                    "type": "object",
-                                },
-                            }
-                        ],
-                        "resources": [],
-                    }
-                ),
-            },
-        }
-
-        mock_jwt_decode.return_value = mock_decoded_payload
-
         # Call the main function
         result = decode_badge_extract_tools(badge_content)
 
         # Verify results
         assert isinstance(result, list)
-        assert len(result) == 1
+        assert len(result) == 42
         assert isinstance(result[0], mcp_types.Tool)
         assert result[0].name == "jira_get_user_profile"
         assert "user_identifier" in result[0].inputSchema["properties"]
