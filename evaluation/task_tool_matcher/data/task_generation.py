@@ -89,7 +89,10 @@ async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, obscur
 
     tool_description = tool_data.get("description", "N/A")
     if obscure:
-        cut_sequence = "\n\n    Args:\n        "  # cutting off input args information (applies to atlassian tools)
+        cut_sequence = "\n    Args:\n"  # cutting off input args info (applies to atlassian & hummingbot & paper-search)
+        if cut_sequence in tool_description:
+            tool_description = tool_description.split(cut_sequence)[0]
+        cut_sequence = "\n\nParameters:\n"  # cutting off input args information (applies to nasdaq)
         if cut_sequence in tool_description:
             tool_description = tool_description.split(cut_sequence)[0]
 
