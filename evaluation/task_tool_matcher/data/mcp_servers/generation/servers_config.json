@@ -143,6 +143,55 @@
             "env": {
                 "INTERNAL_INTEGRATION_TOKEN": "ntn_****"
             }
+        },
+        "azure": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "mcp/azure",
+                "server",
+                "start"
+            ]
+        },
+        "paper-search": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "mcp/paper-search"
+            ]
+        },
+        "sonarqube": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "-e",
+                "SONARQUBE_URL",
+                "-e",
+                "SONARQUBE_ORG",
+                "-e",
+                "SONARQUBE_TOKEN",
+                "mcp/sonarqube"
+            ],
+            "env": {
+                "SONARQUBE_URL": "https://my-sonarqube.com",
+                "SONARQUBE_ORG": "my-org",
+                "SONARQUBE_TOKEN": "YOUR_SONARQUBE_TOKEN"
+            }
+        },
+        "wikipedia-mcp": {
+            "command": "docker",
+            "args": [
+            "run",
+            "-i",
+            "--rm",
+            "mcp/wikipedia-mcp"
+            ]
         }
     }
 }
