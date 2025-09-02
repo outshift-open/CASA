@@ -1018,6 +1018,29 @@
     }
   },
   {
+    "name": "get_global_security_advisory",
+    "description": "Get a global security advisory",
+    "inputSchema": {
+      "properties": {
+        "ghsaId": {
+          "description": "GitHub Security Advisory ID (format: GHSA-xxxx-xxxx-xxxx).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ghsaId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "title": "Get a global security advisory",
+      "readOnlyHint": true,
+      "destructiveHint": null,
+      "idempotentHint": null,
+      "openWorldHint": null
+    }
+  },
+  {
     "name": "get_issue",
     "description": "Get details of a specific issue in a GitHub repository.",
     "inputSchema": {
@@ -1412,6 +1435,39 @@
     },
     "annotations": {
       "title": "Get pull request status checks",
+      "readOnlyHint": true,
+      "destructiveHint": null,
+      "idempotentHint": null,
+      "openWorldHint": null
+    }
+  },
+  {
+    "name": "get_release_by_tag",
+    "description": "Get a specific release by its tag name in a GitHub repository",
+    "inputSchema": {
+      "properties": {
+        "owner": {
+          "description": "Repository owner",
+          "type": "string"
+        },
+        "repo": {
+          "description": "Repository name",
+          "type": "string"
+        },
+        "tag": {
+          "description": "Tag name (e.g., 'v1.0.0')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "owner",
+        "repo",
+        "tag"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "title": "Get a release by tag name",
       "readOnlyHint": true,
       "destructiveHint": null,
       "idempotentHint": null,
@@ -1946,6 +2002,96 @@
     }
   },
   {
+    "name": "list_global_security_advisories",
+    "description": "List global security advisories from GitHub.",
+    "inputSchema": {
+      "properties": {
+        "affects": {
+          "description": "Filter advisories by affected package or version (e.g. \"package1,package2@1.0.0\").",
+          "type": "string"
+        },
+        "cveId": {
+          "description": "Filter by CVE ID.",
+          "type": "string"
+        },
+        "cwes": {
+          "description": "Filter by Common Weakness Enumeration IDs (e.g. [\"79\", \"284\", \"22\"]).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ecosystem": {
+          "description": "Filter by package ecosystem.",
+          "enum": [
+            "actions",
+            "composer",
+            "erlang",
+            "go",
+            "maven",
+            "npm",
+            "nuget",
+            "other",
+            "pip",
+            "pub",
+            "rubygems",
+            "rust"
+          ],
+          "type": "string"
+        },
+        "ghsaId": {
+          "description": "Filter by GitHub Security Advisory ID (format: GHSA-xxxx-xxxx-xxxx).",
+          "type": "string"
+        },
+        "isWithdrawn": {
+          "description": "Whether to only return withdrawn advisories.",
+          "type": "boolean"
+        },
+        "modified": {
+          "description": "Filter by publish or update date or date range (ISO 8601 date or range).",
+          "type": "string"
+        },
+        "published": {
+          "description": "Filter by publish date or date range (ISO 8601 date or range).",
+          "type": "string"
+        },
+        "severity": {
+          "description": "Filter by severity.",
+          "enum": [
+            "unknown",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "default": "reviewed",
+          "description": "Advisory type.",
+          "enum": [
+            "reviewed",
+            "malware",
+            "unreviewed"
+          ],
+          "type": "string"
+        },
+        "updated": {
+          "description": "Filter by update date or date range (ISO 8601 date or range).",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "annotations": {
+      "title": "List global security advisories",
+      "readOnlyHint": true,
+      "destructiveHint": null,
+      "idempotentHint": null,
+      "openWorldHint": null
+    }
+  },
+  {
     "name": "list_issue_types",
     "description": "List supported issue types for repository owner (organization).",
     "inputSchema": {
@@ -2095,6 +2241,56 @@
     }
   },
   {
+    "name": "list_org_repository_security_advisories",
+    "description": "List repository security advisories for a GitHub organization.",
+    "inputSchema": {
+      "properties": {
+        "direction": {
+          "description": "Sort direction.",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "type": "string"
+        },
+        "org": {
+          "description": "The organization login.",
+          "type": "string"
+        },
+        "sort": {
+          "description": "Sort field.",
+          "enum": [
+            "created",
+            "updated",
+            "published"
+          ],
+          "type": "string"
+        },
+        "state": {
+          "description": "Filter by advisory state.",
+          "enum": [
+            "triage",
+            "draft",
+            "published",
+            "closed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "org"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "title": "List org repository security advisories",
+      "readOnlyHint": true,
+      "destructiveHint": null,
+      "idempotentHint": null,
+      "openWorldHint": null
+    }
+  },
+  {
     "name": "list_pull_requests",
     "description": "List pull requests in a GitHub repository. If the user specifies an author, then DO NOT use this tool and use the search_pull_requests tool instead.",
     "inputSchema": {
@@ -2201,6 +2397,61 @@
     },
     "annotations": {
       "title": "List releases",
+      "readOnlyHint": true,
+      "destructiveHint": null,
+      "idempotentHint": null,
+      "openWorldHint": null
+    }
+  },
+  {
+    "name": "list_repository_security_advisories",
+    "description": "List repository security advisories for a GitHub repository.",
+    "inputSchema": {
+      "properties": {
+        "direction": {
+          "description": "Sort direction.",
+          "enum": [
+            "asc",
+            "desc"
+          ],
+          "type": "string"
+        },
+        "owner": {
+          "description": "The owner of the repository.",
+          "type": "string"
+        },
+        "repo": {
+          "description": "The name of the repository.",
+          "type": "string"
+        },
+        "sort": {
+          "description": "Sort field.",
+          "enum": [
+            "created",
+            "updated",
+            "published"
+          ],
+          "type": "string"
+        },
+        "state": {
+          "description": "Filter by advisory state.",
+          "enum": [
+            "triage",
+            "draft",
+            "published",
+            "closed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "owner",
+        "repo"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "title": "List repository security advisories",
       "readOnlyHint": true,
       "destructiveHint": null,
       "idempotentHint": null,

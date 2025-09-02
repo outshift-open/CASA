@@ -1,0 +1,302 @@
+[
+  {
+    "name": "search_wikipedia",
+    "description": "Search Wikipedia for articles matching a query.",
+    "inputSchema": {
+      "properties": {
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "limit": {
+          "default": 10,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_article",
+    "description": "Get the full content of a Wikipedia article.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_summary",
+    "description": "Get a summary of a Wikipedia article.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "summarize_article_for_query",
+    "description": "Get a summary of a Wikipedia article tailored to a specific query.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "max_length": {
+          "default": 250,
+          "title": "Max Length",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "title",
+        "query"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "summarize_article_section",
+    "description": "Get a summary of a specific section of a Wikipedia article.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "section_title": {
+          "title": "Section Title",
+          "type": "string"
+        },
+        "max_length": {
+          "default": 150,
+          "title": "Max Length",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "title",
+        "section_title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "extract_key_facts",
+    "description": "Extract key facts from a Wikipedia article, optionally focused on a topic.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "topic_within_article": {
+          "default": "",
+          "title": "Topic Within Article",
+          "type": "string"
+        },
+        "count": {
+          "default": 5,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_related_topics",
+    "description": "Get topics related to a Wikipedia article based on links and categories.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "limit": {
+          "default": 10,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_sections",
+    "description": "Get the sections of a Wikipedia article.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_links",
+    "description": "Get the links contained within a Wikipedia article.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  },
+  {
+    "name": "get_coordinates",
+    "description": "Get the coordinates of a Wikipedia article.",
+    "inputSchema": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "annotations": null,
+    "outputSchema": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "_meta": {
+      "_fastmcp": {
+        "tags": []
+      }
+    }
+  }
+]
