@@ -3,6 +3,7 @@
 import argparse
 import asyncio
 import json
+import os
 import time
 
 from dotenv import dotenv_values
@@ -117,6 +118,7 @@ async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, obscur
                 "tool_name": tool_data.get("name"),
                 "synthetic_task": synthetic_task,
                 "system_prompt": system_prompt,
+                "mcp_server": tool_data.get("mcp_server"),
             }
         except Exception as e:
             print(f"Error processing tool {tool_data.get('name', 'N/A')}: {e}")
@@ -128,7 +130,10 @@ async def process_tools_files(input_paths: list[str], output_path: str, multipli
     all_tools = []
     for input_path in input_paths:
         with open(input_path, "r") as f:
+            name = os.path.basename(input_path).replace("_tools.json", "")
             tools = json.load(f)
+            for tool in tools:
+                tool["mcp_server"] = name
             all_tools.extend(tools)
 
     semaphore = asyncio.Semaphore(10)  # max 10 for openai async
@@ -150,6 +155,7 @@ async def process_tools_files(input_paths: list[str], output_path: str, multipli
                 "tool_name": tool_name,
                 "synthetic_tasks": [],
                 "system_prompt": res["system_prompt"],
+                "mcp_server": res["mcp_server"],
             }
         grouped_results[tool_name]["synthetic_tasks"].append(res["synthetic_task"])
 
@@ -169,7 +175,9 @@ async def main():
     """Main function to parse arguments and run the script."""
     parser = argparse.ArgumentParser(description="Generate synthetic tasks from a JSON file of MCP tool descriptions.")
     parser.add_argument(
-        "--input-files", nargs="+", required=True, help="Paths to the input JSON files with the MCP tool descriptions."
+        "--input-dir",
+        required=True,
+        help="Path to the input directory containing JSON files with MCP tool descriptions.",
     )
     parser.add_argument(
         "--output-file", required=True, help="Path to the output JSON file to save the synthetic tasks (+meta info)."
@@ -183,8 +191,14 @@ async def main():
 
     args = parser.parse_args()
 
+    input_files = [os.path.join(args.input_dir, f) for f in os.listdir(args.input_dir) if f.endswith("_tools.json")]
+
+    if not input_files:
+        print(f"No files ending with '_tools.json' found in {args.input_dir}")
+        return
+
     start_time = time.time()
-    await process_tools_files(args.input_files, args.output_file, args.multiplier, args.obscure)
+    await process_tools_files(input_files, args.output_file, args.multiplier, args.obscure)
     elapsed_time = time.time() - start_time
     print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
