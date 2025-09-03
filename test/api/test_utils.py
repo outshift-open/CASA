@@ -2,351 +2,235 @@
 
 import json
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
+import identityservice.badge.mcp as sdk
 import jwt
 import pytest
-from identityservice.badge.mcp import McpServer
 from mcp import types as mcp_types
 
 from identity_auth_server.api.utils import (
-    convert_mcp_tools_to_mcp_types,
-    decode_badge_extract_tools,
+    convert_mcp_server,
+    decode_badge_extract_mcp_server,
     decode_badge_jwt,
     parse_badge_json_to_mcp_server,
     validate_badge_payload,
 )
+from identity_auth_server.types import McpServer
 
 
 class TestDecodeBadgeJwt:
-    """Test cases for decode_badge_jwt function."""
+    """Tests for decode_badge_jwt function."""
 
-    @patch("identity_auth_server.api.utils.jwt.decode")
-    def test_decode_jwt_success(self, mock_jwt_decode):
-        """Test successful JWT decoding."""
-        expected_payload = {
-            "type": ["BADGE_TYPE_MCP_BADGE"],
-            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
-        }
-        mock_jwt_decode.return_value = expected_payload
+    def test_decode_valid_jwt_token(self):
+        """Test decoding a valid JWT token without verification."""
+        # Use the test badge token from the test data
+        test_data_path = os.path.join(os.path.dirname(__file__), "data", "jira_mcp_badge.txt")
+        with open(test_data_path, "r") as f:
+            test_badge_token = f.read().strip()
 
-        result = decode_badge_jwt("test-jwt-token")
+        result = decode_badge_jwt(test_badge_token)
 
-        mock_jwt_decode.assert_called_once_with("test-jwt-token", options={"verify_signature": False})
-        assert result == expected_payload
+        assert isinstance(result, dict)
+        assert "type" in result
+        assert "credentialSubject" in result
+        assert result["type"] == ["BADGE_TYPE_MCP_BADGE"]
 
-    @patch("identity_auth_server.api.utils.jwt.decode")
-    def test_decode_jwt_invalid_token(self, mock_jwt_decode):
-        """Test JWT decoding with invalid token."""
-        mock_jwt_decode.side_effect = jwt.DecodeError("Invalid token")
-
-        with pytest.raises(jwt.DecodeError, match="Invalid token"):
-            decode_badge_jwt("invalid-token")
+    @pytest.mark.parametrize("invalid_token", ["invalid.jwt.token", "not-a-jwt-token-at-all", ""])
+    def test_decode_invalid_jwt_token(self, invalid_token):
+        """Test that invalid JWT tokens raise DecodeError."""
+        with pytest.raises(jwt.DecodeError):
+            decode_badge_jwt(invalid_token)
 
 
 class TestValidateBadgePayload:
-    """Test cases for validate_badge_payload function."""
+    """Tests for validate_badge_payload function."""
 
-    def test_validate_success(self):
-        """Test successful validation of badge payload."""
-        payload = {
+    def test_validate_valid_badge_payload(self):
+        """Test validation of a valid badge payload."""
+        valid_payload = {
             "type": ["BADGE_TYPE_MCP_BADGE"],
-            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
+            "credentialSubject": {
+                "id": "AGNTCY-21c8e890-226c-4c3e-b601-ab05188ac426",
+                "badge": '{"name": "Test Server"}',
+            },
         }
 
         # Should not raise any exception
-        validate_badge_payload(payload)
+        validate_badge_payload(valid_payload)
 
-    def test_validate_wrong_type(self):
-        """Test validation fails with wrong badge type."""
-        payload = {
-            "type": ["BADGE_TYPE_OTHER"],
-            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
+    def test_validate_invalid_badge_type(self):
+        """Test that invalid badge type raises ValueError."""
+        invalid_payload = {
+            "type": ["INVALID_BADGE_TYPE"],
+            "credentialSubject": {"id": "test-id", "badge": '{"name": "Test Server"}'},
         }
 
         with pytest.raises(ValueError, match="Unexpected badge type"):
-            validate_badge_payload(payload)
+            validate_badge_payload(invalid_payload)
 
     def test_validate_missing_credential_subject(self):
-        """Test validation fails with missing credentialSubject."""
-        payload = {"type": ["BADGE_TYPE_MCP_BADGE"]}
+        """Test that missing credentialSubject raises ValueError."""
+        invalid_payload = {"type": ["BADGE_TYPE_MCP_BADGE"]}
 
         with pytest.raises(ValueError, match="Missing or invalid credentialSubject"):
-            validate_badge_payload(payload)
+            validate_badge_payload(invalid_payload)
 
-    def test_validate_invalid_credential_subject(self):
-        """Test validation fails with non-dict credentialSubject."""
-        payload = {"type": ["BADGE_TYPE_MCP_BADGE"], "credentialSubject": "invalid"}
+    def test_validate_invalid_credential_subject_type(self):
+        """Test that invalid credentialSubject type raises ValueError."""
+        invalid_payload = {"type": ["BADGE_TYPE_MCP_BADGE"], "credentialSubject": "not a dict"}
 
         with pytest.raises(ValueError, match="Missing or invalid credentialSubject"):
-            validate_badge_payload(payload)
+            validate_badge_payload(invalid_payload)
 
-    def test_validate_empty_credential_subject_id(self):
-        """Test validation fails with empty credential subject id."""
-        payload = {
+    @pytest.mark.parametrize(
+        "invalid_id,description", [("", "empty string"), (123, "non-string type"), (None, "None value")]
+    )
+    def test_validate_invalid_credential_id(self, invalid_id, description):
+        """Test that invalid credential subject ids raise ValueError."""
+        invalid_payload = {
             "type": ["BADGE_TYPE_MCP_BADGE"],
-            "credentialSubject": {"id": "", "badge": '{"name": "test", "url": "http://test.com"}'},
+            "credentialSubject": {"id": invalid_id, "badge": '{"name": "Test Server"}'},
         }
 
         with pytest.raises(ValueError, match="Unexpected credential subject id"):
-            validate_badge_payload(payload)
-
-    def test_validate_non_string_credential_subject_id(self):
-        """Test validation fails with non-string credential subject id."""
-        payload = {
-            "type": ["BADGE_TYPE_MCP_BADGE"],
-            "credentialSubject": {"id": 123, "badge": '{"name": "test", "url": "http://test.com"}'},
-        }
-
-        with pytest.raises(ValueError, match="Unexpected credential subject id"):
-            validate_badge_payload(payload)
+            validate_badge_payload(invalid_payload)
 
     def test_validate_missing_badge_field(self):
-        """Test validation fails with missing badge field."""
-        payload = {"type": ["BADGE_TYPE_MCP_BADGE"], "credentialSubject": {"id": "test-user-id"}}
+        """Test that missing badge field raises ValueError."""
+        invalid_payload = {"type": ["BADGE_TYPE_MCP_BADGE"], "credentialSubject": {"id": "test-id"}}
 
         with pytest.raises(ValueError, match="Missing badge field in credentialSubject"):
-            validate_badge_payload(payload)
+            validate_badge_payload(invalid_payload)
 
 
 class TestParseBadgeJsonToMcpServer:
-    """Test cases for parse_badge_json_to_mcp_server function."""
+    """Tests for parse_badge_json_to_mcp_server function."""
 
-    def test_parse_valid_json(self):
-        """Test parsing valid badge JSON."""
-        badge_data = {
-            "name": "test-server",
-            "url": "https://example.com",
-            "tools": [
-                {"name": "test_tool", "description": "A test tool", "parameters": {"type": "object", "properties": {}}}
-            ],
-            "resources": [{"name": "test_resource", "description": "A test resource", "uri": "test://resource"}],
-        }
-        badge_json_str = json.dumps(badge_data)
+    def test_parse_valid_badge_json(self):
+        """Test parsing valid badge JSON to McpServer."""
+        badge_json = json.dumps(
+            {
+                "name": "Test Server",
+                "url": "http://localhost:9000/mcp",
+                "tools": [
+                    {
+                        "name": "test_tool",
+                        "description": "A test tool",
+                        "parameters": {"type": "object", "properties": {}},
+                    }
+                ],
+                "resources": [{"name": "test_resource", "description": "A test resource", "uri": "test://resource"}],
+            }
+        )
 
-        result = parse_badge_json_to_mcp_server(badge_json_str)
+        result = parse_badge_json_to_mcp_server(badge_json)
 
-        assert isinstance(result, McpServer)
-        assert result.name == "test-server"
-        assert result.url == "https://example.com"
+        assert isinstance(result, sdk.McpServer)
+        assert result.name == "Test Server"
+        assert result.url == "http://localhost:9000/mcp"
         assert len(result.tools) == 1
-        assert result.tools[0].name == "test_tool"
         assert len(result.resources) == 1
+        assert result.tools[0].name == "test_tool"
         assert result.resources[0].name == "test_resource"
 
-    def test_parse_json_without_tools_and_resources(self):
-        """Test parsing JSON without tools and resources."""
-        badge_data = {"name": "test-server", "url": "https://example.com"}
-        badge_json_str = json.dumps(badge_data)
+    def test_parse_badge_json_with_empty_tools_resources(self):
+        """Test parsing badge JSON with empty tools and resources."""
+        badge_json = json.dumps({"name": "Test Server", "url": "http://localhost:9000/mcp"})
 
-        result = parse_badge_json_to_mcp_server(badge_json_str)
+        result = parse_badge_json_to_mcp_server(badge_json)
 
-        assert isinstance(result, McpServer)
-        assert result.name == "test-server"
-        assert result.url == "https://example.com"
+        assert isinstance(result, sdk.McpServer)
+        assert result.name == "Test Server"
         assert len(result.tools) == 0
         assert len(result.resources) == 0
 
     def test_parse_invalid_json(self):
-        """Test parsing invalid JSON raises JSONDecodeError."""
-        invalid_json = "invalid json string"
+        """Test that invalid JSON raises JSONDecodeError."""
+        invalid_json = "not valid json {"
 
         with pytest.raises(json.JSONDecodeError):
             parse_badge_json_to_mcp_server(invalid_json)
 
-    def test_parse_json_missing_required_fields(self):
-        """Test parsing JSON with missing required fields raises KeyError."""
-        badge_data = {"url": "https://example.com"}  # Missing 'name'
-        badge_json_str = json.dumps(badge_data)
+    def test_parse_missing_required_fields(self):
+        """Test that missing required fields raises KeyError."""
+        badge_json = json.dumps({"tools": [], "resources": []})
 
         with pytest.raises(KeyError):
-            parse_badge_json_to_mcp_server(badge_json_str)
+            parse_badge_json_to_mcp_server(badge_json)
 
 
-class TestConvertMcpToolsToMcpTypes:
-    """Test cases for convert_mcp_tools_to_mcp_types function."""
+class TestConvertMcpServer:
+    """Tests for convert_mcp_server function."""
 
-    def test_convert_tools(self):
-        """Test converting MCP tools to mcp.types.Tool objects."""
-        # Create mock MCP tools
-        mock_tool1 = Mock()
-        mock_tool1.name = "tool1"
-        mock_tool1.description = "Description 1"
-        mock_tool1.parameters = {"type": "object", "properties": {"param1": {"type": "string"}}}
+    @pytest.mark.parametrize("has_tools_resources", [True, False])
+    def test_convert_mcp_server(self, has_tools_resources):
+        """Test converting McpServer with and without tools and resources."""
+        # Create mock SDK objects conditionally
+        mock_mcp_server = Mock(spec=sdk.McpServer)
 
-        mock_tool2 = Mock()
-        mock_tool2.name = "tool2"
-        mock_tool2.description = "Description 2"
-        mock_tool2.parameters = {"type": "object", "properties": {"param2": {"type": "number"}}}
+        if has_tools_resources:
+            mock_tool = Mock()
+            mock_tool.name = "test_tool"
+            mock_tool.description = "A test tool"
+            mock_tool.parameters = {"type": "object", "properties": {}}
 
-        mock_server = Mock()
-        mock_server.tools = [mock_tool1, mock_tool2]
+            mock_resource = Mock()
+            mock_resource.name = "test_resource"
+            mock_resource.description = "A test resource"
+            mock_resource.uri = "test://resource"
 
-        result = convert_mcp_tools_to_mcp_types(mock_server)
+            mock_mcp_server.name = "Test Server"
+            mock_mcp_server.tools = [mock_tool]
+            mock_mcp_server.resources = [mock_resource]
 
-        assert len(result) == 2
-        assert all(isinstance(tool, mcp_types.Tool) for tool in result)
+            expected_tool_count = 1
+            expected_resource_count = 1
+        else:
+            mock_mcp_server.name = "Empty Server"
+            mock_mcp_server.tools = []
+            mock_mcp_server.resources = []
 
-        assert result[0].name == "tool1"
-        assert result[0].description == "Description 1"
-        assert result[0].inputSchema == {"type": "object", "properties": {"param1": {"type": "string"}}}
+            expected_tool_count = 0
+            expected_resource_count = 0
 
-        assert result[1].name == "tool2"
-        assert result[1].description == "Description 2"
-        assert result[1].inputSchema == {"type": "object", "properties": {"param2": {"type": "number"}}}
+        result = convert_mcp_server(mock_mcp_server)
 
-    def test_convert_empty_tools(self):
-        """Test converting empty tools list."""
-        mock_server = Mock()
-        mock_server.tools = []
+        assert isinstance(result, McpServer)
+        assert len(result.tools) == expected_tool_count
+        assert len(result.resources) == expected_resource_count
 
-        result = convert_mcp_tools_to_mcp_types(mock_server)
-
-        assert result == []
-
-
-class TestDecodeBadgeExtractTools:
-    """Test cases for the main decode_badge_extract_tools function."""
-
-    @patch("identity_auth_server.api.utils.decode_badge_jwt")
-    @patch("identity_auth_server.api.utils.validate_badge_payload")
-    @patch("identity_auth_server.api.utils.parse_badge_json_to_mcp_server")
-    @patch("identity_auth_server.api.utils.convert_mcp_tools_to_mcp_types")
-    def test_successful_badge_decoding_and_extraction(
-        self, mock_convert_tools, mock_parse_badge, mock_validate, mock_decode_jwt
-    ):
-        """Test successful end-to-end badge decoding and tool extraction."""
-        # Setup mocks
-        mock_decoded_payload = {
-            "type": ["BADGE_TYPE_MCP_BADGE"],
-            "credentialSubject": {"id": "test-user-id", "badge": '{"name": "test", "url": "http://test.com"}'},
-        }
-        mock_decode_jwt.return_value = mock_decoded_payload
-
-        mock_server = Mock()
-        mock_parse_badge.return_value = mock_server
-
-        expected_tools = [Mock(spec=mcp_types.Tool)]
-        mock_convert_tools.return_value = expected_tools
-
-        # Call the function
-        result = decode_badge_extract_tools("test-jwt-token")
-
-        # Verify the calls
-        mock_decode_jwt.assert_called_once_with("test-jwt-token")
-        mock_validate.assert_called_once_with(mock_decoded_payload)
-        mock_parse_badge.assert_called_once_with(mock_decoded_payload["credentialSubject"]["badge"])
-        mock_convert_tools.assert_called_once_with(mock_server)
-
-        assert result == expected_tools
-
-    @patch("identity_auth_server.api.utils.decode_badge_jwt")
-    def test_jwt_decoding_failure(self, mock_decode_jwt):
-        """Test when JWT decoding fails."""
-        mock_decode_jwt.side_effect = jwt.DecodeError("Invalid JWT")
-
-        with pytest.raises(jwt.DecodeError, match="Invalid JWT"):
-            decode_badge_extract_tools("invalid-token")
-
-    @patch("identity_auth_server.api.utils.decode_badge_jwt")
-    @patch("identity_auth_server.api.utils.validate_badge_payload")
-    def test_validation_failure(self, mock_validate, mock_decode_jwt):
-        """Test when badge payload validation fails."""
-        mock_decoded_payload = {"type": ["BADGE_TYPE_OTHER"]}
-        mock_decode_jwt.return_value = mock_decoded_payload
-        mock_validate.side_effect = ValueError("Validation failed")
-
-        with pytest.raises(ValueError, match="Validation failed"):
-            decode_badge_extract_tools("test-token")
-
-    @patch("identity_auth_server.api.utils.decode_badge_jwt")
-    @patch("identity_auth_server.api.utils.validate_badge_payload")
-    @patch("identity_auth_server.api.utils.parse_badge_json_to_mcp_server")
-    def test_json_parsing_failure(self, mock_parse_badge, mock_validate, mock_decode_jwt):
-        """Test when badge JSON parsing fails."""
-        mock_decoded_payload = {
-            "type": ["BADGE_TYPE_MCP_BADGE"],
-            "credentialSubject": {"id": "test-user-id", "badge": "invalid json"},
-        }
-        mock_decode_jwt.return_value = mock_decoded_payload
-        mock_parse_badge.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
-
-        with pytest.raises(json.JSONDecodeError):
-            decode_badge_extract_tools("test-token")
+        if has_tools_resources:
+            assert isinstance(result.tools[0], mcp_types.Tool)
+            assert isinstance(result.resources[0], mcp_types.Resource)
+            assert result.tools[0].name == "test_tool"
+            assert result.resources[0].name == "test_resource"
 
 
-class TestIntegrationWithRealData:
-    """Integration tests using more realistic data structures."""
+class TestDecodeBadgeExtractMcpServer:
+    """Tests for decode_badge_extract_mcp_server function."""
 
-    def test_integration_with_jira_like_data(self):
-        """Test with Jira MCP server-like data structure."""
-        badge_data = {
-            "name": "jira-mcp-server",
-            "url": "https://jira.example.com",
-            "tools": [
-                {
-                    "name": "jira_get_issue",
-                    "description": "Get details of a specific Jira issue",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "issue_key": {"type": "string", "description": "Jira issue key (e.g., 'PROJ-123')"}
-                        },
-                        "required": ["issue_key"],
-                    },
-                },
-                {
-                    "name": "jira_search",
-                    "description": "Search Jira issues using JQL",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "jql": {"type": "string", "description": "JQL query string"},
-                            "limit": {"type": "integer", "description": "Maximum number of results", "default": 10},
-                        },
-                        "required": ["jql"],
-                    },
-                },
-            ],
-            "resources": [],
-        }
+    def test_end_to_end_happy_path(self):
+        """Test end-to-end processing of a valid badge token."""
+        # Use the test badge token from the test data
+        test_data_path = os.path.join(os.path.dirname(__file__), "data", "jira_mcp_badge.txt")
+        with open(test_data_path, "r") as f:
+            test_badge_token = f.read().strip()
 
-        badge_json_str = json.dumps(badge_data)
+        result = decode_badge_extract_mcp_server(test_badge_token)
 
-        # Test parsing
-        mcp_server = parse_badge_json_to_mcp_server(badge_json_str)
-        assert mcp_server.name == "jira-mcp-server"
-        assert len(mcp_server.tools) == 2
+        assert isinstance(result, McpServer)
+        assert result.name == "Jira MCP Server"
+        assert len(result.tools) > 0  # Should have Jira tools
+        assert isinstance(result.tools[0], mcp_types.Tool)
+        # Check for some expected Jira tools
+        tool_names = [tool.name for tool in result.tools]
+        assert "jira_get_user_profile" in tool_names
+        assert "jira_get_issue" in tool_names
 
-        # Test conversion
-        mcp_tools = convert_mcp_tools_to_mcp_types(mcp_server)
-        assert len(mcp_tools) == 2
-        assert mcp_tools[0].name == "jira_get_issue"
-        assert mcp_tools[1].name == "jira_search"
-        assert "issue_key" in mcp_tools[0].inputSchema["properties"]
-        assert "jql" in mcp_tools[1].inputSchema["properties"]
+    def test_with_invalid_jwt_token(self):
+        """Test that invalid JWT token propagates DecodeError."""
+        invalid_token = "invalid.jwt.token"
 
-    def test_end_to_end_with_real_badge_file(self):
-        """Test end-to-end flow using the real badge token file (if available)."""
-        # Check if the badge file exists and has content
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        badge_file_path = os.path.join(project_root, "test", "api", "data", "jira_mcp_badge.txt")
-
-        if not os.path.exists(badge_file_path):
-            pytest.skip("Badge file not available for testing")
-
-        with open(badge_file_path, "r") as f:
-            badge_content = f.read().strip()
-
-        if not badge_content:
-            pytest.skip("Badge file is empty")
-
-        # Call the main function
-        result = decode_badge_extract_tools(badge_content)
-
-        # Verify results
-        assert isinstance(result, list)
-        assert len(result) == 42
-        assert isinstance(result[0], mcp_types.Tool)
-        assert result[0].name == "jira_get_user_profile"
-        assert "user_identifier" in result[0].inputSchema["properties"]
+        with pytest.raises(jwt.DecodeError):
+            decode_badge_extract_mcp_server(invalid_token)

@@ -200,7 +200,9 @@ async def process_tools_files(input_paths: list[str], output_path: str, multipli
 
 async def main():
     """Main function to parse arguments and run the script."""
-    parser = argparse.ArgumentParser(description="Generate synthetic tasks from a JSON file of MCP tool descriptions.")
+    parser = argparse.ArgumentParser(
+        description="Generate synthetic tasks from a JSON file of MCP Server descriptions."
+    )
     parser.add_argument(
         "--input-dir",
         required=True,
