@@ -3,11 +3,11 @@
 import json
 import os
 
+import identityservice.badge.mcp as sdk
 import jwt
-from identityservice.badge.mcp import McpResource, McpServer, McpTool
 from mcp import types as mcp_types
 
-from identity_auth_server.types import McpTools
+from identity_auth_server.types import McpResources, McpServer, McpTools
 
 
 def decode_badge_jwt(badge_token: str) -> dict:
@@ -56,7 +56,7 @@ def validate_badge_payload(decoded_badge: dict) -> None:
         raise ValueError("Missing badge field in credentialSubject")
 
 
-def parse_badge_json_to_mcp_server(badge_json_str: str) -> McpServer:
+def parse_badge_json_to_mcp_server(badge_json_str: str) -> sdk.McpServer:
     """Parse badge JSON string to McpServer object.
 
     Args:
@@ -73,24 +73,24 @@ def parse_badge_json_to_mcp_server(badge_json_str: str) -> McpServer:
     badge_json = json.loads(badge_json_str)
 
     # convert the badge_json to a McpServer object
-    return McpServer(
+    return sdk.McpServer(
         name=badge_json["name"],
         url=badge_json["url"],
-        tools=[McpTool(**tool) for tool in badge_json.get("tools", [])],
-        resources=[McpResource(**res) for res in badge_json.get("resources", [])],
+        tools=[sdk.McpTool(**tool) for tool in badge_json.get("tools", [])],
+        resources=[sdk.McpResource(**res) for res in badge_json.get("resources", [])],
     )
 
 
-def convert_mcp_tools_to_mcp_types(mcp_server: McpServer) -> list[mcp_types.Tool]:
-    """Convert McpTool objects to mcp.types.Tool objects.
+def convert_mcp_server(mcp_server: sdk.McpServer) -> McpServer:
+    """Converts Identity SDK types.
 
     Args:
-        mcp_server: McpServer object containing tools
+        mcp_server: sdk.McpServer object containing name, tools and resources
 
     Returns:
-        List of mcp.types.Tool objects
+        McpServer
     """
-    mcp_tools: list[mcp_types.Tool] = []
+    mcp_tools: McpTools = []
     for tool in mcp_server.tools:
         mcp_tool = mcp_types.Tool(
             name=tool.name,
@@ -98,17 +98,25 @@ def convert_mcp_tools_to_mcp_types(mcp_server: McpServer) -> list[mcp_types.Tool
             inputSchema=tool.parameters,
         )
         mcp_tools.append(mcp_tool)
-    return mcp_tools
+
+    mcp_resources: McpResources = []
+    for resource in mcp_server.resources:
+        mcp_resource = mcp_types.Resource(name=resource.name, description=resource.description, uri=resource.uri)
+        mcp_resources.append(mcp_resource)
+
+    converted_mcp_server = McpServer(name=mcp_server.name, tools=mcp_tools, resources=mcp_resources)
+
+    return converted_mcp_server
 
 
-def decode_badge_extract_tools(badge_token: str) -> McpTools:
+def decode_badge_extract_mcp_server(badge_token: str) -> McpServer:
     """Decode the badge token directly and extract the MCP tools.
 
     Args:
         badge_token: The JWT badge token to decode
 
     Returns:
-        List of mcp.types.Tool objects extracted from the badge
+        McpServer
 
     Raises:
         ValueError: If badge validation fails
@@ -130,7 +138,7 @@ def decode_badge_extract_tools(badge_token: str) -> McpTools:
     mcp_server = parse_badge_json_to_mcp_server(badge_json_str)
 
     # Convert MCP tools to mcp.types.Tool objects
-    return convert_mcp_tools_to_mcp_types(mcp_server)
+    return convert_mcp_server(mcp_server)
 
 
 if __name__ == "__main__":
@@ -143,7 +151,14 @@ if __name__ == "__main__":
     with open(badge_file_path, "r") as f:
         test_badge_token = f.read().strip()
 
-    result = decode_badge_extract_tools(test_badge_token)
-    print("Extracted MCP Tools:")
-    for tool in result:
+    result = decode_badge_extract_mcp_server(test_badge_token)
+    print("Extracted MCP Server:")
+    print(" - Name: " + result.name)
+
+    print(" - Tools:")
+    for tool in result.tools:
         print(f"- {tool.name}: {tool.description} (Input Schema: {tool.inputSchema})")
+
+    print(" - Resources:")
+    for resource in result.resources:
+        print(f"- {resource.name}: {resource.description} (URI: {resource.uri})")

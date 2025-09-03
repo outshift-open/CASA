@@ -38,7 +38,7 @@ class TaskToolMatcher(ABC):
         """Determine if a requested tool matches the given task.
 
         Args:
-            input (TaskToolMatchInput): The task description, requested tool, available tools, and MCP tools.
+            input (TaskToolMatchInput): The task description, requested tool, and MCP Server details
 
         Returns:
             TaskToolMatchResult with match boolean and optional reason

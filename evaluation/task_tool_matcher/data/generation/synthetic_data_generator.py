@@ -16,6 +16,7 @@ from mcp import types as mcp_types
 
 from evaluation.task_tool_matcher.types import EvaluateEntryTaskToolMatcher
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
+from identity_auth_server.types import McpServer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -185,11 +186,11 @@ def _select_tools_by_distribution(tools: List[mcp_types.Tool], config: Dict) -> 
     return available_tools, requested_tool, match_type
 
 
-def generate_data_entry(tools: List[mcp_types.Tool], config: Dict) -> EvaluateEntryTaskToolMatcher:
+def generate_data_entry(mcp_server: McpServer, config: Dict) -> EvaluateEntryTaskToolMatcher:
     """Generate a single data entry for task-tool matching evaluation.
 
     Args:
-        tools: List of available MCP tools
+        mcp_server: Description of the MCP Server (name, tools, resources)
         config: Configuration dictionary
 
     Returns:
@@ -198,15 +199,15 @@ def generate_data_entry(tools: List[mcp_types.Tool], config: Dict) -> EvaluateEn
     Raises:
         ValueError: If tools list is empty or if requested_tool is None
     """
-    if not tools:
+    if not mcp_server.tools or len(mcp_server.tools) == 0:
         raise ValueError("Cannot generate data entry: tools list is empty")
 
     # Select tools based on distribution configuration
-    available_tools, requested_tool, match_type = _select_tools_by_distribution(tools, config)
+    available_tools, requested_tool, match_type = _select_tools_by_distribution(mcp_server.tools, config)
 
     # Ensure requested_tool is not None (required by the model)
     if requested_tool is None:
-        requested_tool = random.choice(available_tools) if available_tools else tools[0].name
+        requested_tool = random.choice(available_tools) if available_tools else mcp_server.tools[0].name
 
     # Determine correct choice and match based on match type
     if match_type == "match":
@@ -227,11 +228,11 @@ def generate_data_entry(tools: List[mcp_types.Tool], config: Dict) -> EvaluateEn
         match = False
 
     # Generate task description based on match type (pass correct_choice for wrong_tool cases)
-    task_description = _generate_task_description(tools, config, requested_tool, match_type, correct_choice)
+    task_description = _generate_task_description(mcp_server.tools, config, requested_tool, match_type, correct_choice)
 
     # Create the input object
     task_input = TaskToolMatchInput(
-        task=task_description, requested_tool=requested_tool, available_tools=available_tools, mcp_tools=tools
+        task=task_description, requested_tool=requested_tool, mcp_server=mcp_server, available_tools=available_tools
     )
 
     # Create the evaluation entry
@@ -275,18 +276,18 @@ def _load_config(config_path: str) -> Dict:
     return config
 
 
-def _load_mcp_tools(server_name: str) -> List[mcp_types.Tool]:
-    """Load MCP tools from server JSON file.
+def _load_mcp_server(server_name: str) -> McpServer:
+    """Load MCP Server description from server JSON file.
 
     Args:
         server_name: Name of the MCP server
 
     Returns:
-        List of MCP Tool objects
+        MCP Server description (name, tools, resources)
 
     Raises:
-        FileNotFoundError: If server tools file doesn't exist
-        json.JSONDecodeError: If tools file contains invalid JSON
+        FileNotFoundError: If server file doesn't exist
+        json.JSONDecodeError: If server file contains invalid JSON
     """
     file_path = Path("evaluation/task_tool_matcher/data/mcp_servers") / f"{server_name}.json"
 
@@ -294,15 +295,14 @@ def _load_mcp_tools(server_name: str) -> List[mcp_types.Tool]:
         raise FileNotFoundError(f"MCP server tools file not found: {file_path}")
 
     with open(file_path, "r", encoding="utf-8") as f:
-        tools_data = json.load(f)
+        mcp_server = json.load(f)
 
-    if not isinstance(tools_data, list):
-        raise ValueError(f"Expected list of tools in {file_path}, got {type(tools_data)}")
+    # Cast to McpServer
+    mcp_server = McpServer(**mcp_server)
 
-    tools = [mcp_types.Tool(**tool) for tool in tools_data]
-    logger.info(f"Loaded {len(tools)} tools from {server_name}")
+    logger.info(f"Loaded {len(mcp_server.tools)} tools from {server_name}")
 
-    return tools
+    return mcp_server
 
 
 def _print_distribution_analysis(distribution_counts: Dict[str, int], config: Dict, total_entries: int) -> None:
@@ -469,9 +469,9 @@ def generate_data(config_path: str, compress_output: bool = True) -> None:
         logger.info(f"Processing MCP server: {server_name}")
 
         try:
-            tools = _load_mcp_tools(server_name)
+            mcp_server = _load_mcp_server(server_name)
 
-            if not tools:
+            if not mcp_server.tools or len(mcp_server.tools) == 0:
                 logger.warning(f"No tools found for server {server_name}, skipping")
                 continue
 
@@ -479,7 +479,7 @@ def generate_data(config_path: str, compress_output: bool = True) -> None:
             server_entries = []
             for i in range(config.get("num_entries_per_server", 0)):
                 try:
-                    entry = generate_data_entry(tools, config)
+                    entry = generate_data_entry(mcp_server, config)
                     server_entries.append(entry)
 
                     # Track the distribution type for this entry

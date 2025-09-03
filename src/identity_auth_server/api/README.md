@@ -18,18 +18,21 @@ uv sync
 You can start the API server using one of the following methods:
 
 #### Using uvicorn (recommended for development)
+
 ```bash
 # From the project root directory
 uvicorn identity_auth_server.api.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
 #### Using FastAPI's built-in development server
+
 ```bash
 # From the project root directory  
 fastapi dev src/identity_auth_server/api/app.py
 ```
 
 #### Using Docker Compose
+
 ```bash
 # From the project root directory
 make docker-run
@@ -40,6 +43,7 @@ The API will be available at `http://localhost:8000` by default.
 ### API Documentation
 
 Once the server is running, you can access the interactive API documentation at:
+
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
@@ -59,7 +63,6 @@ This endpoint matches tools based on an MCP (Model Context Protocol) identity ba
 {
   "task": "string",
   "requested_tool": "string",
-  "available_tools": ["string"],
   "mcp_badge": "string"
 }
 ```
@@ -76,7 +79,6 @@ curl -X POST "http://localhost:8000/task/intent/mcp/badge/tool-match?task_tool_m
   -d '{
     "task": "Create a new Jira issue for a bug report",
     "requested_tool": "jira_create_issue",
-    "available_tools": ["jira_create_issue", "jira_update_issue", "jira_delete_issue" ],
     "mcp_badge": "'$(cat test/api/data/jira_mcp_badge.txt)'"
   }'
 ```
@@ -111,17 +113,26 @@ This endpoint matches tools based on directly provided MCP tool objects.
 {
   "task": "string",
   "requested_tool": "string",
-  "available_tools": ["string"],
-  "mcp_tools": [
-    {
-      "name": "string",
-      "description": "string",
-      "inputSchema": {
-        "type": "object",
-        "properties": {}
+  "mcp_server": {
+    "name": "string",
+    "resources": [
+      {
+        "name": "string",
+        "description": "string",
+        "uri": "string"
       }
-    }
-  ]
+    ],
+    "tools": [
+      {
+        "name": "string",
+        "description": "string",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    ]
+  }
 }
 ```
 
@@ -137,92 +148,95 @@ curl -X POST "http://localhost:8000/task/intent/mcp/tool-match?task_tool_matcher
   -d '{
     "task": "Analyze code repository for security vulnerabilities",
     "requested_tool": "security_scan",
-    "available_tools": ["security_scan", "code_review", "dependency_check"],
-    "mcp_tools": [
-      {
-        "name": "security_scan",
-        "description": "Scans code repositories for security vulnerabilities and generates reports",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "repository_path": {
-              "type": "string",
-              "description": "Path to the code repository to scan"
-            },
-            "scan_type": {
-              "type": "string",
-              "enum": ["quick", "full", "custom"],
-              "description": "Type of security scan to perform"
-            }
-          },
-          "required": ["repository_path"]
-        }
-      },
-      {
-        "name": "code_review",
-        "description": "Performs automated code review to identify code quality issues, best practices violations, and potential bugs",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "repository_path": {
-              "type": "string",
-              "description": "Path to the code repository to review"
-            },
-            "review_scope": {
-              "type": "string",
-              "enum": ["full", "changed_files", "specific_files"],
-              "description": "Scope of the code review"
-            },
-            "file_patterns": {
-              "type": "array",
-              "items": {
-                "type": "string"
+    "mcp_server": {
+      "name": "Example MCP Server",
+      "resources": [],
+      "tools": [
+        {
+          "name": "security_scan",
+          "description": "Scans code repositories for security vulnerabilities and generates reports",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "repository_path": {
+                "type": "string",
+                "description": "Path to the code repository to scan"
               },
-              "description": "File patterns to include in review (when scope is specific_files)"
+              "scan_type": {
+                "type": "string",
+                "enum": ["quick", "full", "custom"],
+                "description": "Type of security scan to perform"
+              }
             },
-            "rules": {
-              "type": "array",
-              "items": {
-                "type": "string"
+            "required": ["repository_path"]
+          }
+        },
+        {
+          "name": "code_review",
+          "description": "Performs automated code review to identify code quality issues, best practices violations, and potential bugs",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "repository_path": {
+                "type": "string",
+                "description": "Path to the code repository to review"
               },
-              "description": "Specific rules or categories to check"
-            }
-          },
-          "required": ["repository_path", "review_scope"]
-        }
-      },
-      {
-        "name": "dependency_check",
-        "description": "Analyzes project dependencies for known vulnerabilities, license compliance, and outdated packages",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "project_path": {
-              "type": "string",
-              "description": "Path to the project directory containing dependency files"
-            },
-            "check_type": {
-              "type": "string",
-              "enum": ["vulnerabilities", "licenses", "outdated", "all"],
-              "description": "Type of dependency check to perform"
-            },
-            "package_files": {
-              "type": "array",
-              "items": {
-                "type": "string"
+              "review_scope": {
+                "type": "string",
+                "enum": ["full", "changed_files", "specific_files"],
+                "description": "Scope of the code review"
               },
-              "description": "Specific package files to analyze (e.g., package.json, requirements.txt, pom.xml)"
+              "file_patterns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "File patterns to include in review (when scope is specific_files)"
+              },
+              "rules": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Specific rules or categories to check"
+              }
             },
-            "severity_threshold": {
-              "type": "string",
-              "enum": ["low", "medium", "high", "critical"],
-              "description": "Minimum severity level for vulnerability reporting"
-            }
-          },
-          "required": ["project_path", "check_type"]
+            "required": ["repository_path", "review_scope"]
+          }
+        },
+        {
+          "name": "dependency_check",
+          "description": "Analyzes project dependencies for known vulnerabilities, license compliance, and outdated packages",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "project_path": {
+                "type": "string",
+                "description": "Path to the project directory containing dependency files"
+              },
+              "check_type": {
+                "type": "string",
+                "enum": ["vulnerabilities", "licenses", "outdated", "all"],
+                "description": "Type of dependency check to perform"
+              },
+              "package_files": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Specific package files to analyze (e.g., package.json, requirements.txt, pom.xml)"
+              },
+              "severity_threshold": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"],
+                "description": "Minimum severity level for vulnerability reporting"
+              }
+            },
+            "required": ["project_path", "check_type"]
+          }
         }
-      }
-    ]
+      ]
+    }
   }'
 ```
 
