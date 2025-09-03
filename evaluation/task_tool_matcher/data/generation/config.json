@@ -1,7 +1,13 @@
 {
     "mcp_servers": [
         "atlassian",
-        "github_official"
+        "github_official",
+        "grafana",
+        "hummingbot_mcp",
+        "mongodb",
+        "nasdaq_data_link",
+        "notion",
+        "paper_search"
     ],
     "num_entries_per_server": 10,
     "task_character_limit": 150,
