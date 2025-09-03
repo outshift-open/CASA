@@ -155,47 +155,47 @@ async def process_tools_files(input_paths: list[str], output_path: str, multipli
     all_tools = []
     for input_path in input_paths:
         with open(input_path, "r") as f:
-            name = os.path.basename(input_path).replace("_tools.json", "")
-            tools = json.load(f)
+            mcp_server = json.load(f)
+            tools = mcp_server.get("tools", [])
             for tool in tools:
-                tool["mcp_server"] = name
+                tool["mcp_server"] = mcp_server.get("name", "N/A")
             all_tools.extend(tools)
 
-    semaphore = asyncio.Semaphore(10)  # max 10 for openai async
+        semaphore = asyncio.Semaphore(10)  # max 10 for openai async
 
-    tasks = []
-    for tool in all_tools:
-        for _ in range(multiplier):
-            tasks.append(task_synthesizer(tool, semaphore, obscure))
+        tasks = []
+        for tool in all_tools:
+            for _ in range(multiplier):
+                tasks.append(task_synthesizer(tool, semaphore, obscure))
 
-    results = await tqdm.gather(*tasks)
+        results = await tqdm.gather(*tasks)
 
-    grouped_results = {}  # to regroup results by tool name
-    for res in results:
-        if res is None:
-            continue
-        tool_name = res["tool_name"]
-        if tool_name not in grouped_results:
-            grouped_results[tool_name] = {
-                "tool_name": tool_name,
-                "synthetic_tasks": [],
-                "system_prompt": res["system_prompt"],
-                "mcp_server": res["mcp_server"],
-            }
-        grouped_results[tool_name]["synthetic_tasks"].append(
-            {"synthetic_task": res["synthetic_task"], "rephrased_task": res["rephrased_task"]}
+        grouped_results = {}  # to regroup results by tool name
+        for res in results:
+            if res is None:
+                continue
+            grouping_key = res["mcp_server"] + res["tool_name"]
+            if grouping_key not in grouped_results:
+                grouped_results[grouping_key] = {
+                    "tool_name": res["tool_name"],
+                    "mcp_server": res["mcp_server"],
+                    "synthetic_tasks": [],
+                    "system_prompt": res["system_prompt"],
+                }
+            grouped_results[grouping_key]["synthetic_tasks"].append(
+                {"synthetic_task": res["synthetic_task"], "rephrased_task": res["rephrased_task"]}
+            )
+
+        final_results = list(grouped_results.values())
+
+        with open(output_path, "w") as f:
+            json.dump(final_results, f, indent=2)
+
+        total_requested = len(all_tools) * multiplier
+        total_successful = sum(len(res.get("synthetic_tasks", [])) for res in final_results)
+        print(
+            f"Successfully created {total_successful} out of {total_requested} requested synthetic tasks for {len(final_results)} tools."
         )
-
-    final_results = list(grouped_results.values())
-
-    with open(output_path, "w") as f:
-        json.dump(final_results, f, indent=2)
-
-    total_requested = len(all_tools) * multiplier
-    total_successful = sum(len(res.get("synthetic_tasks", [])) for res in final_results)
-    print(
-        f"Successfully created {total_successful} out of {total_requested} requested synthetic tasks for {len(final_results)} tools."
-    )
 
 
 async def main():
@@ -206,7 +206,7 @@ async def main():
     parser.add_argument(
         "--input-dir",
         required=True,
-        help="Path to the input directory containing JSON files with MCP tool descriptions.",
+        help="Path to the input directory containing JSON files with MCP server info (tools &more).",
     )
     parser.add_argument(
         "--output-file", required=True, help="Path to the output JSON file to save the synthetic tasks (+meta info)."
@@ -220,10 +220,10 @@ async def main():
 
     args = parser.parse_args()
 
-    input_files = [os.path.join(args.input_dir, f) for f in os.listdir(args.input_dir) if f.endswith("_tools.json")]
+    input_files = [os.path.join(args.input_dir, f) for f in os.listdir(args.input_dir) if f.endswith(".json")]
 
     if not input_files:
-        print(f"No files ending with '_tools.json' found in {args.input_dir}")
+        print(f"No JSON files (ending with '.json') found in {args.input_dir}")
         return
 
     start_time = time.time()
