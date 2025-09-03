@@ -21,7 +21,7 @@ To regenerate the tool definition files:
 3. Run the extraction script:
 
 ```bash
-python evaluation/task_tool_matcher/data/mcp_servers/generation/extract_mcp_tools.py
+python evaluation/task_tool_matcher/data/mcp_servers/generation/extract_mcp_servers.py
 ```
 
 This will:
@@ -33,19 +33,20 @@ This will:
 
 ### Synthesizing Tasks from Tools
 
-After obtaining MCP tool descriptions, and saving them in JSON files,
+After obtaining MCP server info, and saving them in JSON files in `evaluation/task_tool_matcher/data/mcp_servers`,
 from the command line at root level, you can launch a synthetic data generation to obtain one or more task(s) requiring the given tool to be carried out by an agent:
 
 ```bash
-cd evaluation/task_tool_matcher/data;
-python generation.py \
-    --input-files mcp_servers/atlassian_tools.json mcp_servers/github-official_tools.json \
-    --output-file generated_tasks.json \  
-    --multiplier 5
+python evaluation/task_tool_matcher/data/task_generation.py \
+    --input-dir evaluation/task_tool_matcher/data/mcp_servers  \
+    --output-file evaluation/task_tool_matcher/data/generated_tasks.json \
+    --multiplier 1 \
+    --obscure
 ```
 
 The results are stored in `generated_tasks.json` with:
 - tool_name: the name of the tool
-- synthetic_tasks: a list of `multiplier` synthetic tasks requiring that tool
+- mcp_server: the name of the MCP server
+- synthetic_tasks: a list of `multiplier` synthetic tasks requiring that tool + a paraphrasing of the task
 - system_prompt: the system prompt used for the generation
 where the multiplier controls the number of tasks generated per tool. The calls go through AsyncOpenAI, limited to a maximum of 10 at a time.

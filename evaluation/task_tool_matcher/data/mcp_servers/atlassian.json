@@ -34,7 +34,7 @@
             "type": "string"
           },
           "fields": {
-            "default": "status,labels,created,assignee,reporter,summary,updated,description,issuetype,priority",
+            "default": "priority,created,issuetype,reporter,updated,assignee,status,labels,description,summary",
             "description": "(Optional) Comma-separated list of fields to return (e.g., 'summary,status,customfield_10010'). You may also provide a single field as a string (e.g., 'duedate'). Use '*all' for all fields (including custom fields), or omit for essential fields only.",
             "title": "Fields",
             "type": "string"
@@ -87,7 +87,7 @@
             "type": "string"
           },
           "fields": {
-            "default": "status,labels,created,assignee,reporter,summary,updated,description,issuetype,priority",
+            "default": "priority,created,issuetype,reporter,updated,assignee,status,labels,description,summary",
             "description": "(Optional) Comma-separated fields to return in the results. Use '*all' for all fields, or specify individual fields like 'summary,status,assignee,priority'",
             "title": "Fields",
             "type": "string"
@@ -328,7 +328,7 @@
             "type": "string"
           },
           "fields": {
-            "default": "status,labels,created,assignee,reporter,summary,updated,description,issuetype,priority",
+            "default": "priority,created,issuetype,reporter,updated,assignee,status,labels,description,summary",
             "description": "Comma-separated fields to return in the results. Use '*all' for all fields, or specify individual fields like 'summary,status,assignee,priority'",
             "title": "Fields",
             "type": "string"
@@ -419,7 +419,7 @@
             "type": "string"
           },
           "fields": {
-            "default": "status,labels,created,assignee,reporter,summary,updated,description,issuetype,priority",
+            "default": "priority,created,issuetype,reporter,updated,assignee,status,labels,description,summary",
             "description": "Comma-separated fields to return in the results. Use '*all' for all fields, or specify individual fields like 'summary,status,assignee,priority'",
             "title": "Fields",
             "type": "string"

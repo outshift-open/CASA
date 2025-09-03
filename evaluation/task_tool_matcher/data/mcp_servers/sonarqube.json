@@ -1,0 +1,464 @@
+{
+  "name": "sonarqube",
+  "tools": [
+    {
+      "name": "get_system_health",
+      "title": null,
+      "description": "Get the health status of SonarQube Server instance. Returns GREEN (fully operational), YELLOW (usable but needs attention), or RED (not operational).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_system_info",
+      "title": null,
+      "description": "Get detailed information about system configuration including JVM state, database, search indexes, and settings. Requires 'Administer' permissions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_system_logs",
+      "title": null,
+      "description": "Get system logs in plain-text format. Requires system administration permission.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the logs to get. Possible values: access, app, ce, deprecation, es, web. Default: app"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "ping_system",
+      "title": null,
+      "description": "Ping the SonarQube Server system to check if it's alive. Returns 'pong' as plain text.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_system_status",
+      "title": null,
+      "description": "Get state information about SonarQube Server. Returns status (STARTING, UP, DOWN, RESTARTING, DB_MIGRATION_NEEDED, DB_MIGRATION_RUNNING), version, and id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "change_sonar_issue_status",
+      "title": null,
+      "description": "Change the status of a Sonar issue. This tool can be used to change the status of an issue to \"accept\", \"falsepositive\" or to \"reopen\" an issue.\nAn example request could be: I would like to accept the issue having the key \"AX-HMISMFixnZED\"",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The key of the issue which status should be changed"
+          },
+          "status": {
+            "description": "The new status of the issue",
+            "items": {
+              "enum": [
+                "accept",
+                "falsepositive",
+                "reopen"
+              ]
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "status"
+        ],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "search_my_sonarqube_projects",
+      "title": null,
+      "description": "Find Sonar projects. The response is paginated.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "string",
+            "description": "An optional page number. Defaults to 1."
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "search_sonar_issues_in_projects",
+      "title": null,
+      "description": "Search for Sonar issues in my organization's projects.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "p": {
+            "type": "number",
+            "description": "An optional page number. Defaults to 1."
+          },
+          "projects": {
+            "description": "An optional list of Sonar projects to look in",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ps": {
+            "type": "number",
+            "description": "An optional page size. Must be greater than 0 and less than or equal to 500. Defaults to 100."
+          },
+          "pullRequestId": {
+            "type": "string",
+            "description": "The identifier of the Pull Request to look in"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_project_quality_gate_status",
+      "title": null,
+      "description": "Get the Quality Gate Status for the project. Either 'analysisId', 'projectId' or 'projectKey' must be provided.\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectKey": {
+            "type": "string",
+            "description": "The optional project key to get the status for, for example 'my_project'"
+          },
+          "analysisId": {
+            "type": "string",
+            "description": "The optional analysis ID to get the status for, for example 'AU-TpxcA-iU5OvuD2FL1'"
+          },
+          "branch": {
+            "type": "string",
+            "description": "The optional branch key to get the status for, for example 'feature/my_branch'"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "The optional project ID to get the status for, for example 'AU-Tpxb--iU5OvuD2FLy'. Doesn't work with branches or pull requests.\n"
+          },
+          "pullRequest": {
+            "type": "string",
+            "description": "The optional pull request ID to get the status for, for example '5461'"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "show_rule",
+      "title": null,
+      "description": "Shows detailed information about a SonarQube rule",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The rule key (e.g. javascript:EmptyBlock)"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_rule_repositories",
+      "title": null,
+      "description": "List rule repositories available in SonarQube",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "description": "Optional search query to filter repositories by name or key"
+          },
+          "language": {
+            "type": "string",
+            "description": "Optional language key to filter repositories (e.g. 'java')"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_quality_gates",
+      "title": null,
+      "description": "List all quality gates in the organization",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_languages",
+      "title": null,
+      "description": "List all programming languages supported in this instance",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "description": "Optional pattern to match language keys/names against"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "analyze_code_snippet",
+      "title": null,
+      "description": "Analyze a code snippet with Sonar analyzers to find Sonar issues in it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "codeSnippet": {
+            "type": "string",
+            "description": "Code snippet or full file content"
+          },
+          "projectKey": {
+            "type": "string",
+            "description": "The SonarQube project key"
+          },
+          "language": {
+            "type": "string",
+            "description": "Language of the code snippet"
+          }
+        },
+        "required": [
+          "projectKey",
+          "codeSnippet"
+        ],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_component_measures",
+      "title": null,
+      "description": "Get measures for a component (project, directory, file).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "component": {
+            "type": "string",
+            "description": "The component key to get measures for"
+          },
+          "metricKeys": {
+            "description": "The metric keys to retrieve (e.g. nloc, complexity, violations, coverage)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "branch": {
+            "type": "string",
+            "description": "The branch to analyze for measures"
+          },
+          "pullRequest": {
+            "type": "string",
+            "description": "The pull request identifier to analyze for measures"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "search_metrics",
+      "title": null,
+      "description": "Search for metrics",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "p": {
+            "type": "number",
+            "description": "1-based page number (default: 1)"
+          },
+          "ps": {
+            "type": "number",
+            "description": "Page size. Must be greater than 0 and less than or equal to 500 (default: 100)"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_scm_info",
+      "title": null,
+      "description": "Get SCM information of source files. Require See Source Code permission on file's project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "commits_by_line": {
+            "type": "boolean",
+            "description": "Group lines by SCM commit if value is false, else display commits for each line (true/false)"
+          },
+          "from": {
+            "type": "number",
+            "description": "First line to return. Starts at 1"
+          },
+          "to": {
+            "type": "number",
+            "description": "Last line to return (inclusive)"
+          },
+          "key": {
+            "type": "string",
+            "description": "File key (e.g. my_project:src/foo/Bar.php)"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_raw_source",
+      "title": null,
+      "description": "Get source code as raw text. Require 'See Source Code' permission on file",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "branch": {
+            "type": "string",
+            "description": "Branch key (e.g. feature/my_branch)"
+          },
+          "key": {
+            "type": "string",
+            "description": "File key (e.g. my_project:src/foo/Bar.php)"
+          },
+          "pullRequest": {
+            "type": "string",
+            "description": "Pull request id"
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "additionalProperties": false,
+        "$defs": {},
+        "definitions": {}
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "resources": []
+}
