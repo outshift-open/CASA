@@ -38,19 +38,25 @@ async def extract_server(name: str, config: dict) -> None:
         await session.initialize()
 
         # Get tools
-        list_tools_response = await session.list_tools()
-        tools = list_tools_response.tools
-
-        # Convert to serializable format
-        # tools_data = [tool.model_dump() for tool in tools]
+        tools = []
+        try:
+            list_tools_response = await session.list_tools()
+            tools = list_tools_response.tools
+        except Exception as e:
+            print(e)
 
         # Get resources
-        list_resources_response = await session.list_resources()
-        resources = list_resources_response.resources
+        resources = []
+        try:
+            list_resources_response = await session.list_resources()
+            resources = list_resources_response.resources
+        except Exception as e:
+            print(e)
 
         mcp_server = McpServer(name=name, tools=tools, resources=resources)
 
-        mcp_server_data = mcp_server.model_dump()
+        # Use mode='json' to properly serialize Pydantic types like AnyUrl to JSON-compatible formats
+        mcp_server_data = mcp_server.model_dump(mode="json")
 
         # Save to JSON file
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -68,7 +74,7 @@ async def extract_server(name: str, config: dict) -> None:
             logging.info(f"  - {tool.name}")
 
     except Exception as e:
-        logging.error(f"Failed to MCP Server description from server '{name}': {e}")
+        logging.error(f"Failed to generate MCP Server description from server '{name}': {e}")
         raise
     finally:
         await exit_stack.aclose()
