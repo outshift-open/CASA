@@ -30,7 +30,7 @@ class TaskToolValidator:
         Raises:
             PipelineValidationError: If the requested tool is empty
         """
-        if not input.task or not input.task.strip():
+        if not input.requested_tool or not input.requested_tool.strip():
             raise PipelineValidationError("Requested tool cannot be empty")
 
     @staticmethod
