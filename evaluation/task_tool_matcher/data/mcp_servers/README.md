@@ -21,7 +21,7 @@ To regenerate the tool definition files:
 3. Run the extraction script:
 
 ```bash
-python evaluation/task_tool_matcher/data/mcp_servers/generation/extract_mcp_tools.py
+python evaluation/task_tool_matcher/data/mcp_servers/generation/extract_mcp_servers.py
 ```
 
 This will:
