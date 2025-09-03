@@ -7,22 +7,24 @@ The Identity Auth Server provides RESTful endpoints that accept a task descripti
 ## API Endpoints
 
 ### POST `/task/intent/mcp/tool-match`
+
 Matches tools based on direct MCP tool objects.
 
 **Request Body:**
+
 - `task`: Task description string
 - `requested_tool`: Specific tool name being requested  
-- `available_tools`: List of available tool names
-- `mcp_tools`: List of MCP tool objects
+- `mcp_server`: Description of the MCP Server (name, tools, resources)
 
 ### POST `/task/intent/mcp/badge/tool-match`
+
 Matches tools based on MCP badge information.
 
 **Request Body:**
+
 - `task`: Task description string
 - `requested_tool`: Specific tool name being requested
-- `available_tools`: List of available tool names
-- `mcp_badge`: MCP identity badge containing tool objects
+- `mcp_badge`: MCP identity badge containing Description of the MCP Server (name, tools, resources)
 
 ## Prerequisites
 
@@ -34,6 +36,7 @@ Matches tools based on MCP badge information.
 ### Option 1: Local Development
 
 #### 1. Environment Setup
+
 After cloning the repo, initialize the development environment:
 
 ```shell
@@ -41,16 +44,19 @@ make init
 ```
 
 This will:
+
 - Create a Python virtual environment
 - Install all dependencies (including dev dependencies)
 - Set up pre-commit hooks
 
 #### 2. Activate Environment
+
 ```shell
 source .venv/bin/activate
 ```
 
 #### 3. Run the Server
+
 ```shell
 # Development server with auto-reload
 uvicorn identity_auth_server.api.app:app --reload
@@ -106,6 +112,7 @@ The server will be available at `http://localhost:8000` with interactive API doc
 - `make build` - Build the package for distribution
 
 #### Docker Commands
+
 - `make docker-build` - Build the Docker image
 - `make docker-run` - Run the application using Docker Compose
 - `make docker-stop` - Stop Docker Compose services
@@ -135,16 +142,17 @@ src/identity_auth_server/
 ```
 
 ### Required Access Keys
+
 This project uses python-dotenv to handle secret keys.
 Make a copy of `.env.sample` and rename it `.env` in the same directory (it is already covered in gitignore, make sure it remains hidden).
 In your `.env`, fill the needed secret information that you personally have.
-
 
 ### Evaluations
 
 #### Task Tool Matcher Evaluation
 
 Initial assumptions and constraints
+
 - Tasks are less than 150 characters
 - Tasks should match to either a single tool or no tool
 - Distribution (40% match, 40% wrong tool, 20% no tool)

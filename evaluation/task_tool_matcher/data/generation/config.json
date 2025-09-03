@@ -1,7 +1,7 @@
 {
     "mcp_servers": [
-        "atlassian_tools",
-        "github_official_tools"
+        "atlassian",
+        "github_official"
     ],
     "num_entries_per_server": 10,
     "task_character_limit": 150,

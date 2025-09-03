@@ -3,7 +3,7 @@
 from pydantic import BaseModel
 
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput, TaskToolMatchOutput
-from identity_auth_server.types import AvailableTools, McpBadge, Task, ToolName
+from identity_auth_server.types import McpBadge, Task, ToolName
 
 
 # Request/Response Models
@@ -12,7 +12,6 @@ class IntentMcpBadgeToolMatchRequest(BaseModel):
 
     task: Task
     requested_tool: ToolName
-    available_tools: AvailableTools
     mcp_badge: McpBadge
 
 

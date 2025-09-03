@@ -13,9 +13,11 @@ from mcp.client.stdio import stdio_client
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+from identity_auth_server.types import McpServer
 
-async def extract_tools_from_server(name: str, config: dict) -> None:
-    """Extract tools from a single MCP server and save to JSON file."""
+
+async def extract_server(name: str, config: dict) -> None:
+    """Extract description of a single MCP server and save to JSON file."""
     exit_stack = AsyncExitStack()
 
     try:
@@ -40,7 +42,15 @@ async def extract_tools_from_server(name: str, config: dict) -> None:
         tools = list_tools_response.tools
 
         # Convert to serializable format
-        tools_data = [tool.model_dump() for tool in tools]
+        # tools_data = [tool.model_dump() for tool in tools]
+
+        # Get resources
+        list_resources_response = await session.list_resources()
+        resources = list_resources_response.resources
+
+        mcp_server = McpServer(name=name, tools=tools, resources=resources)
+
+        mcp_server_data = mcp_server.model_dump()
 
         # Save to JSON file
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -48,17 +58,17 @@ async def extract_tools_from_server(name: str, config: dict) -> None:
 
         # replace dash with underscore in name and create output path
         name = name.replace("-", "_")
-        output_path = os.path.join(output_dir, f"{name}_tools.json")
+        output_path = os.path.join(output_dir, f"{name}.json")
 
         with open(output_path, "w") as f:
-            json.dump(tools_data, f, indent=2)
+            json.dump(mcp_server_data, f, indent=2)
 
-        logging.info(f"Saved {len(tools)} tools from '{name}' to {output_path}")
+        logging.info(f"Saved {len(tools)} MCP Server description from '{name}' to {output_path}")
         for tool in tools:
             logging.info(f"  - {tool.name}")
 
     except Exception as e:
-        logging.error(f"Failed to extract tools from server '{name}': {e}")
+        logging.error(f"Failed to MCP Server description from server '{name}': {e}")
         raise
     finally:
         await exit_stack.aclose()
@@ -76,7 +86,7 @@ async def main() -> None:
     # Extract tools from each server
     for name, config in server_config["mcpServers"].items():
         try:
-            await extract_tools_from_server(name, config)
+            await extract_server(name, config)
         except Exception as e:
             logging.error(f"Skipping server '{name}' due to error: {e}")
             continue
