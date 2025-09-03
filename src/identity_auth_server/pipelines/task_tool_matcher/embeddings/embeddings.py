@@ -19,7 +19,7 @@ from identity_auth_server.pipelines.task_tool_matcher.utils import EmbeddingServ
 class EmbeddingsTaskToolMatcher(TaskToolMatcher):
     """A basic task-tool matcher that uses embeddings to determine if a tool matches a task."""
 
-    def __init__(self, match_threshold: float = 0.3):
+    def __init__(self, match_threshold=0.3):
         """Initialize the embeddings matcher.
 
         Args:
@@ -28,9 +28,9 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
         super().__init__()
         self.logger.setLevel(logging.DEBUG)
         config = dotenv_values(".env")
-        if not 0.0 <= match_threshold <= 1.0:
-            raise ValueError("match_threshold must be between 0.0 and 1.0")
         self.match_threshold = match_threshold
+        if not 0.0 <= self.match_threshold <= 1.0:
+            raise ValueError("match_threshold must be between 0.0 and 1.0")
         self.embedding_service = EmbeddingService(config)
         self.tool_names: List[str] = []
 
@@ -74,7 +74,8 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
         # self.logger.debug(f"Matched Tool Description: {tools_to_embed[matched.index]}")
         self.logger.debug(f"Matched Distance: {matched.distance}")
 
-        matches = matched_tool == requested_tool and matched.distance >= self.match_threshold
+        # matches = matched_tool == requested_tool and matched.distance >= self.match_threshold
+        matches = matched.distance >= self.match_threshold
 
         if matches:
             self.logger.debug("Match found!")
