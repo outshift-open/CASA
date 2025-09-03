@@ -42,7 +42,7 @@ st.markdown("This is a playground for testing different versions of the task mat
 # MCP server selection OUTSIDE the form
 selected_mcp = st.radio("Select one MCP server 👉", options=mcp_servers_names, key="selected_mcp_radio")
 
-tool_choice = [tool.get("name", "") for tool in mcp_servers_data[selected_mcp]] if selected_mcp else []
+tool_choice = [tool.get("name", "") for tool in mcp_servers_data[selected_mcp]["tools"]] if selected_mcp else []
 
 with st.form("matcher_form"):
     requested_tool = st.selectbox(
@@ -64,8 +64,7 @@ if submitted and task and requested_tool and selected_mcp:
     matcher_input = TaskToolMatchInput(
         task=task,
         requested_tool=requested_tool,
-        available_tools=[requested_tool],
-        mcp_tools=mcp_servers_data[selected_mcp],
+        mcp_server=mcp_servers_data[selected_mcp],
     )
     result = run_matcher(matcher_types[selected_matcher], matcher_input)
     st.write(result)
