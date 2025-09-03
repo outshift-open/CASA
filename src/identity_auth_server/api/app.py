@@ -8,7 +8,7 @@ from identity_auth_server.api.types import (
     IntentMcpToolMatchRequest,
     IntentMcpToolMatchResult,
 )
-from identity_auth_server.api.utils import decode_badge_extract_tools
+from identity_auth_server.api.utils import decode_badge_extract_mcp_server
 from identity_auth_server.pipelines.exceptions import PipelineValidationError
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcherFactory
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
@@ -21,14 +21,9 @@ def task_intent_mcp_badge_tool_match(
     request: IntentMcpBadgeToolMatchRequest, task_tool_matcher: TaskToolMatcherType = TaskToolMatcherType.RANDOM
 ) -> IntentMcpBadgeToolMatchResult:
     """Endpoint to match tools based on MCP badge."""
-    mcp_tools = decode_badge_extract_tools(request.mcp_badge)
+    mcp_server = decode_badge_extract_mcp_server(request.mcp_badge)
 
-    input = IntentMcpToolMatchRequest(
-        task=request.task,
-        requested_tool=request.requested_tool,
-        available_tools=request.available_tools,
-        mcp_tools=mcp_tools,
-    )
+    input = IntentMcpToolMatchRequest(task=request.task, requested_tool=request.requested_tool, mcp_server=mcp_server)
 
     # Create the TaskToolMatcher using the factory
     matcher = TaskToolMatcherFactory.create(task_tool_matcher)
