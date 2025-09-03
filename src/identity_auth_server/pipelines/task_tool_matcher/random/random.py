@@ -45,8 +45,8 @@ class RandomTaskToolMatcher(TaskToolMatcher):
         # Run common validations first - will raise exception if validation fails
         self._validate_input(input)
 
-        # Create deterministic seed based on task, requested tool, and available tools
-        seed_string = f"{input.task}|{input.requested_tool}|{','.join(input.available_tools)}"
+        # Create deterministic seed based on task, requested tool, and mcp server tools
+        seed_string = f"{input.task}|{input.requested_tool}|{','.join({tool.name for tool in input.mcp_server.tools})}"
 
         # Generate a hash from the seed string
         seed_hash = hashlib.sha256(seed_string.encode("utf-8")).hexdigest()

@@ -54,8 +54,7 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
 
         task = input.task
         requested_tool = input.requested_tool
-        available_tools = input.available_tools
-        mcp_tools = input.mcp_tools
+        mcp_tools = input.mcp_server.tools
 
         # Embedding all the tools - not considering available tools for now -
         self.tool_names = [tool.name for tool in mcp_tools]
@@ -70,7 +69,6 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
         matched_tool = self.tool_names[matched.index]
         self.logger.debug(f"Task: {task}")
         self.logger.debug(f"# Total Tools: {len(mcp_tools)}")
-        self.logger.debug(f"# Available Tools: {len(available_tools)}")
         self.logger.debug(f"Requested Tool: {requested_tool}")
         self.logger.debug(f"Matched Tool: {matched_tool}")
         # self.logger.debug(f"Matched Tool Description: {tools_to_embed[matched.index]}")
