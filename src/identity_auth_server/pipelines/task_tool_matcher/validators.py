@@ -41,10 +41,10 @@ class TaskToolValidator:
             input: The task tool match input to validate
 
         Raises:
-            PipelineValidationError: If available tools are not a subset of MCP server tools
+            PipelineValidationError: If requested tool is not in MCP Server tools
         """
         if input.requested_tool not in {tool.name for tool in input.mcp_server.tools}:
-            raise PipelineValidationError("Available tools must be a subset of the provided MCP tools")
+            raise PipelineValidationError("Requested tool must be one of the provided MCP tools")
 
     @classmethod
     def run_common_validations(cls, input: TaskToolMatchInput) -> None:
