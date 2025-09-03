@@ -74,11 +74,26 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
         # self.logger.debug(f"Matched Tool Description: {tools_to_embed[matched.index]}")
         self.logger.debug(f"Matched Distance: {matched.distance}")
 
-        matches = matched_tool == requested_tool and matched.distance >= self.match_threshold
+        task_to_tool_matches = False
+        selected_task_to_similar_tool = False
+        no_match_reason = None
+        if matched.distance >= self.match_threshold:
+            task_to_tool_matches = True
+        else:
+            no_match_reason = TaskToolMatchReason.EMBEDDINGS_NO_MATCH_THRESHOLD
+        if matched_tool == requested_tool:
+            selected_task_to_similar_tool = True
+        else:
+            no_match_reason = TaskToolMatchReason.EMBEDDINGS_NO_MATCH_WITH_SELECTED
+
+        if not task_to_tool_matches and not selected_task_to_similar_tool:
+            no_match_reason = TaskToolMatchReason.EMBEDDINGS_NO_MATCH_WITH_ALL
+
+        matches = task_to_tool_matches and selected_task_to_similar_tool
 
         if matches:
             self.logger.debug("Match found!")
             return TaskToolMatchOutput(task_tool_match=matches)
         else:
             self.logger.debug("No match found.")
-            return TaskToolMatchOutput(task_tool_match=False, reason=TaskToolMatchReason.EMBEDDINGS_NO_MATCH)
+            return TaskToolMatchOutput(task_tool_match=False, reason=no_match_reason)
