@@ -49,7 +49,7 @@ class TestTaskToolValidator:
     def test_requested_tool_not_in_mcp_tools_fails(self):
         """Tool not in MCP server tools fails validation."""
         input_data = self._create_input(requested_tool="nonexistent_tool", available_tools=["different_tool"])
-        with pytest.raises(PipelineValidationError, match="Available tools must be a subset of the provided MCP tools"):
+        with pytest.raises(PipelineValidationError, match="Requested tool must be one of the provided MCP tools"):
             TaskToolValidator.validate_requested_tool_within_mcp_tools(input_data)
 
     def test_validation_stops_at_first_failure(self):
