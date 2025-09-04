@@ -404,6 +404,19 @@ def _compress_file(file_path: Path) -> Path:
         raise
 
 
+def _clean_dump(entry: EvaluateEntryTaskToolMatcher) -> Dict:
+    """Clean up the entry for dumping to JSON WITHOUT full MCPs, just name."""
+    return {
+        "input": {
+            "task": entry.input.task,
+            "requested_tool": entry.input.requested_tool,
+            "mcp_server": entry.input.mcp_server.name,
+        },
+        "correct_choice": entry.correct_choice,
+        "match": entry.match,
+    }
+
+
 def decompress_generated_data(compressed_path: str) -> List[Dict]:
     """Decompress and load generated data from a gzipped JSON file.
 
@@ -512,7 +525,8 @@ def generate_data(config_path: str, compress_output: bool = True) -> None:
 
     try:
         with open(output_path, "w", encoding="utf-8") as f:
-            json.dump([entry.model_dump() for entry in entries], f, indent=2)
+            # json.dump([entry.model_dump() for entry in entries], f, indent=2)
+            json.dump([_clean_dump(entry) for entry in entries], f, indent=2)
 
         logger.info(f"Successfully generated {len(entries)} entries from {servers_processed} servers")
         logger.info(f"Data saved to: {output_path}")
