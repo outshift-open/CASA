@@ -7,7 +7,11 @@
         "mongodb",
         "nasdaq_data_link",
         "notion",
-        "paper_search"
+        "paper_search",
+        "azure",
+        "sonarqube",
+        "stripe",
+        "wikipedia_mcp"
     ],
     "num_entries_per_server": 10,
     "task_character_limit": 150,
