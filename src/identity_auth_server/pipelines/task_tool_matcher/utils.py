@@ -24,10 +24,10 @@ class EmbeddingService:
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
         self.logger = logging.getLogger(__name__)
         self.client = OpenAI(
-            api_key=config.get("OPENAI_TXT_EMB_3_SMALL_API_JWT_TOKEN"),
-            base_url=config.get("OPENAI_TXT_EMB_3_SMALL_API_BASE_URL"),
+            api_key=config.get("OPENAI_TXT_EMB_3_LARGE_API_JWT_TOKEN"),
+            base_url=config.get("OPENAI_TXT_EMB_3_LARGE_API_BASE_URL"),
         )
-        self.model_id = config.get("OPENAI_TXT_EMB_3_SMALL_MODEL_ID")
+        self.model_id = config.get("OPENAI_TXT_EMB_3_LARGE_MODEL_ID")
 
     def get_embeddings(self, input: List[str]) -> List[np.ndarray]:
         """Get embeddings for a list of input texts.
