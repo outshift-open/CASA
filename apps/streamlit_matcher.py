@@ -40,7 +40,9 @@ st.markdown("This is a playground for testing different versions of the task mat
 
 
 # MCP server selection
-selected_mcp = st.radio("Select one MCP server 👇", options=mcp_servers_names, key="selected_mcp_radio")
+selected_mcp = st.radio(
+    "Select one MCP server 👇", options=mcp_servers_names, key="selected_mcp_radio", horizontal=True
+)
 
 tool_choice = [tool.get("name", "") for tool in mcp_servers_data[selected_mcp]["tools"]] if selected_mcp else []
 
@@ -53,19 +55,19 @@ with col1:
             ["", *tool_choice],
             key="requested_tool_select",
         )
-        show_tool_description = st.form_submit_button("Show Tool Description")
+        show_tool_description = st.form_submit_button("Show Tool Description", key="show_tool_description")
         task = st.text_input(
-            "Enter a task that needs one tool to be executed👇",
+            "Enter a task that requires one tool to be executed👇",
             placeholder="Task",
             key="task_input",
         )
         selected_matcher = st.radio(
-            "Select one Matcher 👇", options=list(matcher_types.keys()), key="selected_matcher_radio"
+            "Select a Matcher 👇", options=list(matcher_types.keys()), key="selected_matcher_radio"
         )
-        submitted = st.form_submit_button("Run Matcher")
+        submitted = st.form_submit_button("Run Matcher", key="submitted")
 
 with col2:
-    if show_tool_description:
+    if st.session_state.get("requested_tool_select"):
         tool_description = [
             tool.get("description", "")
             for tool in mcp_servers_data[selected_mcp]["tools"]
@@ -77,11 +79,11 @@ with col2:
             height=500,
         )
 
-if submitted and task and requested_tool and selected_mcp:
+if st.session_state.get("submitted"):
     matcher_input = TaskToolMatchInput(
-        task=task,
-        requested_tool=requested_tool,
-        mcp_server=mcp_servers_data[selected_mcp],
+        task=st.session_state.get("task_input"),
+        requested_tool=st.session_state.get("requested_tool_select"),
+        mcp_server=mcp_servers_data[st.session_state.get("selected_mcp_radio")],
     )
     result = run_matcher(matcher_types[selected_matcher], matcher_input)
     st.write(result)
