@@ -166,6 +166,8 @@ def _select_tools_by_distribution(tools: List[mcp_types.Tool], config: Dict) -> 
 
     # Select available tools (at least 2 if tools exist)
     # If less than 2 tools exist, then wrong tool case is not possible
+    if max_available < 2:
+        raise ValueError("Not enough tools available for wrong tool sampling(<2)")
     num_available = random.randint(2, max_available)
     available_tools = random.sample(tool_names, k=num_available)
 
