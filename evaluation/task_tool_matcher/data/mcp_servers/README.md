@@ -47,6 +47,6 @@ python evaluation/task_tool_matcher/data/task_generation.py \
 The results are stored in `generated_tasks.json` with:
 - tool_name: the name of the tool
 - mcp_server: the name of the MCP server
-- synthetic_tasks: a list of `multiplier` synthetic tasks requiring that tool + a paraphrasing of the task
+- synthetic_tasks: a list of `multiplier` synthetic tasks requiring that tool + a two-turn synthetic rephrasing of the task (data structutr: list of `multiplier` dictionaries each with 2 keys for the base synthetic task and its rephrased version)
 - system_prompt: the system prompt used for the generation
 where the multiplier controls the number of tasks generated per tool. The calls go through AsyncOpenAI, limited to a maximum of 10 at a time.
