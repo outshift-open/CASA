@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def load_mcp_servers() -> McpServer:
+def load_mcp_servers() -> dict[str, McpServer]:
     """Load MCP Server data from server JSON file."""
     config_path = Path("evaluation/task_tool_matcher/data/generation/config.json")
     mcp_servers_path = Path("evaluation/task_tool_matcher/data/mcp_servers")
