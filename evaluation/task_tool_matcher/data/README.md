@@ -1,4 +1,4 @@
-# Task-Tool Matching Data Generation
+# Task-Tool Matching Data Generation (Not Synthetic Task Creator)
 
 This directory contains the data generation pipeline for creating synthetic evaluation datasets for the task-tool matching system.
 
@@ -18,6 +18,8 @@ The generation system creates realistic task descriptions paired with MCP (Model
 
 Ensure you have the virtual environment activated and the project dependencies installed.
 
+Generate the synthetic tasks dataset first, by refering to `evaluation/task_tool_matcher/data/mcp_servers/README.md`. You need to have a `generated_tasks.json` to run the matching generator.
+
 ### Generating Data
 
 To regenerate the evaluation dataset:
@@ -28,7 +30,7 @@ source .venv/bin/activate
 python -m evaluation.task_tool_matcher.data.generation.synthetic_data_generator
 ```
 
-This will:
+This will (up to task descriptions this is covered by prerequisites):
 - Load MCP server tool definitions from the `../mcp_servers/` directory
 - Generate synthetic tasks based on the configuration in `config.json`
 - Create realistic task descriptions with appropriate tool matches/mismatches
