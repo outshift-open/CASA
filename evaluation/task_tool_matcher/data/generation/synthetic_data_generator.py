@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 def _generate_task_description(
     tools: List[mcp_types.Tool],
     config: Dict,
+    rephrased: str,
     requested_tool: Optional[str] = None,
     match_type: str = "match",
     correct_tool: Optional[str] = None,
@@ -35,6 +36,7 @@ def _generate_task_description(
     Args:
         tools: List of available MCP tools
         config: Configuration dictionary
+        rephrased: Whether to use base tasks, rephrased tasks, or both
         requested_tool: Optional specific tool to generate task for
         match_type: Type of match (match, wrong_tool, no_tool)
         correct_tool: For wrong_tool cases, the tool that should actually be used
@@ -56,7 +58,19 @@ def _generate_task_description(
         return _fallback_task_description(match_type, config)
 
     # Create a mapping from tool name to tasks
-    tool_tasks_map = {item["tool_name"]: item["synthetic_tasks"] for item in tasks_data}
+    def _tasks_list(synthetic_tasks: dict) -> List[str]:
+        """Extract either just the base tasks, or only/also the rephrased versions."""
+        if rephrased == "BaseTask":
+            return [item["synthetic_task"] for item in synthetic_tasks]
+        elif rephrased == "RephrasedTask":
+            return [item["rephrased_task"] for item in synthetic_tasks]
+        elif rephrased == "BothTasks":
+            return [task for item in synthetic_tasks for task in (item["synthetic_task"], item["rephrased_task"])]
+        else:
+            raise ValueError(f"Notsupported rephrased option: {rephrased}")
+
+    # tool_tasks_map = {item["tool_name"]: item["synthetic_tasks"] for item in tasks_data}
+    tool_tasks_map = {item["tool_name"]: _tasks_list(item["synthetic_tasks"]) for item in tasks_data}
 
     # Generate task based on match type
     if match_type == "match" and requested_tool:
@@ -152,6 +166,8 @@ def _select_tools_by_distribution(tools: List[mcp_types.Tool], config: Dict) -> 
 
     # Select available tools (at least 2 if tools exist)
     # If less than 2 tools exist, then wrong tool case is not possible
+    if max_available < 2:
+        raise ValueError("Not enough tools available for wrong tool sampling(<2)")
     num_available = random.randint(2, max_available)
     available_tools = random.sample(tool_names, k=num_available)
 
@@ -186,11 +202,12 @@ def _select_tools_by_distribution(tools: List[mcp_types.Tool], config: Dict) -> 
     return available_tools, requested_tool, match_type
 
 
-def generate_data_entry(mcp_server: McpServer, config: Dict) -> EvaluateEntryTaskToolMatcher:
+def generate_data_entry(mcp_server: McpServer, rephrased: str, config: Dict) -> EvaluateEntryTaskToolMatcher:
     """Generate a single data entry for task-tool matching evaluation.
 
     Args:
         mcp_server: Description of the MCP Server (name, tools, resources)
+        rephrased: Whether to use base tasks, rephrased tasks, or both
         config: Configuration dictionary
 
     Returns:
@@ -228,7 +245,9 @@ def generate_data_entry(mcp_server: McpServer, config: Dict) -> EvaluateEntryTas
         match = False
 
     # Generate task description based on match type (pass correct_choice for wrong_tool cases)
-    task_description = _generate_task_description(mcp_server.tools, config, requested_tool, match_type, correct_choice)
+    task_description = _generate_task_description(
+        mcp_server.tools, config, rephrased, requested_tool, match_type, correct_choice
+    )
 
     # Create the input object
     task_input = TaskToolMatchInput(
@@ -448,11 +467,12 @@ def decompress_generated_data(compressed_path: str) -> List[Dict]:
         raise
 
 
-def generate_data(config_path: str, compress_output: bool = True) -> None:
+def generate_data(config_path: str, rephrased: str, compress_output: bool = True) -> None:
     """Generate task-tool matching data based on the provided configuration.
 
     Args:
         config_path: Path to the configuration JSON file
+        rephrased: Whether to use base tasks, rephrased tasks, or both
         compress_output: Whether to compress the output file using gzip
 
     Raises:
@@ -492,7 +512,7 @@ def generate_data(config_path: str, compress_output: bool = True) -> None:
             server_entries = []
             for i in range(config.get("num_entries_per_server", 0)):
                 try:
-                    entry = generate_data_entry(mcp_server, config)
+                    entry = generate_data_entry(mcp_server, rephrased, config)
                     server_entries.append(entry)
 
                     # Track the distribution type for this entry
@@ -556,12 +576,17 @@ def main() -> None:
         default="evaluation/task_tool_matcher/data/generation/config.json",
         help="Path to the configuration file (default: evaluation/task_tool_matcher/data/generation/config.json)",
     )
+    parser.add_argument(
+        "--rephrased",
+        default="BaseTask",
+        help="Choose which tasks to use (BaseTask, RephrasedTask, BothTasks)",
+    )
 
     args = parser.parse_args()
     compress_output = not args.no_compress
 
     try:
-        generate_data(args.config, compress_output=compress_output)
+        generate_data(args.config, args.rephrased, compress_output=compress_output)
     except Exception as e:
         logger.error(f"Generation failed: {e}")
         raise
