@@ -1,0 +1,1042 @@
+{
+  "name": "hummingbot-mcp",
+  "tools": [
+    {
+      "name": "setup_connector",
+      "title": null,
+      "description": "Setup a new exchange connector for an account with credentials using progressive disclosure.\n\n    This tool guides you through the entire process of connecting an exchange with a four-step flow:\n    1. No parameters \u2192 List available exchanges\n    2. Connector only \u2192 Show required credential fields\n    3. Connector + credentials, no account \u2192 Select account from available accounts\n    4. All parameters \u2192 Connect the exchange (with override confirmation if needed)\n\n    Args:\n        connector: Exchange connector name (e.g., 'binance', 'binance_perpetual'). Leave empty to list available connectors.\n        credentials: Credentials object with required fields for the connector. Leave empty to see required fields first.\n        account: Account name to add credentials to. If not provided, prompts for account selection.\n        confirm_override: Explicit confirmation to override existing connector. Required when connector already exists.\n    ",
+      "inputSchema": {
+        "properties": {
+          "connector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Connector"
+          },
+          "credentials": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Credentials"
+          },
+          "account": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Account"
+          },
+          "confirm_override": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Confirm Override"
+          }
+        },
+        "title": "setup_connectorArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "setup_connectorOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_portfolio_balances",
+      "title": null,
+      "description": "Get portfolio balances and holdings across all connected exchanges.\n\n    Returns detailed token balances, values, and available units for each account. Use this to check your portfolio,\n    see what tokens you hold, and their current values. If passing accounts and connectors it will only return the\n    filtered accounts and connectors, leave it empty to return all accounts and connectors.\n    You can also get the portfolio distribution by setting `as_distribution` to True, which will return the distribution\n    of tokens and their values across accounts and connectors and the percentage of each token in the portfolio.\n\n    Args:\n        account_names: List of account names to filter by (optional). If empty, returns all accounts.\n        connector_names: List of connector names to filter by (optional). If empty, returns all connectors.\n        as_distribution: If True, returns the portfolio distribution as a percentage of each token in the portfolio and\n        their values across accounts and connectors. Defaults to False.\n    ",
+      "inputSchema": {
+        "properties": {
+          "account_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Account Names"
+          },
+          "connector_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Connector Names"
+          },
+          "as_distribution": {
+            "default": false,
+            "title": "As Distribution",
+            "type": "boolean"
+          }
+        },
+        "title": "get_portfolio_balancesArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_portfolio_balancesOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "place_order",
+      "title": null,
+      "description": "Place a buy or sell order (supports USD values by adding at the start of the amount $).\n\n    Args:\n        connector_name: Exchange connector name (e.g., 'binance', 'binance_perpetual')\n        trading_pair: Trading pair (e.g., BTC-USDT, ETH-USD)\n        trade_type: Order side ('BUY' or 'SELL')\n        amount: Order amount (is always in base currency, if you want to use USD values, add a dollar sign at the start, e.g., '$100')\n        order_type: Order type ('MARKET' or 'LIMIT')\n        price: Price for limit orders (required for limit orders)\n        position_action: Position action ('OPEN', 'CLOSE'). Defaults to 'OPEN' and is useful for perpetuals with HEDGE mode where you\n        can hold a long and short position at the same time.\n        account_name: Account name (default: master_account)\n    ",
+      "inputSchema": {
+        "properties": {
+          "connector_name": {
+            "title": "Connector Name",
+            "type": "string"
+          },
+          "trading_pair": {
+            "title": "Trading Pair",
+            "type": "string"
+          },
+          "trade_type": {
+            "title": "Trade Type",
+            "type": "string"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Price"
+          },
+          "order_type": {
+            "default": "MARKET",
+            "title": "Order Type",
+            "type": "string"
+          },
+          "position_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "OPEN",
+            "title": "Position Action"
+          },
+          "account_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "master_account",
+            "title": "Account Name"
+          }
+        },
+        "required": [
+          "connector_name",
+          "trading_pair",
+          "trade_type",
+          "amount"
+        ],
+        "title": "place_orderArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "place_orderOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "set_account_position_mode_and_leverage",
+      "title": null,
+      "description": "Set position mode and leverage for an account on a specific exchange. If position mode is not specified, will only\n    set the leverage. If leverage is not specified, will only set the position mode.\n\n    Args:\n        account_name: Account name (default: master_account)\n        connector_name: Exchange connector name (e.g., 'binance_perpetual')\n        trading_pair: Trading pair (e.g., ETH-USD) only required for setting leverage\n        position_mode: Position mode ('HEDGE' or 'ONE-WAY')\n        leverage: Leverage to set (optional, required for HEDGE mode)\n    ",
+      "inputSchema": {
+        "properties": {
+          "account_name": {
+            "title": "Account Name",
+            "type": "string"
+          },
+          "connector_name": {
+            "title": "Connector Name",
+            "type": "string"
+          },
+          "trading_pair": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Trading Pair"
+          },
+          "position_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Position Mode"
+          },
+          "leverage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Leverage"
+          }
+        },
+        "required": [
+          "account_name",
+          "connector_name"
+        ],
+        "title": "set_account_position_mode_and_leverageArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "set_account_position_mode_and_leverageOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_orders",
+      "title": null,
+      "description": "Get the orders manged by the connected accounts.\n\n    Args:\n        account_names: List of account names to filter by (optional). If empty, returns all accounts.\n        connector_names: List of connector names to filter by (optional). If empty, returns all connectors.\n        trading_pairs: List of trading pairs to filter by (optional). If empty, returns all trading pairs.\n        status: Order status to filter by can be OPEN, PARTIALLY_FILLED, FILLED, CANCELED, FAILED (is optional).\n        start_time: Start time (in seconds) to filter by (optional).\n        end_time: End time (in seconds) to filter by (optional).\n        limit: Number of orders to return defaults to 500, maximum is 1000.\n        cursor: Cursor for pagination (optional, should be used if another request returned a cursor).\n    ",
+      "inputSchema": {
+        "properties": {
+          "account_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Account Names"
+          },
+          "connector_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Connector Names"
+          },
+          "trading_pairs": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Trading Pairs"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "OPEN",
+                  "FILLED",
+                  "CANCELED",
+                  "FAILED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Status"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "End Time"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 500,
+            "title": "Limit"
+          },
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cursor"
+          }
+        },
+        "title": "get_ordersArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_ordersOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_positions",
+      "title": null,
+      "description": "Get the positions managed by the connected accounts.\n\n    Args:\n        account_names: List of account names to filter by (optional). If empty, returns all accounts.\n        connector_names: List of connector names to filter by (optional). If empty, returns all connectors.\n        limit: Number of positions to return defaults to 100, maximum is 1000.\n    ",
+      "inputSchema": {
+        "properties": {
+          "account_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Account Names"
+          },
+          "connector_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Connector Names"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 100,
+            "title": "Limit"
+          }
+        },
+        "title": "get_positionsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_positionsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_prices",
+      "title": null,
+      "description": "Get the latest prices for the specified trading pairs on a specific exchange connector.\n    Args:\n        connector_name: Exchange connector name (e.g., 'binance', 'binance_perpetual')\n        trading_pairs: List of trading pairs to get prices for (e.g., ['BTC-USDT', 'ETH-USD'])\n    ",
+      "inputSchema": {
+        "properties": {
+          "connector_name": {
+            "title": "Connector Name",
+            "type": "string"
+          },
+          "trading_pairs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trading Pairs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "connector_name",
+          "trading_pairs"
+        ],
+        "title": "get_pricesArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_pricesOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_candles",
+      "title": null,
+      "description": "Get the real-time candles for a trading pair on a specific exchange connector.\n    Args:\n        connector_name: Exchange connector name (e.g., 'binance', 'binance_perpetual')\n        trading_pair: Trading pair to get candles for (e.g., 'BTC-USDT')\n        interval: Candle interval (default: '1h'). Options include '1m', '5m', '15m', '30m', '1h', '4h', '1d'.\n        days: Number of days of historical data to retrieve (default: 30).\n    ",
+      "inputSchema": {
+        "properties": {
+          "connector_name": {
+            "title": "Connector Name",
+            "type": "string"
+          },
+          "trading_pair": {
+            "title": "Trading Pair",
+            "type": "string"
+          },
+          "interval": {
+            "default": "1h",
+            "title": "Interval",
+            "type": "string"
+          },
+          "days": {
+            "default": 30,
+            "title": "Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "connector_name",
+          "trading_pair"
+        ],
+        "title": "get_candlesArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_candlesOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_funding_rate",
+      "title": null,
+      "description": "Get the latest funding rate for a trading pair on a specific exchange connector. Only works for perpetual\n    connectors so the connector name must have _perpetual in it.\n    Args:\n        connector_name: Exchange connector name (e.g., 'binance_perpetual', 'hyperliquid_perpetual')\n        trading_pair: Trading pair to get funding rate for (e.g., 'BTC-USDT')\n    ",
+      "inputSchema": {
+        "properties": {
+          "connector_name": {
+            "title": "Connector Name",
+            "type": "string"
+          },
+          "trading_pair": {
+            "title": "Trading Pair",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connector_name",
+          "trading_pair"
+        ],
+        "title": "get_funding_rateArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_funding_rateOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_order_book",
+      "title": null,
+      "description": "Get order book data for a trading pair on a specific exchange connector, if the query type is different than\n    snapshot, you need to provide query_value and is_buy\n    Args:\n        connector_name: Connector name (e.g., 'binance', 'binance_perpetual')\n        trading_pair: Trading pair (e.g., BTC-USDT)\n        query_type: Order book query type ('snapshot', 'volume_for_price', 'price_for_volume', 'quote_volume_for_price',\n        'price_for_quote_volume')\n        query_value: Only required if query_type is not 'snapshot'. The value to query against the order book.\n        is_buy: Only required if query_type is not 'snapshot'. Is important to see what orders of the book analyze.\n    ",
+      "inputSchema": {
+        "properties": {
+          "connector_name": {
+            "title": "Connector Name",
+            "type": "string"
+          },
+          "trading_pair": {
+            "title": "Trading Pair",
+            "type": "string"
+          },
+          "query_type": {
+            "enum": [
+              "snapshot",
+              "volume_for_price",
+              "price_for_volume",
+              "quote_volume_for_price",
+              "price_for_quote_volume"
+            ],
+            "title": "Query Type",
+            "type": "string"
+          },
+          "query_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Query Value"
+          },
+          "is_buy": {
+            "default": true,
+            "title": "Is Buy",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "connector_name",
+          "trading_pair",
+          "query_type"
+        ],
+        "title": "get_order_bookArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_order_bookOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "explore_controllers",
+      "title": null,
+      "description": "\n    Explore and understand controllers and their configs.\n    \n    Use this tool to discover what's available and understand how things work.\n    \n    Progressive flow:\n    1. action=\"list\" \u2192 List all controllers and their configs\n    2. action=\"list\" + controller_type \u2192 List controllers of that type with config counts\n    3. action=\"describe\" + controller_name \u2192 Show controller code + list its configs + explain parameters\n    4. action=\"describe\" + config_name \u2192 Show specific config details + which controller it uses\n\n    Common Enum Values for Controller Configs:\n    \n    Position Mode (position_mode):\n    - \"HEDGE\" - Allows holding both long and short positions simultaneously\n    - \"ONEWAY\" - Allows only one direction position at a time\n    - Note: Use as string value, e.g., position_mode: \"HEDGE\"\n    \n    Trade Side (side):\n    - 1 or \"BUY\" - For long/buy positions\n    - 2 or \"SELL\" - For short/sell positions  \n    - 3 - Other trade types\n    - Note: Numeric values are required for controller configs\n    \n    Order Type (order_type, open_order_type, take_profit_order_type, etc.):\n    - 1 or \"MARKET\" - Market order\n    - 2 or \"LIMIT\" - Limit order\n    - 3 or \"LIMIT_MAKER\" - Limit maker order (post-only)\n    - 4 - Other order types\n    - Note: Numeric values are required for controller configs\n\n    Args:\n        action: \"list\" to list controllers or \"describe\" to show details of a specific controller or config.\n        controller_type: Type of controller to filter by (optional, e.g., 'directional_trading', 'market_making', 'generic').\n        controller_name: Name of the controller to describe (optional, only required for describe specific controller).\n        config_name: Name of the config to describe (optional, only required for describe specific config).\n    ",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "enum": [
+              "list",
+              "describe"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "controller_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "directional_trading",
+                  "market_making",
+                  "generic"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Controller Type"
+          },
+          "controller_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Controller Name"
+          },
+          "config_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Config Name"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "title": "explore_controllersArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "explore_controllersOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "modify_controllers",
+      "title": null,
+      "description": "\n    Create, update, or delete controllers and their configurations. If bot name is provided, it can only modify the config\n    in the bot deployed with that name.\n    \n    IMPORTANT: When creating a config without specifying config_data details, you MUST first use the explore_controllers tool\n    with action=\"describe\" and the controller_name to understand what parameters are required. The config_data must include\n    ALL relevant parameters for the controller to function properly.\n    \n    Controllers = are essentially strategies that can be run in Hummingbot.\n    Configs = are the parameters that the controller uses to run.\n\n    Args:\n        action: \"upsert\" (create/update) or \"delete\"\n        target: \"controller\" (template) or \"config\" (instance)\n        confirm_override: Required True if overwriting existing\n        config_data: For config creation, MUST contain all required controller parameters. Use explore_controllers first!\n        \n    Workflow for creating a config:\n    1. Use explore_controllers(action=\"describe\", controller_name=\"<name>\") to see required parameters\n    2. Create config_data dict with ALL required parameters from the controller template\n    3. Call modify_controllers with the complete config_data\n        \n    Examples:\n    - Create new controller: modify_controllers(\"upsert\", \"controller\", controller_type=\"market_making\", ...)\n    - Create config: modify_controllers(\"upsert\", \"config\", config_name=\"pmm_btc\", config_data={...})\n    - Modify config from bot: modify_controllers(\"upsert\", \"config\", config_name=\"pmm_btc\", config_data={...}, bot_name=\"my_bot\")\n    - Delete config: modify_controllers(\"delete\", \"config\", config_name=\"old_strategy\")\n    ",
+      "inputSchema": {
+        "properties": {
+          "action": {
+            "enum": [
+              "upsert",
+              "delete"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "target": {
+            "enum": [
+              "controller",
+              "config"
+            ],
+            "title": "Target",
+            "type": "string"
+          },
+          "controller_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "directional_trading",
+                  "market_making",
+                  "generic"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Controller Type"
+          },
+          "controller_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Controller Name"
+          },
+          "controller_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Controller Code"
+          },
+          "config_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Config Name"
+          },
+          "config_data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Config Data"
+          },
+          "bot_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Bot Name"
+          },
+          "confirm_override": {
+            "default": false,
+            "title": "Confirm Override",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action",
+          "target"
+        ],
+        "title": "modify_controllersArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "modify_controllersOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "deploy_bot_with_controllers",
+      "title": null,
+      "description": "Deploy a bot with specified controller configurations.\n    Args:\n        bot_name: Name of the bot to deploy\n        controllers_config: List of controller configs to use for the bot deployment.\n        account_name: Account name to use for the bot (default: master_account)\n        max_global_drawdown_quote: Maximum global drawdown in quote currency (optional) defaults to None.\n        max_controller_drawdown_quote: Maximum drawdown per controller in quote currency (optional) defaults to None.\n        image: Docker image to use for the bot (default: \"hummingbot/hummingbot:latest\")\n    ",
+      "inputSchema": {
+        "properties": {
+          "bot_name": {
+            "title": "Bot Name",
+            "type": "string"
+          },
+          "controllers_config": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Controllers Config",
+            "type": "array"
+          },
+          "account_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "master_account",
+            "title": "Account Name"
+          },
+          "max_global_drawdown_quote": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Global Drawdown Quote"
+          },
+          "max_controller_drawdown_quote": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Max Controller Drawdown Quote"
+          },
+          "image": {
+            "default": "hummingbot/hummingbot:latest",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bot_name",
+          "controllers_config"
+        ],
+        "title": "deploy_bot_with_controllersArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "deploy_bot_with_controllersOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_active_bots_status",
+      "title": null,
+      "description": "\n    Get the status of all active bots. Including the unrealized PnL, realized PnL, volume traded, latest logs, etc.\n    ",
+      "inputSchema": {
+        "properties": {},
+        "title": "get_active_bots_statusArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "stop_bot_or_controllers",
+      "title": null,
+      "description": "\n    Stop and archive a bot forever or stop the execution of a controller of a runnning bot. If the controllers to stop\n    are not specified, it will stop the bot execution and archive it forever, if they are specified, will only stop\n    the execution of those controllers and the bot will still be running with the rest of the controllers.\n    Args:\n        bot_name: Name of the bot to stop\n        controller_names: List of controller names to stop (optional, if not provided will stop the bot execution)\n    ",
+      "inputSchema": {
+        "properties": {
+          "bot_name": {
+            "title": "Bot Name",
+            "type": "string"
+          },
+          "controller_names": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Controller Names"
+          }
+        },
+        "required": [
+          "bot_name"
+        ],
+        "title": "stop_bot_or_controllersArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "resources": []
+}

@@ -2,10 +2,40 @@
 
 import gzip
 import json
+import logging
 import os
+from pathlib import Path
 from typing import List
 
 from evaluation.task_tool_matcher.types import EvaluateEntryTaskToolMatcher
+from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
+from identity_auth_server.types import McpServer
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def load_mcp_servers() -> dict[str, McpServer]:
+    """Load MCP Server data from server JSON file."""
+    config_path = Path("evaluation/task_tool_matcher/data/generation/config.json")
+    mcp_servers_path = Path("evaluation/task_tool_matcher/data/mcp_servers")
+
+    if not config_path.exists():
+        raise FileNotFoundError(f"Data creation config file not found: {config_path}")
+    if not mcp_servers_path.exists():
+        raise FileNotFoundError(f"MCP server tools file not found: {mcp_servers_path}")
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = json.load(f)
+
+    mcp_servers = {}
+    for server_name in config.get("mcp_servers", []):
+        logger.info(f"Processing MCP server: {server_name}")
+        with open(mcp_servers_path / f"{server_name}.json", "r", encoding="utf-8") as f:
+            mcp_server = json.load(f)
+            mcp_servers[mcp_server["name"]] = McpServer(**mcp_server)
+
+    return mcp_servers
 
 
 def load_evaluation_data(file_path: str) -> List[EvaluateEntryTaskToolMatcher]:
@@ -31,7 +61,21 @@ def load_evaluation_data(file_path: str) -> List[EvaluateEntryTaskToolMatcher]:
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-    return [EvaluateEntryTaskToolMatcher(**entry) for entry in data]
+    mcp_servers = load_mcp_servers()
+    eval_data: List[EvaluateEntryTaskToolMatcher] = []
+    for entry in data:
+        eval_data.append(
+            EvaluateEntryTaskToolMatcher(
+                input=TaskToolMatchInput(
+                    task=entry["input"]["task"],
+                    requested_tool=entry["input"]["requested_tool"],
+                    mcp_server=mcp_servers[entry["input"]["mcp_server"]],
+                ),
+                correct_choice=entry["correct_choice"],
+                match=entry["match"],
+            )
+        )
+    return eval_data
 
 
 def find_evaluation_data_file() -> str:
