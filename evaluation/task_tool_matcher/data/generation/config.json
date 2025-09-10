@@ -13,12 +13,7 @@
         "stripe",
         "wikipedia_mcp"
     ],
-    "num_entries_per_server": 10,
-    "task_character_limit": 150,
-    "available_tools_per_task": 5,
-    "match_distribution": {
-        "match": 0.4,
-        "wrong_tool": 0.4,
-        "no_tool": 0.2
-    }
+    "num_correct_matches": 100, //must be <= total number of available task samples
+    "ratio_wrong_matches": 1, //must lead to <= sum_mcp {n*(n-1)}   n tools per mcp
+    "ratio_null_matches": 0.5, //must lead to <= sum_mcp-1 {m*n}  m tools in the given mcp
 }
