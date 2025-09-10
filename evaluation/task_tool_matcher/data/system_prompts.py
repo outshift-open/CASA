@@ -43,7 +43,7 @@ REPHRASE_SYSTEM_PROMPT = """You are an expert in making text sound more natural 
 Original Request:
 `{task}`"""
 
-
+# "obscure_base"
 OBSCURE_SYSTEM_PROMPT_TEMPLATE = """You are an expert scenario designer. Your specialty is creating realistic and detailed user task requests that require a certain tool to execute them (you are given the tool, and you generate a corresponding task).
 
 Your goal is to generate a **single, high-quality user request**. This request must be a realistic command that would require the use of the specific tool provided to you to complete it, but it should require it in a somewhat **obscure or implicit or indirect** way, **not** directly ask for the tool. This means that the connection between the task and the tool should **not** be immediately obvious.
