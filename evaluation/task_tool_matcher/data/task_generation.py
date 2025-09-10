@@ -10,7 +10,9 @@ from dotenv import dotenv_values
 from openai import AsyncOpenAI
 from system_prompts import OBSCURE_SYSTEM_PROMPT_TEMPLATE as SYSTEM_PROMPT_1_TOOL
 from system_prompts import REPHRASE_SYSTEM_PROMPT
-from tqdm.asyncio import tqdm
+from tqdm import tqdm
+
+# from tqdm.asyncio import tqdm
 
 config = dotenv_values()
 
@@ -20,13 +22,13 @@ client = AsyncOpenAI(
 )
 
 
-async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, obscure: bool) -> dict | None:
+async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, conversation: bool) -> dict | None:
     """Synthesizes tasks based on the description of a single MCP tool, with a generative model.
 
     Args:
         tool_data (dict): A dictionary with 'name', 'description', and 'inputSchema of MCP tools.
         semaphore (asyncio.Semaphore): To limit concurrent API calls to openai.
-        obscure (bool): Whether to generate an obscure task or regular.
+        conversation (bool): Whether to generate a conversation task or regular.
 
     Returns:
         A dictionary with the tool_name and generated task, or None on failure.
@@ -46,40 +48,40 @@ async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, obscur
 
     async with semaphore:
         model_name = "gpt-4"
-        try:
-            response = await client.chat.completions.create(
+        response = await client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+        )
+        synthetic_task = response.choices[0].message.content
+
+        if conversation:  # TODO: adapt
+            rephrase_prompt = REPHRASE_SYSTEM_PROMPT.format(task=synthetic_task)
+            rephrase_response = await client.chat.completions.create(
                 model=model_name,
-                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                messages=[
+                    {"role": "system", "content": rephrase_prompt},
+                    {"role": "user", "content": "Rephrase the above request."},
+                ],
             )
-            synthetic_task = response.choices[0].message.content
+            rephrased_task = rephrase_response.choices[0].message.content
+            synthetic_task = rephrased_task
 
-            if obscure:
-                rephrase_prompt = REPHRASE_SYSTEM_PROMPT.format(task=synthetic_task)
-                rephrase_response = await client.chat.completions.create(
-                    model=model_name,
-                    messages=[
-                        {"role": "system", "content": rephrase_prompt},
-                        {"role": "user", "content": "Rephrase the above request."},
-                    ],
-                )
-                rephrased_task = rephrase_response.choices[0].message.content
-                synthetic_task = rephrased_task
-
-            return {
-                "tool_name": tool_data.get("name"),
-                "synthetic_task": synthetic_task,
-                "system_prompt": "obscure_base" if not obscure else "obscure_base_plus_conv",
-                "mcp_server": tool_data.get("mcp_server"),
-            }
-        except Exception as e:
-            print(f"Error processing tool {tool_data.get('name', 'N/A')}: {e}")
-            return None
+        return {
+            "tool_name": tool_data.get("name"),
+            "synthetic_task": synthetic_task,
+            "system_prompt": "obscure_base" if not conversation else "obscure_base_plus_conv",
+            "mcp_server": tool_data.get("mcp_server"),
+        }
 
 
-async def process_tools_files(input_paths: list[str], output_path: str, multiplier: int, obscure: bool):
+async def process_tools_files(input_paths: list[str], output_path: str, multiplier: int, conversation: bool):
     """Reads tools from JSON files, creates their tasks in parallel, and saves the results in dict."""
-    all_tools = []
+    final_results = []
+    semaphore = asyncio.Semaphore(10)  # max 10 for openai async
+
     for input_path in input_paths:  # MCP server
+        print(f"MCP: {input_path}")
+        all_tools = []
         with open(input_path, "r") as f:
             mcp_server = json.load(f)
             tools = mcp_server.get("tools", [])
@@ -87,27 +89,28 @@ async def process_tools_files(input_paths: list[str], output_path: str, multipli
                 tool["mcp_server"] = mcp_server.get("name", "N/A")
             all_tools.extend(tools)
 
-    final_results = []
-    semaphore = asyncio.Semaphore(10)  # max 10 for openai async
+        for idx, tool in tqdm(
+            enumerate(all_tools), total=len(all_tools)
+        ):  # basic loop because it's 1 tool 1 task (otherwise sampler loop needed)
+            tasks = [task_synthesizer(tool, semaphore, conversation) for _ in range(multiplier)]
+            results = await asyncio.gather(*tasks)
 
-    for idx, tool in enumerate(all_tools):
-        tasks = [task_synthesizer(tool, semaphore, obscure) for _ in range(multiplier)]
-        results = await tqdm.gather(*tasks)
+            valid_results = [res for res in results if res is not None]
+            if not valid_results:
+                continue
+            result = {
+                "tool_names": [valid_results[0]["tool_name"]],
+                "mcp_servers": [valid_results[0]["mcp_server"]],
+                "synthetic_tasks": [res["synthetic_task"] for res in valid_results],
+                "system_prompt": valid_results[0]["system_prompt"],
+                "multi_tool": 1,
+                "conversation": True if conversation else False,
+            }
+            final_results.append(result)
 
-        valid_results = [res for res in results if res is not None]
-        if not valid_results:
-            continue
-        result = {
-            "tool_name": [valid_results[0]["tool_name"]],
-            "mcp_server": [valid_results[0]["mcp_server"]],
-            "synthetic_tasks": [res["synthetic_task"] for res in valid_results],
-            "system_prompt": valid_results[0]["system_prompt"],
-        }
-        final_results.append(result)
-
-    if idx % 100 == 0:
-        with open(output_path, "w") as f:
-            json.dump(final_results, f, indent=2)
+            if idx % 20 == 0:
+                with open(output_path, "w") as f:
+                    json.dump(final_results, f, indent=2)
 
 
 async def main():
@@ -126,9 +129,7 @@ async def main():
     parser.add_argument(
         "--multiplier", type=int, default=1, help="Number of synthetic tasks to generate per (MCP) tool."
     )
-    parser.add_argument(
-        "--obscure", action="store_true", help="Generate more obscure tasks (hide input schema + new sys_prompt)."
-    )
+    parser.add_argument("--conversation", action="store_true", help="Generate conversation tasks if set to True.")
 
     args = parser.parse_args()
 
@@ -139,7 +140,7 @@ async def main():
         return
 
     start_time = time.time()
-    await process_tools_files(input_files, args.output_file, args.multiplier, args.obscure)
+    await process_tools_files(input_files, args.output_file, args.multiplier, args.conversation)
     elapsed_time = time.time() - start_time
     print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
