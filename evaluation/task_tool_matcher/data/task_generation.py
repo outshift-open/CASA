@@ -5,9 +5,11 @@ import asyncio
 import json
 import os
 import time
+from typing import List
 
 from dotenv import dotenv_values
 from openai import AsyncOpenAI
+from pydantic import BaseModel, Field, create_model
 from system_prompts import OBSCURE_SYSTEM_PROMPT_TEMPLATE as SYSTEM_PROMPT_1_TOOL
 from system_prompts import REPHRASE_SYSTEM_PROMPT
 from tqdm import tqdm
@@ -22,16 +24,35 @@ client = AsyncOpenAI(
 )
 
 
-async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, conversation: bool) -> dict | None:
+class SyntheticTask(BaseModel):
+    """A single synthetic task for the tool."""
+
+    task_text: str = Field(..., description="The text of the synthetic task.")
+
+
+def create_tasks_model(n: int) -> type[BaseModel]:
+    """Dynamically create a Pydantic model for a list of n tasks."""
+    tasks_model = create_model(
+        "SyntheticTasks",
+        tasks=(List[SyntheticTask], Field(..., min_items=n, max_items=n)),
+        __doc__=f"A list of {n} different synthetic tasks for the gen query.",
+    )
+    return tasks_model
+
+
+async def task_synthesizer(
+    tool_data: dict, semaphore: asyncio.Semaphore, conversation: bool, n_tasks: int
+) -> list[dict] | None:
     """Synthesizes tasks based on the description of a single MCP tool, with a generative model.
 
     Args:
         tool_data (dict): A dictionary with 'name', 'description', and 'inputSchema of MCP tools.
         semaphore (asyncio.Semaphore): To limit concurrent API calls to openai.
         conversation (bool): Whether to generate a conversation task or regular.
+        n_tasks (int): The number of tasks to generate.
 
     Returns:
-        A dictionary with the tool_name and generated task, or None on failure.
+        A list of dictionaries, each with the tool_name and a generated task, or None on failure.
     """
     tool_description = tool_data.get("description", "N/A")
     cut_sequence = "\n    Args:\n"  # cutting off input args info (applies to atlassian & hummingbot & paper-search)
@@ -44,40 +65,67 @@ async def task_synthesizer(tool_data: dict, semaphore: asyncio.Semaphore, conver
     system_prompt_template = SYSTEM_PROMPT_1_TOOL
     system_prompt = system_prompt_template.replace("[Tool Name]", tool_data.get("name", "N/A"))
     system_prompt = system_prompt.replace("[Tool Description]", tool_description)
-    user_prompt = "Execute the user request and generate the corresponding output."
+    user_prompt = f"Execute the user request and generate {n_tasks} corresponding output examples, make sure the various examples are diverse, **not similar** to each other."
+
+    tasks_model = create_tasks_model(n_tasks)
 
     async with semaphore:
-        model_name = "gpt-4"
-        response = await client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
-        )
-        synthetic_task = response.choices[0].message.content
-
-        if conversation:  # TODO: adapt
-            rephrase_prompt = REPHRASE_SYSTEM_PROMPT.format(task=synthetic_task)
-            rephrase_response = await client.chat.completions.create(
+        model_name = "gpt-4o"
+        try:
+            response = await client.chat.completions.create(
                 model=model_name,
-                messages=[
-                    {"role": "system", "content": rephrase_prompt},
-                    {"role": "user", "content": "Rephrase the above request."},
+                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                tools=[
+                    {
+                        "type": "function",
+                        "function": {"name": "SyntheticTasks", "parameters": tasks_model.model_json_schema()},
+                    }
                 ],
+                tool_choice={"type": "function", "function": {"name": "SyntheticTasks"}},
             )
-            rephrased_task = rephrase_response.choices[0].message.content
-            synthetic_task = rephrased_task
 
-        return {
-            "tool_name": tool_data.get("name"),
-            "synthetic_task": synthetic_task,
-            "system_prompt": "obscure_base" if not conversation else "obscure_base_plus_conv",
-            "mcp_server": tool_data.get("mcp_server"),
-        }
+            tool_calls = response.choices[0].message.tool_calls
+            if not tool_calls:
+                print("The model did not return any tool calls.")
+                return None
+
+            tasks_json = tool_calls[0].function.arguments
+            structured_response = tasks_model.model_validate_json(tasks_json)
+
+            synthetic_tasks = [task.task_text for task in structured_response.tasks]
+
+            if conversation:
+                rephrased_tasks = []
+                for task in synthetic_tasks:
+                    rephrase_prompt = REPHRASE_SYSTEM_PROMPT.format(task=task)
+                    rephrase_response = await client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": rephrase_prompt},
+                            {"role": "user", "content": "Rephrase the above request."},
+                        ],
+                    )
+                    rephrased_tasks.append(rephrase_response.choices[0].message.content)
+                synthetic_tasks = rephrased_tasks
+
+            return [
+                {
+                    "tool_name": tool_data.get("name"),
+                    "synthetic_task": task,
+                    "system_prompt": "obscure_base" if not conversation else "obscure_base_plus_conv",
+                    "mcp_server": tool_data.get("mcp_server"),
+                }
+                for task in synthetic_tasks
+            ]
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
 
 
-async def process_tools_files(input_paths: list[str], output_path: str, multiplier: int, conversation: bool):
+async def process_tools_files(input_paths: list[str], output_path: str, n_tasks: int, conversation: bool):
     """Reads tools from JSON files, creates their tasks in parallel, and saves the results in dict."""
     final_results = []
-    semaphore = asyncio.Semaphore(10)  # max 10 for openai async
+    semaphore = asyncio.Semaphore(10)  # max 10, for openai async
 
     for input_path in input_paths:  # MCP server
         print(f"MCP: {input_path}")
@@ -92,25 +140,24 @@ async def process_tools_files(input_paths: list[str], output_path: str, multipli
         for idx, tool in tqdm(
             enumerate(all_tools), total=len(all_tools)
         ):  # basic loop because it's 1 tool 1 task (otherwise sampler loop needed)
-            tasks = [task_synthesizer(tool, semaphore, conversation) for _ in range(multiplier)]
-            results = await asyncio.gather(*tasks)
+            results = await task_synthesizer(tool, semaphore, conversation, n_tasks)
 
-            valid_results = [res for res in results if res is not None]
-            if not valid_results:
+            if not results:
                 continue
+
             result = {
-                "tool_names": [valid_results[0]["tool_name"]],
-                "mcp_servers": [valid_results[0]["mcp_server"]],
-                "synthetic_tasks": [res["synthetic_task"] for res in valid_results],
-                "system_prompt": valid_results[0]["system_prompt"],
-                "multi_tool": 1,
+                "tool_names": [results[0]["tool_name"]],
+                "mcp_servers": [results[0]["mcp_server"]],
+                "synthetic_tasks": [res["synthetic_task"] for res in results],
+                "system_prompt": results[0]["system_prompt"],
+                "tools_per_task": 1,
+                "SO_tasks_per_sample": n_tasks,
                 "conversation": True if conversation else False,
             }
             final_results.append(result)
 
-            if idx % 20 == 0:
-                with open(output_path, "w") as f:
-                    json.dump(final_results, f, indent=2)
+            with open(output_path, "w") as f:
+                json.dump(final_results, f, indent=2)
 
 
 async def main():
