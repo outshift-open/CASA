@@ -6,71 +6,86 @@ This directory contains the data generation pipeline for creating synthetic eval
 
 The generation system creates realistic task descriptions paired with MCP (Model Context Protocol) tools to evaluate and test task-tool matching algorithms. It generates datasets with configurable distributions of correct matches, wrong tool selections, and no-tool scenarios.
 
-## Files
-
-- `generation/synthetic_data_generator.py` - Main generation script that creates synthetic task-tool matching data
-- `generation/config.json` - Configuration file defining generation parameters
-- `generated_data.json.gz` - Compressed output file containing the generated evaluation dataset (created after running)
-
-## Usage
 
 ### Prerequisites
 
 Ensure you have the virtual environment activated and the project dependencies installed.
 
-Generate the synthetic tasks dataset first, by refering to `evaluation/task_tool_matcher/data/mcp_servers/README.md`. You need to have a `generated_tasks.json` to run the matching generator.
+Extract the MCP server tools first, by refering to `evaluation/task_tool_matcher/data/mcp_servers/README.md`.
 
-### Generating Data
 
-To regenerate the evaluation dataset:
+### Synthesizing Tasks from Tools
+
+After obtaining MCP server info, and saving them in JSON files in `evaluation/task_tool_matcher/data/mcp_servers`,
+from the command line at root level, you can launch a synthetic data generation to obtain one or more task(s) requiring the given tool to be carried out by an agent:
 
 ```bash
-# From the project root directory
-source .venv/bin/activate
-python -m evaluation.task_tool_matcher.data.generation.synthetic_data_generator
+python evaluation/task_tool_matcher/data/task_generation.py \
+    --input-dir evaluation/task_tool_matcher/data/mcp_servers  \
+    --output-file evaluation/task_tool_matcher/data/generated_tasks.json \
+    --multiplier 3
 ```
 
-This will (up to task descriptions this is covered by prerequisites):
-- Load MCP server tool definitions from the `../mcp_servers/` directory
-- Generate synthetic tasks based on the configuration in `config.json`
-- Create realistic task descriptions with appropriate tool matches/mismatches
-- Save the generated dataset to `generated_data.json` and compress it to `generated_data.json.gz`
-- Display distribution analysis comparing expected vs actual match types
+The results are stored in `generated_tasks.json`, in a list of samples as the one below:
+```json
+{
+    "tool_names": [
+      "azmcp-monitor-table-list"
+    ],
+    "mcp_servers": [
+      "azure"
+    ],
+    "synthetic_tasks": [
+      "Task Description 1",
+      "Task Description 2",
+      "Task Description 3"
+    ],
+    "system_prompt": "obscure_base",
+    "tools_per_task": 1,
+    "SO_tasks_per_sample": 3,
+    "conversation": false
+}
+```
 
-### Configuration
+- tool_names: the names of the tools
+- mcp_servers: the names of the MCP servers
+- synthetic_tasks: a list of `multiplier` synthetic tasks requiring the tools
+- system_prompt: the tag of the system prompt used for the generation
+where the multiplier controls the number of tasks generated per tool. The calls go through AsyncOpenAI, limited to a maximum of 10 at a time.
 
+
+### Simulating the Tool Requests from Tasks
+To the tool requests dataset, you can import and call the function `generate_tool_requests_data` from the script or directly call the script from the CLI as below:
+
+```bash
+source .venv/bin/activate
+python -m evaluation.task_tool_matcher.data.generation.synthetic_data_generator --config {CONFIG PATH} --input {TASKS JSON PATH} --output {OUTPUT JSON PATH}
+```
+
+This will generate synthetic tool-task pairings, following the configuration in `config.json`.
 Edit `config.json` to customize the generation process:
 
 ```json
 {
-    "mcp_servers": ["atlassian_tools", "github_official_tools"],
-    "num_entries_per_server": 10,
-    "task_character_limit": 150,
-    "available_tools_per_task": 5,
-    "match_distribution": {
-        "match": 0.4,        // 40% correct tool matches
-        "wrong_tool": 0.4,   // 40% incorrect tool selections
-        "no_tool": 0.2       // 20% tasks requiring no tools
-    }
+    "mcp_servers": [
+        "atlassian",
+        "github-official",
+        "grafana",
+        "hummingbot-mcp",
+        "mongodb",
+        "nasdaq-data-link",
+        "notion",
+        "paper-search",
+        "azure",
+        "sonarqube",
+        "stripe",
+        "wikipedia-mcp"
+    ], //remove any MCP server(s) you do not intend to use
+    "num_correct_matches": 1056, //select how many correct matches you want (max= # tools * multiplier)
+    "ratio_wrong_matches": 2, //set the ratio of wrong matches, ex: 2 -> 2*1056 wrong matches
+    "ratio_null_matches": 2   //set the ratio of null matches, ex: 2 -> 2*1056 null matches (null refers to the correct tool being in a **different MCP server**)
 }
+
 ```
-
-**Configuration Parameters:**
-- `mcp_servers` - List of MCP server tool definition files to use (without .json extension)
-- `num_entries_per_server` - Number of evaluation entries to generate per server
-- `task_character_limit` - Maximum character length for generated task descriptions
-- `available_tools_per_task` - Maximum number of tools available for each task
-- `match_distribution` - Target distribution of match types for balanced evaluation
-
-### Output
-
-The generated dataset (`generated_data.json`) contains evaluation entries with:
-- **input** - Task description, requested tool, available tools, and MCP tool definitions
-- **correct_choice** - The tool that should actually be selected (or null if no tool needed)
-- **match** - Boolean indicating if the requested tool is correct for the task
-
-By default the output file is compressed as `generated_data.json.gz` to save space.
-
-## Dependencies
 
 The generation script depends on MCP server tool definitions being available in the `mcp_servers/` directory. Ensure you've run the MCP tool extraction process first if needed.
