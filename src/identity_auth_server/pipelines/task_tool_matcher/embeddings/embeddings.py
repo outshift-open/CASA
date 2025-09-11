@@ -22,7 +22,7 @@ from identity_auth_server.pipelines.task_tool_matcher.utils import (
 class EmbeddingsTaskToolMatcher(TaskToolMatcher):
     """A basic task-tool matcher that uses embeddings to determine if a tool matches a task."""
 
-    def __init__(self, match_threshold=0.3):
+    def __init__(self, match_threshold: float = 0.2):
         """Initialize the embeddings matcher.
 
         Args:
@@ -93,10 +93,16 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
             no_match_reason = TaskToolMatchReason.EMBEDDINGS_NO_MATCH_WITH_ALL
 
         matches = task_to_tool_matches and selected_task_to_similar_tool
+        debug_data = {
+            "requested_tool": requested_tool,
+            "matched_tool": matched_tool,
+            "matched_distance": matched.distance,
+            "matching_threshold": self.match_threshold,
+        }
 
         if matches:
             self.logger.debug("Match found!")
             return TaskToolMatchOutput(task_tool_match=matches)
         else:
             self.logger.debug("No match found.")
-            return TaskToolMatchOutput(task_tool_match=False, reason=no_match_reason)
+            return TaskToolMatchOutput(task_tool_match=False, reason=no_match_reason, debug=debug_data)

@@ -84,6 +84,7 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         task = input.task
         requested_tool = input.requested_tool
         mcp_tools = input.mcp_server.tools
+        suggested_task = ""
 
         # Embedding all the tools
         self.tool_names = [tool.name for tool in mcp_tools]
@@ -119,6 +120,14 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         task_to_tool_matches = False
         selected_task_to_similar_tool = False
         no_match_reason = None
+        debug_data = {
+            "requested_tool": requested_tool,
+            "suggested_task": suggested_task,
+            "matched_tool": matched_tool,
+            "matched_distance": matched.distance,
+            "match_threshold": self.match_threshold,
+        }
+
         if matched.distance >= self.match_threshold:
             task_to_tool_matches = True
         else:
@@ -138,4 +147,4 @@ class HybridTaskToolMatcher(TaskToolMatcher):
             return TaskToolMatchOutput(task_tool_match=matches)
         else:
             self.logger.debug("No match found.")
-            return TaskToolMatchOutput(task_tool_match=False, reason=no_match_reason)
+            return TaskToolMatchOutput(task_tool_match=False, reason=no_match_reason, debug=debug_data)

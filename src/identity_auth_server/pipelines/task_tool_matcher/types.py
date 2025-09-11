@@ -1,7 +1,7 @@
 """Type definitions for Identity Auth Server - Pipelines - Task Tool Matcher."""
 
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -46,3 +46,4 @@ class TaskToolMatchOutput(BaseModel):
 
     task_tool_match: bool
     reason: Optional[TaskToolMatchReason] = None
+    debug: Optional[dict[str, Any]] = None
