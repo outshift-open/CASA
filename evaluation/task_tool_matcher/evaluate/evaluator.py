@@ -10,7 +10,7 @@ from .metrics import calculate_metrics
 
 
 def evaluate_matcher(
-    matcher_type: TaskToolMatcherType, data: List[EvaluateEntryTaskToolMatcher], verbose: bool = True
+    matcher_type: TaskToolMatcherType, data: List[EvaluateEntryTaskToolMatcher], verbose: bool = True, **matcher_kwargs
 ) -> Dict[str, Any]:
     """Evaluate a task-tool matcher on the given data.
 
@@ -18,12 +18,13 @@ def evaluate_matcher(
         matcher_type: Type of matcher to evaluate
         data: List of evaluation entries
         verbose: Whether to print progress updates
+        matcher_kwargs: Additional keyword arguments for the matcher
 
     Returns:
         Dictionary containing evaluation results
     """
     # Create the TaskToolMatcher using the factory
-    matcher = TaskToolMatcherFactory.create(matcher_type)
+    matcher = TaskToolMatcherFactory.create(matcher_type, **matcher_kwargs)
 
     # Store predictions and ground truth
     y_true = []

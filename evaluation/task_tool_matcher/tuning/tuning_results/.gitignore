@@ -1,0 +1,4 @@
+# Ignore all tuning result files but keep the directory
+*.json
+*.html
+!.gitignore

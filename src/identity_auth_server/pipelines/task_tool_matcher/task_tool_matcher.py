@@ -50,11 +50,12 @@ class TaskToolMatcherFactory:
     """Factory for creating TaskToolMatcher instances."""
 
     @staticmethod
-    def create(matcher_type: TaskToolMatcherType) -> TaskToolMatcher:
+    def create(matcher_type: TaskToolMatcherType, **matcher_kwargs) -> TaskToolMatcher:
         """Create a TaskToolMatcher instance based on the specified type.
 
         Args:
             matcher_type: The type of TaskToolMatcher to create
+            matcher_kwargs: Additional keyword arguments for the matcher
 
         Returns:
             TaskToolMatcher: An instance of the requested matcher type
@@ -70,12 +71,12 @@ class TaskToolMatcherFactory:
         if matcher_type == TaskToolMatcherType.EMBEDDINGS:
             from identity_auth_server.pipelines.task_tool_matcher.embeddings.embeddings import EmbeddingsTaskToolMatcher
 
-            return EmbeddingsTaskToolMatcher()
+            return EmbeddingsTaskToolMatcher(**matcher_kwargs)
 
         if matcher_type == TaskToolMatcherType.HYBRID:
             from identity_auth_server.pipelines.task_tool_matcher.hybrid.hybrid import HybridTaskToolMatcher
 
-            return HybridTaskToolMatcher()
+            return HybridTaskToolMatcher(**matcher_kwargs)
         else:
             logging.getLogger(__name__).error(f"Unsupported task tool matcher type: {matcher_type}")
             raise ValueError(f"Unsupported task tool matcher type: {matcher_type}")
