@@ -78,9 +78,9 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
     """Generate correct, wrong, and null matches with a flexible sampling strategy."""
     num_correct = config["num_correct_matches"]
     if len(all_tasks) < num_correct:
-        logger.warning(
-            f"Not enough unique tasks ({len(all_tasks)}) to generate {num_correct} correct matches. Will cap to {len(all_tasks)}."
-        )
+        logger.warning(f"Not enough unique tasks ({len(all_tasks)}) to generate {num_correct} correct matches.")
+        logger.warning(f" --> Will cap #correct matches to {len(all_tasks)}!")
+        num_correct = len(all_tasks)
 
     correct_tasks = random.sample(all_tasks, k=num_correct)
     num_wrong = int(num_correct * config["ratio_wrong_matches"])
