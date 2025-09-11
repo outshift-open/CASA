@@ -43,7 +43,7 @@ def load_mcp_tools(mcp_server_names: List[str]) -> Dict[str, List[str]]:
     return mcp_to_tools
 
 
-def create_task_collection(input_path: str) -> List[Dict[str, Any]]:
+def create_task_collection(input_path: str, mcp_server_names: List[str]) -> List[Dict[str, Any]]:
     """Load generated tasks and create a flat list of tasks with their metadata."""
     tasks_file = Path(input_path)
     if not tasks_file.exists():
@@ -54,6 +54,8 @@ def create_task_collection(input_path: str) -> List[Dict[str, Any]]:
 
     all_tasks = []
     for item in tasks_data:
+        if [server for server in item["mcp_servers"] if server not in mcp_server_names]:
+            continue
         for task in item.get("synthetic_tasks", []):
             all_tasks.append(
                 {
@@ -75,14 +77,16 @@ def create_task_collection(input_path: str) -> List[Dict[str, Any]]:
 def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: Dict[str, List[str]]) -> List[Dict]:
     """Generate correct, wrong, and null matches with a flexible sampling strategy."""
     num_correct = config["num_correct_matches"]
+    if len(all_tasks) < num_correct:
+        logger.warning(
+            f"Not enough unique tasks ({len(all_tasks)}) to generate {num_correct} correct matches. Will cap to {len(all_tasks)}."
+        )
+
+    correct_tasks = random.sample(all_tasks, k=num_correct)
     num_wrong = int(num_correct * config["ratio_wrong_matches"])
     num_null = int(num_correct * config["ratio_null_matches"])
 
     generated_entries = []
-
-    if len(all_tasks) < num_correct:
-        raise ValueError(f"Not enough unique tasks ({len(all_tasks)}) to generate {num_correct} correct matches.")
-    correct_tasks = random.sample(all_tasks, k=num_correct)
 
     for task in correct_tasks:
         generated_entries.append(
@@ -182,7 +186,7 @@ def generate_tool_requests_data(config_path: str, input_path: str, output_path: 
 
     """
     config = load_config(config_path)
-    all_tasks = create_task_collection(input_path)
+    all_tasks = create_task_collection(input_path, config["mcp_servers"])
 
     if not all_tasks:
         raise ValueError("No tasks were loaded. Aborting generation.")
