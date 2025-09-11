@@ -62,6 +62,12 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         self.model_id = config.get("OPENAI_GPT4o_MODEL_ID")
         self.embedding_service = EmbeddingService(config)
         self.tool_names: List[str] = []
+        self.tuning = False
+
+    def set_tuning_mode(self) -> None:
+        """Matcher in tuning mode."""
+        self.tuning = True
+        self.logger.debug("Matcher in tuning mode.")
 
     def match(
         self,
@@ -111,15 +117,14 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         )[0]
         matched_tool = self.tool_names[matched.index]
 
-        self.logger.debug(f"# Total Tools: {len(mcp_tools)}")
-        self.logger.debug(f"Requested Tool: {requested_tool}")
-        self.logger.debug(f"Matched Tool: {matched_tool}")
-        # self.logger.debug(f"Matched Tool Description: {tools_to_embed[matched.index]}")
-        self.logger.debug(f"Matched Distance: {matched.distance}")
-
         task_to_tool_matches = False
         selected_task_to_similar_tool = False
         no_match_reason = None
+
+        if self.tuning:
+            # bypass the selected task to similar tool match condition
+            selected_task_to_similar_tool = True
+
         debug_data = {
             "requested_tool": requested_tool,
             "suggested_task": suggested_task,
@@ -127,6 +132,8 @@ class HybridTaskToolMatcher(TaskToolMatcher):
             "matched_distance": matched.distance,
             "match_threshold": self.match_threshold,
         }
+        self.logger.debug(f"# Total Tools: {len(mcp_tools)}")
+        self.logger.debug(f"debug data: {debug_data}")
 
         if matched.distance >= self.match_threshold:
             task_to_tool_matches = True
@@ -139,6 +146,10 @@ class HybridTaskToolMatcher(TaskToolMatcher):
 
         if not task_to_tool_matches and not selected_task_to_similar_tool:
             no_match_reason = TaskToolMatchReason.HYBRID_NO_MATCH_WITH_ALL
+
+        if self.tuning:
+            # bypass the selected task to similar tool match condition
+            selected_task_to_similar_tool = True
 
         matches = task_to_tool_matches and selected_task_to_similar_tool
 

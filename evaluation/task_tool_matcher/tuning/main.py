@@ -80,15 +80,25 @@ def main():
         required=True,
         help="Specify the TaskToolMatcherType (e.g., 'random', 'embeddings', etc.)",
     )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        required=False,
+        help="Specify the dataset for the evaluation. Defaults to 'evaluation/task_tool_matcher/data/generated_data.json.gz'",
+    )
     args = parser.parse_args()
     matcher_type_str = args.matcher_type
-    threshold_span = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    overall_results = {"matcher_type": matcher_type_str, "runs": []}
+    threshold_span = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
     try:
         # Find and load evaluation data
-        data_file = find_evaluation_data_file()
+        # if dataset params not provided, find evaluation dataset
+        if not args.dataset:
+            data_file = find_evaluation_data_file()
+        else:
+            data_file = args.dataset
         data = load_evaluation_data(data_file)
-        print(f"Loaded {len(data)} evaluation entries")
+        print(f"Loaded {len(data)} evaluation entries from {data_file}")
+        overall_results = {"matcher_type": matcher_type_str, "dataset": data_file, "runs": []}
 
         # Convert string to TaskToolMatcherType
         try:
@@ -97,7 +107,7 @@ def main():
             raise ValueError(f"Unknown matcher type: {matcher_type_str}")
 
         for match_threshold in threshold_span:
-            results = evaluate_matcher(matcher_type, data, match_threshold=match_threshold)
+            results = evaluate_matcher(matcher_type, data, tuning_mode=True, match_threshold=match_threshold)
             print_evaluation_summary(results)
             overall_results["runs"].append(
                 {
