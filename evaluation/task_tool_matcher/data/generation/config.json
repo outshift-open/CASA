@@ -1,24 +1,19 @@
 {
     "mcp_servers": [
         "atlassian",
-        "github_official",
+        "github-official",
         "grafana",
-        "hummingbot_mcp",
+        "hummingbot-mcp",
         "mongodb",
-        "nasdaq_data_link",
+        "nasdaq-data-link",
         "notion",
-        "paper_search",
+        "paper-search",
         "azure",
         "sonarqube",
         "stripe",
-        "wikipedia_mcp"
+        "wikipedia-mcp"
     ],
-    "num_entries_per_server": 10,
-    "task_character_limit": 150,
-    "available_tools_per_task": 5,
-    "match_distribution": {
-        "match": 0.4,
-        "wrong_tool": 0.4,
-        "no_tool": 0.2
-    }
+    "num_correct_matches": 1056,
+    "ratio_wrong_matches": 2,
+    "ratio_null_matches": 2
 }
