@@ -1,19 +1,19 @@
 {
     "mcp_servers": [
         "atlassian",
-        "github_official",
+        "github-official",
         "grafana",
-        "hummingbot_mcp",
+        "hummingbot-mcp",
         "mongodb",
-        "nasdaq_data_link",
+        "nasdaq-data-link",
         "notion",
-        "paper_search",
+        "paper-search",
         "azure",
         "sonarqube",
         "stripe",
-        "wikipedia_mcp"
+        "wikipedia-mcp"
     ],
-    "num_correct_matches": 100, //must be <= total number of available task samples
-    "ratio_wrong_matches": 1, //must lead to <= sum_mcp {n*(n-1)}   n tools per mcp
-    "ratio_null_matches": 0.5, //must lead to <= sum_mcp-1 {m*n}  m tools in the given mcp
+    "num_correct_matches": 1056,
+    "ratio_wrong_matches": 2,
+    "ratio_null_matches": 2
 }
