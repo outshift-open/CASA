@@ -81,22 +81,42 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
     num_wrong = int(num_correct * config["ratio_wrong_matches"])
     num_null = int(num_correct * config["ratio_null_matches"])
 
-    generated_entries = []
+    generated_entries: List[Dict] = []
 
-    for task in correct_tasks:
+    def _append_entries(
+        generated_entries: List[Dict],
+        task: str,
+        requested_tools: List[str],
+        mcp_servers: List[str],
+        gt_tools: List[str],
+        gt_mcp_servers: List[str],
+        match_tag: str,
+    ):
+        """Append a new entry to the generated entries."""
         generated_entries.append(
             {
                 "input": {
-                    "task": task["task"],
-                    "requested_tools": task["correct_tools"],
-                    "mcp_servers": task["mcp_servers"],
+                    "task": task,
+                    "tools": requested_tools,
+                    "mcp_servers": mcp_servers,
                 },
                 "groundtruth": {
-                    "tools": task["correct_tools"],
-                    "mcp_servers": task["mcp_servers"],
+                    "tools": gt_tools,
+                    "mcp_servers": gt_mcp_servers,
                 },
-                "match_tag": "correct",
+                "match_tag": match_tag,
             }
+        )
+
+    for task in correct_tasks:
+        _append_entries(
+            generated_entries,
+            task["task"],
+            task["correct_tools"],
+            task["mcp_servers"],
+            task["correct_tools"],
+            task["mcp_servers"],
+            "correct",
         )
 
     if num_wrong > 0:
@@ -116,19 +136,14 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
                 )
             wrong_tools = random.sample(possible_wrong_tools, k=len(task["correct_tools"]))
 
-            generated_entries.append(
-                {
-                    "input": {
-                        "task": task["task"],
-                        "requested_tools": wrong_tools,
-                        "mcp_servers": task["mcp_servers"],
-                    },
-                    "groundtruth": {
-                        "requested_tools": task["correct_tools"],
-                        "mcp_servers": task["mcp_servers"],
-                    },
-                    "match_tag": "wrong",
-                }
+            _append_entries(
+                generated_entries,
+                task["task"],
+                wrong_tools,
+                task["mcp_servers"],
+                task["correct_tools"],
+                task["mcp_servers"],
+                "wrong",
             )
 
     if num_null > 0:
@@ -152,19 +167,14 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
             wrong_mcp_tools = mcp_tools[wrong_mcp]
             wrong_tools = random.sample(wrong_mcp_tools, k=len(task["correct_tools"]))
 
-            generated_entries.append(
-                {
-                    "input": {
-                        "task": task["task"],
-                        "requested_tools": wrong_tools,
-                        "mcp_servers": [wrong_mcp * len(wrong_tools)],
-                    },
-                    "groundtruth": {
-                        "requested_tools": task["correct_tools"],
-                        "mcp_servers": task["mcp_servers"],
-                    },
-                    "match_tag": "null",
-                }
+            _append_entries(
+                generated_entries,
+                task["task"],
+                wrong_tools,
+                [wrong_mcp * len(wrong_tools)],
+                task["correct_tools"],
+                task["mcp_servers"],
+                "null",
             )
 
     return generated_entries
