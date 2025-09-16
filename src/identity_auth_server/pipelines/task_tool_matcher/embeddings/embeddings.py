@@ -36,6 +36,12 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
             raise ValueError("match_threshold must be between 0.0 and 1.0")
         self.embedding_service = EmbeddingService(config)
         self.tool_names: List[str] = []
+        self.tuning = False
+
+    def set_tuning_mode(self) -> None:
+        """Matcher in tuning mode."""
+        self.tuning = True
+        self.logger.debug("Matcher in tuning mode.")
 
     def match(
         self,
@@ -91,6 +97,10 @@ class EmbeddingsTaskToolMatcher(TaskToolMatcher):
 
         if not task_to_tool_matches and not selected_task_to_similar_tool:
             no_match_reason = TaskToolMatchReason.EMBEDDINGS_NO_MATCH_WITH_ALL
+
+        if self.tuning:
+            # bypass the selected task to similar tool match condition
+            selected_task_to_similar_tool = True
 
         matches = task_to_tool_matches and selected_task_to_similar_tool
         debug_data = {

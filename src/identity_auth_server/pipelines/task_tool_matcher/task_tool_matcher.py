@@ -45,6 +45,10 @@ class TaskToolMatcher(ABC):
         """
         pass
 
+    def set_tuning_mode(self) -> None:
+        """Matcher in tuning mode."""
+        self.tuning = True
+
 
 class TaskToolMatcherFactory:
     """Factory for creating TaskToolMatcher instances."""

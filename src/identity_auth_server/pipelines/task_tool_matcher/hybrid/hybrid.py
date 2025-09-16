@@ -16,26 +16,21 @@ from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import (
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchReason
 from identity_auth_server.pipelines.task_tool_matcher.utils import EmbeddingService, EmbeddingTopNMatches
 
-SYS_PROMPT = """Generate an API request with the tool description based on the dialogue context.
+SYS_PROMPT = """You are a tool calling agent. Based on the dialog context, generate the description of the ideal tool that you should call.
 The tool description should be concise and to the point, and MUST be in the following format:
-
 <tool_assistant>
 tool: [describe the tool functionality]
 </tool_assistant>
-
 Based on the dialogue context, identify the specific task that needs to be performed and describe it accurately using a style similar to API documentation. Ensure your description is clear, precise, and do not include detailed values.
-
 Example dialogue:
 User: Hi, can you help me check my alarm for March 20th, 2023 at 6:30AM?
 AI: Sure, to access your alarm information, I'll need to authenticate. Can you please provide me with your email, username, and password?
 User: My email is janesmith@example.com, username is JaneSmith, and password is password.
 AI: Thank you for the information. Let me authenticate you first.
-
 Example output:
 <tool_assistant>
 tool: Get the user token by username and password.
 </tool_assistant>
-
 Only output the tool description within the specified format. Do not provide any explanation or commentary.
 """
 
@@ -62,6 +57,12 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         self.model_id = config.get("OPENAI_GPT4o_MODEL_ID")
         self.embedding_service = EmbeddingService(config)
         self.tool_names: List[str] = []
+        self.tuning = False
+
+    def set_tuning_mode(self) -> None:
+        """Matcher in tuning mode."""
+        self.tuning = True
+        self.logger.debug("Matcher in tuning mode.")
 
     def match(
         self,
@@ -111,15 +112,14 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         )[0]
         matched_tool = self.tool_names[matched.index]
 
-        self.logger.debug(f"# Total Tools: {len(mcp_tools)}")
-        self.logger.debug(f"Requested Tool: {requested_tool}")
-        self.logger.debug(f"Matched Tool: {matched_tool}")
-        # self.logger.debug(f"Matched Tool Description: {tools_to_embed[matched.index]}")
-        self.logger.debug(f"Matched Distance: {matched.distance}")
-
         task_to_tool_matches = False
         selected_task_to_similar_tool = False
         no_match_reason = None
+
+        if self.tuning:
+            # bypass the selected task to similar tool match condition
+            selected_task_to_similar_tool = True
+
         debug_data = {
             "requested_tool": requested_tool,
             "suggested_task": suggested_task,
@@ -127,6 +127,8 @@ class HybridTaskToolMatcher(TaskToolMatcher):
             "matched_distance": matched.distance,
             "match_threshold": self.match_threshold,
         }
+        self.logger.debug(f"# Total Tools: {len(mcp_tools)}")
+        self.logger.debug(f"debug data: {debug_data}")
 
         if matched.distance >= self.match_threshold:
             task_to_tool_matches = True
@@ -139,6 +141,10 @@ class HybridTaskToolMatcher(TaskToolMatcher):
 
         if not task_to_tool_matches and not selected_task_to_similar_tool:
             no_match_reason = TaskToolMatchReason.HYBRID_NO_MATCH_WITH_ALL
+
+        if self.tuning:
+            # bypass the selected task to similar tool match condition
+            selected_task_to_similar_tool = True
 
         matches = task_to_tool_matches and selected_task_to_similar_tool
 

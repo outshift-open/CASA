@@ -7,7 +7,7 @@ from datetime import datetime
 
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
 
-from .data_loader import find_evaluation_data_file, load_evaluation_data
+from .data_loader import load_evaluation_data
 from .evaluator import evaluate_matcher
 from .metrics import print_evaluation_summary
 
@@ -49,24 +49,22 @@ def main():
     parser.add_argument(
         "--matcher_type",
         type=str,
-        required=True,
-        help="Specify the TaskToolMatcherType (e.g., 'random', 'embeddings', etc.)",
+        required=False,
+        default="hybrid",
+        help="Specify the TaskToolMatcherType (e.g., 'random', 'embeddings', etc.). Defaults to hybrid.",
     )
     parser.add_argument(
         "--dataset",
         type=str,
         required=False,
-        help="Specify the dataset for the evaluation. Defaults to 'evaluation/task_tool_matcher/data/generated_data.json.gz'",
+        help="Specify the dataset for the evaluation. Defaults to a sample dataset 'evaluation/task_tool_matcher/data/test_data.json'",
+        default="evaluation/task_tool_matcher/data/test_data.json",
     )
     args = parser.parse_args()
     matcher_type_str = args.matcher_type
     try:
-        # Find and load evaluation data
-        # if dataset params not provided, find evaluation dataset
-        if not args.dataset:
-            data_file = find_evaluation_data_file()
-        else:
-            data_file = args.dataset
+        data_file = args.dataset
+        print(f"Dataset file = {data_file}")
         data = load_evaluation_data(data_file)
         print(f"Loaded {len(data)} evaluation entries from {data_file}")
 
