@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import List
 
-from evaluation.task_tool_matcher.types import EvaluateEntryTaskToolMatcher
+from evaluation.task_tool_matcher.types import EvaluateEntryTaskToolMatcher, EvaluateGroundTruthTaskToolMatcher
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
 from identity_auth_server.types import McpServer
 
@@ -31,6 +31,7 @@ def load_mcp_servers() -> dict[str, McpServer]:
     mcp_servers = {}
     for server_name in config.get("mcp_servers", []):
         logger.info(f"Processing MCP server: {server_name}")
+        server_name = server_name.replace("-", "_")
         with open(mcp_servers_path / f"{server_name}.json", "r", encoding="utf-8") as f:
             mcp_server = json.load(f)
             mcp_servers[mcp_server["name"]] = McpServer(**mcp_server)
@@ -40,6 +41,9 @@ def load_mcp_servers() -> dict[str, McpServer]:
 
 def load_evaluation_data(file_path: str) -> List[EvaluateEntryTaskToolMatcher]:
     """Load evaluation data from JSON or compressed JSON file.
+
+    Hypothesis: Each entry contains one task and one requested tool. Even if support for multiple tools is available,
+    the current evaluation dataset is one task - one tool.
 
     Args:
         file_path: Path to the JSON or .json.gz file
@@ -63,16 +67,20 @@ def load_evaluation_data(file_path: str) -> List[EvaluateEntryTaskToolMatcher]:
 
     mcp_servers = load_mcp_servers()
     eval_data: List[EvaluateEntryTaskToolMatcher] = []
+    one_task_one_tool_id = 0
     for entry in data:
         eval_data.append(
             EvaluateEntryTaskToolMatcher(
                 input=TaskToolMatchInput(
                     task=entry["input"]["task"],
-                    requested_tool=entry["input"]["requested_tool"],
-                    mcp_server=mcp_servers[entry["input"]["mcp_server"]],
+                    requested_tool=entry["input"]["tools"][one_task_one_tool_id],
+                    mcp_server=mcp_servers[entry["input"]["mcp_servers"][one_task_one_tool_id]],
                 ),
-                correct_choice=entry["correct_choice"],
-                match=entry["match"],
+                groundtruth=EvaluateGroundTruthTaskToolMatcher(
+                    tools=entry["groundtruth"]["tools"],
+                    mcp_servers=entry["groundtruth"]["mcp_servers"],
+                ),
+                match_tag=entry["match_tag"],
             )
         )
     return eval_data

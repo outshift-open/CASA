@@ -13,6 +13,8 @@ from typing import Any, Dict, List
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+random.seed(42)  # Default seed for reproducibility
+
 
 def load_config(config_path: str) -> Dict:
     """Load and validate configuration from JSON file."""

@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List
 
-from evaluation.task_tool_matcher.types import EvaluateEntryTaskToolMatcher
+from evaluation.task_tool_matcher.types import EvaluateEntryTaskToolMatcher, MatchTag
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcherFactory
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
 
@@ -47,8 +47,11 @@ def evaluate_matcher(
             # Get prediction from matcher
             result = matcher.match(entry.input)
 
+            match_tag = entry.match_tag
+            gt_match = True if match_tag == MatchTag.CORRECT else False
+
             # Store prediction and ground truth
-            y_true.append(entry.match)
+            y_true.append(gt_match)
             y_pred.append(result.task_tool_match)
 
             predictions.append(
@@ -56,10 +59,11 @@ def evaluate_matcher(
                     "index": i,
                     "task": entry.input.task,
                     "requested_tool": entry.input.requested_tool,
-                    "ground_truth": entry.match,
+                    "ground_truth": gt_match,
                     "prediction": result.task_tool_match,
-                    "correct": entry.match == result.task_tool_match,
+                    "correct": gt_match == result.task_tool_match,
                     "reason": result.reason.value if result.reason else None,
+                    "match_tag": match_tag,
                 }
             )
 
