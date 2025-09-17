@@ -93,7 +93,7 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         embedded_tools = self.embedding_service.get_embeddings(tools_to_embed)
 
         raw_response = self.openai_client.chat.completions.create(
-            model="gpt-5",
+            model=self.model_id,
             messages=[{"role": "system", "content": SYS_PROMPT}, {"role": "user", "content": task}],
         )
         response = raw_response.choices[0].message.content
