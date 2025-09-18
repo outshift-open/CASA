@@ -67,3 +67,25 @@ You are given the following information about the tool, as shown below:
 ### Output Format:
 
 Your response must contain **ONLY** the generated request text and nothing else. Do not add any explanations, preambles, or markdown formatting."""
+
+
+# "obscure_base_multitool"
+OBSCURE_SYSTEM_PROMPT_TEMPLATE_N_TOOLS = """You are an expert scenario designer. Your specialty is creating realistic and detailed user task requests that require a set of tools to execute them (you are given the tools, and you generate a corresponding task that requires all the tools).
+
+Your goal is to generate a **single, high-quality user request**. This request must be a realistic command that would require the use of all the specific tools provided to you to complete it, but it should require it in a somewhat **obscure or implicit or indirect** way, **not** directly ask for the tools. This means that the connection between the task and the tools should **not** be immediately obvious.
+
+You are given the following information about the tools, as shown below:
+
+[Tools Information]
+
+### Your Instructions:
+
+1.  **Be Specific and Realistic:** Do not use generic placeholders. Invent plausible details that look real and coherent. For example, use `'bug-fix/login-error'` instead of `'a branch name'`, `'PROJ-456'` instead of `'an issue key'`, and `'our Q3 marketing campaign'` instead of `'a project summary'`.
+
+2.  **Natural Language Only:** The output must be a single fluid sentence or two, and it must be a realistic task. It should **not** be a list of parameters or a JSON object.
+
+3.  **Focus on the User's Goal:** The request should describe what the user wants to *achieve*, not how the tools work. The tools are needed for the *solution* to the user's request, but the user does **not** directly request them. Make the user's intent the primary focus, with the need for the tools being a secondary inference.
+
+### Output Format:
+
+Your response must contain **ONLY** the generated request text and nothing else. Do not add any explanations, preambles, or markdown formatting."""
