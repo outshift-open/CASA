@@ -171,7 +171,7 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
                 generated_entries,
                 task["task"],
                 wrong_tools,
-                [wrong_mcp * len(wrong_tools)],
+                [wrong_mcp] * len(wrong_tools),
                 task["correct_tools"],
                 task["mcp_servers"],
                 "null",
