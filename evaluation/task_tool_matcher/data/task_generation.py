@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import json
 import os
+import random
 import time
 from typing import List
 
@@ -11,6 +12,7 @@ from dotenv import dotenv_values
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field, create_model
 from system_prompts import OBSCURE_SYSTEM_PROMPT_TEMPLATE as SYSTEM_PROMPT_1_TOOL
+from system_prompts import OBSCURE_SYSTEM_PROMPT_TEMPLATE_N_TOOLS as SYSTEM_PROMPT_N_TOOLS
 from system_prompts import REPHRASE_SYSTEM_PROMPT
 from tqdm import tqdm
 
@@ -69,7 +71,16 @@ async def task_synthesizer(
         system_prompt = system_prompt_template.replace("[Tool Name]", tool_set[0]["name"])
         system_prompt = system_prompt.replace("[Tool Description]", tool_set[0]["description"])
     else:
-        system_prompt_template = SYSTEM_PROMPT_1_TOOL  # TODO
+        system_prompt_template = SYSTEM_PROMPT_N_TOOLS
+        system_prompt = system_prompt_template.replace(
+            "[Tools Information]",
+            "\n".join(
+                [
+                    f"**Tool Name:**\n`{tool_data['name']}`\n\n**Tool Description:**\n`{tool_data['description']}`\n"
+                    for tool_data in tool_set
+                ]
+            ),
+        )
 
     user_prompt = f"Execute the user request and generate {n_tasks} corresponding output examples, make sure the various examples are diverse, **not similar** to each other."
 
@@ -135,6 +146,7 @@ async def process_tools_files(
     final_results = []
     semaphore = asyncio.Semaphore(10)  # max 10, for openai async
 
+    mcp_to_tools_hash = {}
     for input_path in input_paths:  # MCP server
         print(f"MCP: {input_path}")
         all_tools = []
@@ -143,15 +155,23 @@ async def process_tools_files(
             tools = mcp_server.get("tools", [])
             for tool in tools:
                 tool["mcp_server"] = mcp_server.get("name", "N/A")
+            mcp_to_tools_hash[mcp_server["name"]] = tools
             all_tools.extend(tools)
 
-        for idx, tool in tqdm(
-            enumerate(all_tools), total=len(all_tools)
-        ):  # basic loop because it's 1 tool 1 task (otherwise sampler loop needed)
+        for idx, tool in tqdm(enumerate(all_tools), total=len(all_tools)):
+            tool_set = [tool]
             if num_tools > 1:
-                tool_set = [tool]
-            else:
-                tool_set = [tool]
+                current_mcp = tool["mcp_server"]
+                other_tools_from_mcp = [t for t in mcp_to_tools_hash[current_mcp] if t["name"] != tool["name"]]
+
+                if num_tools - 1 > len(other_tools_from_mcp):
+                    raise ValueError(
+                        f"Not enough other tools ({len(other_tools_from_mcp)}) to sample {num_tools - 1} tools in MCP server '{current_mcp}'."
+                    )
+
+                sampled_tools = random.sample(other_tools_from_mcp, num_tools - 1)
+                tool_set.extend(sampled_tools)
+
             results = await task_synthesizer(tool_set, semaphore, conversation, n_tasks)
 
             if not results:
@@ -161,7 +181,9 @@ async def process_tools_files(
                 "tool_names": results[0]["tool_names"],
                 "mcp_servers": results[0]["mcp_servers"],
                 "synthetic_tasks": [res["synthetic_task"] for res in results],
-                "system_prompt": results[0]["system_prompt"],
+                "system_prompt": results[0]["system_prompt"]
+                if num_tools == 1
+                else results[0]["system_prompt"] + "_multitool",
                 "tools_per_task": num_tools,
                 "SO_tasks_per_sample": n_tasks,
                 "conversation": True if conversation else False,
