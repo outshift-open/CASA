@@ -281,3 +281,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/python,linux,macos,windows,git,visualstudiocode
 evaluation/task_tool_matcher/data/generated_data.json
 deployments/docker-compose/docker-compose.mcp.yaml
+demo/samples/mcp_server/currency_transactions.csv
+demo/test_jean.py
+demo/test_simple.py
+demo/test.py
