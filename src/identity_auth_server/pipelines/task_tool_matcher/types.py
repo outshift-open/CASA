@@ -25,12 +25,16 @@ class TaskToolMatchReason(str, Enum):
 
     # Matcher-specific reasons
     RANDOM_NO_MATCH = "Random matcher decided this tool doesn't match the task"
-    EMBEDDINGS_NO_MATCH_THRESHOLD = "The task and tool embeddings did not match above the threshold"
-    EMBEDDINGS_NO_MATCH_WITH_SELECTED = "The requested tool does not match the task's most semantically similar tool"
-    EMBEDDINGS_NO_MATCH_WITH_ALL = "The requested tool does not match the task's most semantically similar tool AND The task and tool embeddings did not match above the threshold."
-    HYBRID_NO_MATCH_THRESHOLD = "The task and tool embeddings did not match above the threshold"
-    HYBRID_NO_MATCH_WITH_SELECTED = "The requested tool does not match the task's most semantically similar tool"
-    HYBRID_NO_MATCH_WITH_ALL = "The requested tool does not match the task's most semantically similar tool AND The task and tool embeddings did not match above the threshold."
+    EMBEDDINGS_NO_MATCH_THRESHOLD = "Requested tool and Matched tool similarity does not meet threshold"
+    EMBEDDINGS_NO_MATCH_WITH_SELECTED = "Requested tool and Matched tool are not the same"
+    EMBEDDINGS_NO_MATCH_WITH_ALL = (
+        "Requested tool and Matched tool are not the same AND their similarity does not meet threshold"
+    )
+    HYBRID_NO_MATCH_THRESHOLD = "Requested tool and Matched tool similarity does not meet threshold"
+    HYBRID_NO_MATCH_WITH_SELECTED = "Requested tool and Matched tool are not the same"
+    HYBRID_NO_MATCH_WITH_ALL = (
+        "Requested tool and Matched tool are not the same AND their similarity does not meet threshold"
+    )
 
 
 class TaskToolMatchInput(BaseModel):

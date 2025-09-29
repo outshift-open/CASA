@@ -127,17 +127,25 @@ class HybridTaskToolMatcher(TaskToolMatcher):
             "matched_distance": matched.distance,
             "match_threshold": self.match_threshold,
         }
-        self.logger.debug(f"# Total Tools: {len(mcp_tools)}")
-        self.logger.debug(f"debug data: {debug_data}")
+        self.logger.debug(f"Requested Tool:  {requested_tool.upper()}")
+        # self.logger.debug(f"# Total Tools: {len(mcp_tools)}")
+        self.logger.debug(f"Matched Tool:    {matched_tool.upper()}")
+        self.logger.debug(f"Distance: {matched.distance}")
+        self.logger.debug("")
+        # self.logger.debug(f"debug data: {debug_data}")
 
-        if matched.distance >= self.match_threshold:
-            task_to_tool_matches = True
-        else:
-            no_match_reason = TaskToolMatchReason.HYBRID_NO_MATCH_THRESHOLD
         if matched_tool == requested_tool:
             selected_task_to_similar_tool = True
+            self.logger.debug("Requested tool and Matched tool are the same:               TRUE")
         else:
             no_match_reason = TaskToolMatchReason.HYBRID_NO_MATCH_WITH_SELECTED
+            self.logger.debug("Requested tool and Matched tool are the same:               FALSE")
+        if matched.distance >= self.match_threshold:
+            task_to_tool_matches = True
+            self.logger.debug("Requested tool and Matched tool similarity above threshold: TRUE")
+        else:
+            no_match_reason = TaskToolMatchReason.HYBRID_NO_MATCH_THRESHOLD
+            self.logger.debug("Requested tool and Matched tool similarity above threshold: FALSE")
 
         if not task_to_tool_matches and not selected_task_to_similar_tool:
             no_match_reason = TaskToolMatchReason.HYBRID_NO_MATCH_WITH_ALL
@@ -149,8 +157,14 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         matches = task_to_tool_matches and selected_task_to_similar_tool
 
         if matches:
-            self.logger.debug("Match found!")
+            self.logger.debug("Task and tool result:                                       APPROVED")
+            self.logger.debug("")
+            self.logger.debug("----- End of Hybrid Task Tool Match -----")
+            self.logger.debug("")
             return TaskToolMatchOutput(task_tool_match=matches)
         else:
-            self.logger.debug("No match found.")
+            self.logger.debug("Task and tool result:                                       REJECTED")
+            self.logger.debug("")
+            self.logger.debug("----- End of Hybrid Task Tool Match -----")
+            self.logger.debug("")
             return TaskToolMatchOutput(task_tool_match=False, reason=no_match_reason, debug=debug_data)

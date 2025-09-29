@@ -31,8 +31,8 @@ def load_mcp_servers_data():
 mcp_servers_data = load_mcp_servers_data()
 mcp_servers_names = list(mcp_servers_data.keys())
 matcher_types = {
-    "EMBEDDINGS": TaskToolMatcherType.EMBEDDINGS,
     "HYBRID": TaskToolMatcherType.HYBRID,
+    "EMBEDDINGS": TaskToolMatcherType.EMBEDDINGS,
 }
 
 st.title("Task-Tool matcher V0 👋")
