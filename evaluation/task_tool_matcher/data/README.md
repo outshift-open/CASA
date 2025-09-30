@@ -26,6 +26,14 @@ python evaluation/task_tool_matcher/data/task_generation.py \
     --multiplier 3
 ```
 
+You can also generate tasks requiring multiple tools by setting `num_tools` to your chosen integer value (not recommended to go beyond 3 or 4):
+```bash
+python evaluation/task_tool_matcher/data/task_generation.py \
+    --input-dir evaluation/task_tool_matcher/data/mcp_servers  \
+    --output-file evaluation/task_tool_matcher/data/generated_tasks.json \
+    --multiplier 3 --num_tools 2
+```
+
 The results are stored in `generated_tasks.json`, in a list of samples as the one below:
 ```json
 {
@@ -63,6 +71,7 @@ python -m evaluation.task_tool_matcher.data.generation.synthetic_data_generator 
 ```
 
 This will generate synthetic tool-task pairings, following the configuration in `config.json`.
+For multi-tool tasks datasets, the script automatically detects this and adapts sampling algorithms accordingly.
 Edit `config.json` to customize the generation process:
 
 ```json
