@@ -33,6 +33,7 @@ mcp_servers_names = list(mcp_servers_data.keys())
 matcher_types = {
     "HYBRID": TaskToolMatcherType.HYBRID,
     "EMBEDDINGS": TaskToolMatcherType.EMBEDDINGS,
+    "STRUCTURED": TaskToolMatcherType.STRUCTURED,
 }
 
 st.title("Task-Tool matcher V0 👋")
