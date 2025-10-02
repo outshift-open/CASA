@@ -138,13 +138,14 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
                 )
             wrong_tools = random.sample(possible_wrong_tools, k=len(task["correct_tools"]))
 
-            # Mix wrong_tools and correct_tools with at least one tool coming from wrong_tools
-            bin_vec = [0] * len(wrong_tools)
-            while sum(bin_vec) == 0:
-                bin_vec = [random.randint(0, 1) for _ in range(len(wrong_tools))]
-            wrong_tools = [
-                wrong_tools[i] if bin_vec[i] == 1 else task["correct_tools"][i] for i in range(len(wrong_tools))
-            ]
+            if config.get("mixing_wrong_null_in_multitool", False) and len(task["correct_tools"]) > 1:
+                # Mix wrong_tools and correct_tools with at least one tool coming from wrong_tools
+                bin_vec = [0] * len(wrong_tools)
+                while sum(bin_vec) == 0:
+                    bin_vec = [random.randint(0, 1) for _ in range(len(wrong_tools))]
+                wrong_tools = [
+                    wrong_tools[i] if bin_vec[i] == 1 else task["correct_tools"][i] for i in range(len(wrong_tools))
+                ]
 
             _append_entries(
                 generated_entries,
@@ -177,19 +178,24 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
             wrong_mcp_tools = mcp_tools[wrong_mcp]
             wrong_tools = random.sample(wrong_mcp_tools, k=len(task["correct_tools"]))
 
-            # Mix wrong_tools and correct_tools with at least one tool coming from wrong_tools
-            bin_vec = [0] * len(wrong_tools)
-            while sum(bin_vec) == 0:
-                bin_vec = [random.randint(0, 1) for _ in range(len(wrong_tools))]
-            wrong_tools = [
-                wrong_tools[i] if bin_vec[i] == 1 else task["correct_tools"][i] for i in range(len(wrong_tools))
-            ]
+            mixed_wrong_mcp = [wrong_mcp] * len(wrong_tools)
+            if config.get("mixing_wrong_null_in_multitool", False) and len(task["correct_tools"]) > 1:
+                # Mix wrong_tools and correct_tools with at least one tool coming from wrong_tools
+                bin_vec = [0] * len(wrong_tools)
+                while sum(bin_vec) == 0:
+                    bin_vec = [random.randint(0, 1) for _ in range(len(wrong_tools))]
+                wrong_tools = [
+                    wrong_tools[i] if bin_vec[i] == 1 else task["correct_tools"][i] for i in range(len(wrong_tools))
+                ]
+                mixed_wrong_mcp = [
+                    wrong_mcp if bin_vec[i] == 1 else task["mcp_servers"][i] for i in range(len(wrong_tools))
+                ]
 
             _append_entries(
                 generated_entries,
                 task["task"],
                 wrong_tools,
-                [wrong_mcp] * len(wrong_tools),
+                mixed_wrong_mcp,
                 task["correct_tools"],
                 task["mcp_servers"],
                 "null",
