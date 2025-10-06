@@ -82,11 +82,6 @@ class TaskToolMatcherFactory:
 
             return HybridTaskToolMatcher(**matcher_kwargs)
 
-        if matcher_type == TaskToolMatcherType.STRUCTURED:
-            from identity_auth_server.pipelines.task_tool_matcher.structured.structured import StructuredTaskToolMatcher
-
-            return StructuredTaskToolMatcher(**matcher_kwargs)
-
         if matcher_type == TaskToolMatcherType.LLM_VERIFIER:
             from identity_auth_server.pipelines.task_tool_matcher.llm_verifier.llm_verifier import (
                 LlmVerifierTaskToolMatcher,

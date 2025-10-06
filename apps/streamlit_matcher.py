@@ -34,7 +34,6 @@ matcher_types = {
     "LLM VERIFIER": TaskToolMatcherType.LLM_VERIFIER,
     "HYBRID": TaskToolMatcherType.HYBRID,
     "EMBEDDINGS": TaskToolMatcherType.EMBEDDINGS,
-    "STRUCTURED": TaskToolMatcherType.STRUCTURED,
 }
 
 st.title("Task-Tool matcher V0 👋")
