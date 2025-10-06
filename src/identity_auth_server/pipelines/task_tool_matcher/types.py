@@ -15,6 +15,7 @@ class TaskToolMatcherType(str, Enum):
     EMBEDDINGS = "embeddings"
     HYBRID = "hybrid"
     STRUCTURED = "structured"
+    LLM_VERIFIER = "llm_verifier"
 
 
 class TaskToolMatchReason(str, Enum):
@@ -37,6 +38,9 @@ class TaskToolMatchReason(str, Enum):
         "Requested tool and Matched tool are not the same AND their similarity does not meet threshold"
     )
     STRUCTURED_NO_MATCH = "Structured matcher decided this tool doesn't match the task. Look at debug data for details."
+    LLM_VERIFIER_NO_MATCH = (
+        "LLM Verifier matcher decided this tool doesn't match the task. Look at debug data for details."
+    )
 
 
 class TaskToolMatchInput(BaseModel):

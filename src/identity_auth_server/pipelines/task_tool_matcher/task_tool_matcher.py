@@ -87,6 +87,13 @@ class TaskToolMatcherFactory:
 
             return StructuredTaskToolMatcher(**matcher_kwargs)
 
+        if matcher_type == TaskToolMatcherType.LLM_VERIFIER:
+            from identity_auth_server.pipelines.task_tool_matcher.llm_verifier.llm_verifier import (
+                LlmVerifierTaskToolMatcher,
+            )
+
+            return LlmVerifierTaskToolMatcher(**matcher_kwargs)
+
         else:
             logging.getLogger(__name__).error(f"Unsupported task tool matcher type: {matcher_type}")
             raise ValueError(f"Unsupported task tool matcher type: {matcher_type}")

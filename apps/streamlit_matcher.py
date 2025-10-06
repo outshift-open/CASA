@@ -31,6 +31,7 @@ def load_mcp_servers_data():
 mcp_servers_data = load_mcp_servers_data()
 mcp_servers_names = list(mcp_servers_data.keys())
 matcher_types = {
+    "LLM VERIFIER": TaskToolMatcherType.LLM_VERIFIER,
     "HYBRID": TaskToolMatcherType.HYBRID,
     "EMBEDDINGS": TaskToolMatcherType.EMBEDDINGS,
     "STRUCTURED": TaskToolMatcherType.STRUCTURED,
