@@ -62,6 +62,10 @@ def main():
     )
     args = parser.parse_args()
     matcher_type_str = args.matcher_type
+    # time the evaluation
+    print(f"Starting evaluation with matcher type: {matcher_type_str}")
+    start_time = datetime.now()
+    print(f"Start time: {start_time}")
     try:
         data_file = args.dataset
         print(f"Dataset file = {data_file}")
@@ -88,6 +92,8 @@ def main():
     except Exception as e:
         print(f"Error during evaluation: {e}")
         raise
+    end_time = datetime.now()
+    print(f"Total evaluation time: {end_time - start_time}")
 
 
 if __name__ == "__main__":

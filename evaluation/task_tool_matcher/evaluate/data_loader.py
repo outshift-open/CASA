@@ -7,8 +7,11 @@ import os
 from pathlib import Path
 from typing import List
 
-from evaluation.task_tool_matcher.types import EvaluateEntryTaskToolMatcher, EvaluateGroundTruthTaskToolMatcher
-from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
+from evaluation.task_tool_matcher.types import (
+    EvaluateEntryTaskToolMatcher,
+    EvaluateGroundTruthTaskToolMatcher,
+    EvaluateInput,
+)
 from identity_auth_server.types import McpServer
 
 logging.basicConfig(level=logging.INFO)
@@ -67,14 +70,16 @@ def load_evaluation_data(file_path: str) -> List[EvaluateEntryTaskToolMatcher]:
 
     mcp_servers = load_mcp_servers()
     eval_data: List[EvaluateEntryTaskToolMatcher] = []
-    one_task_one_tool_id = 0
     for entry in data:
+        requested_mcp_servers_data = []
+        for requested_server in entry["input"]["mcp_servers"]:
+            requested_mcp_servers_data.append(mcp_servers[requested_server])
         eval_data.append(
             EvaluateEntryTaskToolMatcher(
-                input=TaskToolMatchInput(
+                input=EvaluateInput(
                     task=entry["input"]["task"],
-                    requested_tool=entry["input"]["tools"][one_task_one_tool_id],
-                    mcp_server=mcp_servers[entry["input"]["mcp_servers"][one_task_one_tool_id]],
+                    requested_tools=entry["input"]["tools"],
+                    requested_mcp_servers=requested_mcp_servers_data,
                 ),
                 groundtruth=EvaluateGroundTruthTaskToolMatcher(
                     tools=entry["groundtruth"]["tools"],
