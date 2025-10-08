@@ -5,8 +5,7 @@ from typing import List, Union
 
 from pydantic import BaseModel
 
-from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
-from identity_auth_server.types import ToolName
+from identity_auth_server.types import McpServer, Task, ToolName
 
 
 class MatchTag(str, Enum):
@@ -29,9 +28,17 @@ class EvaluateGroundTruthTaskToolMatcher(BaseModel):
     mcp_servers: Union[List[str], None] = None
 
 
+class EvaluateInput(BaseModel):
+    """Request model for MCP tool match endpoint."""
+
+    task: Task
+    requested_tools: List[ToolName]
+    requested_mcp_servers: List[McpServer]
+
+
 class EvaluateEntryTaskToolMatcher(BaseModel):
     """Result of task tool matching."""
 
-    input: TaskToolMatchInput
+    input: EvaluateInput
     groundtruth: EvaluateGroundTruthTaskToolMatcher
     match_tag: MatchTag
