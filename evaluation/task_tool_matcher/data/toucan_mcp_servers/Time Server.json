@@ -1,0 +1,21 @@
+{
+  "name": "Time Server",
+  "tools": [
+    {
+      "name": "get_current_time",
+      "description": "Get current time in a specific timezones"
+    },
+    {
+      "name": "convert_time",
+      "description": "Convert time between timezones"
+    },
+    {
+      "name": "getTime",
+      "description": "\n    Get the current Unix timestamp.\n    \n    Returns:\n        float: The current time as seconds since January 1, 1970 (Unix epoch).\n        This is a standardized way to represent time as a single number.\n        Example: 1687302487.654321\n    "
+    },
+    {
+      "name": "readableTime",
+      "description": "\n    Convert a Unix timestamp to a human-readable date and time string.\n    \n    Args:\n        timestamp (float): A Unix timestamp (seconds since epoch) to convert.\n            Can be obtained from the getTime() function.\n            \n    Returns:\n        str: A formatted date and time string in the format:\n            \"Weekday, Day Month Year Hour:Minute:Second\"\n            Example: \"Wednesday, 19 June 2025 15:30:45\"\n    "
+    }
+  ]
+}

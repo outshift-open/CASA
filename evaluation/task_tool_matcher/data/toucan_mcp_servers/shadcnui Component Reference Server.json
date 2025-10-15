@@ -1,0 +1,21 @@
+{
+  "name": "shadcnui Component Reference Server",
+  "tools": [
+    {
+      "name": "list_shadcn_components",
+      "description": "Get a list of all available shadcn/ui components"
+    },
+    {
+      "name": "get_component_details",
+      "description": "Get detailed information about a specific shadcn/ui component"
+    },
+    {
+      "name": "get_component_examples",
+      "description": "Get usage examples for a specific shadcn/ui component"
+    },
+    {
+      "name": "search_components",
+      "description": "Search for shadcn/ui components by keyword"
+    }
+  ]
+}

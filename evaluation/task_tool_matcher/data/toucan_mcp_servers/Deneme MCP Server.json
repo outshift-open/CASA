@@ -1,0 +1,25 @@
+{
+  "name": "Deneme MCP Server",
+  "tools": [
+    {
+      "name": "get_weather_by_coordinates",
+      "description": "\n    Enlem ve boylam koordinatlarına göre hava durumu bilgilerini getirir.\n\n    Args:\n        latitude: Enlem (-90 ile 90 arasında)\n        longitude: Boylam (-180 ile 180 arasında)\n        units: Ölçü birimi (metric, imperial, standard)\n\n    Returns:\n        JSON formatında hava durumu bilgileri\n    "
+    },
+    {
+      "name": "get_weather_by_city",
+      "description": "\n    Şehir adına göre hava durumu bilgilerini getirir.\n\n    Args:\n        city_name: Şehir adı\n        country_code: Ülke kodu (opsiyonel, örn: TR, US)\n        units: Ölçü birimi (metric, imperial, standard)\n\n    Returns:\n        JSON formatında hava durumu bilgileri\n    "
+    },
+    {
+      "name": "get_weather",
+      "description": "\n    Kullanıcı dostu hava durumu asistanı - koordinatlara göre hava durumu getirir.\n\n    Bu araç, kullanıcıyla dostane iletişim kurar ve hava durumu bilgilerini\n    anlaşılır şekilde sunar.\n\n    Args:\n        latitude: Enlem (-90 ile 90 arasında)\n        longitude: Boylam (-180 ile 180 arasında)\n\n    Returns:\n        Kullanıcı dostu formatta hava durumu bilgileri\n    "
+    },
+    {
+      "name": "chat_weather_assistant",
+      "description": "\n    Hava durumu asistanı ile sohbet et.\n\n    Bu araç kullanıcının mesajlarını analiz eder ve uygun yanıtlar verir.\n    Koordinat bilgilerini toplar ve hava durumu sorgular.\n\n    Args:\n        message: Kullanıcının mesajı\n\n    Returns:\n        Asistan yanıtı\n    "
+    },
+    {
+      "name": "weather_greeting",
+      "description": "\n    Hava durumu asistanının karşılama mesajı.\n\n    Returns:\n        Dostane karşılama mesajı\n    "
+    }
+  ]
+}

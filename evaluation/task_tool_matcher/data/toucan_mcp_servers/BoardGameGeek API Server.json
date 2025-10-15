@@ -1,0 +1,37 @@
+{
+  "name": "BoardGameGeek API Server",
+  "tools": [
+    {
+      "name": "bgg-collection",
+      "description": "Find the details about a specific users board game collection on BoardGameGeek (BGG)"
+    },
+    {
+      "name": "bgg-details",
+      "description": "Find the details about a specific board game on BoardGameGeek (BGG)"
+    },
+    {
+      "name": "bgg-hot",
+      "description": "Find the current board game hotness on BoardGameGeek (BGG)"
+    },
+    {
+      "name": "bgg-price",
+      "description": "Get current prices for board games from multiple retailers using BGG IDs"
+    },
+    {
+      "name": "bgg-recommender",
+      "description": "Get game recommendations based on a specific game using either the BoardGameGeek (BGG) ID or name directly. ID is preferred for faster responses."
+    },
+    {
+      "name": "bgg-search",
+      "description": "Search for board games on BoardGameGeek (BGG) by name or part of a name using a broad search (e.g., 'Catan', 'Ticket to Ride')"
+    },
+    {
+      "name": "bgg-trade-finder",
+      "description": "Find what games user1 owns that user2 has on their wishlist. Shows potential trading opportunities."
+    },
+    {
+      "name": "bgg-user",
+      "description": "Find details about a specific user on BoardGameGeek (BGG)"
+    }
+  ]
+}

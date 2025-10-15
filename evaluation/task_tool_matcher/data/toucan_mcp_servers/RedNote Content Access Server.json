@@ -1,0 +1,21 @@
+{
+  "name": "RedNote Content Access Server",
+  "tools": [
+    {
+      "name": "search_notes",
+      "description": "根据关键词搜索笔记"
+    },
+    {
+      "name": "get_note_content",
+      "description": "获取笔记内容"
+    },
+    {
+      "name": "get_note_comments",
+      "description": "获取笔记评论"
+    },
+    {
+      "name": "login",
+      "description": "登录小红书账号"
+    }
+  ]
+}

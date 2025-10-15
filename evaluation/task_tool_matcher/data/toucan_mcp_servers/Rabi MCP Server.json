@@ -1,0 +1,25 @@
+{
+  "name": "Rabi MCP Server",
+  "tools": [
+    {
+      "name": "simulate_two_level_atom",
+      "description": "Simulate dynamics of a two-level atom in an electromagnetic field"
+    },
+    {
+      "name": "rabi_oscillations",
+      "description": "Calculate Rabi oscillations for a two-level quantum system"
+    },
+    {
+      "name": "bec_simulation",
+      "description": "Simulate Bose-Einstein condensate dynamics using Gross-Pitaevskii equation"
+    },
+    {
+      "name": "absorption_spectrum",
+      "description": "Calculate absorption spectrum with various broadening mechanisms"
+    },
+    {
+      "name": "cavity_qed",
+      "description": "Simulate cavity quantum electrodynamics using Jaynes-Cummings model"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "Brasil API",
+  "tools": [
+    {
+      "name": "cep-search",
+      "description": "Query address information from a Brazilian postal code (CEP)"
+    },
+    {
+      "name": "cnpj-search",
+      "description": "Query information about a Brazilian company by its CNPJ (National Registry of Legal Entities)"
+    },
+    {
+      "name": "bank-search",
+      "description": "Find information about a Brazilian bank by its code"
+    },
+    {
+      "name": "bank-list",
+      "description": "List all Brazilian banks"
+    },
+    {
+      "name": "ddd-info",
+      "description": "Get information about a Brazilian area code (DDD) including state and cities"
+    },
+    {
+      "name": "ibge-states-list",
+      "description": "List all Brazilian states with their information"
+    },
+    {
+      "name": "ibge-state-search",
+      "description": "Find information about a Brazilian state by its code or abbreviation"
+    },
+    {
+      "name": "ibge-municipalities-list",
+      "description": "List all municipalities of a Brazilian state by its abbreviation"
+    },
+    {
+      "name": "cambio-currencies-list",
+      "description": "List all available currencies for exchange rates"
+    },
+    {
+      "name": "cambio-rate",
+      "description": "Get exchange rates for a specific currency on a specific date"
+    },
+    {
+      "name": "registrobr-domain-check",
+      "description": "Check the status and availability of a .br domain name"
+    }
+  ]
+}

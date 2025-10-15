@@ -1,0 +1,45 @@
+{
+  "name": "box3-statistics-mcp",
+  "tools": [
+    {
+      "name": "getUserProfile",
+      "description": "获取神岛平台用户的个人资料数据"
+    },
+    {
+      "name": "getMapInfo",
+      "description": "获取神岛平台用户地图详情"
+    },
+    {
+      "name": "getMapCommentList",
+      "description": "获取神岛平台用户地图评论列表"
+    },
+    {
+      "name": "getMapReleaseInfo",
+      "description": "获取神岛平台用户地图发布信息"
+    },
+    {
+      "name": "getMapList",
+      "description": "获取神岛平台用户地图列表"
+    },
+    {
+      "name": "getCommentList",
+      "description": "获取神岛平台用户的评论列表，需要Token和用户请求头"
+    },
+    {
+      "name": "getMapStatList",
+      "description": "获取神岛平台用户地图统计列表，需Token和用户请求头"
+    },
+    {
+      "name": "getMapPlayerStatList",
+      "description": "获取神岛平台用户地图玩家统计，需Token和用户请求头和地图ID"
+    },
+    {
+      "name": "getMapPlayerRetention",
+      "description": "获取神岛平台用户地图玩家留存，需Token和用户请求头和地图ID"
+    },
+    {
+      "name": "getMapPlayerBehavior",
+      "description": "获取神岛平台用户地图玩家行为，需Token和用户请求头和地图ID"
+    }
+  ]
+}

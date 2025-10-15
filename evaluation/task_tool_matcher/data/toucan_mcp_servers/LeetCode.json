@@ -1,0 +1,41 @@
+{
+  "name": "LeetCode",
+  "tools": [
+    {
+      "name": "get_daily_challenge",
+      "description": "Retrieves today's LeetCode Daily Challenge problem with complete details, including problem description, constraints, and examples"
+    },
+    {
+      "name": "get_problem",
+      "description": "Retrieves details about a specific LeetCode problem, including its description, examples, constraints, and related information"
+    },
+    {
+      "name": "search_problems",
+      "description": "Searches for LeetCode problems based on multiple filter criteria including categories, tags, difficulty levels, and keywords, with pagination support"
+    },
+    {
+      "name": "get_user_profile",
+      "description": "Retrieves profile information about a LeetCode user, including user stats, solved problems, and profile details"
+    },
+    {
+      "name": "get_recent_submissions",
+      "description": "Retrieves a user's recent submissions on LeetCode Global, including both accepted and failed submissions with detailed metadata"
+    },
+    {
+      "name": "get_recent_ac_submissions",
+      "description": "Retrieves a user's recent accepted (AC) submissions on LeetCode Global, focusing only on successfully completed problems"
+    },
+    {
+      "name": "get_user_contest_ranking",
+      "description": "Retrieves a user's contest ranking information on LeetCode, including overall ranking, participation history, and performance metrics across contests"
+    },
+    {
+      "name": "list_problem_solutions",
+      "description": "Retrieves a list of community solutions for a specific LeetCode problem, including only metadata like topicId. To view the full content of a solution, use the 'get_problem_solution' tool with the topicId returned by this tool."
+    },
+    {
+      "name": "get_problem_solution",
+      "description": "Retrieves the complete content and metadata of a specific solution, including the full article text, author information, and related navigation links"
+    }
+  ]
+}

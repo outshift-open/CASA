@@ -1,0 +1,77 @@
+{
+  "name": "Pulse CN MCP Server",
+  "tools": [
+    {
+      "name": "get-weibo-hotspots",
+      "description": "获取微博最新热搜榜单，返回包含排名、话题标题和热度值的实时数据。数据来源于微博官方，通过API实时获取。"
+    },
+    {
+      "name": "get-realtime-horoscope",
+      "description": "获取今日、明日、本周、本月十二星座运势星座运势，返回包含运势内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "get-inspirational-english-sentence",
+      "description": "获取每日一句励志英语句子，返回包含句子实时数据。通过API实时获取。"
+    },
+    {
+      "name": "internet-hotspots-aggregator",
+      "description": "获取互联网热点聚合数据，返回包含热点内容的实时数据，包含微博热搜、今日头条、知乎日报、虎扑步行街、36氪、哔哩哔哩热榜，知乎、IT资讯、虎嗅网、人人都是产品经理热榜百度、抖音热点豆瓣小组精选。通过API实时获取。"
+    },
+    {
+      "name": "today-headlines-hotspots",
+      "description": "获取今日头条热点热搜，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "the-paper-news-hotspots",
+      "description": "获取澎湃新闻热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "hupu-pedestrian-street-hotspots",
+      "description": "获取虎扑步行街实时热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "zhihu-realtime-hotspots",
+      "description": "获取知乎实时热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "zhihu-daily-hotspots",
+      "description": "获取知乎日报每日热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "36-krypton-24-hour-hotspots",
+      "description": "获取36氪24小时热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "bilibili-daily-hotspots",
+      "description": "获取哔哩哔哩全站日榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "baidu-hotspots",
+      "description": "获取百度热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "douyin-hotspots",
+      "description": "获取抖音热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "douban-group-hotspots",
+      "description": "获取豆瓣小组精选热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "huxiu-hotspots",
+      "description": "获取虎嗅网热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "product-manager-hotspots",
+      "description": "获取人人都是产品经理热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "in-information-hotspots",
+      "description": "获取IT资讯热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    },
+    {
+      "name": "insect-hotspots",
+      "description": "获取虫族部落热搜榜单，返回包含热点内容的实时数据。通过API实时获取。"
+    }
+  ]
+}

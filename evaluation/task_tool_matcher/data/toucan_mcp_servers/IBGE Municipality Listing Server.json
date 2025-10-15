@@ -1,0 +1,25 @@
+{
+  "name": "IBGE Municipality Listing Server",
+  "tools": [
+    {
+      "name": "GetUfPorIdentificdor",
+      "description": "Obtêm os dados básicos da UF"
+    },
+    {
+      "name": "GetMunicipiosPorUF",
+      "description": "Obtêm a lista de municípios brasileiros, passando o UF"
+    },
+    {
+      "name": "GetDistritosPorMunicipio",
+      "description": "Obtêm a lista de distritos, passando o código do município do IBGE"
+    },
+    {
+      "name": "GetPaisPorIdentificador",
+      "description": "Obtêm os dados básicos do país, conforme catalogados no IBGE "
+    },
+    {
+      "name": "GetMunicipioPorIdentificador",
+      "description": "Obtém o conjunto de municípios do Brasil a partir dos respectivos identificadores"
+    }
+  ]
+}

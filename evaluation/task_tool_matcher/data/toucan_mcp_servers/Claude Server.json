@@ -1,0 +1,21 @@
+{
+  "name": "Claude Server",
+  "tools": [
+    {
+      "name": "save_project_context",
+      "description": "Save project-specific context with relationships"
+    },
+    {
+      "name": "save_conversation_context",
+      "description": "Save conversation context with continuation support"
+    },
+    {
+      "name": "get_context",
+      "description": "Retrieve context by ID and optional project ID"
+    },
+    {
+      "name": "list_contexts",
+      "description": "List contexts with filtering options"
+    }
+  ]
+}

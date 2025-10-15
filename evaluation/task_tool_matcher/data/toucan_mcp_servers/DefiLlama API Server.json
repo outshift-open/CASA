@@ -1,0 +1,69 @@
+{
+  "name": "DefiLlama API Server",
+  "tools": [
+    {
+      "name": "get_protocols",
+      "description": "List all protocols on defillama along with their tvl"
+    },
+    {
+      "name": "get_protocol__by_protocol",
+      "description": "Get historical TVL of a protocol and breakdowns by token and chain"
+    },
+    {
+      "name": "get_v2_historicalChainTvl",
+      "description": "Get historical TVL (excludes liquid staking and double counted tvl) of DeFi on all chains"
+    },
+    {
+      "name": "get_v2_historicalChainTvl__by_chain",
+      "description": "Get historical TVL (excludes liquid staking and double counted tvl) of a chain"
+    },
+    {
+      "name": "get_tvl__by_protocol",
+      "description": "Simplified endpoint to get current TVL of a protocol"
+    },
+    {
+      "name": "get_v2_chains",
+      "description": "Get current TVL of all chains"
+    },
+    {
+      "name": "get_prices_current__by_coins",
+      "description": "Get current prices of tokens by contract address\nError Responses:\n502: Internal error"
+    },
+    {
+      "name": "get_stablecoincharts_all",
+      "description": "Get historical mcap sum of all stablecoins"
+    },
+    {
+      "name": "get_pools",
+      "description": "Retrieve the latest data for all pools, including enriched information such as predictions"
+    },
+    {
+      "name": "get_chart__by_pool",
+      "description": "Get historical APY and TVL of a pool"
+    },
+    {
+      "name": "get_overview_dexs",
+      "description": "List all dexs along with summaries of their volumes and dataType history data"
+    },
+    {
+      "name": "get_overview_dexs__by_chain",
+      "description": "List all dexs along with summaries of their volumes and dataType history data filtering by chain"
+    },
+    {
+      "name": "get_summary_dexs__by_protocol",
+      "description": "Get summary of dex volume with historical data"
+    },
+    {
+      "name": "get_overview_fees",
+      "description": "List all protocols along with summaries of their fees and revenue and dataType history data"
+    },
+    {
+      "name": "get_overview_fees__by_chain",
+      "description": "List all protocols along with summaries of their fees and revenue and dataType history data by chain"
+    },
+    {
+      "name": "get_summary_fees__by_protocol",
+      "description": "Get summary of protocol fees and revenue with historical data"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "Coinranking",
+  "tools": [
+    {
+      "name": "configure_api_key",
+      "description": "Configure your Coinranking API key for this session. Get your key at https://account.coinranking.com/dashboard"
+    },
+    {
+      "name": "list_coins",
+      "description": "Get cryptocurrencies with prices, market caps, 24h volume, change %, rank, sparklines, and links - includes market totals"
+    },
+    {
+      "name": "get_coin",
+      "description": "Get comprehensive coin data: price, market cap, volume, supply details, all-time high, description, links, and social media"
+    },
+    {
+      "name": "get_price_history",
+      "description": "Get timestamped price history for charting - returns price points and change % over time periods (1h to 5y)"
+    },
+    {
+      "name": "search",
+      "description": "Search for coins, exchanges, or markets"
+    },
+    {
+      "name": "get_global_stats",
+      "description": "Get global market overview: total market cap, 24h volume, total coins/exchanges, Bitcoin dominance, and market trends"
+    },
+    {
+      "name": "list_exchanges",
+      "description": "Get exchanges with 24h volume, number of markets, rank, market share % - requires Pro API key"
+    },
+    {
+      "name": "get_reference_currencies",
+      "description": "Get currencies for displaying crypto prices - includes fiat (USD, EUR), cryptocurrencies (BTC, ETH), and denominators (Satoshi, Wei)"
+    },
+    {
+      "name": "get_categories",
+      "description": "Get cryptocurrency categories with market analytics - includes market cap, volume, performance metrics, and coin counts for categories like DeFi, AI Agents, Layer-1, Meme Coins, etc."
+    },
+    {
+      "name": "get_trending_coins",
+      "description": "Get top 10 trending cryptocurrencies based on searches, social mentions, and market activity"
+    },
+    {
+      "name": "get_coin_price",
+      "description": "Get just the current price of a coin - lightweight alternative to get_coin for price-only queries"
+    }
+  ]
+}

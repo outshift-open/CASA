@@ -1,0 +1,29 @@
+{
+  "name": "MCP Server",
+  "tools": [
+    {
+      "name": "add",
+      "description": "Add two numbers"
+    },
+    {
+      "name": "multiply",
+      "description": "Multiply two numbers"
+    },
+    {
+      "name": "validatePhoneNumber",
+      "description": "Validates if the given phone number is a valid nepali phone number"
+    },
+    {
+      "name": "checkBalance",
+      "description": "Takes a validated phone number and return the balance of the user"
+    },
+    {
+      "name": "get_definitions",
+      "description": "\n    Get definitions for a word.\n    "
+    },
+    {
+      "name": "get_bmi",
+      "description": "Calculate the BMI of a person given their height and weight"
+    }
+  ]
+}

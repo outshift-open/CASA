@@ -1,0 +1,45 @@
+{
+  "name": "MCP Server for Singapore Government Open Data",
+  "tools": [
+    {
+      "name": "datagovsg_list_collections",
+      "description": "List all collections on data.gov.sg"
+    },
+    {
+      "name": "datagovsg_get_collection",
+      "description": "Get metadata for a specific data.gov.sg collection"
+    },
+    {
+      "name": "datagovsg_list_datasets",
+      "description": "List all datasets on data.gov.sg"
+    },
+    {
+      "name": "datagovsg_get_dataset_metadata",
+      "description": "Get metadata for a specific data.gov.sg dataset"
+    },
+    {
+      "name": "datagovsg_search_dataset",
+      "description": "Search for data within a data.gov.sg dataset"
+    },
+    {
+      "name": "datagovsg_initiate_download",
+      "description": "Initiate download of a data.gov.sg dataset with optional filtering"
+    },
+    {
+      "name": "datagovsg_poll_download",
+      "description": "Check data.gov.sg download status and get download URL"
+    },
+    {
+      "name": "singstat_search_resources",
+      "description": "Search for SingStat tables by keyword (works best with single words)"
+    },
+    {
+      "name": "singstat_get_metadata",
+      "description": "Get metadata for a specific SingStat table"
+    },
+    {
+      "name": "singstat_get_table_data",
+      "description": "Get data from a specific SingStat table with optional filtering"
+    }
+  ]
+}
