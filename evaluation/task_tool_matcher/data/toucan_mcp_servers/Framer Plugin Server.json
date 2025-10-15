@@ -1,0 +1,13 @@
+{
+  "name": "Framer Plugin Server",
+  "tools": [
+    {
+      "name": "create_plugin",
+      "description": "Create a new Framer plugin project with web3 capabilities"
+    },
+    {
+      "name": "build_plugin",
+      "description": "Build a Framer plugin project"
+    }
+  ]
+}

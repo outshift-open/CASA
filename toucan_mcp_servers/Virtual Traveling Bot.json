@@ -1,0 +1,37 @@
+{
+  "name": "Virtual Traveling Bot",
+  "tools": [
+    {
+      "name": "get_traveler_view_info",
+      "description": "Get the address of the current traveler's location and information on nearby facilities,view snapshot"
+    },
+    {
+      "name": "get_traveler_location",
+      "description": "Get the address of the current traveler's location"
+    },
+    {
+      "name": "tips",
+      "description": "Inform you of recommended actions for your device"
+    },
+    {
+      "name": "get_setting",
+      "description": "Get current setting"
+    },
+    {
+      "name": "get_traveler_info",
+      "description": "get a traveler's setting.For example, traveler's name, the language traveler speak, Personality and speaking habits, etc."
+    },
+    {
+      "name": "set_traveler_info",
+      "description": "set a traveler's setting.For example, traveler's name, the language traveler speak, Personality and speaking habits, etc."
+    },
+    {
+      "name": "start_traveler_journey",
+      "description": "Start the traveler's journey to destination"
+    },
+    {
+      "name": "stop_traveler_journey",
+      "description": "Stop the traveler's journey"
+    }
+  ]
+}

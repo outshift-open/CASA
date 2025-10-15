@@ -1,0 +1,17 @@
+{
+  "name": "MindBridge",
+  "tools": [
+    {
+      "name": "getSecondOpinion",
+      "description": "Get responses from various LLM providers"
+    },
+    {
+      "name": "listProviders",
+      "description": "List all configured LLM providers and their available models"
+    },
+    {
+      "name": "listReasoningModels",
+      "description": "List all available models that support reasoning capabilities"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "MediaWiki",
+  "tools": [
+    {
+      "name": "get-page",
+      "description": "Returns the standard page object for a wiki page, optionally including page source or rendered HTML, and including the license and information about the latest revision."
+    },
+    {
+      "name": "get-page-history",
+      "description": "Returns information about the latest revisions to a wiki page, in segments of 20 revisions, starting with the latest revision. The response includes API routes for the next oldest, next newest, and latest revision segments."
+    },
+    {
+      "name": "search-page",
+      "description": "Search wiki page titles and contents for the provided search terms, and returns matching pages."
+    },
+    {
+      "name": "set-wiki",
+      "description": "Set the wiki to use for the current session."
+    },
+    {
+      "name": "update-page",
+      "description": "Updates a wiki page. Replaces the existing content of a page with the provided content"
+    },
+    {
+      "name": "get-file",
+      "description": "Returns information about a file, including links to download the file in thumbnail, preview, and original formats."
+    },
+    {
+      "name": "create-page",
+      "description": "Creates a wiki page with the provided content."
+    }
+  ]
+}

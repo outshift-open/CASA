@@ -1,0 +1,25 @@
+{
+  "name": "JWorg Content Tools",
+  "tools": [
+    {
+      "name": "get_jw_captions",
+      "description": "Fetches video captions from JW.org by video ID or URL. Accepts either a direct video ID (e.g., \"pub-jwbvod25_17_VIDEO\") or a JW.org URL (e.g., \"https://www.jw.org/finder?srcid=jwlshare&wtlocale=E&lank=pub-jwbvod25_17_VIDEO\")"
+    },
+    {
+      "name": "getWorkbookLinks",
+      "description": "STEP 1: Get JW.org \"Our Christian Life and Ministry\" (CLM) meeting workbook weeks. When a user asks for CLM workbook content, use this tool FIRST to show them available weeks. Returns weekly titles like \"May 5-11 (Proverbs 12)\" with their RTF download URLs. Automatically uses current month/year for the issue."
+    },
+    {
+      "name": "getWorkbookContent",
+      "description": "STEP 2: Get the actual CLM workbook content after user chooses a week. Use this tool AFTER getWorkbookLinks when user specifies which week they want (e.g., \"May 5-11\" or \"June 30-July 6\"). Takes the RTF URL from Step 1 results and returns the full workbook text content for that specific week."
+    },
+    {
+      "name": "getWatchtowerLinks",
+      "description": "STEP 1: Get JW.org Watchtower study articles. When a user asks for current/this week's Watchtower content, use this tool FIRST without any parameters - it automatically gets the correct issue for current study articles (Watchtower publications are 2 months ahead, so May 2025 studies come from March 2025 issue). Returns article titles like \"Imitate the Faithful Angels (July 14-20)\" with their RTF download URLs. Just use defaults for current articles."
+    },
+    {
+      "name": "getWatchtowerContent",
+      "description": "STEP 2: Get the actual Watchtower article content after user chooses an article. Use this tool AFTER getWatchtowerLinks when user specifies which article they want (e.g., \"Imitate the Faithful Angels\" or \"Look to Jehovah for Comfort\"). Takes the RTF URL from Step 1 results and returns the full article text content."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "CoinGecko MCP Server",
+  "tools": [
+    {
+      "name": "coingecko_price",
+      "description": "Get current price data for cryptocurrencies"
+    },
+    {
+      "name": "coingecko_list",
+      "description": "Get list of all supported coins with ids, names, and symbols"
+    },
+    {
+      "name": "coingecko_coin_data",
+      "description": "Get current data for a coin (price, market, volume, etc.)"
+    },
+    {
+      "name": "coingecko_trending",
+      "description": "Get trending coins on CoinGecko in the last 24 hours"
+    }
+  ]
+}

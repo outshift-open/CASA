@@ -1,0 +1,21 @@
+{
+  "name": "Drawing Tool for AI Assistants",
+  "tools": [
+    {
+      "name": "drawing_generateCanvas",
+      "description": "Generate a new drawing canvas with specified width and height."
+    },
+    {
+      "name": "drawing_fillRectangle",
+      "description": "Fill a rectangle on the drawing canvas with a specified color and coordinates."
+    },
+    {
+      "name": "drawing_getCanvasPng",
+      "description": "Get the current drawing canvas as a PNG image (base64 encoded)."
+    },
+    {
+      "name": "drawing_getCanvasData",
+      "description": "Get the current pixel data of the drawing canvas as JSON."
+    }
+  ]
+}

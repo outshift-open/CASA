@@ -1,0 +1,45 @@
+{
+  "name": "Flow RPC Server",
+  "tools": [
+    {
+      "name": "flow_getNetworkInfo",
+      "description": "Retrieves information about the current Flow EVM network configuration"
+    },
+    {
+      "name": "flow_getCode",
+      "description": "Retrieves the code at a given Flow EVM address"
+    },
+    {
+      "name": "flow_chainId",
+      "description": "Retrieves the current chain ID of the Flow EVM network"
+    },
+    {
+      "name": "flow_gasPrice",
+      "description": "Retrieves the current gas price in Flow EVM"
+    },
+    {
+      "name": "flow_getBalance",
+      "description": "Retrieves the balance of a given Flow EVM address"
+    },
+    {
+      "name": "flow_call",
+      "description": "Executes a call to a contract function without creating a transaction"
+    },
+    {
+      "name": "flow_getLogs",
+      "description": "Retrieves logs matching the given filter criteria"
+    },
+    {
+      "name": "flow_sendRawTransaction",
+      "description": "Submits a signed transaction to the Flow EVM network"
+    },
+    {
+      "name": "flow_blockNumber",
+      "description": "Gets the latest block number on the Flow EVM network"
+    },
+    {
+      "name": "flow_checkCOA",
+      "description": "Checks if an address is a Cadence-Owned Account (COA)"
+    }
+  ]
+}

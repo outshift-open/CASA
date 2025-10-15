@@ -1,0 +1,25 @@
+{
+  "name": "Crypto Research Server",
+  "tools": [
+    {
+      "name": "research_get_projects",
+      "description": "Search for projects on Research knowledge base."
+    },
+    {
+      "name": "research_get_project_by_twitter",
+      "description": "Get project details by Twitter username on Research knowledge base."
+    },
+    {
+      "name": "research_get_project_reports_by_twitter",
+      "description": "Get project reports by Twitter username on Research knowledge base."
+    },
+    {
+      "name": "research_search_reports",
+      "description": "Search for reports on Research knowledge base."
+    },
+    {
+      "name": "research_search_news",
+      "description": "Search for news on Research knowledge base."
+    }
+  ]
+}

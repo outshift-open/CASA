@@ -1,0 +1,25 @@
+{
+  "name": "Event Horizon Evolutionary Solution Server",
+  "tools": [
+    {
+      "name": "start_evolution",
+      "description": "Initialize an evolutionary solution system for a given problem with consistency checks.\n\nThis tool sets up the framework for evolving solutions across multiple generations. The LLM will:\n1. Generate initial population of solutions\n2. Evaluate solutions against consistency checks\n3. Use crossover recommendations to create better solutions\n4. Repeat until convergence or max generations\n\nUse this tool to begin the evolutionary process with a clear problem statement and evaluation criteria."
+    },
+    {
+      "name": "add_solution",
+      "description": "Add a new solution to the current generation of the evolutionary system.\n\nUse this tool to contribute solutions to the current generation. Solutions can be:\n- Initial solutions (generation 0)\n- Evolved solutions based on crossover recommendations\n- Variations or mutations of existing solutions\n\nThe solution content should directly address the problem statement."
+    },
+    {
+      "name": "score_solution",
+      "description": "Score a solution against a specific consistency check.\n\nUse this tool to evaluate how well a solution performs against each consistency check.\nScores should be between 0.0 (poor) and 1.0 (excellent).\n\nThe LLM should evaluate the solution content against the consistency check description and provide an objective score."
+    },
+    {
+      "name": "evolve_generation",
+      "description": "Evolve to the next generation using crossover analysis.\n\nThis tool analyzes the current generation's performance and provides crossover recommendations.\nIt identifies the best-performing solution for each consistency check and suggests how to combine\nthese aspects into new solutions for the next generation.\n\nUse this after all solutions in the current generation have been fully scored."
+    },
+    {
+      "name": "get_evolution_status",
+      "description": "Get the current status of the evolutionary system.\n\nReturns detailed information about the current state including:\n- Current generation and progress\n- Population statistics\n- Best solution found so far\n- Evolution history\n\nUse this tool to track progress and understand the current state of the evolution."
+    }
+  ]
+}

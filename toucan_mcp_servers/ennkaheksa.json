@@ -1,0 +1,93 @@
+{
+  "name": "ennkaheksa",
+  "tools": [
+    {
+      "name": "tools_documentation",
+      "description": "Get documentation for n8n MCP tools. Call without parameters for quick start guide. Use topic parameter to get documentation for specific tools. Use depth='full' for comprehensive documentation."
+    },
+    {
+      "name": "list_nodes",
+      "description": "List n8n nodes with optional filters. Common usage: list_nodes({limit:200}) for all nodes, list_nodes({category:'trigger'}) for triggers. Note: Use exact package names - 'n8n-nodes-base' not '@n8n/n8n-nodes-base'. Categories: \"trigger\" (104 nodes), \"transform\", \"output\", \"input\". Returns node names and descriptions."
+    },
+    {
+      "name": "get_node_info",
+      "description": "Get COMPLETE technical schema for a node. WARNING: Returns massive JSON (often 100KB+) with all properties, operations, credentials. Contains duplicates and complex conditional logic. TIPS: 1) Use get_node_essentials first for common use cases, 2) Try get_node_documentation for human-readable info, 3) Look for \"required\":true properties, 4) Find properties without \"displayOptions\" for simpler versions. Node type MUST include prefix: \"nodes-base.httpRequest\" NOT \"httpRequest\". NOW INCLUDES: aiToolCapabilities section showing how to use any node as an AI tool."
+    },
+    {
+      "name": "search_nodes",
+      "description": "Search nodes by keywords. Returns nodes containing ANY of the search words (OR logic). Examples: 'slack' finds Slack node, 'send message' finds any node with 'send' OR 'message'. Best practice: Use single words for precise results, multiple words for broader search. Searches in node names and descriptions. If no results, try shorter words or use list_nodes by category."
+    },
+    {
+      "name": "list_ai_tools",
+      "description": "List all 263 nodes marked with usableAsTool=true property. IMPORTANT: ANY node in n8n can be used as an AI tool - not just these! These nodes are optimized for AI usage but you can connect any node (Slack, Google Sheets, HTTP Request, etc.) to an AI Agent's tool port. Returns names and descriptions. For community nodes as tools, set N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true. Use get_node_as_tool_info for guidance on using any node as a tool."
+    },
+    {
+      "name": "get_node_documentation",
+      "description": "Get human-readable documentation for a node. USE THIS BEFORE get_node_info! Returns markdown with explanations, examples, auth setup, common patterns. Much easier to understand than raw schema. 87% of nodes have docs (returns \"No documentation available\" otherwise). Same nodeType format as get_node_info. Best for understanding what a node does and how to use it."
+    },
+    {
+      "name": "get_database_statistics",
+      "description": "Quick summary of the n8n node ecosystem. Shows: total nodes (525), AI tools (263), triggers (104), versioned nodes, documentation coverage (87%), package breakdown. No parameters needed. Useful for verifying MCP is working and understanding available scope."
+    },
+    {
+      "name": "get_node_essentials",
+      "description": "Get only the 10-20 most important properties for a node (95% size reduction). USE THIS INSTEAD OF get_node_info for basic configuration! Returns: required properties, common properties, working examples. Perfect for quick workflow building. Same nodeType format as get_node_info (e.g., \"nodes-base.httpRequest\"). Reduces 100KB+ responses to <5KB focused data."
+    },
+    {
+      "name": "search_node_properties",
+      "description": "Search for specific properties within a node. Find authentication options, body parameters, headers, etc. without parsing the entire schema. Returns matching properties with their paths and descriptions. Use this when you need to find specific configuration options like \"auth\", \"header\", \"body\", etc."
+    },
+    {
+      "name": "get_node_for_task",
+      "description": "Get pre-configured node settings for common tasks. USE THIS to quickly configure nodes for specific use cases like \"post_json_request\", \"receive_webhook\", \"query_database\", etc. Returns ready-to-use configuration with clear indication of what user must provide. Much faster than figuring out configuration from scratch."
+    },
+    {
+      "name": "list_tasks",
+      "description": "List all available task templates. Use this to discover what pre-configured tasks are available before using get_node_for_task. Tasks are organized by category (HTTP/API, Webhooks, Database, AI, Data Processing, Communication)."
+    },
+    {
+      "name": "validate_node_operation",
+      "description": "Verify your node configuration is correct before using it. Checks: required fields are present, values are valid types/formats, operation-specific rules are met. Returns specific errors with fixes (e.g., \"Channel required to send Slack message - add channel: '#general'\"), warnings about common issues, working examples when errors found, and suggested next steps. Smart validation that only checks properties relevant to your selected operation/action. Essential for Slack, Google Sheets, MongoDB, OpenAI nodes. Supports validation profiles for different use cases."
+    },
+    {
+      "name": "validate_node_minimal",
+      "description": "Quick validation that ONLY checks for missing required fields. Returns just the list of required fields that are missing. Fastest validation option - use when you only need to know if required fields are present. No warnings, no suggestions, no examples - just missing required fields."
+    },
+    {
+      "name": "get_property_dependencies",
+      "description": "Shows which properties control the visibility of other properties. Helps understand why certain fields appear/disappear based on configuration. Example: In HTTP Request, 'sendBody=true' reveals body-related properties. Optionally provide a config to see what would be visible/hidden with those settings."
+    },
+    {
+      "name": "get_node_as_tool_info",
+      "description": "Get specific information about using a node as an AI tool. Returns whether the node can be used as a tool, common use cases, requirements, and examples. Essential for understanding how to connect regular nodes to AI Agents. Works for ANY node - not just those marked as AI tools."
+    },
+    {
+      "name": "list_node_templates",
+      "description": "List workflow templates that use specific node type(s). Returns ready-to-use workflows from n8n.io community. Templates are from the last year (399 total). Use FULL node types like \"n8n-nodes-base.httpRequest\" or \"@n8n/n8n-nodes-langchain.openAi\". Great for finding proven workflow patterns."
+    },
+    {
+      "name": "get_template",
+      "description": "Get a specific workflow template with complete JSON. Returns the full workflow definition ready to import into n8n. Use template IDs from list_node_templates or search_templates results."
+    },
+    {
+      "name": "search_templates",
+      "description": "Search workflow templates by keywords in template NAMES and DESCRIPTIONS only. NOTE: This does NOT search by node types! To find templates using specific nodes, use list_node_templates([\"n8n-nodes-base.slack\"]) instead. Examples: search_templates(\"chatbot\") finds templates with \"chatbot\" in the name/description. All templates are from the last year and include view counts to gauge popularity."
+    },
+    {
+      "name": "get_templates_for_task",
+      "description": "Get recommended templates for common automation tasks. Returns curated templates that solve specific use cases. Available tasks: ai_automation, data_sync, webhook_processing, email_automation, slack_integration, data_transformation, file_processing, scheduling, api_integration, database_operations."
+    },
+    {
+      "name": "validate_workflow",
+      "description": "Validate an entire n8n workflow before deployment. Checks: workflow structure, node connections (including ai_tool connections), expressions, best practices, AI Agent configurations, and more. Returns comprehensive validation report with errors, warnings, and suggestions. Essential for AI agents building complete workflows. Validates AI tool connections and $fromAI() expressions. Prevents common workflow errors before they happen."
+    },
+    {
+      "name": "validate_workflow_connections",
+      "description": "Validate only the connections in a workflow. Checks: all connections point to existing nodes, no cycles (infinite loops), no orphaned nodes, proper trigger node setup, AI tool connections are valid. Validates ai_tool connection types between AI Agents and tool nodes. Faster than full validation when you only need to check workflow structure."
+    },
+    {
+      "name": "validate_workflow_expressions",
+      "description": "Validate all n8n expressions in a workflow. Checks: expression syntax ({{ }}), variable references ($json, $node, $input), node references exist, context availability. Returns specific errors with locations. Use this to catch expression errors before runtime."
+    }
+  ]
+}

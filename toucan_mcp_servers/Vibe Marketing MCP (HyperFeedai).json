@@ -1,0 +1,45 @@
+{
+  "name": "Vibe Marketing MCP (HyperFeedai)",
+  "tools": [
+    {
+      "name": "find-hooks",
+      "description": "Find social media hooks by network and/or category"
+    },
+    {
+      "name": "get-network-categories-for-hooks",
+      "description": "Get all available categories for a specific social media network"
+    },
+    {
+      "name": "list-copywriting-frameworks",
+      "description": "Get a list of available copywriting frameworks and their descriptions for a specific social media network"
+    },
+    {
+      "name": "get-copywriting-framework",
+      "description": "Get detailed information about a specific copywriting framework for a network"
+    },
+    {
+      "name": "list-archetypes",
+      "description": "Get a list of all available voice archetypes with their names and descriptions"
+    },
+    {
+      "name": "get-archetype",
+      "description": "Get detailed information about a specific voice archetype including tweet examples"
+    },
+    {
+      "name": "flag-problematic-phrases",
+      "description": "Check text for phrases that should be avoided to make content more human and less AI-like. Returns any flagged phrases found in the text."
+    },
+    {
+      "name": "validate-content-before-fold",
+      "description": "Check if content meets the before-fold character and line limits for each social media platform"
+    },
+    {
+      "name": "get-text-before-fold",
+      "description": "Truncate text to fit within the 'before fold' character limits for each social media platform for previewing purposes"
+    },
+    {
+      "name": "get-trending-content",
+      "description": "Fetch trending social media content from the HyperFeed API"
+    }
+  ]
+}

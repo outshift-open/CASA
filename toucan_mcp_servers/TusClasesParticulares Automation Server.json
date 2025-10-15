@@ -1,0 +1,61 @@
+{
+  "name": "TusClasesParticulares Automation Server",
+  "tools": [
+    {
+      "name": "tusclasesparticulares_login",
+      "description": "Login to tusclasesparticulares.com with credentials"
+    },
+    {
+      "name": "tusclasesparticulares_navigate_messaging",
+      "description": "Navigate to the messaging area and view conversations"
+    },
+    {
+      "name": "tusclasesparticulares_send_message",
+      "description": "Send a message to a student or in response to a lead"
+    },
+    {
+      "name": "tusclasesparticulares_buy_lead",
+      "description": "Purchase a student lead from the potential students section"
+    },
+    {
+      "name": "tusclasesparticulares_edit_publication",
+      "description": "Edit an existing publication/advertisement"
+    },
+    {
+      "name": "tusclasesparticulares_create_publication",
+      "description": "Create a new publication/advertisement for teaching services"
+    },
+    {
+      "name": "tusclasesparticulares_get_conversations",
+      "description": "Get list of active conversations and their details"
+    },
+    {
+      "name": "tusclasesparticulares_get_publications",
+      "description": "Get list of current publications/advertisements"
+    },
+    {
+      "name": "tusclasesparticulares_get_leads",
+      "description": "Get available student leads for purchase"
+    },
+    {
+      "name": "tusclasesparticulares_screenshot",
+      "description": "Take a screenshot of the current page for debugging"
+    },
+    {
+      "name": "tusclasesparticulares_extract_contact_info",
+      "description": "Extract contact information (phone numbers, emails) from conversations"
+    },
+    {
+      "name": "tusclasesparticulares_handle_subscription_limits",
+      "description": "Handle subscription limits and payment workflows"
+    },
+    {
+      "name": "tusclasesparticulares_advanced_filtering",
+      "description": "Apply advanced filters for leads and searches"
+    },
+    {
+      "name": "tusclasesparticulares_bulk_operations",
+      "description": "Perform bulk operations on multiple items"
+    }
+  ]
+}
