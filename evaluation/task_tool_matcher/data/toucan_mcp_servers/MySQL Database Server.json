@@ -1,0 +1,49 @@
+{
+  "name": "MySQL Database Server",
+  "tools": [
+    {
+      "name": "connect_database",
+      "description": "连接到MySQL数据库"
+    },
+    {
+      "name": "execute_query",
+      "description": "执行SQL查询语句（支持增删改查所有操作）"
+    },
+    {
+      "name": "begin_transaction",
+      "description": "开始数据库事务"
+    },
+    {
+      "name": "commit_transaction",
+      "description": "提交数据库事务"
+    },
+    {
+      "name": "rollback_transaction",
+      "description": "回滚数据库事务"
+    },
+    {
+      "name": "show_transaction_history",
+      "description": "显示当前事务的操作历史"
+    },
+    {
+      "name": "rollback_to_step",
+      "description": "回滚到指定的操作步骤"
+    },
+    {
+      "name": "full_rollback",
+      "description": "完全回滚当前事务的所有操作"
+    },
+    {
+      "name": "show_tables",
+      "description": "显示数据库中的所有表及其结构信息"
+    },
+    {
+      "name": "describe_table",
+      "description": "显示指定表的详细结构信息和样本数据"
+    },
+    {
+      "name": "disconnect_database",
+      "description": "断开数据库连接"
+    }
+  ]
+}

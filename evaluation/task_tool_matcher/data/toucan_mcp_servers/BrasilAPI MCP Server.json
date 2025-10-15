@@ -1,0 +1,29 @@
+{
+  "name": "BrasilAPI MCP Server",
+  "tools": [
+    {
+      "name": "get_postal_code_v1",
+      "description": "Get a location data given a CEP (postal code)."
+    },
+    {
+      "name": "get_postal_code_v2",
+      "description": "Version 2 of get a location data given a CEP (postal code)."
+    },
+    {
+      "name": "get_isbn",
+      "description": "Get information about a book given an ISBN."
+    },
+    {
+      "name": "get_cnpj",
+      "description": "Get information about a company given a CNPJ."
+    },
+    {
+      "name": "get_all_banks",
+      "description": "Get information of all banks from Brazil."
+    },
+    {
+      "name": "get_bank_by_code",
+      "description": "Get information from a specific bank given its code. The code from each bank is returned by get_all_banks tool."
+    }
+  ]
+}

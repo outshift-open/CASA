@@ -1,0 +1,69 @@
+{
+  "name": "Laravel MCP Companion",
+  "tools": [
+    {
+      "name": "list_laravel_docs",
+      "description": "Lists all available Laravel documentation files across versions. Essential for discovering what documentation exists before diving into specific topics.\n\nWhen to use:\n- Initial exploration of Laravel documentation\n- Finding available documentation files\n- Checking which versions have specific documentation\n- Getting an overview of documentation coverage"
+    },
+    {
+      "name": "search_laravel_docs",
+      "description": "Searches for specific terms across all Laravel documentation files. Returns file names and match counts.\n\nWhen to use:\n- Finding which files mention a specific feature\n- Quick lookup of where topics are discussed\n- Discovering related documentation files"
+    },
+    {
+      "name": "update_laravel_docs",
+      "description": "Updates documentation from the official Laravel GitHub repository. Ensures access to the latest documentation changes.\n\nWhen to use:\n- Working with newly released Laravel versions\n- Ensuring documentation is current\n- Resolving missing documentation issues\n- Syncing after Laravel updates"
+    },
+    {
+      "name": "laravel_docs_info",
+      "description": "Provides metadata about documentation versions, including last update times and commit information.\n\nWhen to use:\n- Checking documentation freshness\n- Verifying version compatibility\n- Understanding documentation state\n- Troubleshooting sync issues"
+    },
+    {
+      "name": "get_laravel_package_recommendations",
+      "description": "Intelligently recommends Laravel packages based on described use cases or implementation needs.\n\nWhen to use:\n- Starting new feature implementation\n- Finding packages for specific functionality\n- Discovering ecosystem solutions\n- Comparing implementation approaches"
+    },
+    {
+      "name": "get_laravel_package_info",
+      "description": "Provides comprehensive details about a specific Laravel package including installation and use cases.\n\nWhen to use:\n- Learning about a specific package\n- Getting installation instructions\n- Understanding package capabilities\n- Checking package categories"
+    },
+    {
+      "name": "get_laravel_package_categories",
+      "description": "Lists all packages within a specific functional category.\n\nWhen to use:\n- Exploring packages by domain\n- Comparing similar packages\n- Finding category-specific solutions\n- Discovering package alternatives"
+    },
+    {
+      "name": "get_features_for_laravel_package",
+      "description": "Details common implementation features and patterns for a specific package.\n\nWhen to use:\n- Planning package implementation\n- Understanding feature scope\n- Learning implementation patterns\n- Discovering package capabilities"
+    },
+    {
+      "name": "read_laravel_doc_content",
+      "description": "Read the full content of a specific Laravel documentation file"
+    },
+    {
+      "name": "search_laravel_docs_with_context",
+      "description": "Search Laravel docs with context snippets"
+    },
+    {
+      "name": "get_doc_structure",
+      "description": "Get the structure and sections of a documentation file"
+    },
+    {
+      "name": "browse_docs_by_category",
+      "description": "Browse Laravel documentation by category"
+    },
+    {
+      "name": "update_external_laravel_docs",
+      "description": "Updates documentation for external Laravel services like Forge, Vapor, Envoyer, and Nova.\n\nWhen to use:\n- Fetching latest Laravel service documentation\n- Accessing official Laravel service guides\n- Getting documentation for Laravel hosting/deployment services\n- Updating cached external documentation"
+    },
+    {
+      "name": "list_laravel_services",
+      "description": "Lists all available Laravel services with external documentation support.\n\nWhen to use:\n- Discovering available Laravel services\n- Finding external documentation sources\n- Understanding Laravel ecosystem services\n- Checking service documentation availability"
+    },
+    {
+      "name": "search_external_laravel_docs",
+      "description": "Searches through external Laravel service documentation.\n\nWhen to use:\n- Finding specific information in service docs\n- Searching across multiple Laravel services\n- Looking for deployment or hosting guidance\n- Finding service-specific features"
+    },
+    {
+      "name": "get_laravel_service_info",
+      "description": "Provides detailed information about a specific Laravel service.\n\nWhen to use:\n- Learning about a specific Laravel service\n- Getting service documentation overview\n- Understanding service capabilities\n- Checking service documentation status"
+    }
+  ]
+}

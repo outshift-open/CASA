@@ -1,0 +1,57 @@
+{
+  "name": "Package Registry Server",
+  "tools": [
+    {
+      "name": "get-cargo-package-details",
+      "description": "Get detailed information about a specific Cargo package"
+    },
+    {
+      "name": "search-cargo-packages",
+      "description": "Search the Cargo registry for packages"
+    },
+    {
+      "name": "list-cargo-package-versions",
+      "description": "List all versions of a specific Cargo package"
+    },
+    {
+      "name": "get-golang-package-details",
+      "description": "Get detailed information about a specific Go module/package"
+    },
+    {
+      "name": "list-golang-package-versions",
+      "description": "List all versions of a specific Go module/package"
+    },
+    {
+      "name": "get-npm-package-details",
+      "description": "Get detailed information about a specific NPM package"
+    },
+    {
+      "name": "search-npm-packages",
+      "description": "Search the NPM registry for packages"
+    },
+    {
+      "name": "list-npm-package-versions",
+      "description": "List all versions of a specific NPM package"
+    },
+    {
+      "name": "get-nuget-package-details",
+      "description": "Get detailed information about a specific NuGet package"
+    },
+    {
+      "name": "search-nuget-packages",
+      "description": "Search the NuGet registry for packages"
+    },
+    {
+      "name": "list-nuget-package-versions",
+      "description": "List all versions of a specific NuGet package"
+    },
+    {
+      "name": "get-pypi-package-details",
+      "description": "Get detailed information about a specific PyPI package"
+    },
+    {
+      "name": "list-pypi-package-versions",
+      "description": "List all versions of a specific PyPI package"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "name": "OpenDota API Server",
+  "tools": [
+    {
+      "name": "get_player_by_id",
+      "description": "Get a player's information by their account ID.\n\n    Args:\n        account_id: The player's Steam32 account ID\n\n    Returns:\n        Player information including rank, matches, and statistics\n    "
+    },
+    {
+      "name": "get_player_recent_matches",
+      "description": "Get recent matches played by a player.\n\n    Args:\n        account_id: Steam32 account ID of the player\n        limit: Number of matches to retrieve (default: 5)\n\n    Returns:\n        List of recent matches with details\n    "
+    },
+    {
+      "name": "get_match_data",
+      "description": "Get detailed data for a specific match.\n\n    Args:\n        match_id: ID of the match to retrieve\n\n    Returns:\n        Detailed match information including players, scores, and stats\n    "
+    },
+    {
+      "name": "get_player_win_loss",
+      "description": "Get win/loss statistics for a player.\n\n    Args:\n        account_id: Steam32 account ID of the player\n\n    Returns:\n        Win/loss record\n    "
+    },
+    {
+      "name": "get_player_heroes",
+      "description": "Get a player's most played heroes.\n\n    Args:\n        account_id: Steam32 account ID of the player\n        limit: Number of heroes to retrieve (default: 5)\n\n    Returns:\n        List of most played heroes with stats\n    "
+    },
+    {
+      "name": "get_hero_stats",
+      "description": "Get statistics for heroes.\n\n    Args:\n        hero_id: Optional hero ID to get stats for a specific hero\n\n    Returns:\n        Hero statistics including win rates by skill bracket\n    "
+    },
+    {
+      "name": "search_player",
+      "description": "Search for players by name.\n\n    Args:\n        query: Name to search for\n\n    Returns:\n        List of matching players\n    "
+    },
+    {
+      "name": "get_pro_players",
+      "description": "Get list of professional players.\n\n    Args:\n        limit: Number of players to retrieve (default: 10)\n\n    Returns:\n        List of professional players\n    "
+    },
+    {
+      "name": "get_pro_matches",
+      "description": "Get recent professional matches.\n\n    Args:\n        limit: Number of matches to retrieve (default: 5)\n\n    Returns:\n        List of recent professional matches\n    "
+    },
+    {
+      "name": "get_player_peers",
+      "description": "Get players who have played with the specified player.\n\n    Args:\n        account_id: Steam32 account ID of the player\n        limit: Number of peers to retrieve (default: 5)\n\n    Returns:\n        List of players frequently played with\n    "
+    },
+    {
+      "name": "get_heroes",
+      "description": "Get list of all Dota 2 heroes.\n\n    Returns:\n        List of all heroes with basic information\n    "
+    },
+    {
+      "name": "get_player_totals",
+      "description": "Get player's overall stats totals.\n\n    Args:\n        account_id: Steam32 account ID of the player\n\n    Returns:\n        Summary of player's total stats\n    "
+    },
+    {
+      "name": "get_player_rankings",
+      "description": "Get player hero rankings.\n\n    Args:\n        account_id: Steam32 account ID of the player\n\n    Returns:\n        Player's hero rankings\n    "
+    },
+    {
+      "name": "get_player_wordcloud",
+      "description": "Get most common words used by player in chat.\n\n    Args:\n        account_id: Steam32 account ID of the player\n\n    Returns:\n        List of player's most frequently used words\n    "
+    },
+    {
+      "name": "get_team_info",
+      "description": "Get information about a team.\n\n    Args:\n        team_id: Team ID\n\n    Returns:\n        Team information\n    "
+    },
+    {
+      "name": "get_public_matches",
+      "description": "Get recent public matches.\n\n    Args:\n        limit: Number of matches to retrieve (default: 5)\n\n    Returns:\n        List of recent public matches\n    "
+    },
+    {
+      "name": "get_match_heroes",
+      "description": "Get heroes played in a specific match.\n\n    Args:\n        match_id: ID of the match to retrieve\n\n    Returns:\n        List of heroes played by each player in the match\n    "
+    }
+  ]
+}

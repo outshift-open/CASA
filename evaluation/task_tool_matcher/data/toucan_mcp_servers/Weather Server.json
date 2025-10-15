@@ -1,0 +1,29 @@
+{
+  "name": "Weather Server",
+  "tools": [
+    {
+      "name": "get-alerts",
+      "description": "Get weather alerts for a state"
+    },
+    {
+      "name": "get-forecast",
+      "description": "Get weather forecast for a location"
+    },
+    {
+      "name": "ping",
+      "description": "Simple ping tool to test server responsiveness and prevent timeouts."
+    },
+    {
+      "name": "health_check",
+      "description": "Health check to verify server connectivity and status."
+    },
+    {
+      "name": "get_weather",
+      "description": "Get current weather for a city."
+    },
+    {
+      "name": "compare_weather",
+      "description": "Compare weather between multiple cities."
+    }
+  ]
+}

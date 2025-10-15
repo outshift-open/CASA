@@ -1,0 +1,33 @@
+{
+  "name": "MCPollinations",
+  "tools": [
+    {
+      "name": "generateImageUrl",
+      "description": "Generate an image URL from a text prompt"
+    },
+    {
+      "name": "generateImage",
+      "description": "Generate an image, return the base64-encoded data, and save to a file by default"
+    },
+    {
+      "name": "listImageModels",
+      "description": "List available image models"
+    },
+    {
+      "name": "respondAudio",
+      "description": "Generate an audio response to a text prompt and play it through the system"
+    },
+    {
+      "name": "listAudioVoices",
+      "description": "List all available audio voices for text-to-speech generation"
+    },
+    {
+      "name": "respondText",
+      "description": "Respond with text to a prompt using the Pollinations Text API"
+    },
+    {
+      "name": "listTextModels",
+      "description": "List available text models"
+    }
+  ]
+}

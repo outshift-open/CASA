@@ -1,0 +1,21 @@
+{
+  "name": "PubMed MCP Server",
+  "tools": [
+    {
+      "name": "search_pubmed_key_words",
+      "description": ""
+    },
+    {
+      "name": "search_pubmed_advanced",
+      "description": ""
+    },
+    {
+      "name": "get_pubmed_article_metadata",
+      "description": ""
+    },
+    {
+      "name": "download_pubmed_pdf",
+      "description": ""
+    }
+  ]
+}

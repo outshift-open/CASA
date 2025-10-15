@@ -1,0 +1,33 @@
+{
+  "name": "MCP Server Semgrep",
+  "tools": [
+    {
+      "name": "scan_directory",
+      "description": "Performs a Semgrep scan on a directory"
+    },
+    {
+      "name": "list_rules",
+      "description": "Lists available Semgrep rules"
+    },
+    {
+      "name": "analyze_results",
+      "description": "Analyzes scan results"
+    },
+    {
+      "name": "create_rule",
+      "description": "Creates a new Semgrep rule"
+    },
+    {
+      "name": "filter_results",
+      "description": "Filters scan results by various criteria"
+    },
+    {
+      "name": "export_results",
+      "description": "Exports scan results in various formats"
+    },
+    {
+      "name": "compare_results",
+      "description": "Compares two scan results"
+    }
+  ]
+}

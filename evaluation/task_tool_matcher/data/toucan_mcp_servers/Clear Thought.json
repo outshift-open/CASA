@@ -1,0 +1,65 @@
+{
+  "name": "Clear Thought",
+  "tools": [
+    {
+      "name": "sequentialthinking",
+      "description": "Process sequential thoughts with branching, revision, and memory management capabilities"
+    },
+    {
+      "name": "mentalmodel",
+      "description": "Apply mental models to analyze problems systematically"
+    },
+    {
+      "name": "debuggingapproach",
+      "description": "Apply systematic debugging approaches to identify and resolve issues"
+    },
+    {
+      "name": "collaborativereasoning",
+      "description": "Facilitate collaborative reasoning with multiple perspectives and personas"
+    },
+    {
+      "name": "decisionframework",
+      "description": "Apply structured decision-making frameworks"
+    },
+    {
+      "name": "metacognitivemonitoring",
+      "description": "Monitor and assess thinking processes and knowledge"
+    },
+    {
+      "name": "socraticmethod",
+      "description": "Guide inquiry through systematic questioning"
+    },
+    {
+      "name": "creativethinking",
+      "description": "Engage in creative and lateral thinking approaches"
+    },
+    {
+      "name": "systemsthinking",
+      "description": "Analyze complex systems and their interactions"
+    },
+    {
+      "name": "scientificmethod",
+      "description": "Apply scientific method for systematic inquiry"
+    },
+    {
+      "name": "structuredargumentation",
+      "description": "Construct and analyze structured arguments"
+    },
+    {
+      "name": "visualreasoning",
+      "description": "Process visual reasoning and diagram operations"
+    },
+    {
+      "name": "session_info",
+      "description": "Get information about the current session including statistics and recent activity"
+    },
+    {
+      "name": "session_export",
+      "description": "Export the entire session state for backup or sharing"
+    },
+    {
+      "name": "session_import",
+      "description": "Import a previously exported session state"
+    }
+  ]
+}

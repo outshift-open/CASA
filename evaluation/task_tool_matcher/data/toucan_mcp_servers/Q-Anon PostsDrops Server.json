@@ -1,0 +1,37 @@
+{
+  "name": "Q-Anon PostsDrops Server",
+  "tools": [
+    {
+      "name": "get_post_by_id_tool",
+      "description": "\n    Retrieve a specific post by its ID.\n\n    Args:\n        post_id: The ID of the post to retrieve\n    "
+    },
+    {
+      "name": "search_posts",
+      "description": "\n    Search for posts/drops containing a specific keyword or phrase.\n\n    Args:\n        query: The keyword or phrase to search for\n        limit: Maximum number of results to return (default: 10)\n    "
+    },
+    {
+      "name": "get_posts_by_date",
+      "description": "\n    Get posts/drops within a specific date range.\n\n    Args:\n        start_date: Start date in YYYY-MM-DD format\n        end_date: End date in YYYY-MM-DD format (defaults to start_date if not provided)\n        limit: Maximum number of results to return (default: 10)\n    "
+    },
+    {
+      "name": "get_posts_by_author_id",
+      "description": "\n    Get posts/drops by a specific author ID.\n\n    Args:\n        author_id: The author ID to search for\n        limit: Maximum number of results to return (default: 10)\n    "
+    },
+    {
+      "name": "analyze_post",
+      "description": "\n    Get detailed analysis of a specific post/drop including references and context.\n\n    Args:\n        post_id: The ID of the post to analyze\n    "
+    },
+    {
+      "name": "get_timeline_summary",
+      "description": "\n    Get a timeline summary of posts/drops, optionally within a date range.\n\n    Args:\n        start_date: Optional start date in YYYY-MM-DD format\n        end_date: Optional end date in YYYY-MM-DD format\n    "
+    },
+    {
+      "name": "word_cloud_by_post_ids",
+      "description": "\n    Generate a word cloud analysis showing the most common words used in posts within a specified ID range.\n\n    Args:\n        start_id: Starting post ID\n        end_id: Ending post ID\n        min_word_length: Minimum length of words to include (default: 3)\n        max_words: Maximum number of words to return (default: 100)\n    "
+    },
+    {
+      "name": "word_cloud_by_date_range",
+      "description": "\n    Generate a word cloud analysis showing the most common words used in posts within a specified date range.\n\n    Args:\n        start_date: Start date in YYYY-MM-DD format\n        end_date: End date in YYYY-MM-DD format\n        min_word_length: Minimum length of words to include (default: 3)\n        max_words: Maximum number of words to return (default: 100)\n    "
+    }
+  ]
+}

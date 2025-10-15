@@ -32,11 +32,14 @@ def load_config(config_path: str) -> Dict:
     return config
 
 
-def load_mcp_tools(mcp_server_names: List[str]) -> Dict[str, List[str]]:
+def load_mcp_tools(mcp_server_path: str, mcp_server_names: List[str]) -> Dict[str, List[str]]:
     """Load all tools for each MCP server (hashed)."""
     mcp_to_tools = {}
     for server_name in mcp_server_names:
-        file_path = Path(f"evaluation/task_tool_matcher/data/mcp_servers/{server_name.replace('-', '_')}.json")
+        if not "toucan" in mcp_server_path:
+            file_path = Path(f"{mcp_server_path}/{server_name.replace('-', '_')}.json")
+        else:
+            file_path = Path(f"{mcp_server_path}/{server_name}.json")
         if not file_path.exists():
             raise FileNotFoundError(f"MCP server file not found: {file_path}")
         with open(file_path, "r", encoding="utf-8") as f:
@@ -69,7 +72,7 @@ def create_task_collection(input_path: str, mcp_server_names: List[str]) -> List
 
     print(f"\nLoaded a total of {len(all_tasks)} tasks from {input_path}")
     print(f"-- System prompt tag: {tasks_data[0]['system_prompt']}")
-    print(f"-- Tools per task:    {tasks_data[0]['tools_per_task']}")
+    # print(f"-- Tools per task:    {tasks_data[0]['tools_per_task']}")
     print(f"-- Structured output: {tasks_data[0]['SO_tasks_per_sample']} tasks per tool")
     print(f"-- Conversation mode: {tasks_data[0]['conversation']}\n")
 
@@ -171,6 +174,9 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
 
         for task in null_tasks_base:
             possible_other_mcps = other_mcps_hash.get(task["mcp_servers"][0], [])
+            possible_other_mcps = [
+                mcp for mcp in possible_other_mcps if len(mcp_tools[mcp]) >= len(task["correct_tools"])
+            ]
             if not possible_other_mcps:
                 raise ValueError(f"Not enough other MCP servers to create a null match for task '{task['task']}'.")
 
@@ -204,11 +210,14 @@ def generate_matches(all_tasks: List[Dict[str, Any]], config: Dict, mcp_tools: D
     return generated_entries
 
 
-def generate_tool_requests_data(config_path: str, input_path: str, output_path: str) -> list[dict]:
+def generate_tool_requests_data(
+    config_path: str, mcp_server_path: str, input_path: str, output_path: str
+) -> list[dict]:
     """Simulate data of tool requests from tasks, parametrized by config.
 
     Args:
         config_path: Path to the configuration file (can have separate ones for validation/testing).
+        mcp_server_path: Path to the MCP server JSON files with MCP tool info.
         input_path: Path to the input JSON file with the synthetic task(s) per MCP tool.
         output_path: Path to the output JSON file where simulated matches will be saved.
     Outputs:
@@ -225,7 +234,7 @@ def generate_tool_requests_data(config_path: str, input_path: str, output_path: 
         logger.warning(f" --> Will cap #correct matches to {len(all_tasks)}!\n")
         config["num_correct_matches"] = len(all_tasks)
 
-    mcp_to_tools = load_mcp_tools(config["mcp_servers"])
+    mcp_to_tools = load_mcp_tools(mcp_server_path, config["mcp_servers"])
     generated_data = generate_matches(all_tasks, config, mcp_to_tools)
 
     output_path_mod = Path(output_path)
@@ -254,6 +263,11 @@ def main():
         help="Path to the configuration file (can have separate ones for validation/testing).",
     )
     parser.add_argument(
+        "--mcp_server_path",
+        default="evaluation/task_tool_matcher/data/mcp_servers",
+        help="Path to the MCP server JSON files with MCP tool info.",
+    )
+    parser.add_argument(
         "--input",
         default="evaluation/task_tool_matcher/data/generated_tasks.json",
         help="Path to the input JSON file with the synthetic task(s) per MCP tool.",
@@ -265,7 +279,9 @@ def main():
     )
     args = parser.parse_args()
 
-    _ = generate_tool_requests_data(config_path=args.config, input_path=args.input, output_path=args.output)
+    _ = generate_tool_requests_data(
+        config_path=args.config, mcp_server_path=args.mcp_server_path, input_path=args.input, output_path=args.output
+    )
 
 
 if __name__ == "__main__":

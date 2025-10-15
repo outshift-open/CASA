@@ -1,0 +1,21 @@
+{
+  "name": "Pokémcp",
+  "tools": [
+    {
+      "name": "random-pokemon",
+      "description": "Get a random Pokémon"
+    },
+    {
+      "name": "random-pokemon-from-region",
+      "description": "Get a random Pokémon from a specific region"
+    },
+    {
+      "name": "random-pokemon-by-type",
+      "description": "Get a random Pokémon of a specific type"
+    },
+    {
+      "name": "pokemon-query",
+      "description": "Answer natural language Pokémon queries"
+    }
+  ]
+}

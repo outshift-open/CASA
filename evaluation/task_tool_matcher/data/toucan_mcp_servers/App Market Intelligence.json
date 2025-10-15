@@ -1,0 +1,85 @@
+{
+  "name": "App Market Intelligence",
+  "tools": [
+    {
+      "name": "app-store-search",
+      "description": "Search for apps on the App Store. Returns a list of apps with the following fields:\n- id: App Store ID number\n- appId: Bundle ID (e.g. 'com.company.app')\n- title: App name\n- icon: Icon image URL\n- url: App Store URL\n- price: Price in USD\n- currency: Price currency code\n- free: Boolean indicating if app is free\n- description: App description\n- developer: Developer name\n- developerUrl: Developer's App Store URL\n- developerId: Developer's ID\n- genre: App category name\n- genreId: Category ID\n- released: Release date (ISO string)"
+    },
+    {
+      "name": "app-store-details",
+      "description": "Get detailed information about an App Store app. Returns an object with:\n- id: App Store ID number\n- appId: Bundle ID (e.g. 'com.company.app')\n- title: App name\n- url: App Store URL\n- description: Full app description\n- icon: Icon URL\n- genres: Array of category names\n- genreIds: Array of category IDs\n- primaryGenre: Main category name\n- primaryGenreId: Main category ID\n- contentRating: Content rating (e.g. '4+')\n- languages: Array of language codes\n- size: App size in bytes\n- requiredOsVersion: Minimum iOS version required\n- released: Initial release date (ISO string)\n- updated: Last update date (ISO string)\n- releaseNotes: Latest version changes\n- version: Current version string\n- price: Price in USD\n- currency: Price currency code\n- free: Boolean indicating if app is free\n- developerId: Developer's ID\n- developer: Developer name\n- developerUrl: Developer's App Store URL\n- developerWebsite: Developer's website URL if available\n- score: Current rating (0-5)\n- reviews: Total number of ratings\n- currentVersionScore: Current version rating (0-5)\n- currentVersionReviews: Current version review count\n- screenshots: Array of screenshot URLs\n- ipadScreenshots: Array of iPad screenshot URLs\n- appletvScreenshots: Array of Apple TV screenshot URLs\n- supportedDevices: Array of supported device IDs\n- ratings: Total number of ratings (when ratings option enabled)\n- histogram: Rating distribution by star level (when ratings option enabled)"
+    },
+    {
+      "name": "app-store-reviews",
+      "description": "Get reviews for an App Store app. Returns an array of reviews with:\n- id: Review ID\n- userName: Reviewer's name\n- userUrl: Reviewer's profile URL\n- version: App version reviewed\n- score: Rating (1-5)\n- title: Review title\n- text: Review content\n- url: Review URL\n- updated: Review date (ISO string)"
+    },
+    {
+      "name": "app-store-similar",
+      "description": "Get similar apps ('customers also bought') from the App Store. Returns a list of apps with:\n- id: App Store ID number\n- appId: Bundle ID (e.g. 'com.company.app')\n- title: App name\n- icon: Icon image URL\n- url: App Store URL\n- price: Price in USD\n- currency: Price currency code\n- free: Boolean indicating if app is free\n- description: App description\n- developer: Developer name\n- developerUrl: Developer's App Store URL\n- developerId: Developer's ID\n- genre: App category name\n- genreId: Category ID\n- released: Release date (ISO string)"
+    },
+    {
+      "name": "app-store-developer",
+      "description": "Get apps by a developer on the App Store. Returns a list of apps with:\n- id: App Store ID number\n- appId: Bundle ID (e.g. 'com.company.app')\n- title: App name\n- icon: Icon image URL\n- url: App Store URL\n- price: Price in USD\n- currency: Price currency code\n- free: Boolean indicating if app is free\n- description: App description\n- developer: Developer name\n- developerUrl: Developer's App Store URL\n- developerId: Developer's ID\n- genre: App category name\n- genreId: Category ID\n- released: Release date (ISO string)"
+    },
+    {
+      "name": "app-store-suggest",
+      "description": "Get search suggestions from the App Store. Returns an array of objects with:\n- term: Suggested search term\nEach suggestion has a priority from 0 (low traffic) to 10000 (most searched)"
+    },
+    {
+      "name": "app-store-ratings",
+      "description": "Get ratings for an App Store app. Returns an object with:\n- ratings: Total number of ratings\n- histogram: Distribution of ratings by star level (1-5)"
+    },
+    {
+      "name": "app-store-version-history",
+      "description": "Get version history for an App Store app. Returns an array of versions with:\n- versionDisplay: Version number string\n- releaseNotes: Update description\n- releaseDate: Release date (YYYY-MM-DD)\n- releaseTimestamp: Release date and time (ISO string)"
+    },
+    {
+      "name": "app-store-privacy",
+      "description": "Get privacy details for an App Store app. Returns an object with:\n- managePrivacyChoicesUrl: URL to manage privacy choices (if available)\n- privacyTypes: Array of privacy data types, each containing:\n  - privacyType: Name of the privacy category\n  - identifier: Unique identifier for the privacy type\n  - description: Detailed description of how data is used\n  - dataCategories: Array of data categories, each containing:\n    - dataCategory: Category name\n    - identifier: Category identifier\n    - dataTypes: Array of specific data types collected\n  - purposes: Array of purposes for data collection\nNote: Currently only available for US App Store."
+    },
+    {
+      "name": "app-store-list",
+      "description": "Get apps from iTunes collections. Returns a list of apps with:\n- id: App Store ID number\n- appId: Bundle ID (e.g. 'com.company.app')\n- title: App name\n- icon: Icon image URL\n- url: App Store URL\n- price: Price in USD\n- currency: Price currency code\n- free: Boolean indicating if app is free\n- description: App description\n- developer: Developer name\n- developerUrl: Developer's App Store URL\n- developerId: Developer's ID\n- genre: App category name\n- genreId: Category ID\n- released: Release date (ISO string)"
+    },
+    {
+      "name": "google-play-search",
+      "description": "Search for apps on Google Play. Returns a list of apps with:\n- title: App name\n- appId: Package name (e.g. 'com.company.app')\n- url: Play Store URL\n- icon: Icon image URL\n- developer: Developer name\n- developerId: Developer ID\n- priceText: Price display text\n- free: Boolean indicating if app is free\n- summary: Short description\n- scoreText: Rating display text\n- score: Rating (0-5)"
+    },
+    {
+      "name": "google-play-details",
+      "description": "Get detailed information about a Google Play app. Returns an object with:\n- title: App name\n- description: Full app description\n- descriptionHTML: Description with HTML formatting\n- summary: Short description\n- installs: Install count range\n- minInstalls: Minimum install count\n- maxInstalls: Maximum install count\n- score: Average rating (0-5)\n- scoreText: Rating display text\n- ratings: Total number of ratings\n- reviews: Total number of reviews\n- histogram: Rating distribution by star level\n- price: Price in local currency\n- free: Boolean indicating if app is free\n- currency: Price currency code\n- priceText: Formatted price string\n- offersIAP: Boolean indicating in-app purchases\n- IAPRange: Price range for in-app purchases\n- androidVersion: Minimum Android version required\n- androidVersionText: Formatted Android version text\n- developer: Developer name\n- developerId: Developer ID\n- developerEmail: Developer contact email\n- developerWebsite: Developer website URL\n- developerAddress: Developer physical address\n- genre: App category\n- genreId: Category ID\n- icon: Icon URL\n- headerImage: Feature graphic URL\n- screenshots: Array of screenshot URLs\n- contentRating: Content rating (e.g. 'Everyone')\n- contentRatingDescription: Content rating details\n- adSupported: Boolean indicating if app shows ads\n- released: Release date\n- updated: Last update date\n- version: Current version string\n- recentChanges: Latest version changes\n- preregister: Boolean indicating if app is in pre-registration\n- editorsChoice: Boolean indicating Editor's Choice status\n- features: Array of special features"
+    },
+    {
+      "name": "google-play-reviews",
+      "description": "Get reviews for a Google Play app. Returns an array of reviews with:\n- id: Review ID string\n- userName: Reviewer's name\n- userImage: Reviewer's profile image URL\n- date: Review date (ISO string)\n- score: Rating (1-5)\n- scoreText: Rating display text\n- title: Review title\n- text: Review content\n- url: Review URL\n- version: App version reviewed\n- thumbsUp: Number of thumbs up votes\n- replyDate: Developer reply date (if any)\n- replyText: Developer reply content (if any)\n- criterias: Array of rating criteria (if any)\n\nNote: Reviews are returned in the specified language. The total review count\nshown in Google Play refers to ratings, not written reviews."
+    },
+    {
+      "name": "google-play-similar",
+      "description": "Get similar apps from Google Play. Returns a list of apps with:\n- url: Play Store URL\n- appId: Package name (e.g. 'com.company.app')\n- summary: Short description\n- developer: Developer name\n- developerId: Developer ID\n- icon: Icon image URL\n- score: Rating (0-5)\n- scoreText: Rating display text\n- priceText: Price display text\n- free: Boolean indicating if app is free\n"
+    },
+    {
+      "name": "google-play-developer",
+      "description": "Get apps by a developer on Google Play. Returns a list of apps with:\n- url: Play Store URL\n- appId: Package name (e.g. 'com.company.app')\n- title: App name\n- summary: Short app description\n- developer: Developer name\n- developerId: Developer ID\n- icon: Icon image URL\n- score: Rating (0-5)\n- scoreText: Rating display text\n- priceText: Price display text\n- free: Boolean indicating if app is free\n"
+    },
+    {
+      "name": "google-play-suggest",
+      "description": "Get search suggestions from Google Play. Returns an array of suggested search terms (up to 5).\nSample response: ['panda pop', 'panda', 'panda games', 'panda run', 'panda pop for free']"
+    },
+    {
+      "name": "google-play-permissions",
+      "description": "Get permissions required by a Google Play app. Returns a list of permissions with:\n- permission: Description of the permission (e.g., 'modify storage contents')\n- type: Permission category (e.g., 'Storage', 'Network')\n\nWhen short=true, returns just an array of permission strings.\nNote: Permissions are returned in the specified language."
+    },
+    {
+      "name": "google-play-datasafety",
+      "description": "Get data safety information for a Google Play app. Returns an object with:\n- dataShared: Array of shared data items, each containing:\n  - data: Name of the data being shared (e.g., 'User IDs')\n  - optional: Boolean indicating if sharing is optional\n  - purpose: Comma-separated list of purposes (e.g., 'Analytics, Marketing')\n  - type: Category of data (e.g., 'Personal info')\n- dataCollected: Array of collected data items with same structure as dataShared\n- securityPractices: Array of security practices, each containing:\n  - practice: Name of the security practice\n  - description: Detailed description of the practice\n- privacyPolicyUrl: URL to the app's privacy policy\n\nData types can include: Personal info, Financial info, Messages, Contacts,\nApp activity, App info and performance, Device or other IDs"
+    },
+    {
+      "name": "google-play-categories",
+      "description": "Get list of all Google Play categories. Returns an array of category identifiers like:\n- 'APPLICATION': All applications\n- 'GAME': All games\n- 'ANDROID_WEAR': Wear OS apps\n- 'SOCIAL': Social apps\n- 'PRODUCTIVITY': Productivity apps\netc.\n\nThese category IDs can be used with the google-play-list tool to filter apps by category.\nSample response: ['AUTO_AND_VEHICLES', 'LIBRARIES_AND_DEMO', 'LIFESTYLE', ...]"
+    },
+    {
+      "name": "google-play-list",
+      "description": "Get apps from Google Play collections. Returns a list of apps with:\n- url: Play Store URL\n- appId: Package name (e.g., 'com.company.app')\n- title: App name\n- summary: Short description\n- developer: Developer name\n- developerId: Developer ID\n- icon: Icon URL\n- score: Rating (0-5)\n- scoreText: Rating display text\n- priceText: Price display text\n- free: Boolean indicating if app is free\n\nWhen fullDetail is true, includes all fields from app details endpoint."
+    }
+  ]
+}

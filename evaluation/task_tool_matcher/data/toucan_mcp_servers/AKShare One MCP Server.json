@@ -1,0 +1,37 @@
+{
+  "name": "AKShare One MCP Server",
+  "tools": [
+    {
+      "name": "get_hist_data",
+      "description": "Get historical stock market data. 'eastmoney_direct' support all A,B,H shares"
+    },
+    {
+      "name": "get_realtime_data",
+      "description": "Get real-time stock market data. 'eastmoney_direct' support all A,B,H shares"
+    },
+    {
+      "name": "get_news_data",
+      "description": "Get stock-related news data."
+    },
+    {
+      "name": "get_balance_sheet",
+      "description": "Get company balance sheet data."
+    },
+    {
+      "name": "get_income_statement",
+      "description": "Get company income statement data."
+    },
+    {
+      "name": "get_cash_flow",
+      "description": "Get company cash flow statement data."
+    },
+    {
+      "name": "get_inner_trade_data",
+      "description": "Get company insider trading data."
+    },
+    {
+      "name": "get_time_info",
+      "description": "Get current time with ISO format, timestamp, and the last trading day."
+    }
+  ]
+}

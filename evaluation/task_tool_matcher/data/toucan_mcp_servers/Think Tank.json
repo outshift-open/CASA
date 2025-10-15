@@ -1,0 +1,85 @@
+{
+  "name": "Think Tank",
+  "tools": [
+    {
+      "name": "upsert_entities",
+      "description": "Create new entities or update existing ones in the knowledge graph using an upsert pattern"
+    },
+    {
+      "name": "create_relations",
+      "description": "Create multiple new relations between entities in the knowledge graph. Relations should be in active voice"
+    },
+    {
+      "name": "add_observations",
+      "description": "Add new observations to existing entities in the knowledge graph"
+    },
+    {
+      "name": "delete_entities",
+      "description": "Delete multiple entities and their associated relations from the knowledge graph"
+    },
+    {
+      "name": "delete_observations",
+      "description": "Delete specific observations from entities in the knowledge graph"
+    },
+    {
+      "name": "delete_relations",
+      "description": "Delete multiple relations from the knowledge graph"
+    },
+    {
+      "name": "read_graph",
+      "description": "Read the entire knowledge graph"
+    },
+    {
+      "name": "search_nodes",
+      "description": "Search for nodes in the knowledge graph based on a query"
+    },
+    {
+      "name": "open_nodes",
+      "description": "Open specific nodes in the knowledge graph by their names"
+    },
+    {
+      "name": "update_relations",
+      "description": "Update multiple existing relations in the knowledge graph"
+    },
+    {
+      "name": "memory_query",
+      "description": "Query the memory store with advanced filters"
+    },
+    {
+      "name": "think",
+      "description": "Use the tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed. Consider including: problem definition, relevant context, analysis steps, self-reflection on your reasoning, and conclusions. Adapt this structure as needed for your specific thought process."
+    },
+    {
+      "name": "plan_tasks",
+      "description": "Create multiple tasks from a plan. Generates IDs and syncs with knowledge graph."
+    },
+    {
+      "name": "list_tasks",
+      "description": "List tasks with optional filtering by status and priority."
+    },
+    {
+      "name": "next_task",
+      "description": "Get the next highest priority todo task and mark it as in-progress."
+    },
+    {
+      "name": "complete_task",
+      "description": "Mark a task as completed."
+    },
+    {
+      "name": "update_tasks",
+      "description": "Update multiple tasks with new values."
+    },
+    {
+      "name": "show_memory_path",
+      "description": "Return absolute path of the active knowledge-graph file."
+    },
+    {
+      "name": "exa_search",
+      "description": "Search the web using Exa API"
+    },
+    {
+      "name": "exa_answer",
+      "description": "Ask a question and get a sourced answer via Exa /answer API."
+    }
+  ]
+}

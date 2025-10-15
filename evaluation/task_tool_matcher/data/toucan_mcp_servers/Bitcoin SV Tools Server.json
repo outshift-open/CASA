@@ -1,0 +1,41 @@
+{
+  "name": "Bitcoin SV Tools Server",
+  "tools": [
+    {
+      "name": "bsv_getPrice",
+      "description": "Retrieves the current price of Bitcoin SV (BSV) in USD from a reliable exchange API. This tool provides real-time market data that can be used for calculating transaction values, monitoring market conditions, or converting between BSV and fiat currencies."
+    },
+    {
+      "name": "bsv_decodeTransaction",
+      "description": "Decodes and analyzes Bitcoin SV transactions to provide detailed insights. This powerful tool accepts either a transaction ID or raw transaction data and returns comprehensive information including inputs, outputs, fee calculations, script details, and blockchain context. Supports both hex and base64 encoded transactions and automatically fetches additional on-chain data when available."
+    },
+    {
+      "name": "bsv_explore",
+      "description": "Explore Bitcoin SV blockchain data using the WhatsOnChain API. Access multiple data types:\n\nCHAIN DATA:\n- chain_info: Network stats, difficulty, and chain work\n- chain_tips: Current chain tips including heights and states\n- circulating_supply: Current BSV circulating supply\n- peer_info: Connected peer statistics\n\nBLOCK DATA:\n- block_by_hash: Complete block data via hash (requires blockHash parameter)\n- block_by_height: Complete block data via height (requires blockHeight parameter)\n- tag_count_by_height: Stats on tag count for a specific block via height (requires blockHeight parameter)\n- block_headers: Retrieves the last 10 block headers\n- block_pages: Retrieves pages of transaction IDs for large blocks (requires blockHash and optional pageNumber)\n\nSTATS DATA:\n- block_stats_by_height: Block statistics for a specific height (requires blockHeight parameter)\n- block_miner_stats: Block mining statistics for a time period (optional days parameter, default 7)\n- miner_summary_stats: Summary of mining statistics (optional days parameter, default 7)\n\nTRANSACTION DATA:\n- tx_by_hash: Detailed transaction data (requires txHash parameter)\n- tx_raw: Raw transaction hex data (requires txHash parameter)\n- tx_receipt: Transaction receipt (requires txHash parameter)\n- bulk_tx_details: Bulk transaction details (requires txids parameter as array of transaction hashes)\n\nADDRESS DATA:\n- address_history: Transaction history for address (requires address parameter, optional limit)\n- address_utxos: Unspent outputs for address (requires address parameter)\n\nNETWORK:\n- health: API health check\n\nUse the appropriate parameters for each endpoint type and specify 'main' or 'test' network."
+    },
+    {
+      "name": "ordinals_getInscription",
+      "description": "Retrieves detailed information about a specific ordinal inscription by its outpoint. Returns complete inscription data including content type, file information, inscription origin, and current status. Useful for verifying NFT authenticity or retrieving metadata about digital artifacts."
+    },
+    {
+      "name": "ordinals_searchInscriptions",
+      "description": "Searches for Bitcoin SV ordinal inscriptions using flexible criteria. This powerful search tool supports filtering by address, inscription content, MIME type, MAP fields, and other parameters. Results include detailed information about each matched inscription. Ideal for discovering NFTs and exploring the ordinals ecosystem."
+    },
+    {
+      "name": "ordinals_marketListings",
+      "description": "Retrieves current marketplace listings for Bitcoin SV ordinals with flexible filtering. Supports multiple asset types (NFTs, BSV-20 tokens, BSV-21 tokens) through a unified interface. Results include listing prices, details about the assets, and seller information."
+    },
+    {
+      "name": "ordinals_marketSales",
+      "description": "Retrieves recent sales data for BSV-20 and BSV-21 tokens on the ordinals marketplace. This tool provides insights into market activity, including sale prices, transaction details, and token information. Supports filtering by token ID, ticker symbol, or seller address to help analyze market trends and track specific token sales."
+    },
+    {
+      "name": "ordinals_getTokenByIdOrTicker",
+      "description": "Retrieves detailed information about a specific BSV-20 token by its ID or ticker symbol. Returns complete token data including ticker symbol, supply information, decimals, and current status. This tool is useful for verifying token authenticity or checking supply metrics."
+    },
+    {
+      "name": "utils_convertData",
+      "description": "Converts data between different encodings (utf8, hex, base64, binary). Useful for transforming data formats when working with blockchain data, encryption, or file processing.\n\nParameters:\n- data (required): The string to convert\n- from (required): Source encoding format (utf8, hex, base64, or binary)\n- to (required): Target encoding format (utf8, hex, base64, or binary)\n\nExample usage:\n- UTF-8 to hex: {\"data\": \"hello world\", \"from\": \"utf8\", \"to\": \"hex\"} → 68656c6c6f20776f726c64\n- UTF-8 to base64: {\"data\": \"Hello World\", \"from\": \"utf8\", \"to\": \"base64\"} → SGVsbG8gV29ybGQ=\n- base64 to UTF-8: {\"data\": \"SGVsbG8gV29ybGQ=\", \"from\": \"base64\", \"to\": \"utf8\"} → Hello World\n- hex to base64: {\"data\": \"68656c6c6f20776f726c64\", \"from\": \"hex\", \"to\": \"base64\"} → aGVsbG8gd29ybGQ=\n\nNotes:\n- All parameters are required\n- The tool returns the converted data as a string\n- For binary conversion, data is represented as an array of byte values"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "OKX Server",
+  "tools": [
+    {
+      "name": "get_price",
+      "description": "Get latest price for an OKX instrument"
+    },
+    {
+      "name": "get_candlesticks",
+      "description": "Get candlestick data for an OKX instrument"
+    }
+  ]
+}

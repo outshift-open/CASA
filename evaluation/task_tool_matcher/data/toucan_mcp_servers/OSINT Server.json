@@ -1,0 +1,33 @@
+{
+  "name": "OSINT Server",
+  "tools": [
+    {
+      "name": "whois_lookup",
+      "description": ""
+    },
+    {
+      "name": "nmap_scan",
+      "description": ""
+    },
+    {
+      "name": "dnsrecon_lookup",
+      "description": ""
+    },
+    {
+      "name": "dnstwist_lookup",
+      "description": ""
+    },
+    {
+      "name": "dig_lookup",
+      "description": ""
+    },
+    {
+      "name": "host_lookup",
+      "description": ""
+    },
+    {
+      "name": "osint_overview",
+      "description": ""
+    }
+  ]
+}

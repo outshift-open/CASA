@@ -1,0 +1,49 @@
+{
+  "name": "OpenAI Agent Library",
+  "tools": [
+    {
+      "name": "search_docs",
+      "description": "Search for a specific term across OpenAI Agents SDK documentation."
+    },
+    {
+      "name": "search_github",
+      "description": "Search for a specific term across the GitHub repository."
+    },
+    {
+      "name": "get_section",
+      "description": "Get a specific section from a documentation page."
+    },
+    {
+      "name": "search_files",
+      "description": "Search for files by name across the GitHub repository.\n    \n    Args:\n        filename_pattern: Part of the filename to search for. Can be a full filename or a partial name.\n    \n    Returns:\n        JSON array of matching files with their paths and URLs.\n    "
+    },
+    {
+      "name": "get_code_examples",
+      "description": "Get code examples related to a specific OpenAI Agents SDK topic."
+    },
+    {
+      "name": "get_api_docs",
+      "description": "Get API documentation for a specific class or function in the OpenAI Agents SDK."
+    },
+    {
+      "name": "get_github_file",
+      "description": "Get content of a specific file from the GitHub repository."
+    },
+    {
+      "name": "get_doc_index",
+      "description": "Get the index of all OpenAI Agents SDK documentation pages."
+    },
+    {
+      "name": "get_doc",
+      "description": "Get content of a specific documentation page."
+    },
+    {
+      "name": "list_github_structure",
+      "description": "List the structure of the GitHub repository."
+    },
+    {
+      "name": "run_diagnostics",
+      "description": "Run diagnostics to check the health of the OpenAI Agents SDK documentation and GitHub repository."
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "name": "Office Word Document Server",
+  "tools": [
+    {
+      "name": "create_document",
+      "description": "Create a new Word document with optional metadata.\n    \n    Args:\n        filename: Name of the document to create (with or without .docx extension)\n        title: Optional title for the document metadata\n        author: Optional author for the document metadata\n    "
+    },
+    {
+      "name": "copy_document",
+      "description": "Create a copy of a Word document.\n    \n    Args:\n        source_filename: Path to the source document\n        destination_filename: Optional path for the copy. If not provided, a default name will be generated.\n    "
+    },
+    {
+      "name": "get_document_info",
+      "description": "Get information about a Word document.\n    \n    Args:\n        filename: Path to the Word document\n    "
+    },
+    {
+      "name": "get_document_text",
+      "description": "Extract all text from a Word document.\n    \n    Args:\n        filename: Path to the Word document\n    "
+    },
+    {
+      "name": "get_document_outline",
+      "description": "Get the structure of a Word document.\n    \n    Args:\n        filename: Path to the Word document\n    "
+    },
+    {
+      "name": "list_available_documents",
+      "description": "List all .docx files in the specified directory.\n    \n    Args:\n        directory: Directory to search for Word documents\n    "
+    },
+    {
+      "name": "add_paragraph",
+      "description": "Add a paragraph to a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        text: Paragraph text\n        style: Optional paragraph style name\n    "
+    },
+    {
+      "name": "add_heading",
+      "description": "Add a heading to a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        text: Heading text\n        level: Heading level (1-9, where 1 is the highest level)\n    "
+    },
+    {
+      "name": "add_picture",
+      "description": "Add an image to a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        image_path: Path to the image file\n        width: Optional width in inches (proportional scaling)\n    "
+    },
+    {
+      "name": "add_table",
+      "description": "Add a table to a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        rows: Number of rows in the table\n        cols: Number of columns in the table\n        data: Optional 2D array of data to fill the table\n    "
+    },
+    {
+      "name": "add_page_break",
+      "description": "Add a page break to the document.\n    \n    Args:\n        filename: Path to the Word document\n    "
+    },
+    {
+      "name": "delete_paragraph",
+      "description": "Delete a paragraph from a document.\n    \n    Args:\n        filename: Path to the Word document\n        paragraph_index: Index of the paragraph to delete (0-based)\n    "
+    },
+    {
+      "name": "search_and_replace",
+      "description": "Search for text and replace all occurrences.\n    \n    Args:\n        filename: Path to the Word document\n        find_text: Text to search for\n        replace_text: Text to replace with\n    "
+    },
+    {
+      "name": "create_custom_style",
+      "description": "Create a custom style in the document.\n    \n    Args:\n        filename: Path to the Word document\n        style_name: Name for the new style\n        bold: Set text bold (True/False)\n        italic: Set text italic (True/False)\n        font_size: Font size in points\n        font_name: Font name/family\n        color: Text color (e.g., 'red', 'blue')\n        base_style: Optional existing style to base this on\n    "
+    },
+    {
+      "name": "format_text",
+      "description": "Format a specific range of text within a paragraph.\n    \n    Args:\n        filename: Path to the Word document\n        paragraph_index: Index of the paragraph (0-based)\n        start_pos: Start position within the paragraph text\n        end_pos: End position within the paragraph text\n        bold: Set text bold (True/False)\n        italic: Set text italic (True/False)\n        underline: Set text underlined (True/False)\n        color: Text color (e.g., 'red', 'blue', etc.)\n        font_size: Font size in points\n        font_name: Font name/family\n    "
+    },
+    {
+      "name": "format_table",
+      "description": "Format a table with borders, shading, and structure.\n    \n    Args:\n        filename: Path to the Word document\n        table_index: Index of the table (0-based)\n        has_header_row: If True, formats the first row as a header\n        border_style: Style for borders ('none', 'single', 'double', 'thick')\n        shading: 2D list of cell background colors (by row and column)\n    "
+    },
+    {
+      "name": "protect_document",
+      "description": "Add password protection to a Word document.\n\n    Args:\n        filename: Path to the Word document\n        password: Password to protect the document with\n    "
+    },
+    {
+      "name": "unprotect_document",
+      "description": "Remove password protection from a Word document.\n\n    Args:\n        filename: Path to the Word document\n        password: Password that was used to protect the document\n    "
+    },
+    {
+      "name": "add_footnote_to_document",
+      "description": "Add a footnote to a specific paragraph in a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        paragraph_index: Index of the paragraph to add footnote to (0-based)\n        footnote_text: Text content of the footnote\n    "
+    },
+    {
+      "name": "add_endnote_to_document",
+      "description": "Add an endnote to a specific paragraph in a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        paragraph_index: Index of the paragraph to add endnote to (0-based)\n        endnote_text: Text content of the endnote\n    "
+    },
+    {
+      "name": "convert_footnotes_to_endnotes_in_document",
+      "description": "Convert all footnotes to endnotes in a Word document.\n    \n    Args:\n        filename: Path to the Word document\n    "
+    },
+    {
+      "name": "customize_footnote_style",
+      "description": "Customize footnote numbering and formatting in a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        numbering_format: Format for footnote numbers (e.g., \"1, 2, 3\", \"i, ii, iii\", \"a, b, c\")\n        start_number: Number to start footnote numbering from\n        font_name: Optional font name for footnotes\n        font_size: Optional font size for footnotes (in points)\n    "
+    },
+    {
+      "name": "get_paragraph_text_from_document",
+      "description": "Get text from a specific paragraph in a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        paragraph_index: Index of the paragraph to retrieve (0-based)\n    "
+    },
+    {
+      "name": "find_text_in_document",
+      "description": "Find occurrences of specific text in a Word document.\n    \n    Args:\n        filename: Path to the Word document\n        text_to_find: Text to search for in the document\n        match_case: Whether to match case (True) or ignore case (False)\n        whole_word: Whether to match whole words only (True) or substrings (False)\n    "
+    },
+    {
+      "name": "convert_to_pdf",
+      "description": "Convert a Word document to PDF format.\n    \n    Args:\n        filename: Path to the Word document\n        output_filename: Optional path for the output PDF. If not provided, \n                         will use the same name with .pdf extension\n    "
+    }
+  ]
+}

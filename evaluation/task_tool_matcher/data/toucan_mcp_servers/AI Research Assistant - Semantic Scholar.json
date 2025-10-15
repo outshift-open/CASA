@@ -1,0 +1,45 @@
+{
+  "name": "AI Research Assistant - Semantic Scholar",
+  "tools": [
+    {
+      "name": "papers-search-basic",
+      "description": "Search for academic papers with a simple query."
+    },
+    {
+      "name": "papers-search-advanced",
+      "description": "Search for academic papers with advanced filtering options"
+    },
+    {
+      "name": "papers-match",
+      "description": "Find a paper by closest title match"
+    },
+    {
+      "name": "papers-get",
+      "description": "Get detailed information about a specific paper"
+    },
+    {
+      "name": "papers-citations",
+      "description": "Get papers that cite a specific paper"
+    },
+    {
+      "name": "papers-references",
+      "description": "Get papers cited by a specific paper"
+    },
+    {
+      "name": "authors-search",
+      "description": "Search for authors by name or affiliation"
+    },
+    {
+      "name": "authors-papers",
+      "description": "Get papers written by a specific author"
+    },
+    {
+      "name": "papers-batch",
+      "description": "Look up multiple papers by their IDs"
+    },
+    {
+      "name": "analysis-citation-network",
+      "description": "Analyze the citation network for a specific paper"
+    }
+  ]
+}
