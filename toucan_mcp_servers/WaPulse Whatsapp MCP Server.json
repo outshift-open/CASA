@@ -1,0 +1,105 @@
+{
+  "name": "WaPulse Whatsapp MCP Server",
+  "tools": [
+    {
+      "name": "send_whatsapp_message",
+      "description": "Send a WhatsApp message to a specific phone number or group using WaPulse API"
+    },
+    {
+      "name": "send_whatsapp_files",
+      "description": "Send files (images, documents, etc.) to a specific phone number or group using WaPulse API"
+    },
+    {
+      "name": "send_whatsapp_audio",
+      "description": "Send audio messages (voice notes, music, etc.) to a specific phone number or group using WaPulse API"
+    },
+    {
+      "name": "load_chat_messages",
+      "description": "Retrieve all messages from a specific chat or conversation using WaPulse API"
+    },
+    {
+      "name": "check_id_exists",
+      "description": "Check if a specific user or group ID exists in WhatsApp using WaPulse API"
+    },
+    {
+      "name": "validate_phone_number",
+      "description": "Validate if a phone number is in the correct format for WaPulse API"
+    },
+    {
+      "name": "get_all_chats",
+      "description": "Get all WhatsApp chats (individual and group conversations) for an instance using WaPulse API"
+    },
+    {
+      "name": "get_wapulse_documentation",
+      "description": "Fetch and search WaPulse API documentation from the official website"
+    },
+    {
+      "name": "create_whatsapp_group",
+      "description": "Create a new WhatsApp group with specified participants"
+    },
+    {
+      "name": "add_group_participants",
+      "description": "Add new participants to an existing WhatsApp group"
+    },
+    {
+      "name": "remove_group_participants",
+      "description": "Remove participants from an existing WhatsApp group"
+    },
+    {
+      "name": "promote_group_participants",
+      "description": "Promote participants to admin status in a WhatsApp group"
+    },
+    {
+      "name": "demote_group_participants",
+      "description": "Demote participants from admin status in a WhatsApp group"
+    },
+    {
+      "name": "leave_whatsapp_group",
+      "description": "Leave a WhatsApp group"
+    },
+    {
+      "name": "get_group_invite_link",
+      "description": "Get the invite link for a WhatsApp group"
+    },
+    {
+      "name": "change_group_invite_code",
+      "description": "Change the invite code for a WhatsApp group, generating a new invite link"
+    },
+    {
+      "name": "get_group_requests",
+      "description": "Get pending join requests for a WhatsApp group"
+    },
+    {
+      "name": "reject_group_request",
+      "description": "Reject pending join requests for a WhatsApp group"
+    },
+    {
+      "name": "approve_group_request",
+      "description": "Approve pending join requests for a WhatsApp group"
+    },
+    {
+      "name": "get_all_groups",
+      "description": "Get all WhatsApp groups for an instance"
+    },
+    {
+      "name": "create_instance",
+      "description": "Create a new WhatsApp instance"
+    },
+    {
+      "name": "get_qr_code",
+      "description": "Get QR code for WhatsApp Web connection"
+    },
+    {
+      "name": "start_instance",
+      "description": "Start a WhatsApp instance to begin receiving and sending messages"
+    },
+    {
+      "name": "stop_instance",
+      "description": "Stop a running WhatsApp instance"
+    },
+    {
+      "name": "delete_instance",
+      "description": "Permanently delete a WhatsApp instance"
+    }
+  ]
+}

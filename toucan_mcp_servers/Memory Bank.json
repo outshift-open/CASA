@@ -1,0 +1,65 @@
+{
+  "name": "Memory Bank",
+  "tools": [
+    {
+      "name": "initialize_memory_bank",
+      "description": "Initialize a Memory Bank in the specified directory"
+    },
+    {
+      "name": "set_memory_bank_path",
+      "description": "Set a custom path for the Memory Bank"
+    },
+    {
+      "name": "debug_mcp_config",
+      "description": "Debug the current MCP configuration"
+    },
+    {
+      "name": "read_memory_bank_file",
+      "description": "Read a file from the Memory Bank"
+    },
+    {
+      "name": "write_memory_bank_file",
+      "description": "Write to a Memory Bank file"
+    },
+    {
+      "name": "list_memory_bank_files",
+      "description": "List Memory Bank files"
+    },
+    {
+      "name": "get_memory_bank_status",
+      "description": "Check Memory Bank status"
+    },
+    {
+      "name": "migrate_file_naming",
+      "description": "Migrate Memory Bank files from camelCase to kebab-case naming convention"
+    },
+    {
+      "name": "track_progress",
+      "description": "Track progress and update Memory Bank files"
+    },
+    {
+      "name": "update_active_context",
+      "description": "Update the active context file"
+    },
+    {
+      "name": "log_decision",
+      "description": "Log a decision in the decision log"
+    },
+    {
+      "name": "switch_mode",
+      "description": "Switches to a specific mode"
+    },
+    {
+      "name": "get_current_mode",
+      "description": "Gets information about the current mode"
+    },
+    {
+      "name": "process_umb_command",
+      "description": "Processes the Update Memory Bank (UMB) command"
+    },
+    {
+      "name": "complete_umb",
+      "description": "Completes the Update Memory Bank (UMB) process"
+    }
+  ]
+}

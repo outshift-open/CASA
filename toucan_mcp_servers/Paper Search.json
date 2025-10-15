@@ -1,0 +1,57 @@
+{
+  "name": "Paper Search",
+  "tools": [
+    {
+      "name": "search_arxiv",
+      "description": "Search academic papers from arXiv.\n\n    Args:\n        query: Search query string (e.g., 'machine learning').\n        max_results: Maximum number of papers to return (default: 10).\n    Returns:\n        List of paper metadata in dictionary format.\n    "
+    },
+    {
+      "name": "search_pubmed",
+      "description": "Search academic papers from PubMed.\n\n    Args:\n        query: Search query string (e.g., 'machine learning').\n        max_results: Maximum number of papers to return (default: 10).\n    Returns:\n        List of paper metadata in dictionary format.\n    "
+    },
+    {
+      "name": "search_biorxiv",
+      "description": "Search academic papers from bioRxiv.\n\n    Args:\n        query: Search query string (e.g., 'machine learning').\n        max_results: Maximum number of papers to return (default: 10).\n    Returns:\n        List of paper metadata in dictionary format.\n    "
+    },
+    {
+      "name": "search_medrxiv",
+      "description": "Search academic papers from medRxiv.\n\n    Args:\n        query: Search query string (e.g., 'machine learning').\n        max_results: Maximum number of papers to return (default: 10).\n    Returns:\n        List of paper metadata in dictionary format.\n    "
+    },
+    {
+      "name": "search_google_scholar",
+      "description": "Search academic papers from Google Scholar.\n\n    Args:\n        query: Search query string (e.g., 'machine learning').\n        max_results: Maximum number of papers to return (default: 10).\n    Returns:\n        List of paper metadata in dictionary format.\n    "
+    },
+    {
+      "name": "download_arxiv",
+      "description": "Download PDF of an arXiv paper.\n\n    Args:\n        paper_id: arXiv paper ID (e.g., '2106.12345').\n        save_path: Directory to save the PDF (default: './downloads').\n    Returns:\n        Path to the downloaded PDF file.\n    "
+    },
+    {
+      "name": "download_pubmed",
+      "description": "Attempt to download PDF of a PubMed paper.\n\n    Args:\n        paper_id: PubMed ID (PMID).\n        save_path: Directory to save the PDF (default: './downloads').\n    Returns:\n        str: Message indicating that direct PDF download is not supported.\n    "
+    },
+    {
+      "name": "download_biorxiv",
+      "description": "Download PDF of a bioRxiv paper.\n\n    Args:\n        paper_id: bioRxiv DOI.\n        save_path: Directory to save the PDF (default: './downloads').\n    Returns:\n        Path to the downloaded PDF file.\n    "
+    },
+    {
+      "name": "download_medrxiv",
+      "description": "Download PDF of a medRxiv paper.\n\n    Args:\n        paper_id: medRxiv DOI.\n        save_path: Directory to save the PDF (default: './downloads').\n    Returns:\n        Path to the downloaded PDF file.\n    "
+    },
+    {
+      "name": "read_arxiv_paper",
+      "description": "Read and extract text content from an arXiv paper PDF.\n\n    Args:\n        paper_id: arXiv paper ID (e.g., '2106.12345').\n        save_path: Directory where the PDF is/will be saved (default: './downloads').\n    Returns:\n        str: The extracted text content of the paper.\n    "
+    },
+    {
+      "name": "read_pubmed_paper",
+      "description": "Read and extract text content from a PubMed paper.\n\n    Args:\n        paper_id: PubMed ID (PMID).\n        save_path: Directory where the PDF would be saved (unused).\n    Returns:\n        str: Message indicating that direct paper reading is not supported.\n    "
+    },
+    {
+      "name": "read_biorxiv_paper",
+      "description": "Read and extract text content from a bioRxiv paper PDF.\n\n    Args:\n        paper_id: bioRxiv DOI.\n        save_path: Directory where the PDF is/will be saved (default: './downloads').\n    Returns:\n        str: The extracted text content of the paper.\n    "
+    },
+    {
+      "name": "read_medrxiv_paper",
+      "description": "Read and extract text content from a medRxiv paper PDF.\n\n    Args:\n        paper_id: medRxiv DOI.\n        save_path: Directory where the PDF is/will be saved (default: './downloads').\n    Returns:\n        str: The extracted text content of the paper.\n    "
+    }
+  ]
+}

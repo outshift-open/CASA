@@ -1,0 +1,29 @@
+{
+  "name": "Internet Speed Test",
+  "tools": [
+    {
+      "name": "measure_download_speed",
+      "description": "\n    Measure download speed using incremental file sizes.\n\n    Args:\n        size_limit: Maximum file size to test (default: 100MB)\n\n    Returns:\n        Dictionary with download speed results\n    "
+    },
+    {
+      "name": "measure_upload_speed",
+      "description": "\n    Measure upload speed using incremental file sizes.\n\n    Args:\n        url_upload: URL to upload data to\n        size_limit: Maximum file size to test (default: 100MB)\n\n    Returns:\n        Dictionary with upload speed results\n    "
+    },
+    {
+      "name": "measure_latency",
+      "description": "Measure the latency"
+    },
+    {
+      "name": "get_server_info",
+      "description": "\n    Get server information for any URL without performing speed tests.\n\n    Args:\n        url: URL to analyze\n\n    Returns:\n        Dictionary with server information including POP location, CDN info, etc.\n    "
+    },
+    {
+      "name": "measure_jitter",
+      "description": "Jitter is the variation in latency, so we need multiple measurements."
+    },
+    {
+      "name": "run_complete_test",
+      "description": "\n    Run a complete speed test returning all metrics in a single call.\n\n    This test uses the smart incremental approach inspired by SpeedOf.Me:\n    - First measures download speed with gradually increasing file sizes\n    - Then measures upload speed with gradually increasing data sizes\n    - Measures latency and jitter\n    - Returns comprehensive results with real-time data\n\n    Args:\n        max_size: Maximum file size to test (default: 100MB)\n        url_upload: URL for upload testing\n        url_latency: URL for latency testing\n\n    Returns:\n        Complete test results including download, upload, latency and jitter metrics\n    "
+    }
+  ]
+}

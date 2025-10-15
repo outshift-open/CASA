@@ -1,0 +1,21 @@
+{
+  "name": "Lorenz Woehr Portfolio",
+  "tools": [
+    {
+      "name": "get_profile",
+      "description": "Get the Lorenz Woehr's profile information"
+    },
+    {
+      "name": "get_projects",
+      "description": "Get Lorenz Woehr's projects"
+    },
+    {
+      "name": "get_project_by_slug",
+      "description": "Get a project from Lorenz Woehr by its slug"
+    },
+    {
+      "name": "get_contact",
+      "description": "Get Lorenz Woehr's contact information"
+    }
+  ]
+}

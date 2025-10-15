@@ -1,0 +1,33 @@
+{
+  "name": "Game Trends",
+  "tools": [
+    {
+      "name": "get_steam_trending_games",
+      "description": "Get real trending games from Steam platform with live data from multiple sources."
+    },
+    {
+      "name": "get_steam_top_sellers",
+      "description": "Get real top selling games from Steam platform with live sales data."
+    },
+    {
+      "name": "get_steam_most_played",
+      "description": "Get real-time most played games from Steam with live player statistics from SteamCharts."
+    },
+    {
+      "name": "get_epic_free_games",
+      "description": "Get current and upcoming free games from Epic Games Store with real promotion data."
+    },
+    {
+      "name": "get_epic_trending_games",
+      "description": "Get trending games from Epic Games Store."
+    },
+    {
+      "name": "get_all_trending_games",
+      "description": "Get comprehensive real-time gaming data from all platforms (Steam and Epic Games)."
+    },
+    {
+      "name": "get_api_health",
+      "description": "Check the health status of the Gaming Trend Analytics API."
+    }
+  ]
+}

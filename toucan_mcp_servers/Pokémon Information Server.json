@@ -1,0 +1,33 @@
+{
+  "name": "Pokémon Information Server",
+  "tools": [
+    {
+      "name": "random_pokemon",
+      "description": "Rastgele bir Pokémon seç"
+    },
+    {
+      "name": "random_pokemon_from_region",
+      "description": "Belirli bir bölgeden rastgele bir Pokémon seç"
+    },
+    {
+      "name": "random_pokemon_by_type",
+      "description": "Belirli bir türden rastgele bir Pokémon seç"
+    },
+    {
+      "name": "pokemon_query",
+      "description": "Doğal dil ile Pokémon sorguları yap"
+    },
+    {
+      "name": "start_battle",
+      "description": "Start a battle between two Pokémon"
+    },
+    {
+      "name": "make_move",
+      "description": "Make a move in the current battle"
+    },
+    {
+      "name": "use_item",
+      "description": "Use an item in battle"
+    }
+  ]
+}

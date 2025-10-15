@@ -1,0 +1,45 @@
+{
+  "name": "EVE Online Market Data Server",
+  "tools": [
+    {
+      "name": "get-market-prices",
+      "description": "Get market prices for all items in EVE Online"
+    },
+    {
+      "name": "get-market-orders",
+      "description": "Get market orders from a specific region"
+    },
+    {
+      "name": "get-market-history",
+      "description": "Get market history for a specific item in a region"
+    },
+    {
+      "name": "get-market-groups",
+      "description": "Get grouped market data for a region and type"
+    },
+    {
+      "name": "get-structure-orders",
+      "description": "Get all market orders in a structure"
+    },
+    {
+      "name": "get-market-stats",
+      "description": "Get market statistics for a region"
+    },
+    {
+      "name": "get-structure-type-orders",
+      "description": "Get all market orders for a specific type in a structure"
+    },
+    {
+      "name": "get-auth-url",
+      "description": "Get the authentication URL for EVE Online SSO"
+    },
+    {
+      "name": "authenticate",
+      "description": "Exchange authorization code for access token"
+    },
+    {
+      "name": "refresh-token",
+      "description": "Refresh an expired access token"
+    }
+  ]
+}

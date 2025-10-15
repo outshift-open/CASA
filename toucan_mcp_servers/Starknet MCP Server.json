@@ -1,0 +1,105 @@
+{
+  "name": "Starknet MCP Server",
+  "tools": [
+    {
+      "name": "get_starknet_chain_info",
+      "description": "Get information about a Starknet network"
+    },
+    {
+      "name": "get_supported_starknet_networks",
+      "description": "Get a list of supported Starknet networks"
+    },
+    {
+      "name": "get_starknet_eth_balance",
+      "description": "Get the ETH balance for a Starknet address or Starknet ID"
+    },
+    {
+      "name": "get_starknet_token_balance",
+      "description": "Get the token balance for a Starknet address or Starknet ID"
+    },
+    {
+      "name": "get_starknet_strk_balance",
+      "description": "Get the STRK token balance for a Starknet address or Starknet ID"
+    },
+    {
+      "name": "get_starknet_native_balances",
+      "description": "Get all native token balances (ETH and STRK) for a Starknet address or Starknet ID"
+    },
+    {
+      "name": "resolve_starknet_name",
+      "description": "Get the Starknet ID for an address"
+    },
+    {
+      "name": "resolve_starknet_address",
+      "description": "Get the address for a Starknet ID"
+    },
+    {
+      "name": "get_starknet_profile",
+      "description": "Get the full Starknet ID profile for an address or Starknet ID"
+    },
+    {
+      "name": "validate_starknet_domain",
+      "description": "Check if a string is a valid Starknet ID"
+    },
+    {
+      "name": "get_starknet_block",
+      "description": "Get information about a specific block"
+    },
+    {
+      "name": "get_starknet_block_transactions",
+      "description": "Get transactions in a specific block"
+    },
+    {
+      "name": "get_starknet_transaction",
+      "description": "Get details about a transaction"
+    },
+    {
+      "name": "get_starknet_transaction_receipt",
+      "description": "Get transaction receipt"
+    },
+    {
+      "name": "call_starknet_contract",
+      "description": "Call a read-only function on a contract"
+    },
+    {
+      "name": "get_starknet_contract_class",
+      "description": "Get the class (ABI and other information) of a contract"
+    },
+    {
+      "name": "get_starknet_token_info",
+      "description": "Get information about a token"
+    },
+    {
+      "name": "check_starknet_nft_ownership",
+      "description": "Check if an address owns a specific NFT"
+    },
+    {
+      "name": "get_starknet_nft_balance",
+      "description": "Get the number of NFTs owned by an address for a specific collection"
+    },
+    {
+      "name": "get_starknet_token_supply",
+      "description": "Get the total supply of a token"
+    },
+    {
+      "name": "check_starknet_transaction_status",
+      "description": "Check if a transaction is confirmed (finalized)"
+    },
+    {
+      "name": "transfer_starknet_eth",
+      "description": "Transfer ETH from one account to another"
+    },
+    {
+      "name": "transfer_starknet_strk",
+      "description": "Transfer STRK from one account to another"
+    },
+    {
+      "name": "transfer_starknet_token",
+      "description": "Transfer ERC20 tokens from one account to another"
+    },
+    {
+      "name": "execute_starknet_contract",
+      "description": "Execute a contract call (write operation)"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "name": "CCXT MCP Server",
+  "tools": [
+    {
+      "name": "cache-stats",
+      "description": "Get CCXT cache statistics"
+    },
+    {
+      "name": "clear-cache",
+      "description": "Clear CCXT cache"
+    },
+    {
+      "name": "set-log-level",
+      "description": "Set logging level"
+    },
+    {
+      "name": "list-exchanges",
+      "description": "List all available cryptocurrency exchanges"
+    },
+    {
+      "name": "get-ticker",
+      "description": "Get current ticker information for a trading pair"
+    },
+    {
+      "name": "batch-get-tickers",
+      "description": "Get ticker information for multiple trading pairs at once"
+    },
+    {
+      "name": "get-orderbook",
+      "description": "Get market order book for a trading pair"
+    },
+    {
+      "name": "get-ohlcv",
+      "description": "Get OHLCV candlestick data for a trading pair"
+    },
+    {
+      "name": "get-trades",
+      "description": "Get recent trades for a trading pair"
+    },
+    {
+      "name": "get-markets",
+      "description": "Get all available markets for an exchange"
+    },
+    {
+      "name": "get-exchange-info",
+      "description": "Get exchange information and status"
+    },
+    {
+      "name": "get-leverage-tiers",
+      "description": "Get futures leverage tiers for trading pairs"
+    },
+    {
+      "name": "get-funding-rates",
+      "description": "Get current funding rates for perpetual contracts"
+    },
+    {
+      "name": "get-market-types",
+      "description": "Get market types supported by an exchange"
+    },
+    {
+      "name": "account-balance",
+      "description": "Get your account balance from a crypto exchange"
+    },
+    {
+      "name": "place-market-order",
+      "description": "Place a market order on an exchange"
+    },
+    {
+      "name": "set-leverage",
+      "description": "Set leverage for futures trading"
+    },
+    {
+      "name": "set-margin-mode",
+      "description": "Set margin mode for futures trading"
+    },
+    {
+      "name": "place-futures-market-order",
+      "description": "Place a futures market order"
+    },
+    {
+      "name": "get-proxy-config",
+      "description": "Get the current proxy configuration"
+    },
+    {
+      "name": "set-proxy-config",
+      "description": "Configure proxy settings for all exchanges"
+    },
+    {
+      "name": "test-proxy-connection",
+      "description": "Test the proxy connection with a specified exchange"
+    },
+    {
+      "name": "clear-exchange-cache",
+      "description": "Clear exchange instance cache to apply configuration changes"
+    },
+    {
+      "name": "set-market-type",
+      "description": "Set default market type for all exchanges"
+    }
+  ]
+}

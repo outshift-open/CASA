@@ -1,0 +1,17 @@
+{
+  "name": "Pumpfun Data Fetch Tool",
+  "tools": [
+    {
+      "name": "get_featured_coins",
+      "description": "Get a list of featured coins"
+    },
+    {
+      "name": "get_coins",
+      "description": "Get a list of coins"
+    },
+    {
+      "name": "get_coin_info",
+      "description": "Get information about a coin"
+    }
+  ]
+}

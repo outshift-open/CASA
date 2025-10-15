@@ -1,0 +1,49 @@
+{
+  "name": "OpenProject Integration Server",
+  "tools": [
+    {
+      "name": "start-notification-stream",
+      "description": "Starts sending periodic notifications for testing resumability"
+    },
+    {
+      "name": "openproject-create-project",
+      "description": "Creates a new project in OpenProject"
+    },
+    {
+      "name": "openproject-create-task",
+      "description": "Creates a new task (work package) in an OpenProject project"
+    },
+    {
+      "name": "openproject-get-project",
+      "description": "Gets a specific project by its ID from OpenProject"
+    },
+    {
+      "name": "openproject-list-projects",
+      "description": "Lists all projects in OpenProject"
+    },
+    {
+      "name": "openproject-get-task",
+      "description": "Gets a specific task (work package) by its ID from OpenProject"
+    },
+    {
+      "name": "openproject-list-tasks",
+      "description": "Lists tasks (work packages) in OpenProject, optionally filtered by project ID"
+    },
+    {
+      "name": "openproject-update-project",
+      "description": "Updates an existing project in OpenProject. Only include fields to be changed."
+    },
+    {
+      "name": "openproject-update-task",
+      "description": "Updates an existing task (work package) in OpenProject. Only include fields to be changed."
+    },
+    {
+      "name": "openproject-delete-project",
+      "description": "Deletes a project from OpenProject. This action is irreversible."
+    },
+    {
+      "name": "openproject-delete-task",
+      "description": "Deletes a task (work package) from OpenProject. This action is irreversible."
+    }
+  ]
+}

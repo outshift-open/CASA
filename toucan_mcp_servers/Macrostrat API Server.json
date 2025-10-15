@@ -1,0 +1,29 @@
+{
+  "name": "Macrostrat API Server",
+  "tools": [
+    {
+      "name": "find-columns",
+      "description": "Query Macrostrat stratigraphic columns"
+    },
+    {
+      "name": "find-units",
+      "description": "Query Macrostrat geologic units"
+    },
+    {
+      "name": "defs",
+      "description": "Routes giving access to standard fields and dictionaries used in Macrostrat"
+    },
+    {
+      "name": "defs-autocomplete",
+      "description": "Quickly retrieve all definitions matching a query. Limited to 100 results"
+    },
+    {
+      "name": "mineral-info",
+      "description": "Get information about a mineral, use one property"
+    },
+    {
+      "name": "timescale",
+      "description": "Get information about a time period"
+    }
+  ]
+}

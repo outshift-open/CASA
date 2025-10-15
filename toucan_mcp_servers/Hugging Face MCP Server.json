@@ -1,0 +1,45 @@
+{
+  "name": "Hugging Face MCP Server",
+  "tools": [
+    {
+      "name": "search-models",
+      "description": "Search for models on Hugging Face Hub"
+    },
+    {
+      "name": "get-model-info",
+      "description": "Get detailed information about a specific model"
+    },
+    {
+      "name": "search-datasets",
+      "description": "Search for datasets on Hugging Face Hub"
+    },
+    {
+      "name": "get-dataset-info",
+      "description": "Get detailed information about a specific dataset"
+    },
+    {
+      "name": "search-spaces",
+      "description": "Search for Spaces on Hugging Face Hub"
+    },
+    {
+      "name": "get-space-info",
+      "description": "Get detailed information about a specific Space"
+    },
+    {
+      "name": "get-paper-info",
+      "description": "Get information about a specific paper on Hugging Face"
+    },
+    {
+      "name": "get-daily-papers",
+      "description": "Get the list of daily papers curated by Hugging Face"
+    },
+    {
+      "name": "search-collections",
+      "description": "Search for collections on Hugging Face Hub"
+    },
+    {
+      "name": "get-collection-info",
+      "description": "Get detailed information about a specific collection"
+    }
+  ]
+}
