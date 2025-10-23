@@ -98,13 +98,40 @@ print(f"Total number of tool entries across all MCPs: {total_tools}")
 out_dir = "toucan_mcp_servers"
 os.makedirs(out_dir, exist_ok=True)
 
-written = skipped = 0
+duplicate = rejected = written = skipped = 0
+all_tool_names: list[str] = []
+ACCEPTED_MCP_SERVERS = defaultdict(list)
 
 for mcp_name, tools in MCP_NAME_TO_TOOLS.items():
     path = os.path.join(out_dir, f"{mcp_name}.json")
-    print(path)
+
+    reject = False
+    # filter on Chinese characters and missing descriptions
+    for tool in tools:
+        if tool["description"] is None or contains_chinese(tool["name"]) or contains_chinese(tool["description"]):
+            reject = True
+            rejected += 1
+
+    # filter on duplicate tool names
+    for tool in tools:
+        if tool["name"] in all_tool_names:
+            print(f"  Skipping {mcp_name} due to duplicate tool name: {tool['name']}")
+            reject = True
+            rejected += 1
+            duplicate += 1
+            break
+
+    if reject:
+        print(f"  Skipping {mcp_name} due to Chinese characters or missing descriptions.")
+        continue
+
+    ACCEPTED_MCP_SERVERS[mcp_name] = tools
+
     data = {"name": mcp_name, "tools": tools}
     serialized = json.dumps(data, ensure_ascii=False, indent=2)
+
+    # track all unique tool names so far
+    all_tool_names.extend(tool["name"] for tool in tools)
 
     if os.path.exists(path):
         try:
@@ -119,10 +146,12 @@ for mcp_name, tools in MCP_NAME_TO_TOOLS.items():
         f.write(serialized)
     written += 1
 
-print(f"JSON export complete. Written: {written}, skipped (unchanged): {skipped}, total: {written + skipped}")
+print(
+    f"JSON export complete. Written: {written}, skipped (unchanged): {skipped}, rejected: {rejected}, duplicate: {duplicate}, total: {written + skipped + rejected + duplicate}"
+)
+print(len(ACCEPTED_MCP_SERVERS), "MCP servers accepted.")
 
-
-datasubset = dataset.select(range(8000))
+datasubset = dataset.select(range(40000))
 print(f"Number of samples scanned: {len(datasubset)}")
 
 generated_samples: list[list[dict[str, Any]]] = [[] for _ in range(3)]
@@ -131,15 +160,14 @@ for idx, sample in enumerate(datasubset):
     if len(json.loads(sample["metadata"])["mcp_servers"]) == 1:
         mcp_server_name = json.loads(sample["metadata"])["mcp_servers"][0]["server_name"]
         mcp_server_name = mcp_server_name.replace("/", "").replace("\\", "").replace(".", "").replace(",", "")
+        if mcp_server_name in ACCEPTED_MCP_SERVERS:
+            synthetic_task = sample["question"]
+            tool_names = sample["target_tools"].split(", ")
 
-        synthetic_task = sample["question"]
-        tool_names = sample["target_tools"].split(", ")
+            if len(generated_samples[len(tool_names) - 1]) < 1100:
+                mcp_servers = [mcp_server_name for _ in tool_names]
 
-        if len(generated_samples[len(tool_names) - 1]) < 1056:
-            mcp_servers = [mcp_server_name for _ in tool_names]
-
-            if len(MCP_NAME_TO_TOOLS[mcp_server_name]) >= 2 * len(tool_names):
-                if not contains_chinese(mcp_server_name):
+                if len(ACCEPTED_MCP_SERVERS[mcp_server_name]) >= 2 * len(tool_names):
                     task_sample = {
                         "tool_names": tool_names,
                         "mcp_servers": mcp_servers,
