@@ -100,6 +100,7 @@ select = ["D", "I", "F", "N", "NPY", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "F401", "F403"]
+"*.ipynb" = ["F821"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
