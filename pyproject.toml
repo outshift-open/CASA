@@ -54,8 +54,6 @@ dev = [
   "pandas>=2.3.2",
   "matplotlib>=3.10.5",
   "seaborn>=0.13.2",
-  "pyarrow==21.0.0",
-  "datasets==4.1.1",
 ]
 
 [project.urls]
