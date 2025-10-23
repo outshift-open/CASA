@@ -31,7 +31,7 @@ dependencies = [
   "PyJWT>=2.10.1",
   "plotly>=6.3.0",
   "pandas>=2.3.2",
-  "pyarrow~=14.0.0",
+  "pyarrow~=17.0.0",
   "streamlit>=1.49.1",
 ]
 
