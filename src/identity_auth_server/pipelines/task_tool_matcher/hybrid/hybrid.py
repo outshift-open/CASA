@@ -16,20 +16,12 @@ from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import (
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchReason
 from identity_auth_server.pipelines.task_tool_matcher.utils import EmbeddingService, EmbeddingTopNMatches
 
-SYS_PROMPT = """You are a tool calling agent. Based on the dialog context, generate the description of the ideal tool that you should call.
-The tool description should be concise and to the point, and MUST be in the following format:
+SYS_PROMPT = """You are a tool calling agent. Based on the dialog context, generate the description of the ideal tool that you should
+call using a style similar to API documentation.
+The tool description should be concise and to the point, should not include detailed values, and MUST be in the
+following format:
 <tool_assistant>
 tool: [describe the tool functionality]
-</tool_assistant>
-Based on the dialogue context, identify the specific task that needs to be performed and describe it accurately using a style similar to API documentation. Ensure your description is clear, precise, and do not include detailed values.
-Example dialogue:
-User: Hi, can you help me check my alarm for March 20th, 2023 at 6:30AM?
-AI: Sure, to access your alarm information, I'll need to authenticate. Can you please provide me with your email, username, and password?
-User: My email is janesmith@example.com, username is JaneSmith, and password is password.
-AI: Thank you for the information. Let me authenticate you first.
-Example output:
-<tool_assistant>
-tool: Get the user token by username and password.
 </tool_assistant>
 Only output the tool description within the specified format. Do not provide any explanation or commentary.
 """
@@ -95,6 +87,7 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         raw_response = self.openai_client.chat.completions.create(
             model=self.model_id,
             messages=[{"role": "system", "content": SYS_PROMPT}, {"role": "user", "content": task}],
+            temperature=0.0,
         )
         response = raw_response.choices[0].message.content
         parsing_match = re.search(r"tool:\s*(.+?)\s*</tool_assistant>", response, re.DOTALL)
