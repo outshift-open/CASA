@@ -90,6 +90,7 @@ class LlmVerifierTaskToolMatcher(TaskToolMatcher):
                 {"role": "user", "content": json.dumps(structured_input)},
             ],
             text_format=LlmVerifierTaskToolMatcherConditions,
+            temperature=0.0,
         )
         structured_response = structured_raw_response.output_parsed
         self.logger.debug(structured_response)
