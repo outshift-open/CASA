@@ -152,6 +152,13 @@ async def introspect_token(req: Request):
 
     return {"active": False}
 
+@app.post("/oauth2/default/v1/revoke")
+async def revoke(_: Request):
+    """Revoke the given token."""
+
+    # Clear the token database for demonstration purposes
+    token_db.clear()
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

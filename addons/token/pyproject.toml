@@ -15,7 +15,7 @@ license = "Apache-2.0"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["python-dotenv", "fastapi", "uvicorn[standard]", "pydantic", "python-keycloak", "requests", "keycloak-client"]
+dependencies = ["python-dotenv", "fastapi", "uvicorn[standard]", "pydantic", "python-keycloak", "requests", "keycloak-client", "python-multipart"]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-asyncio"]
