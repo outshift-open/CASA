@@ -1,2 +1,3 @@
 test/api/data/jira_mcp_badge.txt
 evaluation/task_tool_matcher/data/mcp_servers/generation/servers_config.json
+.env.sample

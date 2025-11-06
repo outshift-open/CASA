@@ -125,6 +125,12 @@ test: # Run all unit tests.
 > pytest
 .PHONY: test
 
+test-integration: # Run only integration tests.
+> @printf "$(YELLOW)Running integration tests$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> pytest test/integration/ -m integration
+.PHONY: test-integration
+
 docker-build: # Build the Docker image.
 > @printf "$(YELLOW)Building Docker image$(NOCOLOR)\n"
 > docker build -f deployments/docker/Dockerfile -t identity-auth-server .

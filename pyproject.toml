@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
-version = "0.0.1"
+version = "0.0.3"
 # comma separated list of Python dependencies.
 # Notice: Add dev-only dependencies to the [project.optional-dependencies.dev] section below.
 # Notice: If you use PyTorch, directly or indirectly (e.g. via huggingface/transformers), don't add it here.
@@ -24,14 +24,13 @@ version = "0.0.1"
 dependencies = [
   "fastapi[standard]>=0.116.1",
   "mcp>=1.13.1",
-  "scikit-learn>=1.7.1",
   "numpy>=2.3.2",
   "openai>=1.101.0",
+  "httpx>=0.27.2",
   "identity-service-sdk>=0.0.2",
   "PyJWT>=2.10.1",
-  "plotly>=6.3.0",
-  "pandas>=2.3.2",
-  "streamlit>=1.49.1",
+  "sqlalchemy>=2.0.43",
+  "alembic>=1.16.5",
 ]
 
 [project.optional-dependencies]
@@ -52,6 +51,9 @@ dev = [
   "openai==1.101.0",
   "tqdm>=4.66.4",
   "pandas>=2.3.2",
+  "plotly>=6.3.0",
+  "scikit-learn>=1.7.1",
+  "streamlit>=1.49.1",
   "matplotlib>=3.10.5",
   "seaborn>=0.13.2",
   "datasets~=4.1.1"
@@ -84,6 +86,10 @@ exclude = [
 [tool.pytest.ini_options]
 minversion = "8.3"
 testpaths = [ "test" ]
+markers = [
+  "integration: mark tests that exercise live service and database flows"
+]
+addopts = "-m 'not integration' --ignore=test/integration"
 
 [tool.mypy]
 ignore_missing_imports = true
