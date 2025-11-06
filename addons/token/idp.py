@@ -1,5 +1,6 @@
 """Idp entity module."""
 
+import json
 import logging
 import os
 
@@ -75,20 +76,62 @@ def create_keycloak_client(client_id: str):
         },
     )
 
+    keycloak_admin.add_mapper_to_client(
+        client_db_id,
+        {
+            "protocol": "openid-connect",
+            "protocolMapper": "POIT-gethttpheader",
+            "name": "X-Requested-Input",
+            "config": {
+                "http-header": "X-Requested-Input",
+                "claim.name": "input",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "lightweight.claim": "false",
+                "userinfo.token.claim": "true",
+                "introspection.token.claim": "true",
+            },
+        },
+    )
+
+    keycloak_admin.add_mapper_to_client(
+        client_db_id,
+        {
+            "protocol": "openid-connect",
+            "protocolMapper": "POIT-gethttpheader",
+            "name": "X-Requested-Act",
+            "config": {
+                "http-header": "X-Requested-Act",
+                "claim.name": "act",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "lightweight.claim": "false",
+                "userinfo.token.claim": "true",
+                "introspection.token.claim": "true",
+            },
+        },
+    )
+
     # Get client secret
     client = keycloak_admin.get_client(client_db_id)
 
     return client
 
 
-def get_keycloak_token(client_id: str, client_secret: str, tools: list):
+def get_keycloak_token(
+    client_id: str, client_secret: str, tools: list, input: str, act: str
+):
     """Get a token from Keycloak for the given client."""
     keycloak_openid = KeycloakOpenID(
         server_url="http://localhost:8080/",
         client_id=client_id,
         realm_name="master",
         client_secret_key=client_secret,
-        custom_headers={"X-Requested-Tools": " ".join(tools)},
+        custom_headers={
+            "X-Requested-Tools": " ".join(tools),
+            "X-Requested-Input": input,
+            "X-Requested-Act": json.dumps(act),
+        },
     )
 
     return keycloak_openid.token(grant_type="client_credentials")
