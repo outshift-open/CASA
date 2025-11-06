@@ -123,6 +123,7 @@ async def token(req: Request):
         client_secret=client.secret,
         tools=state.get("tools", []),
         input=state.get("input", ""),
+        act=state.get("act", {}),
     )
 
     # Add to temp token DB
