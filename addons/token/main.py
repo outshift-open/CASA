@@ -122,15 +122,15 @@ async def token(req: Request):
         client_id=client.client_id,
         client_secret=client.secret,
         tools=state.get("tools", []),
+        input=state.get("input", ""),
     )
 
     # Add to temp token DB
     token_db[client.client_id] = keycloak_token["access_token"]
 
     # For demonstration purposes, we'll just return a dummy token.
-    return TokenResponse(
-        access_token=keycloak_token["access_token"], token_type="Bearer"
-    )
+    return TokenResponse(access_token=keycloak_token["access_token"],
+                         token_type="Bearer")
 
 
 @app.post("/oauth2/default/v1/introspect")
@@ -151,6 +151,7 @@ async def introspect_token(req: Request):
             }
 
     return {"active": False}
+
 
 @app.post("/oauth2/default/v1/revoke")
 async def revoke(_: Request):
