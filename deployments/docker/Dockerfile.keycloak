@@ -1,0 +1,5 @@
+# Use Keycloak image
+FROM quay.io/keycloak/keycloak:latest as keycloak
+
+# Copy libs
+COPY resources/libs/ /opt/keycloak/providers/
