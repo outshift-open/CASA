@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "token"
+version = "0.0.1"
+authors = [
+    {name = "Jean Diaconu", email = "jdiaconu@cisco.com"},
+]
+description = "ZTA Auth Server Python SDK"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = ["python-dotenv", "fastapi", "uvicorn[standard]", "pydantic", "python-keycloak", "requests", "keycloak-client"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio"]
+lint = ["pylint", "ruff", "mypy"]
+
+[project.urls]
+"Homepage" = "https://github.com/outshift-open/zta"
+"Bug Tracker" = "https://github.com/outshift-open/zta"
+
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+minversion = "8.0.0"
+testpaths = [
+  "tests",
+]
+
+[tool.ruff]
+line-length = 80
+extend-include = [
+  "*.ipynb"
+]
+exclude = [
+  ".ipynb_checkpoints"
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["D104", "F401", "F403"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pylint]
+prefer-stubs = true
+ignore-paths = ".venv,build"
+
+[tool.mypy]
+exclude = "^()"
+
+[[tool.mypy.overrides]]
+module = []
+ignore_errors = true
