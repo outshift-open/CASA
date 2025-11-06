@@ -16,8 +16,9 @@ from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import (
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchReason
 
 SYS_PROMPT = """You are a guardrail agent. You are responsible for providing access to tools based on user requests.
-Analyze the user request and the requested tool to determine if the tool is appropriate to fullfill the user request.
-Note that a tool could be appropriate, but not sufficient, to fullfill the user request.
+Analyze the user request and the requested tool to determine if the tool is appropriate to fulfill the user request.
+Note that a tool is **appropriate** if it can help accomplish ANY part of the user's request, even if additional tools are needed to complete the full task.
+A tool is **not appropriate** only if it is unrelated or would not contribute to fulfilling the user's request.
 
 Your input is a JSON object with the following fields:
 - original prompt: the original user prompt
