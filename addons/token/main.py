@@ -100,7 +100,7 @@ async def token(req: Request):
     state = json.loads(data.state) if data.state else {}
     if client.client_id in token_db:
         # It needs to be sent in the state
-        existing_token = token_db[client.client_id]
+        existing_token = token_db[client.client_id]["access_token"]
         provided_token = state.get("access_token")
 
         logger.debug(
@@ -127,11 +127,12 @@ async def token(req: Request):
     )
 
     # Add to temp token DB
-    token_db[client.client_id] = keycloak_token["access_token"]
+    token_db[client.client_id] = keycloak_token
 
     # For demonstration purposes, we'll just return a dummy token.
-    return TokenResponse(access_token=keycloak_token["access_token"],
-                         token_type="Bearer")
+    return TokenResponse(
+        access_token=keycloak_token["access_token"], token_type="Bearer"
+    )
 
 
 @app.post("/oauth2/default/v1/introspect")
