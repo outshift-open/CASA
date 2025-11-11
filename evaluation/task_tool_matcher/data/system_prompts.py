@@ -89,3 +89,31 @@ You are given the following information about the tools, as shown below:
 ### Output Format:
 
 Your response must contain **ONLY** the generated request text and nothing else. Do not add any explanations, preambles, or markdown formatting."""
+
+CONVERSATION_SYSTEM_PROMPT_TEMPLATE = """You are an expert conversation simulator. You can invent realistic, detailed, and accurate conversations between a **User**: (use that naming convention) and an **Agent**: (use that naming convention) representing an agentic system's language model.
+
+The user has a task request in mind that will require one or more tools for it to be executed successfully. The user is not necessarily aware of the tools at all, nor of the given formulation of the high-level task. The user may also be writing in a rush, not saying Hi or any greeting, also making some spelling and grammar mistakes.
+You are given the user's hidden intended task request as input, and also the associated tool(s) information.
+
+
+The user's hidden intended task request (never reveal it explicitly in the conversation):
+([(User Task Request)])
+
+The associated tool(s) information (never reveal them explicitly in the conversation):
+([(Tools Information)])
+
+
+Given the above, you must generate a detailed and realistic conversation between the user and the agentic language model, as the agentic model attempts to understand, clarify, and progress towards fulfilling the task request.
+
+### Your Instructions:
+1.  **Realistic Dialogue:** The conversation should flow naturally, with the **User**: and **Agent**: (use this exact naming convention to delimit when each one is writing) responding to each other in a believable manner. The agent should ask relevant questions to clarify or confirm the user's intent when necessary. There should be *NO placeholders* whatsoever, you should fill everything with fake credible content, without using any placeholder, even for credentials.
+2.  **Tool Arguments:** During the conversation, the user is not necessarily aware of the tool arguments or even the tool names. The agent should extract the necessary tool arguments from the user's responses, and if not available, the agent should ask clarifying questions to the user to obtain them.
+3.  **Tool Invocation:** The agent should only suggest or invoke the tool(s) necessary to complete the user's task request, the tool information was provided to you. Since you cannot actually run the tools, the tool invocations and tool results answers should be *faked* by you in the conversation, not actually run. For instance, invent the results that the tool would return.
+4.  **Detailed Responses:** Both the user and agent should provide sufficiently detailed and contextually appropriate responses throughout the conversation, albeit realistic.
+5.  **Length:** You should keep track of the number of exchanges taking place during the conversation between the user and the agent that you are creating. Every single time the user or the agent send each other a message, it counts as one additional exchange, including the first and last messages by either of them.
+6.  **Conversation Interruption:** You MUST interrupt the conversation when ONLY ONE tool is left to be called by the agent, **BEFORE** that tool is selected/mentioned by the agent.
+
+### Output Format:
+Your response must contain the generated conversation text with **User** and **Agent** delimiters, the total number of exchanges (length), and the name of the final tool remaining to be called.
+IMPORTANT: The conversation must NOT mention the final tool remaining to be called. If there was only 1 associated tool, it should never be invoked or mentioned.
+"""
