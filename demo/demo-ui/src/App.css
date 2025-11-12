@@ -262,17 +262,6 @@ select {
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
 }
 
-.cell-container.blocked-ai {
-  background: rgba(255, 165, 0, 0.15);
-  border-color: rgba(255, 140, 0, 0.45);
-}
-
-.cell-container.blocked-ai:hover {
-  background: rgba(255, 165, 0, 0.22);
-  border-color: rgba(255, 140, 0, 0.55);
-  box-shadow: 0 2px 8px rgba(255, 140, 0, 0.25);
-}
-
 .cell-container.allowed {
   background: rgba(16, 185, 129, 0.06);
   border-color: rgba(16, 185, 129, 0.25);
@@ -328,6 +317,10 @@ select {
   color: #b91c1c;
 }
 
+.status-badge.allowed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
 
 .cell-row {
   display: flex;
@@ -388,16 +381,6 @@ select {
   box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
 }
 
-.cell-container.blocked-ai .info-button-icon {
-  background: rgba(255, 140, 0, 0.2);
-  color: #c77700;
-}
-
-.cell-container.blocked-ai .info-button-icon:hover {
-  background: rgba(255, 140, 0, 0.3);
-  box-shadow: 0 2px 6px rgba(255, 140, 0, 0.35);
-}
-
 .cell-container.allowed .info-button-icon {
   background: rgba(16, 185, 129, 0.15);
   color: #047857;
@@ -454,12 +437,6 @@ select {
   border-bottom: 1px solid rgba(239, 68, 68, 0.4);
 }
 
-.cell-container.blocked-ai .info-panel-overlay .info-panel-header {
-  background: rgba(255, 140, 0, 0.3);
-  color: #7a4700;
-  border-bottom: 1px solid rgba(255, 140, 0, 0.45);
-}
-
 .cell-container.allowed .info-panel-overlay .info-panel-header {
   background: rgba(16, 185, 129, 0.25);
   color: #064e3b;
@@ -496,6 +473,32 @@ select {
 .info-close-button:active {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(0.9);
+}
+
+.copy-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  color: #1d4ed8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.copy-button:hover {
+  color: #2563eb;
+  transform: none;
+  box-shadow: none;
+  text-decoration: underline;
+}
+
+.copy-button:active {
+  transform: scale(0.95);
 }
 
 .info-panel-content {
@@ -567,6 +570,13 @@ select {
   gap: 0.1rem;
   padding: 0.4rem 0.5rem;
   border-radius: 0.3rem;
+}
+
+.info-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .info-row:nth-child(odd) {

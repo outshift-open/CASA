@@ -3,7 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from identity_auth_server.api.routes.llm_app_call.route import LlmAppCallRouteImpl
@@ -12,23 +12,17 @@ from identity_auth_server.api.routes.mcp_app_tool_call.route import McpAppToolCa
 from identity_auth_server.api.routes.session.route import SessionRouteImpl
 from identity_auth_server.api.routes.source_app_call.route import SourceAppCallRouteImpl
 from identity_auth_server.api.routes.source_app_response.route import SourceAppResponseRouteImpl
+from identity_auth_server.api.routes.token.token import TokenRouteImpl
 from identity_auth_server.api.routes.trace.route import TraceRouteImpl
-from identity_auth_server.api.types import (
-    IntentMcpBadgeToolMatchRequest,
-    IntentMcpBadgeToolMatchResult,
-    IntentMcpToolMatchRequest,
-    IntentMcpToolMatchResult,
-)
-from identity_auth_server.api.utils import decode_badge_extract_mcp_server
 from identity_auth_server.core.llm_app_call.postgres.repository import LlmAppCallPostgresRepository
 from identity_auth_server.core.llm_app_response.postgres.repository import LlmAppResponsePostgresRepository
 from identity_auth_server.core.mcp_app_tool_call.postgres.repository import McpAppToolCallPostgresRepository
 from identity_auth_server.core.session.postgres.repository import SessionPostgresRepository
 from identity_auth_server.core.source_app_call.postgres.repository import SourceAppCallPostgresRepository
 from identity_auth_server.core.source_app_response.postgres.repository import SourceAppResponsePostgresRepository
+from identity_auth_server.core.token.postgres.repository import TokenPostgresRepository
 from identity_auth_server.core.trace.postgres.repository import TracePostgresRepository
 from identity_auth_server.database.postgres.postgres import PostgresDB
-from identity_auth_server.pipelines.exceptions import PipelineValidationError
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import (
     TaskToolMatcherFactory,
     TaskToolMatcherType,
@@ -36,10 +30,13 @@ from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import (
 from identity_auth_server.services.llm_app_call import LlmAppCallServiceImpl
 from identity_auth_server.services.llm_app_response import LlmAppResponseServiceImpl
 from identity_auth_server.services.mcp_app_tool_call import McpAppToolCallServiceImpl
+from identity_auth_server.services.mcp_discover import McpDiscoverServiceImpl
 from identity_auth_server.services.session import SessionServiceImpl
 from identity_auth_server.services.source_app_call import SourceAppCallServiceImpl
 from identity_auth_server.services.source_app_response import SourceAppResponseServiceImpl
+from identity_auth_server.services.token import TokenServiceImpl
 from identity_auth_server.services.trace import TraceServiceImpl
+from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  [%(name)s] %(message)s")
@@ -80,9 +77,17 @@ mcp_app_tool_call_service = McpAppToolCallServiceImpl(
 trace_repository = TracePostgresRepository(database)
 trace_service = TraceServiceImpl(trace_repository)
 
+# initialize the token service
+token_repository = TokenPostgresRepository(database)
+keycloak_manager = KeycloakManager()
+token_service = TokenServiceImpl(token_repository, keycloak_manager)
+
 # initialize the session service
 session_repository = SessionPostgresRepository(database)
-session_service = SessionServiceImpl(session_repository)
+mcp_discover_service = McpDiscoverServiceImpl()
+session_service = SessionServiceImpl(
+    session_repository, llm_app_response_repository, token_service, mcp_discover_service, task_tool_matcher
+)
 
 
 @asynccontextmanager
@@ -102,6 +107,7 @@ llm_app_response_route = LlmAppResponseRouteImpl(llm_app_response_service)
 mcp_app_tool_call_route = McpAppToolCallRouteImpl(mcp_app_tool_call_service)
 trace_route = TraceRouteImpl(trace_service)
 session_route = SessionRouteImpl(session_service)
+token_route = TokenRouteImpl(token_service)
 
 app.include_router(source_app_call_route.router)
 app.include_router(source_app_response_route.router)
@@ -110,6 +116,7 @@ app.include_router(llm_app_response_route.router)
 app.include_router(mcp_app_tool_call_route.router)
 app.include_router(trace_route.router)
 app.include_router(session_route.router)
+app.include_router(token_route.router)
 
 # Allow all origins (for local development)
 app.add_middleware(
@@ -119,39 +126,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.post("/task/intent/mcp/badge/tool-match")
-def task_intent_mcp_badge_tool_match(
-    request: IntentMcpBadgeToolMatchRequest, task_tool_matcher: TaskToolMatcherType = TaskToolMatcherType.RANDOM
-) -> IntentMcpBadgeToolMatchResult:
-    """Endpoint to match tools based on MCP badge."""
-    mcp_server = decode_badge_extract_mcp_server(request.mcp_badge)
-
-    input = IntentMcpToolMatchRequest(task=request.task, requested_tool=request.requested_tool, mcp_server=mcp_server)
-
-    # Create the TaskToolMatcher using the factory
-    matcher = TaskToolMatcherFactory.create(task_tool_matcher)
-
-    try:
-        # Get the result - validation exceptions will be caught and converted to HTTP 400
-        result = matcher.match(input)
-        return result
-    except PipelineValidationError as e:
-        raise HTTPException(status_code=400, detail=e.message)
-
-
-@app.post("/task/intent/mcp/tool-match")
-def task_intent_mcp_tool_match(
-    request: IntentMcpToolMatchRequest, task_tool_matcher: TaskToolMatcherType = TaskToolMatcherType.RANDOM
-) -> IntentMcpToolMatchResult:
-    """Endpoint to match tools based on MCP tool objects."""
-    # Create the TaskToolMatcher using the factory
-    matcher = TaskToolMatcherFactory.create(task_tool_matcher)
-
-    try:
-        # Get the result - validation exceptions will be caught and converted to HTTP 400
-        result = matcher.match(input=request)
-        return result
-    except PipelineValidationError as e:
-        raise HTTPException(status_code=400, detail=e.message)

@@ -19,9 +19,12 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController()
+    let isFirstLoad = true
 
-    const loadTraces = async () => {
-      setLoading(true)
+    const loadTraces = async (showLoading = false) => {
+      if (showLoading) {
+        setLoading(true)
+      }
       setError(null)
       try {
         const data = await fetchTraces({ page, pageSize, signal: controller.signal })
@@ -42,15 +45,26 @@ function App() {
           setError(message)
         }
       } finally {
-        if (!controller.signal.aborted) {
+        if (!controller.signal.aborted && showLoading) {
           setLoading(false)
         }
       }
     }
 
-    loadTraces()
+    // Initial load with loading indicator
+    loadTraces(isFirstLoad).then(() => {
+      isFirstLoad = false
+    })
 
-    return () => controller.abort()
+    // Poll every second without loading indicator
+    const intervalId = setInterval(() => {
+      loadTraces(false)
+    }, 1000)
+
+    return () => {
+      controller.abort()
+      clearInterval(intervalId)
+    }
   }, [page, pageSize, reloadToken])
 
   const totalPages = useMemo(() => (total === 0 ? 1 : Math.max(1, Math.ceil(total / pageSize))), [total, pageSize])
@@ -78,8 +92,6 @@ function App() {
     setPage(1)
   }
 
-  const handleRefresh = () => setReloadToken((token) => token + 1)
-
   const rangeStart = total === 0 ? 0 : (displayPage - 1) * pageSize + 1
   const rangeEnd = total === 0 ? 0 : Math.min(total, displayPage * pageSize)
 
@@ -87,9 +99,9 @@ function App() {
     <div className="app-shell">
       <header className="page-header">
         <div>
-          <h1>ZTA Trace Explorer</h1>
+          <h1>ZTA Authorizations Explorer</h1>
           <p className="page-subtitle">
-            Browse traces aggregated by the Identity Service ZTA Auth Server and drill into each stage of execution.
+            Browse authorizations aggregated by the ZTA Auth Server and drill into each stage of execution.
           </p>
         </div>
         <div className="header-meta">
@@ -134,10 +146,6 @@ function App() {
               </option>
             ))}
           </select>
-
-          <button type="button" onClick={handleRefresh} disabled={loading} className="secondary-button">
-            Refresh
-          </button>
         </div>
       </section>
 
@@ -146,9 +154,6 @@ function App() {
           <div>
             <strong>Failed to load traces.</strong> {error}
           </div>
-          <button type="button" onClick={handleRefresh} disabled={loading}>
-            Try again
-          </button>
         </div>
       )}
 

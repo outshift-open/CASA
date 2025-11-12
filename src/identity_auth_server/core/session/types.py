@@ -7,6 +7,7 @@ class SessionSourceAppInput(BaseModel):
     """Input model for creating a source session."""
 
     input: str
+    input_id: str | None = None
 
 
 class SessionLlmAppInput(BaseModel):
@@ -20,6 +21,7 @@ class SessionMcpAppInput(BaseModel):
 
     source_app_call_token: str
     llm_app_call_token: str
+    mcp_server_url: str
 
 
 class SessionSourceAppOutput(BaseModel):

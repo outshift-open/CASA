@@ -16,17 +16,17 @@ class SessionRepository(ABC):
     """Interface for SessionRepository."""
 
     @abstractmethod
-    def create_source_app_session(self, input: SessionSourceAppInput) -> str:
+    def create_source_app_session(self, input: SessionSourceAppInput, token: str) -> str:
         """Create a new source app session and return its token."""
         pass
 
     @abstractmethod
-    def create_llm_app_session(self, input: SessionLlmAppInput) -> str:
+    def create_llm_app_session(self, input: SessionLlmAppInput, token: str) -> str:
         """Create a new llm app session and return its token."""
         pass
 
     @abstractmethod
-    def create_mcp_app_session(self, input: SessionMcpAppInput) -> str:
+    def create_mcp_app_session(self, input: SessionMcpAppInput, token: str) -> str:
         """Create a new mcp app session and return its token."""
         pass
 
@@ -43,4 +43,14 @@ class SessionRepository(ABC):
     @abstractmethod
     def validate_mcp_app_call_token(self, mcp_app_call_token: str) -> SessionMcpAppOutput:
         """Validate an mcp app call token."""
+        pass
+
+    @abstractmethod
+    def create_source_app_session_tools(self, source_app_call_token: str, tool: str, approved: bool) -> None:
+        """Persist tools associated with a source app session."""
+        pass
+
+    @abstractmethod
+    def get_tools_for_source_app_session(self, source_app_call_token: str) -> list[tuple[str, bool]]:
+        """Retrieve tools associated with a source app session."""
         pass

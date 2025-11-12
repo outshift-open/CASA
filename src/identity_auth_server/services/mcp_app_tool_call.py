@@ -41,13 +41,12 @@ class McpAppToolCallServiceImpl(McpAppToolCallService):
         # retrieve all LLM responses associated with the given llm_app_call_token
         responses: list[LlmAppResponse] = []
         if mcp_app_tool_call.llm_app_call_token is not None:
-            responses = self.llm_app_response_repository.get_by_llm_app_response_by_token(
+            responses = self.llm_app_response_repository.get_llm_app_response_by_token(
                 mcp_app_tool_call.llm_app_call_token
             )
 
         # if no responses found, create and return the MCP app tool call with blocked=True
         if len(responses) == 0:
-            print("No LLM responses found for token:", mcp_app_tool_call.llm_app_call_token)
             resp = self.mcp_app_tool_call_repository.create(
                 mcp_app_tool_call,
                 blocked=True,
@@ -58,7 +57,6 @@ class McpAppToolCallServiceImpl(McpAppToolCallService):
                 ),
             )
 
-            print("Created blocked MCP app tool call:", resp)
             return resp
 
         # search for "name='tool'" in each response's tool_calls field, which is a plain string

@@ -28,7 +28,33 @@ const formatMaybeJson = (value?: string | null) => {
     return value
 }
 
-const InfoPanel = ({ title, items, onClose }: { title: string; items: Array<{ label: string; value: ReactNode }>; onClose: () => void }) => (
+const CopyButton = ({ text }: { text: string }) => {
+    const [copied, setCopied] = useState(false)
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(text)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        } catch (error) {
+            console.error('Failed to copy:', error)
+        }
+    }
+
+    return (
+        <button
+            type="button"
+            className="copy-button"
+            onClick={handleCopy}
+            aria-label="Copy to clipboard"
+            title="Copy to clipboard"
+        >
+            {copied ? 'Copied!' : 'Copy'}
+        </button>
+    )
+}
+
+const InfoPanel = ({ title, items, onClose }: { title: string; items: Array<{ label: string; value: ReactNode; copyText?: string }>; onClose: () => void }) => (
     <div className="info-panel-overlay" role="dialog" aria-label={title}>
         <div className="info-panel-header">
             {title}
@@ -39,7 +65,10 @@ const InfoPanel = ({ title, items, onClose }: { title: string; items: Array<{ la
         <div className="info-panel-content">
             {items.map((item) => (
                 <div key={item.label} className="info-row">
-                    <span className="info-label">{item.label}</span>
+                    <div className="info-row-header">
+                        <span className="info-label">{item.label}</span>
+                        {item.copyText && <CopyButton text={item.copyText} />}
+                    </div>
                     <span className="info-value">{item.value}</span>
                 </div>
             ))}
@@ -91,10 +120,10 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
             <table className="trace-table" role="grid">
                 <thead>
                     <tr>
-                        <th scope="col">Source</th>
-                        <th scope="col">LLM calls</th>
-                        <th scope="col">LLM responses</th>
-                        <th scope="col">MCP tools</th>
+                        <th scope="col">Client</th>
+                        <th scope="col">Agent to LLM calls</th>
+                        <th scope="col">LLM to Agent responses</th>
+                        <th scope="col">Agent to MCP Server calls</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -141,6 +170,7 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                                         ) : (
                                                             <span className="muted">—</span>
                                                         ),
+                                                        copyText: trace.source_app_call.token || undefined,
                                                     },
                                                     {
                                                         label: 'Input',
@@ -208,7 +238,12 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                                                         },
                                                                         {
                                                                             label: 'Token',
-                                                                            value: call.token ? <span className="mono">{call.token}</span> : <span className="muted">—</span>,
+                                                                            value: call.token ? (
+                                                                                <span className="mono">{call.token}</span>
+                                                                            ) : (
+                                                                                <span className="muted">—</span>
+                                                                            ),
+                                                                            copyText: call.token || undefined,
                                                                         },
                                                                         {
                                                                             label: 'Proxy ID',
@@ -285,6 +320,7 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                                                                 ) : (
                                                                                     <span className="muted">—</span>
                                                                                 ),
+                                                                                copyText: response.token || undefined,
                                                                             },
                                                                         ]}
                                                                     />
@@ -306,32 +342,35 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                                 const blockedType = entry.blocked_by_type?.trim()
                                                 const key = `mcp-${call.id}`
                                                 const isAiBlocked = call.blocked && blockedType === 'AI-POWERED'
-                                                const cellClass = `cell-container ${call.blocked ? (isAiBlocked ? 'blocked-ai' : 'blocked') : 'allowed'}`
+                                                const cellClass = `cell-container ${call.blocked ? (isAiBlocked ? 'blocked' : 'blocked') : 'allowed'}`
 
                                                 return (
                                                     <li key={call.id}>
                                                         <div className={cellClass}>
                                                             <div className="cell-header">
-                                                                <span className="cell-title">Tool</span>
                                                                 <div className="cell-header-actions">
-                                                                    {call.blocked && (
+                                                                    {call.blocked ? (
                                                                         <span className="status-badge blocked">
                                                                             Blocked{blockedType ? ` - ${blockedType}` : ''}
                                                                         </span>
+                                                                    ) : (
+                                                                        <span className="status-badge allowed">
+                                                                            Passed
+                                                                        </span>
                                                                     )}
-                                                                    <button
-                                                                        type="button"
-                                                                        className="info-button-icon"
-                                                                        onClick={() => togglePanel(key)}
-                                                                        aria-label="Show MCP tool details"
-                                                                    >
-                                                                        ℹ
-                                                                    </button>
                                                                 </div>
+                                                                <button
+                                                                    type="button"
+                                                                    className="info-button-icon"
+                                                                    onClick={() => togglePanel(key)}
+                                                                    aria-label="Show MCP tool details"
+                                                                >
+                                                                    ℹ
+                                                                </button>
                                                             </div>
                                                             <div className="cell tight">
                                                                 <div className="cell-row compact">
-                                                                    <span>{call.tool}</span>
+                                                                    <span><strong>Tool:</strong> {call.tool}</span>
                                                                 </div>
                                                                 {call.blocked && (blockedDescription || call.blocked_by_type_id) &&
                                                                     <div className="cell-row compact">
@@ -364,20 +403,13 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                                                             ),
                                                                         },
                                                                         {
-                                                                            label: 'LLM call ID',
-                                                                            value: call.llm_app_call_id ? (
-                                                                                <span className="mono">{call.llm_app_call_id}</span>
+                                                                            label: 'Token',
+                                                                            value: call.token ? (
+                                                                                <span className="mono">{call.token}</span>
                                                                             ) : (
                                                                                 <span className="muted">—</span>
                                                                             ),
-                                                                        },
-                                                                        {
-                                                                            label: 'LLM response ID',
-                                                                            value: call.llm_app_response_id ? (
-                                                                                <span className="mono">{call.llm_app_response_id}</span>
-                                                                            ) : (
-                                                                                <span className="muted">—</span>
-                                                                            ),
+                                                                            copyText: call.token || undefined,
                                                                         },
                                                                     ]}
                                                                 />

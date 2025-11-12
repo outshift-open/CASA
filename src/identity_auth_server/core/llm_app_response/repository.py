@@ -14,6 +14,6 @@ class LlmAppResponseRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_llm_app_response_by_token(self, token: str) -> list[LlmAppResponse]:
+    def get_llm_app_response_by_token(self, token: str) -> list[LlmAppResponse]:
         """Retrieve all LLM app responses by llm_app_call_token."""
         pass

@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import List
 
 from dotenv import dotenv_values
 from openai import OpenAI
@@ -48,7 +47,7 @@ class LlmVerifierTaskToolMatcher(TaskToolMatcher):
             base_url=config.get("OPENAI_GPT4o_API_BASE_URL"),
         )
         self.model_id = config.get("OPENAI_GPT4o_MODEL_ID")
-        self.tool_names: List[str] = []
+        self.tool_names = []
         self.tuning = False
 
     def set_tuning_mode(self) -> None:

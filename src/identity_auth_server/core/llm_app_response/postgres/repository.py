@@ -77,7 +77,7 @@ class LlmAppResponsePostgresRepository(LlmAppResponseRepository):
                 created_at=db_llm_app_response.created_at,
             )
 
-    def get_by_llm_app_response_by_token(self, token: str) -> list[LlmAppResponse]:
+    def get_llm_app_response_by_token(self, token: str) -> list[LlmAppResponse]:
         """Retrieve all LLM app responses by token."""
         with self.database.session_scope() as session:
             db_llm_app_responses = (
