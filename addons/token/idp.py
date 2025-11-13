@@ -40,15 +40,20 @@ def create_keycloak_client(client_id: str):
 
     # Define new client data
     payload = {
-        "clientId": client_id,
-        "name": metadata.get("client_name", "Unnamed Client"),
-        "enabled": True,
-        "publicClient": metadata.get("token_endpoint_auth_method", "")
-        == "none",
-        "serviceAccountsEnabled": metadata.get("grant_types", [])
-        == ["client_credentials"],
-        "redirectUris": metadata.get("redirect_uris", []),
-        "protocol": "openid-connect",
+        "clientId":
+        client_id,
+        "name":
+        metadata.get("client_name", "Unnamed Client"),
+        "enabled":
+        True,
+        "publicClient":
+        metadata.get("token_endpoint_auth_method", "") == "none",
+        "serviceAccountsEnabled":
+        metadata.get("grant_types", []) == ["client_credentials"],
+        "redirectUris":
+        metadata.get("redirect_uris", []),
+        "protocol":
+        "openid-connect",
     }
 
     # Create the client
@@ -56,6 +61,14 @@ def create_keycloak_client(client_id: str):
 
     # Get the client database ID
     client_db_id = keycloak_admin.get_client_id(client_id)
+
+    # Remove all existing mappers
+    existing_scopes = keycloak_admin.get_client_scopes()
+    for scope in existing_scopes:
+        mappers = keycloak_admin.get_mappers_from_client_scope(scope['id'])
+        for mapper in mappers:
+            keycloak_admin.delete_mapper_from_client_scope(
+                scope['id'], mapper['id'])
 
     # Add Protocol Mapper
     keycloak_admin.add_mapper_to_client(
@@ -112,15 +125,50 @@ def create_keycloak_client(client_id: str):
         },
     )
 
+    keycloak_admin.add_mapper_to_client(
+        client_db_id,
+        {
+            "protocol": "openid-connect",
+            "protocolMapper": "POIT-gethttpheader",
+            "name": "X-Requested-Sub",
+            "config": {
+                "http-header": "X-Requested-Sub",
+                "claim.name": "sub",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "lightweight.claim": "false",
+                "userinfo.token.claim": "true",
+                "introspection.token.claim": "true",
+            },
+        },
+    )
+
+    keycloak_admin.add_mapper_to_client(
+        client_db_id,
+        {
+            "protocol": "openid-connect",
+            "protocolMapper": "POIT-gethttpheader",
+            "name": "X-Requested-Sub",
+            "config": {
+                "http-header": "X-Requested-Sub",
+                "claim.name": "sub",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "lightweight.claim": "false",
+                "userinfo.token.claim": "true",
+                "introspection.token.claim": "true",
+            },
+        },
+    )
+
     # Get client secret
     client = keycloak_admin.get_client(client_db_id)
 
     return client
 
 
-def get_keycloak_token(
-    client_id: str, client_secret: str, tools: list, input: str, act: str
-):
+def get_keycloak_token(client_id: str, client_secret: str, tools: list,
+                       input: str, act: str, sub: str, scopes: list):
     """Get a token from Keycloak for the given client."""
     keycloak_openid = KeycloakOpenID(
         server_url="http://localhost:8080/",
@@ -131,7 +179,9 @@ def get_keycloak_token(
             "X-Requested-Tools": " ".join(tools),
             "X-Requested-Input": input,
             "X-Requested-Act": json.dumps(act),
+            "X-Requested-Sub": sub,
         },
     )
 
-    return keycloak_openid.token(grant_type="client_credentials")
+    return keycloak_openid.token(grant_type="client_credentials",
+                                 scope="offline_access")

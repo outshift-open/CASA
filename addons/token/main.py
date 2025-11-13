@@ -124,15 +124,16 @@ async def token(req: Request):
         tools=state.get("tools", []),
         input=state.get("input", ""),
         act=state.get("act", {}),
+        sub=state.get("sub", ""),
+        scopes=state.get("scopes", []),
     )
 
     # Add to temp token DB
     token_db[client.client_id] = keycloak_token
 
     # For demonstration purposes, we'll just return a dummy token.
-    return TokenResponse(
-        access_token=keycloak_token["access_token"], token_type="Bearer"
-    )
+    return TokenResponse(access_token=keycloak_token["access_token"],
+                         token_type="Bearer")
 
 
 @app.post("/oauth2/default/v1/introspect")
