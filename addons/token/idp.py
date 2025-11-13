@@ -143,24 +143,6 @@ def create_keycloak_client(client_id: str):
         },
     )
 
-    keycloak_admin.add_mapper_to_client(
-        client_db_id,
-        {
-            "protocol": "openid-connect",
-            "protocolMapper": "POIT-gethttpheader",
-            "name": "X-Requested-Scope",
-            "config": {
-                "http-header": "X-Requested-Scope",
-                "claim.name": "scope",
-                "id.token.claim": "true",
-                "access.token.claim": "true",
-                "lightweight.claim": "false",
-                "userinfo.token.claim": "true",
-                "introspection.token.claim": "true",
-            },
-        },
-    )
-
     # Get client secret
     client = keycloak_admin.get_client(client_db_id)
 
@@ -169,6 +151,20 @@ def create_keycloak_client(client_id: str):
 
 def get_keycloak_token(client_id: str, client_secret: str, tools: list,
                        input: str, act: str, sub: str, scopes: list):
+    # Create scopes
+    for scope in scopes:
+        logger.info(f"Creating scope: {scope}")
+        keycloak_admin.create_client_scope(
+            {
+                "name": scope,
+                "protocol": "openid-connect"
+            }, True)
+    # Assign client scopes to client
+    client_db_id = keycloak_admin.get_client_id(client_id)
+    for scope in scopes:
+        scope_obj = keycloak_admin.get_client_scope_by_name(scope)
+        keycloak_admin.add_client_default_client_scope(client_db_id,
+                                                       scope_obj['id'], {})
     """Get a token from Keycloak for the given client."""
     keycloak_openid = KeycloakOpenID(
         server_url="http://localhost:8080/",
@@ -184,4 +180,5 @@ def get_keycloak_token(client_id: str, client_secret: str, tools: list,
         },
     )
 
-    return keycloak_openid.token(grant_type="client_credentials")
+    return keycloak_openid.token(grant_type="client_credentials",
+                                 scope=" ".join(scopes))
