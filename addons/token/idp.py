@@ -148,10 +148,10 @@ def create_keycloak_client(client_id: str):
         {
             "protocol": "openid-connect",
             "protocolMapper": "POIT-gethttpheader",
-            "name": "X-Requested-Sub",
+            "name": "X-Requested-Scope",
             "config": {
-                "http-header": "X-Requested-Sub",
-                "claim.name": "sub",
+                "http-header": "X-Requested-Scope",
+                "claim.name": "scope",
                 "id.token.claim": "true",
                 "access.token.claim": "true",
                 "lightweight.claim": "false",
@@ -180,8 +180,8 @@ def get_keycloak_token(client_id: str, client_secret: str, tools: list,
             "X-Requested-Input": input,
             "X-Requested-Act": json.dumps(act),
             "X-Requested-Sub": sub,
+            "X-Requested-Scope": " ".join(scopes),
         },
     )
 
-    return keycloak_openid.token(grant_type="client_credentials",
-                                 scope="offline_access")
+    return keycloak_openid.token(grant_type="client_credentials")
