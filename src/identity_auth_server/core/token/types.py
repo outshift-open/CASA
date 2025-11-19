@@ -31,6 +31,9 @@ class TokenRequestParams(BaseModel):
     tools: list[str] | None = None
     act: ActorClaim | None = None
     input_id: str | None = None
+    sub: str | None = None
+    scopes: list[str] | None = None
+    type: str | None = None
 
 
 class TokenIntrospectParams(BaseModel):
@@ -58,6 +61,7 @@ class TokenResponse(BaseModel):
 class TokenIntrospectResponse(BaseModel):
     """Pydantic model for the token introspection response."""
 
+    sub: str | None = None
     client_id: str | None = None
     scope: str | None = None
     exp: int | None = None

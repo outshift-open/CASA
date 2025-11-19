@@ -14,6 +14,7 @@ from identity_auth_server.core.session.types import (
     SessionSourceAppInput,
     SessionSourceAppOutput,
 )
+from identity_auth_server.core.source_app_call.repository import SourceAppCallRepository
 from identity_auth_server.core.token.types import ActorClaim, TokenIntrospectParams, TokenRequestParams
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
@@ -31,6 +32,7 @@ class SessionService(ABC):
         token_service: TokenService,
         mcp_discover_service: McpDiscoverService,
         task_tool_matcher: TaskToolMatcher,
+        source_app_call_repository: SourceAppCallRepository,
     ):
         """Initialize the service with a session repository."""
         self.session_repository = session_repository
@@ -38,6 +40,7 @@ class SessionService(ABC):
         self.token_service = token_service
         self.mcp_discover_service = mcp_discover_service
         self.task_tool_matcher = task_tool_matcher
+        self.source_app_call_repository = source_app_call_repository
 
     @abstractmethod
     def create_source_app_session(self, input: SessionSourceAppInput, data: TokenRequestParams) -> str:
@@ -80,10 +83,16 @@ class SessionServiceImpl(SessionService):
         token_service: TokenService,
         mcp_discover_service: McpDiscoverService,
         task_tool_matcher: TaskToolMatcher,
+        source_app_call_repository: SourceAppCallRepository,
     ):
         """Store the backing session repository."""
         super().__init__(
-            session_repository, llm_app_response_repository, token_service, mcp_discover_service, task_tool_matcher
+            session_repository,
+            llm_app_response_repository,
+            token_service,
+            mcp_discover_service,
+            task_tool_matcher,
+            source_app_call_repository,
         )
 
     def create_source_app_session(self, input: SessionSourceAppInput, data: TokenRequestParams) -> str:
@@ -91,6 +100,8 @@ class SessionServiceImpl(SessionService):
         input_id = uuid4()
         data.input_id = str(input_id)
         input.input_id = str(input_id)
+
+        data.type = "source"
 
         token_response = self.token_service.generate_token(data)
         access_token = token_response.access_token
@@ -105,13 +116,19 @@ class SessionServiceImpl(SessionService):
 
         # Add the client_id to the token request params as ActorClaim
         token_values = self.token_service.introspect_token(TokenIntrospectParams(token=input.source_app_call_token))
-        data.act = ActorClaim(sub=token_values.client_id)
+        data.act = ActorClaim(sub=token_values.sub)
         data.input = token_values.input
         data.input_id = token_values.input_id
+        data.type = "llm"
+        token_values_sub = token_values.sub if token_values.sub else ""
 
-        token_response = self.token_service.generate_token(data)
-        access_token = token_response.access_token
-        return self.session_repository.create_llm_app_session(input, access_token)
+        try:
+            token_response = self.token_service.generate_act_token(data, token_values_sub)
+            access_token = token_response.access_token
+            return self.session_repository.create_llm_app_session(input, access_token)
+        except Exception as e:
+            print(f"Error creating LLM app session: {e}")
+            raise e
 
     def create_mcp_app_session(self, input: SessionMcpAppInput, data: TokenRequestParams) -> str:
         """Create a new mcp app session and return its token."""
@@ -122,9 +139,10 @@ class SessionServiceImpl(SessionService):
 
         # Add the client_id to the token request params as ActorClaim
         token_values = self.token_service.introspect_token(TokenIntrospectParams(token=input.source_app_call_token))
-        data.act = ActorClaim(sub=token_values.client_id)
+        data.act = ActorClaim(sub=token_values.sub)
         data.input = token_values.input
         data.input_id = token_values.input_id
+        data.type = "mcp"
 
         # Validate the llm app call token exists and find all tool calls associated with it
         llm_session_output = self.session_repository.validate_llm_app_call_token(input.llm_app_call_token)
@@ -160,6 +178,15 @@ class SessionServiceImpl(SessionService):
 
         mcp_server = self.mcp_discover_service.discover_mcp_tools(mcp_server_url)
 
+        # get the input from the source app call associated with this token
+        source_app_calls = self.source_app_call_repository.get_source_app_call_by_token(input.source_app_call_token)
+        if len(source_app_calls) == 0:
+            raise Exception("Source app call not found for token: " + input.source_app_call_token)
+        if len(source_app_calls) > 1:
+            raise Exception("Multiple source app calls found for token: " + input.source_app_call_token)
+        source_app_call = source_app_calls[0]
+        task = source_app_call.input
+
         approved_tools = []
         for tool in requested_tools:
             if tool in existing_tools_dict:
@@ -171,7 +198,7 @@ class SessionServiceImpl(SessionService):
                 # Use task tool matcher for new tools
                 match = self.task_tool_matcher.match(
                     TaskToolMatchInput(
-                        task=token_values.input,
+                        task=task,
                         requested_tool=tool,
                         mcp_server=mcp_server,
                     )
@@ -189,10 +216,15 @@ class SessionServiceImpl(SessionService):
                     approved_tools.append(tool)
 
         data.tools = approved_tools
+        token_values_sub = token_values.sub if token_values.sub else ""
 
-        token_response = self.token_service.generate_token(data)
-        access_token = token_response.access_token
-        return self.session_repository.create_mcp_app_session(input, access_token)
+        try:
+            token_response = self.token_service.generate_act_token(data, token_values_sub)
+            access_token = token_response.access_token
+            return self.session_repository.create_mcp_app_session(input, access_token)
+        except Exception as e:
+            print(f"Error creating MCP app session: {e}")
+            raise e
 
     def validate_source_app_call_token(self, source_app_call_token: str) -> SessionSourceAppOutput:
         """Validate a source app call token."""

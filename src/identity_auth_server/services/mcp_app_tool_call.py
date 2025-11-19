@@ -86,7 +86,7 @@ class McpAppToolCallServiceImpl(McpAppToolCallService):
 
         # Retrieve the task from the source app call associated with this MCP app tool call
         source_app_calls: list[SourceAppCall] = []
-        source_app_calls = self.source_app_call_repository.get_by_source_app_call_token(
+        source_app_calls = self.source_app_call_repository.get_source_app_call_by_token(
             token=mcp_app_tool_call.source_app_call_token
         )
         if len(source_app_calls) == 0:

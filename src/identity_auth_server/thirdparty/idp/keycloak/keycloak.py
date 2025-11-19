@@ -102,6 +102,13 @@ class KeycloakManager:
         Args:
             client_db_id: The client database ID
         """
+        # Remove all existing mappers
+        existing_scopes = self.keycloak_admin.get_client_scopes()
+        for scope in existing_scopes:
+            mappers = self.keycloak_admin.get_mappers_from_client_scope(scope["id"])
+            for mapper in mappers:
+                self.keycloak_admin.delete_mapper_from_client_scope(scope["id"], mapper["id"])
+
         # Add Protocol Mapper for X-Requested-Tools
         self.keycloak_admin.add_mapper_to_client(
             client_db_id,
@@ -178,14 +185,35 @@ class KeycloakManager:
             },
         )
 
+        # Add Protocol Mapper for X-Requested-Sub
+        self.keycloak_admin.add_mapper_to_client(
+            client_db_id,
+            {
+                "protocol": "openid-connect",
+                "protocolMapper": "POIT-gethttpheader",
+                "name": "X-Requested-Sub",
+                "config": {
+                    "http-header": "X-Requested-Sub",
+                    "claim.name": "sub",
+                    "id.token.claim": "true",
+                    "access.token.claim": "true",
+                    "lightweight.claim": "false",
+                    "userinfo.token.claim": "true",
+                    "introspection.token.claim": "true",
+                },
+            },
+        )
+
     def get_token(
         self,
         client_id: str,
         client_secret: str,
         tools: list[str] = [],
-        input: str = "",
         act: ActorClaim | None = None,
         input_id: str = "",
+        sub: str = "",
+        scopes: list[str] = [],
+        type: str = "source",
     ):
         """Get a token from Keycloak for the given client.
 
@@ -193,16 +221,42 @@ class KeycloakManager:
             client_id: The client identifier
             client_secret: The client secret
             tools: List of requested tools
-            input: Requested input data
             act: Requested action
             input_id: Requested input identifier
+            sub: Subject claim
+            scopes: List of requested scopes
+            type: Type of token requested (source, llm, mcp)
 
         Returns:
             Token response from Keycloak
         """
+        if type == "llm":
+            scopes.append("call-llm")
+
+        elif type == "mcp":
+            # append default scopes
+            scopes.append("list-tools")
+            scopes.append("list-resources")
+
+            if tools:
+                scopes.append("call-tools")
+
+        else:
+            scopes.append("call-agent")
+
+        # Create scopes
+        for scope in scopes:
+            logger.info(f"Creating scope: {scope}")
+            self.keycloak_admin.create_client_scope({"name": scope, "protocol": "openid-connect"}, True)
+
+        # Assign client scopes to client
+        client_db_id = self.keycloak_admin.get_client_id(client_id)
+        for scope in scopes:
+            scope_obj = self.keycloak_admin.get_client_scope_by_name(scope)
+            self.keycloak_admin.add_client_optional_client_scope(client_db_id, scope_obj["id"], {})
+
         tool_string = "[" + ", ".join(tools) + "]" if tools else "[]"
-        input_string = input
-        act_string = json.dumps(act.model_dump()) if act else "{}"
+        act_string = json.dumps(act.model_dump(exclude_none=True)) if act else "{}"
         input_id_string = input_id
 
         keycloak_openid = KeycloakOpenID(
@@ -212,16 +266,17 @@ class KeycloakManager:
             client_secret_key=client_secret,
             custom_headers={
                 "X-Requested-Tools": tool_string,
-                "X-Requested-Input": input_string,
                 "X-Requested-Act": act_string,
                 "X-Requested-Input-Id": input_id_string,
+                "X-Requested-Sub": sub,
             },
         )
 
         return {
-            "token": keycloak_openid.token(grant_type="client_credentials"),
+            "token": keycloak_openid.token(grant_type="client_credentials", scope=" ".join(scopes)),
             "tools": tools,
-            "input": input,
             "act": act,
             "input_id": input_id,
+            "sub": sub,
+            "scope": scope,
         }

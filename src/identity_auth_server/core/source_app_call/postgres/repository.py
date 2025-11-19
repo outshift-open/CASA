@@ -41,7 +41,7 @@ class SourceAppCallPostgresRepository(SourceAppCallRepository):
             print("Error creating source app call:", e)
             raise e
 
-    def get_by_source_app_call_token(self, token: str) -> list[SourceAppCall]:
+    def get_source_app_call_by_token(self, token: str) -> list[SourceAppCall]:
         """Retrieve all source app calls by source_app_call_token."""
         with self.database.session_scope() as session:
             db_source_app_calls = session.query(SourceAppCallModel).filter(SourceAppCallModel.token == token).all()

@@ -14,6 +14,6 @@ class SourceAppCallRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_source_app_call_token(self, token: str) -> list[SourceAppCall]:
+    def get_source_app_call_by_token(self, token: str) -> list[SourceAppCall]:
         """Retrieve all source app calls by source_app_call_token."""
         pass

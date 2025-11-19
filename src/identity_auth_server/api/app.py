@@ -86,7 +86,12 @@ token_service = TokenServiceImpl(token_repository, keycloak_manager)
 session_repository = SessionPostgresRepository(database)
 mcp_discover_service = McpDiscoverServiceImpl()
 session_service = SessionServiceImpl(
-    session_repository, llm_app_response_repository, token_service, mcp_discover_service, task_tool_matcher
+    session_repository,
+    llm_app_response_repository,
+    token_service,
+    mcp_discover_service,
+    task_tool_matcher,
+    source_app_call_repository,
 )
 
 
