@@ -14,6 +14,7 @@ from identity_auth_server.api.routes.source_app_call.route import SourceAppCallR
 from identity_auth_server.api.routes.source_app_response.route import SourceAppResponseRouteImpl
 from identity_auth_server.api.routes.token.token import TokenRouteImpl
 from identity_auth_server.api.routes.trace.route import TraceRouteImpl
+from identity_auth_server.core.client.postgres.repository import ClientPostgresRepository
 from identity_auth_server.core.llm_app_call.postgres.repository import LlmAppCallPostgresRepository
 from identity_auth_server.core.llm_app_response.postgres.repository import LlmAppResponsePostgresRepository
 from identity_auth_server.core.mcp_app_tool_call.postgres.repository import McpAppToolCallPostgresRepository
@@ -77,10 +78,13 @@ mcp_app_tool_call_service = McpAppToolCallServiceImpl(
 trace_repository = TracePostgresRepository(database)
 trace_service = TraceServiceImpl(trace_repository)
 
+# initialize the client repository
+client_repository = ClientPostgresRepository(database)
+
 # initialize the token service
 token_repository = TokenPostgresRepository(database)
 keycloak_manager = KeycloakManager()
-token_service = TokenServiceImpl(token_repository, keycloak_manager)
+token_service = TokenServiceImpl(token_repository, keycloak_manager, client_repository)
 
 # initialize the session service
 session_repository = SessionPostgresRepository(database)
