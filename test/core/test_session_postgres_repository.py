@@ -52,8 +52,9 @@ def test_create_source_app_session_persists_and_returns_token(database_with_sess
 
     repository = SessionPostgresRepository(database)
     input_model = SessionSourceAppInput(input="{}")
+    test_token = "test-token-123456789012345678901234"
 
-    token = repository.create_source_app_session(input_model)
+    token = repository.create_source_app_session(input_model, test_token)
 
     database.session_scope.assert_called_once()
     session.add.assert_called_once()
@@ -63,8 +64,8 @@ def test_create_source_app_session_persists_and_returns_token(database_with_sess
     persisted = session.add.call_args.args[0]
     assert isinstance(persisted, SourceAppCallSessionModel)
     assert persisted.input == "{}"
-    assert persisted.token == token
-    assert len(token) == 32
+    assert persisted.token == test_token
+    assert token == test_token
 
 
 def test_create_llm_app_session_requires_existing_source(database_with_session):
@@ -75,7 +76,7 @@ def test_create_llm_app_session_requires_existing_source(database_with_session):
     repository = SessionPostgresRepository(database)
 
     with pytest.raises(ResourceNotFoundError):
-        repository.create_llm_app_session(SessionLlmAppInput(source_app_call_token="missing"))
+        repository.create_llm_app_session(SessionLlmAppInput(source_app_call_token="missing"), "test-token")
 
 
 def test_create_llm_app_session_persists_record(database_with_session):
@@ -89,15 +90,16 @@ def test_create_llm_app_session_persists_record(database_with_session):
 
     repository = SessionPostgresRepository(database)
     input_model = SessionLlmAppInput(source_app_call_token="source-token")
+    test_token = "test-llm-token-1234567890123456789"
 
-    token = repository.create_llm_app_session(input_model)
+    token = repository.create_llm_app_session(input_model, test_token)
 
     session.add.assert_called_once()
     persisted = session.add.call_args.args[0]
     assert isinstance(persisted, LlmAppCallSessionModel)
     assert persisted.source_app_call_session_id == source_session.id
-    assert persisted.token == token
-    assert len(token) == 32
+    assert persisted.token == test_token
+    assert token == test_token
 
 
 def test_create_mcp_app_session_validates_llm_belongs_to_source(database_with_session):

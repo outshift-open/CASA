@@ -125,13 +125,6 @@ class SessionRouteImpl:
             except IntegrityError as exc:  # pragma: no cover - extremely unlikely with UUID tokens
                 raise HTTPException(status_code=409, detail="MCP session token already exists") from exc
             except Exception as exc:  # pragma: no cover - safety net
-                print()
-                print()
-                print()
-                print(exc)
-                print()
-                print()
-                print()
                 raise HTTPException(status_code=500, detail="Failed to create MCP session token") from exc
 
         @self.router.post("/session/validate_source_app_call_token")
