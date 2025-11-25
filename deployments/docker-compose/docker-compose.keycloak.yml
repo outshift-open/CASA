@@ -36,6 +36,6 @@ services:
       POSTGRES_PASSWORD: keycloak
       POSTGRES_DB: keycloak
     volumes:
-      - keycloak-postgres-data:/var/lib/postgresql/data
+      - keycloak-postgres-data:/var/lib/postgresql
 volumes:
   keycloak-postgres-data:
