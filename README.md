@@ -2,30 +2,6 @@
 
 # Identity Auth Server
 
-The Identity Auth Server provides RESTful endpoints that accept a task description, a requested tool, and other available tools, then checks whether the requested tool best matches the task intention. It supports both MCP Identity badge-based tool extraction and direct MCP tool object matching.
-
-## API Endpoints
-
-### POST `/task/intent/mcp/tool-match`
-
-Matches tools based on direct MCP tool objects.
-
-**Request Body:**
-
--   `task`: Task description string
--   `requested_tool`: Specific tool name being requested
--   `mcp_server`: Description of the MCP Server (name, tools, resources)
-
-### POST `/task/intent/mcp/badge/tool-match`
-
-Matches tools based on MCP badge information.
-
-**Request Body:**
-
--   `task`: Task description string
--   `requested_tool`: Specific tool name being requested
--   `mcp_badge`: MCP identity badge containing Description of the MCP Server (name, tools, resources)
-
 ## Prerequisites
 
 -   Python 3.12 or higher
@@ -49,11 +25,32 @@ This will:
 -   Install all dependencies (including dev dependencies)
 -   Set up pre-commit hooks
 
-#### 2. Activate Environment
+#### Activate Environment and setup .env
 
 ```shell
 source .venv/bin/activate
 ```
+
+Create a `.env` file by copying the provided sample and updating it with your configuration:
+
+```shell
+cp .env.sample .env
+```
+
+### Database Setup
+
+Ensure you have a PostgreSQL database running and accessible. Update the `.env` file with your database connection details.
+
+### Keycloak Setup
+
+You can run a local Keycloak instance using Docker Compose:
+
+```shell
+docker compose -f deployments/docker-compose/docker-compose.keycloak.yml up -d
+```
+
+Update the `.env` file with the Keycloak admin username and password.
+Keycloak will be accessible at `http://localhost:8080/`.
 
 #### 3. Run the Server
 
@@ -65,39 +62,130 @@ uvicorn identity_auth_server.api.app:app --reload
 fastapi dev src/identity_auth_server/api/app.py
 ```
 
-### Option 2: Docker Setup
-
-#### Using Make Commands (Recommended)
-
-```shell
-# Build the Docker image
-make docker-build
-
-# Run with Docker Compose
-make docker-run
-
-# Stop Docker services
-make docker-stop
-```
-
-#### Manual Docker Commands
-
-```shell
-# Build the image
-docker build -f deployments/docker/Dockerfile -t identity-auth-server .
-
-# Run with Docker Compose
-cd deployments/docker-compose
-docker compose up --build -d
-
-# Stop services
-cd deployments/docker-compose
-docker compose down
-```
+The first time you run the server, it will automatically apply database migrations.
 
 ### Accessing the API
 
 The server will be available at `http://localhost:8000` with interactive API documentation at `http://localhost:8000/docs`.
+
+### Run the demo setup
+
+#### Frontend Auth Explorer
+
+In a new terminal, navigate to `demo/demo-ui` and run:
+
+```shell
+yarn install
+yarn run dev
+```
+
+The frontend will be available at `http://localhost:5173`.
+
+#### Deploy LiteLLM proxy
+
+In a new terminal, navigate to `demo/workshop/llm` and run:
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+pip install uv
+uv pip install -r ../requirements.txt
+uv pip install ../../../
+```
+
+Copy the .env sample to .env and set the master and salt keys
+
+```shell
+cp .env.sample .env
+```
+
+Copy the .config.yaml sample to config.yaml and set the LLM configuration
+
+```shell
+cp llm/config.yaml.sample llm/config.yaml
+```
+
+Run LiteLLM
+
+```shellcd llm
+litellm --config config.yaml
+```
+
+LiteLLM will be available at `http://localhost:4000`.
+
+#### Deploy MCP Server
+
+In a new terminal, navigate to `demo/workshop/mcp` and run:
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+pip install uv
+uv pip install -r ../requirements.txt
+uv pip install ../../../
+```
+
+Run MCP server
+
+```shellcd mcp
+python main.py
+```
+
+The MCP server will be available at `http://localhost:3000`.
+
+#### Deploy Agent
+
+In a new terminal, navigate to `demo/workshop/app` and run:
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+pip install uv
+uv pip install -r ../requirements.txt
+uv pip install ../../../
+uv pip install v2
+```
+
+Run the Agent
+
+```shell
+python main.py
+```
+
+The Agent will connect to both the LiteLLM proxy and the MCP server, and should be available at `http://localhost:8082`.
+
+#### Deploy Trusted Client (previously called Source)
+
+In a new terminal, navigate to `demo/workshop/source` and run:
+
+```shell
+python3 -m venv .venv
+source .venv/bin/activate
+pip install uv
+uv pip install -r ../requirements.txt
+uv pip install ../../../
+```
+
+Run the Trusted Client
+
+```shell
+python main.py
+```
+
+The Trusted Client will be available at `http://localhost:3999`.
+
+#### Send a request from the Trusted Client to the Agent
+
+You can use curl to send a request to the Trusted Client, which will forward it to the Agent.
+
+```shell
+curl -X POST http://localhost:3999/process \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Get the account summary and scheduled payments"}' | jq
+```
+
+If everything is set up correctly, you should see a JSON response with the Agent's response.
+The ZTA Auth explorer should also show the blocked and approved MCP tool calls in the UI running at `http://localhost:5173`.
 
 ## Development
 
@@ -163,31 +251,3 @@ This project uses modern Python development tools:
 -   **pre-commit** - Git hooks for code quality
 
 Code quality checks run automatically on commit via pre-commit hooks.
-
-### Project Structure
-
-```
-src/identity_auth_server/
-├── api/                    # FastAPI application and API types
-│   ├── app.py             # Main FastAPI application
-│   └── types.py           # API request/response models
-├── pipelines/             # Core processing pipelines
-│   └── task_tool_matcher/ # Tool matching logic
-└── types.py               # Common type definitions
-```
-
-### Required Access Keys
-
-This project uses python-dotenv to handle secret keys.
-Make a copy of `.env.sample` and rename it `.env` in the same directory (it is already covered in gitignore, make sure it remains hidden).
-In your `.env`, fill the needed secret information that you personally have.
-
-### Evaluations
-
-#### Task Tool Matcher Evaluation
-
-Initial assumptions and constraints
-
--   Tasks are less than 150 characters
--   Tasks should match to either a single tool or no tool
--   Distribution (40% match, 40% wrong tool, 20% no tool)

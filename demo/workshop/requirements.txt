@@ -1,0 +1,6 @@
+litellm[proxy]==1.77.5
+langchain-litellm==0.2.3
+langgraph==0.6.8
+langchain-mcp-adapters==0.1.11
+# aiohttp>=3.8.0
+# fastapi[standard]>=0.116.1
