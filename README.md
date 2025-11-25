@@ -143,7 +143,7 @@ source .venv/bin/activate
 pip install uv
 uv pip install -r ../requirements.txt
 uv pip install ../../../
-uv pip install v2
+uv pip install ./v2
 ```
 
 Run the Agent
