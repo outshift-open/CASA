@@ -1,3 +1,5 @@
+import os
+
 from auth import CustomAuth
 from langchain_litellm import ChatLiteLLM
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -8,13 +10,16 @@ from identity_auth_server import sdk
 
 class Agent:
     def __init__(self):
+        self.auth_server_url = os.getenv("AUTH_SERVER_URL", "http://localhost:8000")
+        self.litellm_url = os.getenv("LITELLM_URL", "http://localhost:4000")
+        self.mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:3000/mcp")
         pass
 
     async def invoke_agent(self, messages=None, bearer_token=None):
         if not bearer_token:
             raise ValueError("Bearer token is required for authentication")
 
-        async with sdk.AsyncIdentityAuthClient("http://localhost:8000") as auth_client:
+        async with sdk.AsyncIdentityAuthClient(self.auth_server_url) as auth_client:
             llm_app_token = await auth_client.get_llm_app_call_token(
                 grant_type="client_credentials",
                 client_id="http://localhost:8082/oauth/client-metadata.json",
@@ -28,14 +33,14 @@ class Agent:
 
             llm = ChatLiteLLM(
                 model="gpt-4o",
-                api_base="http://localhost:4000",
+                api_base=self.litellm_url,
                 api_key=llm_app_token,
             )
 
             auth = CustomAuth(
                 source_app_call_token=bearer_token,
                 llm_app_token=llm_app_token,
-                mcp_server_url="http://localhost:3000/mcp",
+                mcp_server_url=self.mcp_server_url,
             )
 
             print("Custom Auth Configured:", auth)
@@ -43,7 +48,7 @@ class Agent:
             client = MultiServerMCPClient(
                 {
                     "calculator_service": {
-                        "url": "http://localhost:3000/mcp",
+                        "url": self.mcp_server_url,
                         "transport": "streamable_http",
                         "auth": auth,
                     }
