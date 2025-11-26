@@ -37,6 +37,3 @@ test/
 # Development files
 .pre-commit-config.yaml
 Makefile
-
-# Deployment files (to avoid recursive copying)
-deployments/

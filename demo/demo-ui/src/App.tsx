@@ -14,7 +14,7 @@ function App() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [reloadToken, setReloadToken] = useState(0)
+  const [reloadToken, _] = useState(0)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
   useEffect(() => {
