@@ -1,0 +1,14 @@
+---
+name: zta-litellm
+services:
+  zta-litellm:
+    container_name: zta-litellm
+    image: zta-litellm
+    build:
+      context: ../../
+      dockerfile: deployments/docker/demo/litellm/Dockerfile.llm
+    restart: always
+    ports:
+      - 4000:4000
+    env_file:
+      - ../../.env
