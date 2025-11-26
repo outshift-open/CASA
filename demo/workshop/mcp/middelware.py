@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+import os
 from typing import Callable, Optional
 
 from fastapi import Request, Response
@@ -138,7 +139,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
     Validates bearer tokens and enforces tool call policies.
     """
 
-    AUTH_BASE_URL = "http://localhost:8000"
+    AUTH_BASE_URL = os.getenv("AUTH_SERVER_URL", "http://localhost:8000")
 
     def __init__(self, app: ASGIApp, auth_base_url: Optional[str] = None, mcp_instance=None):
         """Initialize the authentication middleware.
