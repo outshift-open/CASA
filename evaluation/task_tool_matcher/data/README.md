@@ -98,3 +98,13 @@ Edit `config.json` to customize the generation process:
 ```
 
 The generation script depends on MCP server tool definitions being available in the `mcp_servers/` directory. Ensure you've run the MCP tool extraction process first if needed.
+
+
+
+### Generating Conversations (Single Agent Mode)
+```bash
+python evaluation/task_tool_matcher/data/task_generation.py \
+    --input-dir evaluation/task_tool_matcher/data/mcp_servers  \
+    --output-file evaluation/task_tool_matcher/data/conv_1tool_5SO_12MCP.json \
+    --multiplier 5 --num_tools 1 --conversation
+```
