@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, Optional
 
 from litellm.integrations.custom_logger import CustomLogger
@@ -51,7 +52,7 @@ class MyCustomHandler(CustomLogger):
 
     def log_pre_api_call(self, model, messages, kwargs):
         auth_client = sdk.IdentityAuthClient(
-            base_url="http://localhost:8000",
+            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
         )
 
         resp = auth_client.validate_llm_app_call_token(
@@ -72,7 +73,7 @@ class MyCustomHandler(CustomLogger):
 
     def log_success_event(self, kwargs, response_obj, start_time, end_time):
         auth_client = sdk.IdentityAuthClient(
-            base_url="http://localhost:8000",
+            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
         )
 
         resp = auth_client.validate_llm_app_call_token(
@@ -101,7 +102,7 @@ class MyCustomHandler(CustomLogger):
 
     async def async_log_success_event(self, kwargs, response_obj, start_time, end_time):
         auth_client = sdk.IdentityAuthClient(
-            base_url="http://localhost:8000",
+            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
         )
 
         resp = auth_client.validate_llm_app_call_token(

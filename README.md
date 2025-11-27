@@ -25,11 +25,7 @@ This will:
 -   Install all dependencies (including dev dependencies)
 -   Set up pre-commit hooks
 
-#### Activate Environment and setup .env
-
-```shell
-source .venv/bin/activate
-```
+#### Setup .env
 
 Create a `.env` file by copying the provided sample and updating it with your configuration:
 
@@ -46,7 +42,7 @@ Ensure you have a PostgreSQL database running and accessible. Update the `.env` 
 You can run a local Keycloak instance using Docker Compose:
 
 ```shell
-docker compose -f deployments/docker-compose/docker-compose.keycloak.yml up -d
+make keycloak-run
 ```
 
 Update the `.env` file with the Keycloak admin username and password.
@@ -55,6 +51,14 @@ Keycloak will be accessible at `http://localhost:8080/`.
 #### 3. Run the Server
 
 ```shell
+make auth-server-run
+```
+
+Or manually:
+
+```shell
+source .venv/bin/activate
+
 # Development server with auto-reload
 uvicorn identity_auth_server.api.app:app --reload
 
@@ -69,6 +73,22 @@ The first time you run the server, it will automatically apply database migratio
 The server will be available at `http://localhost:8000` with interactive API documentation at `http://localhost:8000/docs`.
 
 ### Run the demo setup
+
+To run everything on docker, simply run:
+
+```shell
+make demo-run
+```
+
+and to stop
+
+```shell
+make demo-stop
+```
+
+To test the setup run the `curl` command described in this [section](#test-the-demo-setup).
+
+If you want to do things manually, the sections below will show you how.
 
 #### Frontend Auth Explorer
 
@@ -174,7 +194,7 @@ python main.py
 
 The Trusted Client will be available at `http://localhost:3999`.
 
-#### Send a request from the Trusted Client to the Agent
+### Test the demo setup
 
 You can use curl to send a request to the Trusted Client, which will forward it to the Agent.
 
