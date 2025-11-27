@@ -5,8 +5,7 @@ name: zta-demo
 
 services:
   ui:
-    container_name: zta-ui
-    image: zta-ui
+    container_name: identity-ui
     build:
       context: ../../
       dockerfile: deployments/docker/demo/frontend/Dockerfile
@@ -15,11 +14,10 @@ services:
       - 5600:5600
 
   litellm:
-    container_name: zta-litellm
-    image: zta-litellm
+    container_name: identity-litellm
     build:
       context: ../../
-      dockerfile: deployments/docker/demo/litellm/Dockerfile.llm
+      dockerfile: deployments/docker/demo/litellm/Dockerfile
     restart: always
     ports:
       - 4000:4000

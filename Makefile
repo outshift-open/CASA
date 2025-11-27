@@ -163,7 +163,7 @@ keycloak-stop:
 
 demo-run:
 > @printf "$(YELLOW)Starting the demo agents and LiteLLM with Docker Compose$(NOCOLOR)\n"
-> docker compose -f deployments/docker-compose/docker-compose.demo.yml up --build -d
+> docker compose -f deployments/docker-compose/docker-compose.demo.yml up -d
 .PHONY: demo-run
 
 demo-stop:
