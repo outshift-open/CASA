@@ -7,7 +7,7 @@ authors = [
   { name="Ben Ryder", email="beryder@cisco.com" }
 ]
 readme = "README.md"
-license = {file = "LICENSE"}
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 classifiers = [
     "License :: Other/Proprietary License",
