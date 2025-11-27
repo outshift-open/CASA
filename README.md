@@ -99,7 +99,7 @@ Copy the .env sample to .env and set the master and salt keys
 cp .env.sample .env
 ```
 
-Copy the .config.yaml sample to config.yaml and set the LLM configuration
+Copy the .config.yaml sample to config.yaml and set the LLM configuration (the Base URL and the Api Key)
 
 ```shell
 cp ../llm/config.yaml.sample ../llm/config.yaml
