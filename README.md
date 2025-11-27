@@ -102,7 +102,7 @@ cp .env.sample .env
 Copy the .config.yaml sample to config.yaml and set the LLM configuration
 
 ```shell
-cp llm/config.yaml.sample llm/config.yaml
+cp ../llm/config.yaml.sample ../llm/config.yaml
 ```
 
 Run LiteLLM
