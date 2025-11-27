@@ -1,5 +1,6 @@
 import aiohttp
 import uvicorn
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -7,8 +8,12 @@ from identity_auth_server import sdk
 
 app = FastAPI()
 
+AGENT_CHAT_URL = os.getenv("AGENT_CHAT_URL", "http://localhost:8082/chat")
+AUTH_SERVER_URL = os.getenv("AUTH_SERVER_URL", "http://localhost:8000")
+CLIENT_BASE_URL = os.getenv("TRUSTED_CLIENT_BASE_URL", "http://localhost:3999")
+
 CLIENT_METADATA = {
-    "client_id": "http://localhost:3999/oauth/client-metadata.json",
+    "client_id": f"{CLIENT_BASE_URL}/oauth/client-metadata.json",
     "client_name": "Financial Assistant",
     "grant_types": ["client_credentials"],
     "response_types": ["token"],
@@ -24,7 +29,7 @@ class ChatRequest(BaseModel):
 
 async def send_chat_request(user_content: str, bearer_token: str = None):
     """Send HTTP POST request to chat endpoint with user content"""
-    url = "http://0.0.0.0:8082/chat"
+    url = AGENT_CHAT_URL
 
     # Prepare the payload
     payload = {"content": user_content}
@@ -60,11 +65,11 @@ async def process_chat(request: ChatRequest):
     """Process chat request with authentication and authorization"""
     user_content = request.content
 
-    async with sdk.AsyncIdentityAuthClient("http://localhost:8000") as client:
+    async with sdk.AsyncIdentityAuthClient(AUTH_SERVER_URL) as client:
         source_app_token = await client.get_source_app_call_token(
             input=user_content,
             grant_type="client_credentials",
-            client_id="http://localhost:3999/oauth/client-metadata.json",
+            client_id=f"{CLIENT_BASE_URL}/oauth/client-metadata.json",
             client_assertion_type="urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             client_assertion="eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1In0.eyJpc3MiOiJ5b3VyLWNsaWVudC1pZCIsInN1YiI6InlvdXItY2xpZW50LWlkIiwiYXVkIjoiaHR0cHM6Ly9hdXRoLmV4YW1wbGUuY29tL29hdXRoMi90b2tlbiIsImlhdCI6MTcyNjUxMzkyNywiZXhwIjoxNzI2NTE0MjI3LCJqdGkiOiIxNzI2NTEzOTI3OTYxMDAwMCJ9",
         )
