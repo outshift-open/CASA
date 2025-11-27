@@ -131,6 +131,11 @@ test-integration: # Run only integration tests.
 > pytest test/integration/ -m integration
 .PHONY: test-integration
 
+auth-server-run:
+> source .venv/bin/activate
+> uvicorn identity_auth_server.api.app:app --reload
+.PHONY: auth-server-run
+
 docker-build: # Build the Docker image.
 > @printf "$(YELLOW)Building Docker image$(NOCOLOR)\n"
 > docker build -f deployments/docker/Dockerfile -t identity-auth-server .
@@ -145,3 +150,23 @@ docker-stop: # Stop the Docker Compose services.
 > @printf "$(YELLOW)Stopping Docker Compose services$(NOCOLOR)\n"
 > cd deployments/docker-compose && docker compose down
 .PHONY: docker-stop
+
+keycloak-run:
+> @printf "$(YELLOW)Starting Keycloak with Docker Compose$(NOCOLOR)\n"
+> docker compose -f deployments/docker-compose/docker-compose.keycloak.yml up -d
+.PHONY: keycloak-run
+
+keycloak-stop:
+> @printf "$(YELLOW)Stopping Keycloak$(NOCOLOR)\n"
+> docker compose -f deployments/docker-compose/docker-compose.keycloak.yml down
+.PHONY: keycloak-stop
+
+demo-run:
+> @printf "$(YELLOW)Starting the demo agents and LiteLLM with Docker Compose$(NOCOLOR)\n"
+> docker compose -f deployments/docker-compose/docker-compose.demo.yml up --build -d
+.PHONY: demo-run
+
+demo-stop:
+> @printf "$(YELLOW)Stopping the demo agents and LiteLLM$(NOCOLOR)\n"
+> docker compose -f deployments/docker-compose/docker-compose.demo.yml down
+.PHONY: demo-stop

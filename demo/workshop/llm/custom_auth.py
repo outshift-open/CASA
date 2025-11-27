@@ -1,3 +1,4 @@
+import os
 from fastapi import Request
 from litellm.proxy._types import UserAPIKeyAuth as BaseUserAPIKeyAuth
 from pydantic import model_validator
@@ -22,7 +23,7 @@ class UserAPIKeyAuth(BaseUserAPIKeyAuth):
 async def user_api_key_auth(_: Request, api_key: str) -> UserAPIKeyAuth:
     try:
         auth_client = sdk.IdentityAuthClient(
-            base_url="http://localhost:8000",
+            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
         )
 
         print("Validating API key:", api_key)
