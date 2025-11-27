@@ -8,7 +8,7 @@ from datetime import datetime
 import uvicorn
 from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
-from middelware import AuthMiddleware
+from middleware import AuthMiddleware
 
 
 # In-memory banking data storage for a single customer
