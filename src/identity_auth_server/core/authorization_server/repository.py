@@ -2,13 +2,11 @@
 
 from abc import ABC, abstractmethod
 
-# from identity_auth_server.core.token.types import
 
-
-class TokenRepository(ABC):
-    """Interface for TokenRepository."""
+class AuthorizationServerRepository(ABC):
+    """Interface for AuthorizationServerRepository."""
 
     @abstractmethod
-    def create_token(self, string) -> str:
+    def create_token(self, TokenModel) -> str:
         """Create a new token and return its value."""
         pass

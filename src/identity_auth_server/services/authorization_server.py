@@ -8,27 +8,29 @@ import jwt
 from identity_auth_server.core.client.repository import ClientRepository
 from identity_auth_server.core.client.types import ClientInput
 from identity_auth_server.core.token.repository import TokenRepository
-from identity_auth_server.core.token.types import (
-    ActorClaim,
-    TokenIntrospectParams,
-    TokenIntrospectResponse,
-    TokenRequestParams,
-    TokenResponse,
-)
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
+from identity_auth_server.core.token.types import (ActorClaim,
+                                                   TokenIntrospectParams,
+                                                   TokenIntrospectResponse,
+                                                   TokenRequestParams,
+                                                   TokenResponse)
+from identity_auth_server.thirdparty.idp.keycloak.keycloak import \
+    KeycloakManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 
-class TokenService(ABC):
-    """Interface defining token service methods."""
+class AuthorizationServerService(ABC):
+    """Interface defining AS service methods."""
 
     def __init__(
-        self, token_repository: TokenRepository, keycloak_manager: KeycloakManager, client_repository: ClientRepository
+        self,
+        authorization_server_repository: AuthorizationServerRepository,
+        keycloak_manager: KeycloakManager,
+        client_repository: ClientRepository,
     ):
-        """Initialize the service with a token repository, keycloak manager, and client repository."""
-        self.token_repository = token_repository
+        """Initialize the service with its dependencies."""
+        self.authorization_server_repository = authorization_server_repository
         self.keycloak_manager = keycloak_manager
         self.client_repository = client_repository
 
