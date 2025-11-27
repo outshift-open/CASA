@@ -8,13 +8,14 @@ import jwt
 from identity_auth_server.core.client.repository import ClientRepository
 from identity_auth_server.core.client.types import ClientInput
 from identity_auth_server.core.token.repository import TokenRepository
-from identity_auth_server.core.token.types import (ActorClaim,
-                                                   TokenIntrospectParams,
-                                                   TokenIntrospectResponse,
-                                                   TokenRequestParams,
-                                                   TokenResponse)
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import \
-    KeycloakManager
+from identity_auth_server.core.token.types import (
+    ActorClaim,
+    TokenIntrospectParams,
+    TokenIntrospectResponse,
+    TokenRequestParams,
+    TokenResponse,
+)
+from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)

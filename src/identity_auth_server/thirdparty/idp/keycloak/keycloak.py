@@ -221,6 +221,7 @@ class KeycloakManager:
         scopes: list[str] = [],
     ):
         """Get a token from Keycloak for the given client.
+
         Args:
             client_id: The client identifier
             client_secret: The client secret
@@ -234,7 +235,6 @@ class KeycloakManager:
         Returns:
             Token response from Keycloak
         """
-
         # Assign client scopes to client
         client_db_id = self._get_keycloak_admin(realm).get_client_id(client_id)
         for scope in scopes:
