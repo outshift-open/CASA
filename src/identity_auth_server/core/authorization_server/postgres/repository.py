@@ -4,10 +4,8 @@ from hashlib import sha256
 
 from sqlmodel import select
 
-from identity_auth_server.core.authorization_server.repository import \
-    AuthorizationServerRepository
-from identity_auth_server.core.authorization_server.types import (
-    AuthorizationServer, ClientCredentials, Token)
+from identity_auth_server.core.authorization_server.repository import AuthorizationServerRepository
+from identity_auth_server.core.authorization_server.types import AuthorizationServer, ClientCredentials, Token
 from identity_auth_server.database.postgres.postgres import PostgresDB
 
 

@@ -7,8 +7,7 @@ from uuid import UUID, uuid4
 from identityservice.badge.mcp import McpTool
 from sqlmodel import Field, Relationship, SQLModel
 
-from identity_auth_server.core.authorization_server.types import (
-    AuthorizationServer, ClientCredentials)
+from identity_auth_server.core.authorization_server.types import AuthorizationServer, ClientCredentials
 
 # pylint: disable=too-few-public-methods
 

@@ -4,10 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from identity_auth_server.core.authorization_server.postgres.repository import \
-    AuthorizationServerPostgresRepository
-from identity_auth_server.core.authorization_server.types import (
-    AuthorizationServer, ClientCredentials, Token)
+from identity_auth_server.core.authorization_server.postgres.repository import AuthorizationServerPostgresRepository
+from identity_auth_server.core.authorization_server.types import AuthorizationServer, ClientCredentials, Token
 
 
 @pytest.fixture

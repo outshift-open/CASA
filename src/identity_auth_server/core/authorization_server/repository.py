@@ -2,8 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from identity_auth_server.core.authorization_server.types import (
-    AuthorizationServer, ClientCredentials, Token)
+from identity_auth_server.core.authorization_server.types import AuthorizationServer, ClientCredentials, Token
 
 
 class AuthorizationServerRepository(ABC):

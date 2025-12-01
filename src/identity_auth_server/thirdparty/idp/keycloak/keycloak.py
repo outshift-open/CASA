@@ -7,8 +7,7 @@ import os
 import requests
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
-from identity_auth_server.core.authorization_server.types import (
-    ActorClaim, AuthorizationServer, ClientCredentials)
+from identity_auth_server.core.authorization_server.types import ActorClaim, AuthorizationServer, ClientCredentials
 
 # pylint:disable=logging-fstring-interpolation
 

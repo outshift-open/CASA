@@ -8,8 +8,7 @@ from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine
 
 from identity_auth_server.database.database import Database
-from identity_auth_server.database.postgres.alembic_runner import \
-    run_alembic_migrations
+from identity_auth_server.database.postgres.alembic_runner import run_alembic_migrations
 
 load_dotenv()
 
