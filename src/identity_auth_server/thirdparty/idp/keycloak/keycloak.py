@@ -7,7 +7,8 @@ import os
 import requests
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
-from identity_auth_server.core.authorization_server.types import ActorClaim
+from identity_auth_server.core.authorization_server.types import (
+    ActorClaim, AuthorizationServer, ClientCredentials)
 
 # pylint:disable=logging-fstring-interpolation
 
@@ -36,47 +37,63 @@ class KeycloakManager:
         self.username = username or os.getenv("IDP_ADMIN_USERNAME", "admin")
         self.password = password or os.getenv("IDP_ADMIN_PASSWORD", "admin")
 
-    def create_realm(self, realm: str, scopes: list[str] | None = None):
-        """Create a new Keycloak realm.
+    def create_authorization_server(self, authorization_server: AuthorizationServer):
+        """Create a new Keycloak Authorization Server (Realm).
 
         Args:
-            realm_name: The name of the realm to create
+            authorization_server: The AuthorizationServer object containing realm information
         """
         try:
             # Create realm
-            self._get_keycloak_admin().create_realm(payload={"realm": realm, "enabled": True}, skip_exists=False)
-
-            # Create scopes
-            for scope in scopes:
-                logger.info(f"Creating scope: {scope}")
-                self._get_keycloak_admin(realm).create_client_scope({"name": scope, "protocol": "openid-connect"}, True)
+            self._get_keycloak_admin(None).create_realm(
+                payload={"realm": authorization_server.realm, "enabled": True}, skip_exists=False
+            )
         except Exception:
             pass  # Realm already exists
 
-    def create_client(self, realm: str, client_id: str):
+    def add_authorization_server_scopes(self, authorization_server: AuthorizationServer, scopes: list[str]):
+        """Add scopes to the Keycloak Authorization Server (Realm).
+
+        Args:
+            authorization_server: The AuthorizationServer object containing realm information
+            scopes: List of scope names to add
+        """
+        try:
+            # Create scopes
+            for scope in scopes:
+                logger.info(f"Creating scope: {scope}")
+                self._get_keycloak_admin(authorization_server).create_client_scope(
+                    {"name": scope, "protocol": "openid-connect"}, True
+                )
+        except Exception:
+            pass  # Realm already exists
+
+    def create_client_credentials(
+        self, authorization_server: AuthorizationServer, client_metadata_url: str
+    ) -> ClientCredentials:
         """Create a new Keycloak client.
 
         Args:
-            realm: The realm in which to create the client
-            client_id: The client identifier
+            authorization_server: The AuthorizationServer object containing realm information
+            client_metadata_url: URL to fetch client metadata from
 
         Returns:
-            The created client object
+            ClientCredentials object containing client information
 
         Raises:
             ValueError: If metadata cannot be fetched from the client_id URL
         """
         # Parse the contents of the url
         try:
-            metadata = requests.get(client_id, timeout=REQUEST_TIMEOUT).json()
+            metadata = requests.get(client_metadata_url, timeout=REQUEST_TIMEOUT).json()
         except Exception as e:
-            raise ValueError(f"Failed to fetch metadata from {client_id}: {e}")
+            raise ValueError(f"Failed to fetch metadata from {client_metadata_url}: {e}")
 
         # Read if client exists
         try:
             # Define new client data
             payload = {
-                "clientId": client_id,
+                "clientId": client_metadata_url,
                 "name": metadata.get("client_name", "Unnamed Client"),
                 "enabled": True,
                 "publicClient": metadata.get("token_endpoint_auth_method", "") == "none",
@@ -86,22 +103,29 @@ class KeycloakManager:
             }
 
             # Create the client
-            client = self._get_keycloak_admin(realm=realm).create_client(payload=payload, skip_exists=False)
+            _ = self._get_keycloak_admin(authorization_server).create_client(payload=payload, skip_exists=False)
         except Exception:
             pass  # Client already exists
 
-        # Get the client database ID
-        client_db_id = self._get_keycloak_admin(realm=realm).get_client_id(client_id)
+        # Get the Keycloak internal id
+        client_int_id = self._get_keycloak_admin(authorization_server).get_client_id(client_metadata_url)
+        if not client_int_id:
+            raise ValueError(f"Client ID not found for client_int_id: {client_metadata_url}")
 
         # Add Protocol Mappers
-        self._add_protocol_mappers(realm, client_db_id)
+        self._add_protocol_mappers(authorization_server, client_int_id)
 
         # Return client
-        client = self._get_keycloak_admin(realm=realm).get_client(client_db_id)
+        client_credentials = self._get_keycloak_admin(authorization_server).get_client(client_int_id)
 
-        return client
+        return ClientCredentials(
+            name=client_credentials["name"],
+            client_id=client_metadata_url,
+            client_secret=client_credentials.get("secret", ""),
+            authorization_server_id=authorization_server.id,
+        )
 
-    def _add_protocol_mappers(self, realm: str, client_db_id: str):
+    def _add_protocol_mappers(self, authorization_server: AuthorizationServer, client_int_id: str):
         """Add protocol mappers to the client.
 
         Args:
@@ -109,60 +133,24 @@ class KeycloakManager:
             client_db_id: The client database ID
         """
         # Remove all existing mappers
-        existing_scopes = self._get_keycloak_admin(realm=realm).get_client_scopes()
+        existing_scopes = self._get_keycloak_admin(authorization_server).get_client_scopes()
         for scope in existing_scopes:
-            mappers = self._get_keycloak_admin(realm=realm).get_mappers_from_client_scope(scope["id"])
+            mappers = self._get_keycloak_admin(authorization_server).get_mappers_from_client_scope(scope["id"])
             for mapper in mappers:
-                self._get_keycloak_admin(realm=realm).delete_mapper_from_client_scope(scope["id"], mapper["id"])
+                self._get_keycloak_admin(authorization_server).delete_mapper_from_client_scope(
+                    scope["id"], mapper["id"]
+                )
 
-        # Add Protocol Mapper for X-Requested-Tools
-        self._get_keycloak_admin(realm=realm).add_mapper_to_client(
-            client_db_id,
+        # Add Protocol Mapper for X-Requested-Extra
+        self._get_keycloak_admin(authorization_server).add_mapper_to_client(
+            client_int_id,
             {
                 "protocol": "openid-connect",
                 "protocolMapper": "POIT-gethttpheader",
-                "name": "X-Requested-Tools",
+                "name": "X-Requested-Extra",
                 "config": {
-                    "http-header": "X-Requested-Tools",
-                    "claim.name": "tools",
-                    "id.token.claim": "true",
-                    "access.token.claim": "true",
-                    "lightweight.claim": "false",
-                    "userinfo.token.claim": "true",
-                    "introspection.token.claim": "true",
-                },
-            },
-        )
-
-        # Add Protocol Mapper for X-Requested-Input
-        self._get_keycloak_admin(realm=realm).add_mapper_to_client(
-            client_db_id,
-            {
-                "protocol": "openid-connect",
-                "protocolMapper": "POIT-gethttpheader",
-                "name": "X-Requested-Input",
-                "config": {
-                    "http-header": "X-Requested-Input",
-                    "claim.name": "input",
-                    "id.token.claim": "true",
-                    "access.token.claim": "true",
-                    "lightweight.claim": "false",
-                    "userinfo.token.claim": "true",
-                    "introspection.token.claim": "true",
-                },
-            },
-        )
-
-        # Add Protocol Mapper for X-Requested-Input
-        self._get_keycloak_admin(realm=realm).add_mapper_to_client(
-            client_db_id,
-            {
-                "protocol": "openid-connect",
-                "protocolMapper": "POIT-gethttpheader",
-                "name": "X-Requested-Input-Id",
-                "config": {
-                    "http-header": "X-Requested-Input-Id",
-                    "claim.name": "input_id",
+                    "http-header": "X-Requested-Extra",
+                    "claim.name": "extra",
                     "id.token.claim": "true",
                     "access.token.claim": "true",
                     "lightweight.claim": "false",
@@ -173,8 +161,8 @@ class KeycloakManager:
         )
 
         # Add Protocol Mapper for X-Requested-Act
-        self._get_keycloak_admin(realm=realm).add_mapper_to_client(
-            client_db_id,
+        self._get_keycloak_admin(authorization_server).add_mapper_to_client(
+            client_int_id,
             {
                 "protocol": "openid-connect",
                 "protocolMapper": "POIT-gethttpheader",
@@ -192,8 +180,8 @@ class KeycloakManager:
         )
 
         # Add Protocol Mapper for X-Requested-Sub
-        self._get_keycloak_admin(realm=realm).add_mapper_to_client(
-            client_db_id,
+        self._get_keycloak_admin(authorization_server).add_mapper_to_client(
+            client_int_id,
             {
                 "protocol": "openid-connect",
                 "protocolMapper": "POIT-gethttpheader",
@@ -212,64 +200,71 @@ class KeycloakManager:
 
     def get_token(
         self,
-        client_id: str,
-        client_secret: str,
-        realm: str,
-        act: ActorClaim | None = None,
-        input_id: str = "",
+        authorization_server: AuthorizationServer,
+        client_credentials: ClientCredentials,
         sub: str = "",
+        act: ActorClaim | None = None,
         scopes: list[str] = [],
+        extra: dict | None = None,
     ):
         """Get a token from Keycloak for the given client.
 
         Args:
-            client_id: The client identifier
-            client_secret: The client secret
-            realm: The realm name
-            tools: List of requested tools
-            act: Requested action
-            input_id: Requested input identifier
-            sub: Subject claim
-            scopes: List of requested scopes
+            authorization_server: The AuthorizationServer object containing realm information
+            client_credentials: The ClientCredentials object containing client information
+            sub: Subject for the token
+            act: Actor claim for delegation
+            scopes: List of scopes to request
+            extra: Extra parameters for the token request
 
         Returns:
             Token response from Keycloak
         """
         # Assign client scopes to client
-        client_db_id = self._get_keycloak_admin(realm).get_client_id(client_id)
+        client_int_id = self._get_keycloak_admin(authorization_server).get_client_id(client_credentials.client_id)
+        if not client_int_id:
+            raise ValueError(f"Client ID not found for client_int_id: {client_credentials.client_id}")
+
         for scope in scopes:
-            scope_obj = self._get_keycloak_admin(realm).get_client_scope_by_name(scope)
-            self._get_keycloak_admin(realm).add_client_optional_client_scope(client_db_id, scope_obj["id"], {})
+            scope_obj = self._get_keycloak_admin(authorization_server).get_client_scope_by_name(scope)
+            self._get_keycloak_admin(authorization_server).add_client_optional_client_scope(
+                client_int_id, scope_obj["id"], {}
+            )
 
         act_string = json.dumps(act.model_dump(exclude_none=True)) if act else "{}"
-        input_id_string = input_id
+        extra_string = json.dumps(extra) if extra else "{}"
 
         keycloak_openid = KeycloakOpenID(
             server_url=self.server_url,
-            client_id=client_id,
-            realm_name=realm,
-            client_secret_key=client_secret,
+            client_id=client_int_id,
+            realm_name=authorization_server.realm,
+            client_secret_key=client_credentials.client_secret,
             custom_headers={
-                "X-Requested-Act": act_string,
-                "X-Requested-Input-Id": input_id_string,
                 "X-Requested-Sub": sub,
+                "X-Requested-Act": act_string,
+                "X-Requested-Extra": extra_string,
             },
         )
 
         return {
             "token": keycloak_openid.token(grant_type="client_credentials", scope=" ".join(scopes)),
-            "act": act,
-            "input_id": input_id,
             "sub": sub,
+            "act": act,
+            "extra": extra,
             "scopes": scopes,
         }
 
-    def _get_keycloak_admin(self, realm: str = "master") -> KeycloakAdmin:
+    def _get_keycloak_admin(self, authorization_server: AuthorizationServer | None) -> KeycloakAdmin:
         """Get the Keycloak admin instance.
+
+        Args:
+            authorization_server: The AuthorizationServer object containing realm information
 
         Returns:
             KeycloakAdmin instance
         """
+        realm = authorization_server.realm if authorization_server else "master"
+
         # Connect to Keycloak Admin API
         return KeycloakAdmin(
             server_url=self.server_url,

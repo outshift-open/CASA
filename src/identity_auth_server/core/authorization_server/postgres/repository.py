@@ -1,8 +1,13 @@
 """PostgreSQL implementation of SessionRepository."""
 
-from uuid import uuid4
+from hashlib import sha256
 
-from identity_auth_server.core.token.postgres.models import TokenModel
+from sqlmodel import select
+
+from identity_auth_server.core.authorization_server.repository import \
+    AuthorizationServerRepository
+from identity_auth_server.core.authorization_server.types import (
+    AuthorizationServer, ClientCredentials, Token)
 from identity_auth_server.database.postgres.postgres import PostgresDB
 
 
@@ -13,15 +18,40 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
         """Initialize the repository with a database session."""
         self.database = database
 
-    def create_token(self, token: TokenModel) -> str:
-        """Persist a source app session and return the generated token."""
-        db_session = TokenModel(
-            id=uuid4(), value=token.value, expires_at=token.expires_at, client_credential_id=token.client_credential_id
-        )
-
+    def create_authorization_server(self, authorization_server: AuthorizationServer) -> AuthorizationServer:
+        """Persist an authorization server and return the created object."""
         with self.database.session_scope() as session:
-            session.add(db_session)
+            session.add(authorization_server)
             session.flush()
-            session.refresh(db_session)
+            session.refresh(authorization_server)
 
-            return db_session.token
+            return authorization_server
+
+    def find_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
+        """Find client credentials by client ID."""
+        with self.database.session_scope() as session:
+            statement = select(ClientCredentials).where(ClientCredentials.client_id == client_id)
+            result = session.exec(statement).first()
+
+            return result
+
+    def create_client_credentials(self, client_credential: ClientCredentials) -> ClientCredentials:
+        """Persist client credentials and return the created object."""
+        with self.database.session_scope() as session:
+            session.add(client_credential)
+            session.flush()
+            session.refresh(client_credential)
+
+            return client_credential
+
+    def create_token(self, token: Token) -> Token:
+        """Persist a source app session and return the generated token."""
+        with self.database.session_scope() as session:
+            # Hash the token value before storing
+            token.value = sha256(token.value.encode("utf-8")).hexdigest()
+
+            session.add(token)
+            session.flush()
+            session.refresh(token)
+
+            return token

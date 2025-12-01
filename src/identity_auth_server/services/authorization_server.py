@@ -5,17 +5,7 @@ from abc import ABC, abstractmethod
 
 import jwt
 
-from identity_auth_server.core.client.repository import ClientRepository
-from identity_auth_server.core.client.types import ClientInput
-from identity_auth_server.core.token.repository import TokenRepository
-from identity_auth_server.core.token.types import (
-    ActorClaim,
-    TokenIntrospectParams,
-    TokenIntrospectResponse,
-    TokenRequestParams,
-    TokenResponse,
-)
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
+from identity_auth_server.core.app.types import App
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -28,37 +18,65 @@ class AuthorizationServerService(ABC):
         self,
         authorization_server_repository: AuthorizationServerRepository,
         keycloak_manager: KeycloakManager,
-        client_repository: ClientRepository,
+        api_url: str,
     ):
         """Initialize the service with its dependencies."""
         self.authorization_server_repository = authorization_server_repository
         self.keycloak_manager = keycloak_manager
-        self.client_repository = client_repository
+        self.api_url = api_url
 
     @abstractmethod
-    def generate_act_token(self, data: TokenRequestParams, source_client_id: str) -> TokenResponse:
-        """Generate a new token with an 'act' claim for delegation."""
-        pass
+    def create_for_app(self, app: App) -> App:
+        """Create a new authorization server for an App."""
 
     @abstractmethod
-    def generate_token(self, data: TokenRequestParams) -> TokenResponse:
-        """Generate a new token based on the request parameters."""
-        pass
+    def generate_token(self, data: TokenRequestParams, source: App | None) -> TokenResponse:
+        """Generate a new token based on the request parameters and source App."""
 
     @abstractmethod
     def introspect_token(self, data: TokenIntrospectParams) -> TokenIntrospectResponse:
         """Introspect a token to check its validity and retrieve metadata."""
-        pass
 
 
-class TokenServiceImpl(TokenService):
+class AuthorizationServerServiceImpl(AuthorizationServerService):
     """Concrete implementation of TokenService."""
 
     def __init__(
-        self, token_repository: TokenRepository, keycloak_manager: KeycloakManager, client_repository: ClientRepository
+        self,
+        token_repository: AuthorizationServerRepository,
+        keycloak_manager: KeycloakManager,
     ):
         """Store the backing session repository, keycloak manager, and client repository."""
-        super().__init__(token_repository, keycloak_manager, client_repository)
+        super().__init__(token_repository, keycloak_manager, api_url)
+
+    def create_for_app(self, app: App) -> App:
+        """Create a new authorization server for an App."""
+        authorization_server = AuthorizationServer(
+            id=app.id,
+            realm=f"{app.name}-auth-server",
+        )
+
+        # Create the client_credentials object
+        client_credentials = ClientCredentials(
+            name=f"{app.name}-client-credentials", client_id=f"{self.api_url}/{app.id}/oauth/client-metadata.json"
+        )
+
+        # Persist the authorization server
+        authorization_server = self.authorization_server_repository.create_authorization_server(authorization_server)
+
+        # Persist the client credentials
+        client_credentials.authorization_server_id = authorization_server.id
+        self.authorization_server_repository.create_client_credentials(client_credentials)
+
+        # Create in Keycloak
+        self.keycloak_manager.create_authorization_server(authorization_server)
+        self.keycloak_manager.create_client_credentials(authorization_server, client_credentials)
+
+        # Add all scopes from the app to the authorization server
+        self.keycloak_manager.add_authorization_server_scopes(
+            authorization_server,
+            scopes=list(map(lambda t: "call_" + t.name, app.tools)),
+        )
 
     def generate_act_token(self, data: TokenRequestParams, source_client_id: str) -> TokenResponse:
         """Generate a new token with an 'act' claim for delegation."""
