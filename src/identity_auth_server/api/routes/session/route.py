@@ -15,7 +15,7 @@ from identity_auth_server.core.session.types import (
     SessionSourceAppInput,
     SessionSourceAppOutput,
 )
-from identity_auth_server.core.token.types import TokenRequestParams
+from identity_auth_server.core.types import TokenRequestParams
 from identity_auth_server.services.session import SessionService
 
 

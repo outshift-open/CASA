@@ -1,11 +1,11 @@
-"""Unit tests for LlmAppCallPostgresRepository."""
+"""Unit tests for AS."""
 
 from unittest.mock import MagicMock
 
 import pytest
 
-from identity_auth_server.core.authorization_server.postgres.repository import AuthorizationServerPostgresRepository
-from identity_auth_server.core.authorization_server.types import AuthorizationServer, ClientCredentials, Token
+from identity_auth_server.core.repositories.authorization_server import AuthorizationServerPostgresRepository
+from identity_auth_server.core.types import AuthorizationServer, ClientCredentials, Token
 
 
 @pytest.fixture
@@ -26,8 +26,8 @@ def database_with_session():
 
 def test_create_all(database_with_session):
     """Test creating client credentials."""
-    database, _ = database_with_session
-    repository = AuthorizationServerPostgresRepository(database)
+    _, session = database_with_session
+    repository = AuthorizationServerPostgresRepository(session)
 
     # Create AuthorizationServer
     authorization_server = repository.create_authorization_server(AuthorizationServer(realm="test-realm"))

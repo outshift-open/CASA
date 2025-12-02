@@ -31,12 +31,13 @@ class PostgresDB(Database):
         self.database_url = (
             f"postgresql://{self.db_username}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
         )
+        logger.info(f"Database URL: {self.database_url}")
 
         self.engine = create_engine(self.database_url)
         SQLModel.metadata.create_all(self.engine)
 
     @contextmanager
-    def session_scope(self):
+    def session_scope(self) -> Session:
         """Provide a transactional scope around a series of operations."""
         session = Session(self.engine)
         try:

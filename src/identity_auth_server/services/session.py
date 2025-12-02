@@ -15,11 +15,10 @@ from identity_auth_server.core.session.types import (
     SessionSourceAppOutput,
 )
 from identity_auth_server.core.source_app_call.repository import SourceAppCallRepository
-from identity_auth_server.core.token.types import ActorClaim, TokenIntrospectParams, TokenRequestParams
+from identity_auth_server.core.types import ActorClaim, TokenIntrospectParams, TokenRequestParams
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
 from identity_auth_server.services.mcp_discover import McpDiscoverService
-from identity_auth_server.services.token import TokenService
 
 
 class SessionService(ABC):
@@ -29,7 +28,6 @@ class SessionService(ABC):
         self,
         session_repository: SessionRepository,
         llm_app_response_repository: LlmAppResponseRepository,
-        token_service: TokenService,
         mcp_discover_service: McpDiscoverService,
         task_tool_matcher: TaskToolMatcher,
         source_app_call_repository: SourceAppCallRepository,
@@ -37,7 +35,7 @@ class SessionService(ABC):
         """Initialize the service with a session repository."""
         self.session_repository = session_repository
         self.llm_app_response_repository = llm_app_response_repository
-        self.token_service = token_service
+        self.token_service = None
         self.mcp_discover_service = mcp_discover_service
         self.task_tool_matcher = task_tool_matcher
         self.source_app_call_repository = source_app_call_repository
@@ -80,7 +78,6 @@ class SessionServiceImpl(SessionService):
         self,
         session_repository: SessionRepository,
         llm_app_response_repository: LlmAppResponseRepository,
-        token_service: TokenService,
         mcp_discover_service: McpDiscoverService,
         task_tool_matcher: TaskToolMatcher,
         source_app_call_repository: SourceAppCallRepository,
@@ -89,7 +86,6 @@ class SessionServiceImpl(SessionService):
         super().__init__(
             session_repository,
             llm_app_response_repository,
-            token_service,
             mcp_discover_service,
             task_tool_matcher,
             source_app_call_repository,

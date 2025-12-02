@@ -7,7 +7,7 @@ import os
 import requests
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
-from identity_auth_server.core.authorization_server.types import ActorClaim, AuthorizationServer, ClientCredentials
+from identity_auth_server.core.types import ActorClaim, AuthorizationServer, ClientCredentials
 
 # pylint:disable=logging-fstring-interpolation
 
@@ -68,13 +68,13 @@ class KeycloakManager:
             pass  # Realm already exists
 
     def create_client_credentials(
-        self, authorization_server: AuthorizationServer, client_metadata_url: str
+        self, authorization_server: AuthorizationServer, client_credentials: ClientCredentials
     ) -> ClientCredentials:
         """Create a new Keycloak client.
 
         Args:
             authorization_server: The AuthorizationServer object containing realm information
-            client_metadata_url: URL to fetch client metadata from
+            client_credentials: The ClientCredentials object containing client information
 
         Returns:
             ClientCredentials object containing client information
@@ -84,15 +84,15 @@ class KeycloakManager:
         """
         # Parse the contents of the url
         try:
-            metadata = requests.get(client_metadata_url, timeout=REQUEST_TIMEOUT).json()
+            metadata = requests.get(client_credentials.client_id, timeout=REQUEST_TIMEOUT).json()
         except Exception as e:
-            raise ValueError(f"Failed to fetch metadata from {client_metadata_url}: {e}")
+            raise ValueError(f"Failed to fetch metadata from {client_credentials.client_id}: {e}")
 
         # Read if client exists
         try:
             # Define new client data
             payload = {
-                "clientId": client_metadata_url,
+                "clientId": client_credentials.client_id,
                 "name": metadata.get("client_name", "Unnamed Client"),
                 "enabled": True,
                 "publicClient": metadata.get("token_endpoint_auth_method", "") == "none",
