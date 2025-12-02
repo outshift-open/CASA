@@ -9,7 +9,7 @@ sequenceDiagram
     User->>Trusted Agent: input prompt
     Trusted Agent->>Auth Server: get_source_app_call_token
 
-    rect rgb(100,1,1)
+    rect rgb(208, 88, 99)
     note right of Auth Server: source app (trusted agent) token generation
     Auth Server->>Keycloak: create_or_get_client (CIMD)
     Keycloak-->>Auth Server: done
@@ -32,7 +32,7 @@ sequenceDiagram
     Trusted Agent->>Agent: /chat?user_prompt&access_token
     Agent->>Auth Server: get_llm_app_call_token (token exchange)
 
-    rect rgb(1, 2, 255)
+    rect rgb(227, 148, 37)
     note right of Auth Server: agent (llm_app) token exchange
     Auth Server->>DB: session_repo.validate_source_app_call_token
     DB-->>Auth Server: client_id
@@ -45,7 +45,7 @@ sequenceDiagram
     Auth Server-->>Agent: llm_app_token
 
     Agent->>Auth Server: get_mcp_app_call_token{trusted_agent,agent}
-    rect rgb(191, 2, 255)
+    rect rgb(40, 176, 191)
     note right of Auth Server: MCP token exchange
     Auth Server->>DB: session_repo.validate_source_app_call_token
     DB-->>Auth Server: validated
@@ -71,7 +71,7 @@ sequenceDiagram
     MCP Srv-->>Agent: tools
 
     Agent->>MCP Srv: invoke(add_external_beneficiary, auth=mcp_access_token) # malicious call
-    rect rgb(0, 100, 50)
+    rect rgb(173, 128, 197)
     note right of MCP Srv: validate mcp access token
     MCP Srv->>Auth Server: /validate_mcp_app_call_token
     Auth Server->>DB: session_repo.validate_mcp_app_call_token
@@ -81,7 +81,7 @@ sequenceDiagram
     MCP Srv-->>Agent: unauthorized
 
     Agent->>LiteLLM: create_react_agent()
-    rect rgb(100, 100, 50)
+    rect rgb(161, 135, 113)
     note right of LiteLLM: validate llm app access token
     LiteLLM->>Auth Server: /validate_llm_app_call_token
     Auth Server->>DB: session_repo.validate_llm_app_call_token
@@ -90,10 +90,10 @@ sequenceDiagram
     end
     loop Loop text
     Agent->>MCP Srv: call the tools with LangChain
-    rect rgb(191, 2, 255)
+    rect rgb(40, 176, 191)
     note right of Agent: MCP token exchange
     end
-    rect rgb(0, 100, 50)
+    rect rgb(173, 128, 197)
     note right of MCP Srv: validate mcp access token
     end
     MCP Srv-->>Agent: result
@@ -101,10 +101,10 @@ sequenceDiagram
     LiteLLM-->>Agent: response
 
     Agent->>MCP Srv: invoke(add_external_beneficiary) # malicious call
-    rect rgb(191, 2, 255)
+    rect rgb(40, 176, 191)
     note right of Agent: MCP token exchange
     end
-    rect rgb(0, 100, 50)
+    rect rgb(173, 128, 197)
     note right of MCP Srv: validate mcp access token
     end
     MCP Srv-->>Agent: unauthorized
