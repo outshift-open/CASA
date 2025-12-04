@@ -43,9 +43,25 @@ class KeycloakManager:
             authorization_server: The AuthorizationServer object containing realm information
         """
         try:
-            # Create realm
+            # Create realm and first admin user
             self._get_keycloak_admin(None).create_realm(
-                payload={"realm": authorization_server.realm, "enabled": True}, skip_exists=False
+                payload={
+                    "realm": authorization_server.realm,
+                    "users": [
+                        {
+                            "username": self.username,
+                            "firstName": "Admin",
+                            "lastName": "User",
+                            "enabled": True,
+                            "email": "admin@admin.org",
+                            "emailVerified": True,
+                            "credentials": [{"value": self.password, "type": "password", "temporary": False}],
+                            "clientRoles": {"realm-management": ["realm-admin"]},
+                        }
+                    ],
+                    "enabled": True,
+                },
+                skip_exists=False,
             )
         except Exception:
             pass  # Realm already exists
@@ -65,7 +81,7 @@ class KeycloakManager:
                     {"name": scope, "protocol": "openid-connect"}, True
                 )
         except Exception:
-            pass  # Realm already exists
+            logger.warning(f"Some scopes may already exist in realm {authorization_server.realm}")
 
     def create_client_credentials(
         self, authorization_server: AuthorizationServer, client_credentials: ClientCredentials
@@ -107,9 +123,9 @@ class KeycloakManager:
             pass  # Client already exists
 
         # Get the Keycloak internal id
-        client_int_id = self._get_keycloak_admin(authorization_server).get_client_id(client_metadata_url)
+        client_int_id = self._get_keycloak_admin(authorization_server).get_client_id(client_credentials.client_id)
         if not client_int_id:
-            raise ValueError(f"Client ID not found for client_int_id: {client_metadata_url}")
+            raise ValueError(f"Client ID not found for client_int_id: {client_credentials.client_id}")
 
         # Add Protocol Mappers
         self._add_protocol_mappers(authorization_server, client_int_id)
@@ -119,7 +135,7 @@ class KeycloakManager:
 
         return ClientCredentials(
             name=client_credentials["name"],
-            client_id=client_metadata_url,
+            client_id=client_credentials["clientId"],
             client_secret=client_credentials.get("secret", ""),
             authorization_server_id=authorization_server.id,
         )

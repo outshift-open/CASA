@@ -56,62 +56,63 @@ task_tool_matcher = task_tool_matcher_factory.create(TaskToolMatcherType.LLM_VER
 # trace_repository = TracePostgresRepository(database)
 # trace_service = TraceServiceImpl(trace_repository)
 
-with database.session_scope() as session:
-    # initialize the authorization service
-    authorization_server_repository = AuthorizationServerPostgresRepository(session)
-    app_repository = AppPostgresRepository(session)
-    keycloak_manager = KeycloakManager()
-    authorization_server_service = AuthorizationServerServiceImpl(
-        authorization_server_repository,
-        app_repository,
-        keycloak_manager,
-        api_url="http://localhost:3000",
-    )
+# initialize the authorization service
+authorization_server_repository = AuthorizationServerPostgresRepository(database, None)
+app_repository = AppPostgresRepository(database, None)
+keycloak_manager = KeycloakManager()
+authorization_server_service = AuthorizationServerServiceImpl(
+    authorization_server_repository,
+    app_repository,
+    keycloak_manager,
+    api_url="http://localhost:3000",
+)
 
-    # initialize the session service
-    # session_repository = SessionPostgresRepository(database)
-    # mcp_discover_service = McpDiscoverServiceImpl()
-    # session_service = SessionServiceImpl(
-    #     session_repository,
-    #     llm_app_response_repository,
-    #     mcp_discover_service,
-    #     task_tool_matcher,
-    #     source_app_call_repository,
-    # )
+# initialize the session service
+# session_repository = SessionPostgresRepository(database)
+# mcp_discover_service = McpDiscoverServiceImpl()
+# session_service = SessionServiceImpl(
+#     session_repository,
+#     llm_app_response_repository,
+#     mcp_discover_service,
+#     task_tool_matcher,
+#     source_app_call_repository,
+# )
 
-    @asynccontextmanager
-    async def lifespan(_: FastAPI):
-        """Application lifespan manager that runs migrations on startup."""
-        logger.info("Application starting up...")
-        # database.run_startup_migrations()
-        yield
 
-    app = FastAPI(lifespan=lifespan)
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Application lifespan manager that runs migrations on startup."""
+    logger.info("Application starting up...")
+    # database.run_startup_migrations()
+    yield
 
-    # source_app_call_route = SourceAppCallRouteImpl(source_app_call_service)
-    # source_app_response_route = SourceAppResponseRouteImpl(source_app_response_service)
-    # llm_app_call_route = LlmAppCallRouteImpl(llm_app_call_service)
-    # llm_app_response_route = LlmAppResponseRouteImpl(llm_app_response_service)
-    # mcp_app_tool_call_route = McpAppToolCallRouteImpl(mcp_app_tool_call_service)
-    # trace_route = TraceRouteImpl(trace_service)
-    # session_route = SessionRouteImpl(session_service)
 
-    authorization_server_route = AuthorizationServiceRouteImpl(authorization_server_service)
+app = FastAPI(lifespan=lifespan)
 
-    app.include_router(authorization_server_route.router)
-    # app.include_router(source_app_call_route.router)
-    # app.include_router(source_app_response_route.router)
-    # app.include_router(llm_app_call_route.router)
-    # app.include_router(llm_app_response_route.router)
-    # app.include_router(mcp_app_tool_call_route.router)
-    # app.include_router(trace_route.router)
-    # app.include_router(session_route.router)
+# source_app_call_route = SourceAppCallRouteImpl(source_app_call_service)
+# source_app_response_route = SourceAppResponseRouteImpl(source_app_response_service)
+# llm_app_call_route = LlmAppCallRouteImpl(llm_app_call_service)
+# llm_app_response_route = LlmAppResponseRouteImpl(llm_app_response_service)
+# mcp_app_tool_call_route = McpAppToolCallRouteImpl(mcp_app_tool_call_service)
+# trace_route = TraceRouteImpl(trace_service)
+# session_route = SessionRouteImpl(session_service)
 
-    # Allow all origins (for local development)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # or ["http://localhost:3000"]
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+authorization_server_route = AuthorizationServiceRouteImpl(authorization_server_service)
+
+app.include_router(authorization_server_route.router)
+# app.include_router(source_app_call_route.router)
+# app.include_router(source_app_response_route.router)
+# app.include_router(llm_app_call_route.router)
+# app.include_router(llm_app_response_route.router)
+# app.include_router(mcp_app_tool_call_route.router)
+# app.include_router(trace_route.router)
+# app.include_router(session_route.router)
+
+# Allow all origins (for local development)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or ["http://localhost:3000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

@@ -26,8 +26,8 @@ def database_with_session():
 
 def test_create_all(database_with_session):
     """Test creating client credentials."""
-    _, session = database_with_session
-    repository = AuthorizationServerPostgresRepository(session)
+    db, _ = database_with_session
+    repository = AuthorizationServerPostgresRepository(db)
 
     # Create AuthorizationServer
     authorization_server = repository.create_authorization_server(AuthorizationServer(realm="test-realm"))

@@ -71,6 +71,7 @@ class AuthorizationServerServiceImpl(AuthorizationServerService):
 
     def create_for_app(self, app: App) -> App:
         """Create a new authorization server for an App."""
+        # Create the authorization server object
         authorization_server = AuthorizationServer(
             realm=f"{app.name}-auth-server",
         )
@@ -87,20 +88,31 @@ class AuthorizationServerServiceImpl(AuthorizationServerService):
         client_credentials.authorization_server_id = authorization_server.id
         self.authorization_server_repository.create_client_credentials(client_credentials)
 
+        logger.debug(f"Creating authorization server {authorization_server.id} for app {app.id}")
+
         # Create in Keycloak
         self.keycloak_manager.create_authorization_server(authorization_server)
+
+        logger.debug(f"Creating client credentials in Keycloak for app {app.id}")
+
         self.keycloak_manager.create_client_credentials(authorization_server, client_credentials)
 
         # Add all scopes from the app to the authorization server
         self.keycloak_manager.add_authorization_server_scopes(
             authorization_server,
-            scopes=list(map(lambda t: "call_" + t.name, app.tools)),
+            scopes=list(map(lambda t: "call_" + str(t.id), app.tools)),
         )
+
+        # Add AuthorizationServer and ClientCredentials to the app
+        app.authorization_server_id = authorization_server.id
+        app.client_credentials_id = client_credentials.id
+
+        return app
 
     def app_metadata(self, app_id: str) -> AppMetadataResponse:
         """Generate app metadata response."""
         # Get app
-        app = self.app_repository.get_by_id(app_id)
+        app = self.app_repository.get_app_by_id(app_id)
 
         return AppMetadataResponse(
             client_name=app.name,

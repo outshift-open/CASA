@@ -26,10 +26,15 @@ def database_with_session():
 
 def test_create_app(database_with_session):
     """Test create an app"""
-    _, session = database_with_session
-    repository = AppPostgresRepository(session)
+    db, _ = database_with_session
+    repository = AppPostgresRepository(db)
 
     # Create app
-    app = repository.create(App(name="Test App", type=AppType.MCP_SERVER))
+    app = repository.create_app(App(name="Test App", type=AppType.MCP_SERVER))
 
     assert app.id is not None
+
+    # Find by id
+    found_app = repository.get_app_by_id(app.id)
+    assert found_app is not None
+    assert found_app.id == app.id

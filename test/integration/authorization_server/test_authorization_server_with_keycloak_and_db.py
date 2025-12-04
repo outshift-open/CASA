@@ -1,18 +1,20 @@
 """Tests for Authorization Server with Keycloak and PostgresDB integration."""
 
+import json
+
 import pytest
 from sqlmodel import SQLModel
 
 from identity_auth_server.core.repositories.app import AppPostgresRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerPostgresRepository
-from identity_auth_server.core.types import App
+from identity_auth_server.core.types import App, Tool
 from identity_auth_server.database.postgres.postgres import PostgresDB
 from identity_auth_server.services.authorization_server import AuthorizationServerServiceImpl
 from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
 
 
 @pytest.fixture
-def session():
+def database_with_session():
     """Pytest fixture to set up and tear down the database for tests.
 
     - Creates a PostgresDB instance.
@@ -26,17 +28,19 @@ def session():
 
     # Provide a session for the tests
     with db.session_scope() as db_session:
-        yield db_session
+        yield db, db_session
 
     # Teardown
     SQLModel.metadata.drop_all(db.engine)
 
 
-def test_authorization_server(session, client):
+def test_authorization_server(database_with_session, api_server):
     """Provide a database session for each test."""
+    db, session = database_with_session
+
     # Repositories
-    app_repository = AppPostgresRepository(session)
-    authorization_server_repository = AuthorizationServerPostgresRepository(session)
+    app_repository = AppPostgresRepository(db, session)
+    authorization_server_repository = AuthorizationServerPostgresRepository(db, session)
 
     # Keycloak Manager
     keycloak_manager = KeycloakManager()
@@ -47,11 +51,47 @@ def test_authorization_server(session, client):
     )
 
     # Create an app
-    app = App(name="Test App", type="MCP_SERVER")
-    app = app_repository.create(app)
+    app = App(
+        name="Test App",
+        type="MCP_SERVER",
+    )
+    app = app_repository.create_app(app)
 
-    # Get the metadata
-    client.get(f"/{app.id}/oauth2/client-metadata.json")
+    # Create two tools
+    app_repository.create_tool(
+        Tool(
+            name="Test Tool 1",
+            description="A tool for testing",
+            input_schema=json.dumps({"type": "object", "properties": {"input": {"type": "string"}}}),
+            output_schema=json.dumps({"type": "object", "properties": {"output": {"type": "string"}}}),
+            app_id=app.id,
+        )
+    )
+
+    app_repository.create_tool(
+        Tool(
+            name="Test Tool 2",
+            description="Another tool for testing",
+            input_schema=json.dumps({"type": "object", "properties": {"input": {"type": "string"}}}),
+            output_schema=json.dumps({"type": "object", "properties": {"output": {"type": "string"}}}),
+            app_id=app.id,
+        )
+    )
+
+    # Search app
+    found_app = app_repository.get_app_by_id(app.id)
+
+    assert found_app.id is not None
+    assert found_app.name == "Test App"
+    assert app.tools is not None
+    assert len(app.tools) == 2
+
+    # Commit session
+    session.commit()
 
     # Create elements for app
-    # authorization_server_service.create_for_app(app)
+    app = authorization_server_service.create_for_app(app)
+    app_repository.update_app(app)
+
+    assert app.authorization_server_id is not None
+    assert app.client_credentials_id is not None
