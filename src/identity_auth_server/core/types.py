@@ -84,29 +84,13 @@ class Token(SQLModel, table=True):
     expires_at: date
 
 
-class ActorClaim(SQLModel):
-    """Pydantic model for the JWT 'act' (actor) claim.
-
-    Represents an actor in a delegation chain. Can be nested to represent
-    a chain of delegation where the outermost act claim represents the
-    current actor and nested act claims represent prior actors.
-
-    As per RFC 8693, for access control decisions, only the top-level
-    claims and the current actor (outermost act claim) should be considered.
-    """
-
-    sub: str  # Subject identifier of the actor
-    act: Optional["ActorClaim"] = None  # Nested actor claim for delegation chains
-
-
 class TokenRequestParams(SQLModel):
     """Pydantic model for the token parameters."""
 
-    client_id: str
+    app: App
     grant_type: str
-    scopes: list[str] | None = None
-    sub: str | None = None
-    act: ActorClaim | None = None
+    tools: List[Tool] = []
+    act: App | None = None  # Act on behalf of another app
     other: dict | None = None
 
 

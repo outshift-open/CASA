@@ -7,7 +7,8 @@ import os
 import requests
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
-from identity_auth_server.core.types import ActorClaim, AuthorizationServer, ClientCredentials
+from identity_auth_server.core.types import (AuthorizationServer,
+                                             ClientCredentials)
 
 # pylint:disable=logging-fstring-interpolation
 
@@ -131,14 +132,12 @@ class KeycloakManager:
         self._add_protocol_mappers(authorization_server, client_int_id)
 
         # Return client
-        client_credentials = self._get_keycloak_admin(authorization_server).get_client(client_int_id)
+        client = self._get_keycloak_admin(authorization_server).get_client(client_int_id)
 
-        return ClientCredentials(
-            name=client_credentials["name"],
-            client_id=client_credentials["clientId"],
-            client_secret=client_credentials.get("secret", ""),
-            authorization_server_id=authorization_server.id,
-        )
+        # Add secret
+        client_credentials.client_secret = client.get("secret", "")
+
+        return client_credentials
 
     def _add_protocol_mappers(self, authorization_server: AuthorizationServer, client_int_id: str):
         """Add protocol mappers to the client.
@@ -218,7 +217,7 @@ class KeycloakManager:
         authorization_server: AuthorizationServer,
         client_credentials: ClientCredentials,
         sub: str = "",
-        act: ActorClaim | None = None,
+        act: str = "",
         scopes: list[str] = [],
         extra: dict | None = None,
     ):
@@ -235,7 +234,7 @@ class KeycloakManager:
         Returns:
             Token response from Keycloak
         """
-        # Assign client scopes to client
+        # Get client internal ID
         client_int_id = self._get_keycloak_admin(authorization_server).get_client_id(client_credentials.client_id)
         if not client_int_id:
             raise ValueError(f"Client ID not found for client_int_id: {client_credentials.client_id}")
@@ -246,17 +245,25 @@ class KeycloakManager:
                 client_int_id, scope_obj["id"], {}
             )
 
-        act_string = json.dumps(act.model_dump(exclude_none=True)) if act else "{}"
         extra_string = json.dumps(extra) if extra else "{}"
+
+        logger.debug(f"Requesting token with sub: {sub}, act: {act}, extra: {extra_string}, scopes: {scopes}")
+        logger.debug(f"Client ID: {client_credentials.client_id}, Client Int ID: {client_int_id}")
+        logger.debug(f"Authorization Server Realm: {authorization_server.realm}")
+        logger.debug(f"Client Secret: {client_credentials.client_secret}")
+
+        # Add default scopes
+        scopes.append("openid")
+        scopes.append("offline_access")
 
         keycloak_openid = KeycloakOpenID(
             server_url=self.server_url,
-            client_id=client_int_id,
+            client_id=client_credentials.client_id,
             realm_name=authorization_server.realm,
             client_secret_key=client_credentials.client_secret,
             custom_headers={
                 "X-Requested-Sub": sub,
-                "X-Requested-Act": act_string,
+                "X-Requested-Act": json.dumps({"sub": act}) if act else "",
                 "X-Requested-Extra": extra_string,
             },
         )

@@ -5,7 +5,8 @@ from hashlib import sha256
 
 from sqlmodel import Session, select
 
-from identity_auth_server.core.types import AuthorizationServer, ClientCredentials, Token
+from identity_auth_server.core.types import (AuthorizationServer,
+                                             ClientCredentials, Token)
 from identity_auth_server.database.database import Database
 
 
@@ -17,11 +18,15 @@ class AuthorizationServerRepository(ABC):
         """Create a new authorization server."""
 
     @abstractmethod
+    def get_authorization_server_by_id(self, authorization_server_id: str) -> AuthorizationServer | None:
+        """Retrieve an authorization server by its ID."""
+
+    @abstractmethod
     def create_client_credentials(self, client_credential: ClientCredentials) -> ClientCredentials:
         """Create new client credentials."""
 
     @abstractmethod
-    def find_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
+    def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
         """Find client credentials by client ID."""
 
     @abstractmethod
@@ -54,16 +59,16 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
 
             return authorization_server
 
-    def find_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
-        """Find client credentials by client ID."""
+    def get_authorization_server_by_id(self, authorization_server_id: str) -> AuthorizationServer | None:
+        """Retrieve an authorization server by its ID."""
         if self._session:
-            statement = select(ClientCredentials).where(ClientCredentials.client_id == client_id)
+            statement = select(AuthorizationServer).where(AuthorizationServer.id == authorization_server_id)
             authorization_server = self._session.exec(statement).first()
 
             return authorization_server
 
         with self.database.session_scope() as session:
-            statement = select(ClientCredentials).where(ClientCredentials.client_id == client_id)
+            statement = select(AuthorizationServer).where(AuthorizationServer.id == authorization_server_id)
             authorization_server = session.exec(statement).first()
             session.expunge(authorization_server)
 
@@ -85,6 +90,21 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
             session.expunge(client_credential)
 
             return client_credential
+
+    def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
+        """Find client credentials by client ID."""
+        if self._session:
+            statement = select(ClientCredentials).where(ClientCredentials.client_id == client_id)
+            authorization_server = self._session.exec(statement).first()
+
+            return authorization_server
+
+        with self.database.session_scope() as session:
+            statement = select(ClientCredentials).where(ClientCredentials.client_id == client_id)
+            authorization_server = session.exec(statement).first()
+            session.expunge(authorization_server)
+
+            return authorization_server
 
     def create_token(self, token: Token) -> Token:
         """Persist a source app session and return the generated token."""

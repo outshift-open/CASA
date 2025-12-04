@@ -6,11 +6,14 @@ import pytest
 from sqlmodel import SQLModel
 
 from identity_auth_server.core.repositories.app import AppPostgresRepository
-from identity_auth_server.core.repositories.authorization_server import AuthorizationServerPostgresRepository
-from identity_auth_server.core.types import App, Tool
+from identity_auth_server.core.repositories.authorization_server import \
+    AuthorizationServerPostgresRepository
+from identity_auth_server.core.types import App, TokenRequestParams, Tool
 from identity_auth_server.database.postgres.postgres import PostgresDB
-from identity_auth_server.services.authorization_server import AuthorizationServerServiceImpl
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
+from identity_auth_server.services.authorization_server import \
+    AuthorizationServerServiceImpl
+from identity_auth_server.thirdparty.idp.keycloak.keycloak import \
+    KeycloakManager
 
 
 @pytest.fixture
@@ -58,7 +61,7 @@ def test_authorization_server(database_with_session, api_server):
     app = app_repository.create_app(app)
 
     # Create two tools
-    app_repository.create_tool(
+    tool1 = app_repository.create_tool(
         Tool(
             name="Test Tool 1",
             description="A tool for testing",
@@ -95,3 +98,38 @@ def test_authorization_server(database_with_session, api_server):
 
     assert app.authorization_server_id is not None
     assert app.client_credentials_id is not None
+
+    # Get the authorization server
+    authorization_server = authorization_server_repository.get_authorization_server_by_id(app.authorization_server_id)
+
+    # Try to get a token without act
+    token = authorization_server_service.generate_token(
+        authorization_server,
+        TokenRequestParams(app=app, grant_type="client_credentials", tools=[tool1]),
+    )
+
+    assert token.access_token is not None
+
+    # Create an act app
+    act_app = App(name="Act App", type="MCP_SERVER")
+    act_app = app_repository.create_app(act_app)
+
+    # Commit session
+    session.commit()
+
+    act_app = authorization_server_service.create_for_app(act_app)
+    app_repository.update_app(act_app)
+    assert act_app.authorization_server_id is not None
+
+    # Try to get a token with act
+    token_with_act = authorization_server_service.generate_token(
+        authorization_server,
+        TokenRequestParams(
+            app=app,
+            grant_type="client_credentials",
+            tools=[tool1],
+            act=act_app,
+        ),
+    )
+
+    assert token_with_act.access_token is not None

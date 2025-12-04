@@ -6,18 +6,16 @@ from abc import ABC, abstractmethod
 import jwt
 
 from identity_auth_server.core.repositories.app import AppRepository
-from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
-from identity_auth_server.core.types import (
-    App,
-    AppMetadataResponse,
-    AuthorizationServer,
-    ClientCredentials,
-    TokenIntrospectParams,
-    TokenIntrospectResponse,
-    TokenRequestParams,
-    TokenResponse,
-)
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
+from identity_auth_server.core.repositories.authorization_server import \
+    AuthorizationServerRepository
+from identity_auth_server.core.types import (App, AppMetadataResponse,
+                                             AuthorizationServer,
+                                             ClientCredentials,
+                                             TokenIntrospectParams,
+                                             TokenIntrospectResponse,
+                                             TokenRequestParams, TokenResponse)
+from identity_auth_server.thirdparty.idp.keycloak.keycloak import \
+    KeycloakManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -95,8 +93,7 @@ class AuthorizationServerServiceImpl(AuthorizationServerService):
 
         logger.debug(f"Creating client credentials in Keycloak for app {app.id}")
 
-        self.keycloak_manager.create_client_credentials(authorization_server, client_credentials)
-
+        client_credentials = self.keycloak_manager.create_client_credentials(authorization_server, client_credentials)
         # Add all scopes from the app to the authorization server
         self.keycloak_manager.add_authorization_server_scopes(
             authorization_server,
@@ -125,24 +122,34 @@ class AuthorizationServerServiceImpl(AuthorizationServerService):
 
     def generate_token(self, authorization_server: AuthorizationServer, data: TokenRequestParams) -> TokenResponse:
         """Generate a new token based on the request parameters."""
-        client_credentials = self.authorization_server_repository.find_client_credentials_by_client_id(data.client_id)
+        client_credentials = data.app.client_credentials
+        act_client_credentials = data.act.client_credentials if data.act else None
 
-        data_act = data.act if data.act else None
-        data_extra = data.extra if data.other else {}
-        data_sub = data.sub if data.sub else client_credentials.client_id
-        data_scopes = data.scopes if data.scopes else []
+        # Get sub and act values
+        sub = client_credentials.client_id
+        act = None
+        if act_client_credentials:
+            sub = act_client_credentials.client_id
+            act = client_credentials.client_id
+
+        scopes = []
+        for tool in data.tools:
+            scopes.append("call_" + str(tool.id))
 
         # Get a access_token from keycloak
         keycloak_token = self.keycloak_manager.get_token(
             authorization_server,
             client_credentials,
-            sub=data_sub,
-            act=data_act,
-            scopes=data_scopes,
-            extra=data_extra,
+            sub=sub,
+            act=act,
+            scopes=scopes,
+            extra=data.other if data.other else {},
         )
 
         keycloak_token = keycloak_token["token"]
+
+        logger.debug(f"Got token from Keycloak {keycloak_token}")
+
         return TokenResponse(access_token=keycloak_token["access_token"], token_type="Bearer")
 
     def introspect_token(self, data: TokenIntrospectParams) -> TokenIntrospectResponse:
