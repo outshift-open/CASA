@@ -64,6 +64,10 @@ dev = [
   "seaborn>=0.13.2",
   "datasets~=4.1.1",
   "openai-agents~=0.6.1",
+  "langchain>=0.1.0",
+  "langchain-openai>=0.0.5",
+  "langchain-core>=0.1.0",
+  "langgraph>=0.0.20",
 ]
 
 [project.urls]
