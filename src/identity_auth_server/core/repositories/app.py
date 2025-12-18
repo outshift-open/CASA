@@ -6,7 +6,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from identity_auth_server.core.types import App, Tool
-from identity_auth_server.database.database import Database
 
 
 class AppRepository(ABC):
@@ -33,27 +32,17 @@ class AppRepository(ABC):
 class AppPostgresRepository(AppRepository):
     """PostgreSQL implementation of AppRepository."""
 
-    def __init__(self, database: Database, session: Session | None = None):
+    def __init__(self, session: Session):
         """Initialize the repository with a database session."""
-        self.database = database
         self._session = session
 
     def _update_or_create_app(self, app: App) -> App:
         """Update or create app in the database."""
-        if self._session:
-            self._session.add(app)
-            self._session.flush()
-            self._session.refresh(app)
+        self._session.add(app)
+        self._session.commit()
+        self._session.refresh(app)
 
-            return app
-
-        with self.database.session_scope() as session:
-            session.add(app)
-            session.flush()
-            session.refresh(app)
-            session.expunge(app)  # This will detach the object from the session
-
-            return app
+        return app
 
     def create_app(self, app: App) -> App:
         """Create a new app in the database."""
@@ -74,36 +63,19 @@ class AppPostgresRepository(AppRepository):
     def get_app_by_id(self, app_id: str) -> App | None:
         """Retrieve an app by its ID."""
         try:
-            if self._session:
-                app = self._session.get(App, app_id)
-
-                return app
-
-            with self.database.session_scope() as session:
-                app = session.get(App, app_id)
-                session.expunge(app)
-
-                return app
+            app = self._session.get(App, app_id)
+            return app
         except Exception as e:
             raise Exception(f"Error retrieving app with id '{app_id}': {e}") from e
 
     def create_tool(self, tool: Tool) -> Tool:
         """Create a new tool in the database."""
         try:
-            if self._session:
-                self._session.add(tool)
-                self._session.flush()
-                self._session.refresh(tool)
+            self._session.add(tool)
+            self._session.flush()
+            self._session.refresh(tool)
 
-                return tool
-
-            with self.database.session_scope() as session:
-                session.add(tool)
-                session.flush()
-                session.refresh(tool)
-                session.expunge(tool)
-
-                return tool
+            return tool
         except IntegrityError as e:
             raise ValueError(f"Tool with tool_id '{tool.id}' already exists") from e
         except Exception as e:

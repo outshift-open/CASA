@@ -1,61 +1,29 @@
 """Service layer for sessions."""
 
 import logging
-from abc import ABC, abstractmethod
 
 import jwt
 
 from identity_auth_server.core.repositories.app import AppRepository
-from identity_auth_server.core.repositories.authorization_server import \
-    AuthorizationServerRepository
-from identity_auth_server.core.types import (App, AppMetadataResponse,
-                                             AuthorizationServer,
-                                             ClientCredentials,
-                                             TokenIntrospectParams,
-                                             TokenIntrospectResponse,
-                                             TokenRequestParams, TokenResponse)
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import \
-    KeycloakManager
+from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
+from identity_auth_server.core.types import (
+    App,
+    AppMetadataResponse,
+    AuthorizationServer,
+    ClientCredentials,
+    TokenIntrospectParams,
+    TokenIntrospectResponse,
+    TokenRequestParams,
+    TokenResponse,
+)
+from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 
-class AuthorizationServerService(ABC):
-    """Interface defining AS service methods."""
-
-    def __init__(
-        self,
-        authorization_server_repository: AuthorizationServerRepository,
-        app_repository: AppRepository,
-        keycloak_manager: KeycloakManager,
-        api_url: str,
-    ):
-        """Initialize the service with its dependencies."""
-        self.authorization_server_repository = authorization_server_repository
-        self.app_repository = app_repository
-        self.keycloak_manager = keycloak_manager
-        self.api_url = api_url
-
-    @abstractmethod
-    def create_for_app(self, app: App) -> App:
-        """Create a new authorization server for an App."""
-
-    @abstractmethod
-    def app_metadata(self, app_id: str) -> AppMetadataResponse:
-        """Generate app metadata response."""
-
-    @abstractmethod
-    def generate_token(self, data: TokenRequestParams, source: App | None) -> TokenResponse:
-        """Generate a new token based on the request parameters and source App."""
-
-    @abstractmethod
-    def introspect_token(self, data: TokenIntrospectParams) -> TokenIntrospectResponse:
-        """Introspect a token to check its validity and retrieve metadata."""
-
-
-class AuthorizationServerServiceImpl(AuthorizationServerService):
-    """Concrete implementation of TokenService."""
+class AuthorizationServerService:
+    """Concrete implementation of AuthorizationServerService."""
 
     def __init__(
         self,
@@ -65,9 +33,14 @@ class AuthorizationServerServiceImpl(AuthorizationServerService):
         api_url: str,
     ):
         """Store the backing session repository, keycloak manager, and client repository."""
-        super().__init__(authorization_server_repository, app_repository, keycloak_manager, api_url)
+        self.authorization_server_repository = authorization_server_repository
+        self.app_repository = app_repository
+        self.keycloak_manager = keycloak_manager
+        self.api_url = api_url
 
     def create_for_app(self, app: App) -> App:
+        app = self.app_repository.get_app_by_id(app.id)
+
         """Create a new authorization server for an App."""
         # Create the authorization server object
         authorization_server = AuthorizationServer(
@@ -104,6 +77,8 @@ class AuthorizationServerServiceImpl(AuthorizationServerService):
         app.authorization_server_id = authorization_server.id
         app.client_credentials_id = client_credentials.id
 
+        self.app_repository.update_app(app)
+
         return app
 
     def app_metadata(self, app_id: str) -> AppMetadataResponse:
@@ -119,6 +94,27 @@ class AuthorizationServerServiceImpl(AuthorizationServerService):
             token_endpoint_auth_method="private_key_jwt",
             jwks_uri=f"{self.api_url}/{app.id}/oauth2/.well-known/jwks.json",
         )
+
+    def generate_token_oauth(self, app_id: str, grant_type: str, client_id: str, client_secret: str) -> TokenResponse:
+        """Generate a new token with client_credential grant type for a trusted App."""
+        app = self.app_repository.get_app_by_id(app_id)
+        if app is None:
+            raise Exception(f"App with id {app_id} not found.")
+
+        token = self.keycloak_manager.get_token(
+            app.authorization_server,
+            client_credentials=ClientCredentials(client_id=client_id, client_secret=client_secret),
+            sub=client_id,
+            act=None,
+            scopes=[],
+            extra={},
+        )
+
+        token = token["token"]
+
+        logger.debug(f"Got token from Keycloak {token}")
+
+        return TokenResponse(access_token=token["access_token"], token_type="Bearer")
 
     def generate_token(self, authorization_server: AuthorizationServer, data: TokenRequestParams) -> TokenResponse:
         """Generate a new token based on the request parameters."""

@@ -6,14 +6,11 @@ import pytest
 from sqlmodel import SQLModel
 
 from identity_auth_server.core.repositories.app import AppPostgresRepository
-from identity_auth_server.core.repositories.authorization_server import \
-    AuthorizationServerPostgresRepository
+from identity_auth_server.core.repositories.authorization_server import AuthorizationServerPostgresRepository
 from identity_auth_server.core.types import App, TokenRequestParams, Tool
 from identity_auth_server.database.postgres.postgres import PostgresDB
-from identity_auth_server.services.authorization_server import \
-    AuthorizationServerServiceImpl
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import \
-    KeycloakManager
+from identity_auth_server.services.authorization_server import AuthorizationServerServiceImpl
+from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 
 @pytest.fixture

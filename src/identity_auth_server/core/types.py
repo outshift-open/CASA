@@ -28,7 +28,7 @@ class Tool(SQLModel, table=True):
     input_schema: str
     output_schema: str
     app_id: Optional[UUID] = Field(foreign_key="app.id")
-    apps: Optional["App"] = Relationship(back_populates="tools")
+    app: Optional["App"] = Relationship(back_populates="tools")
 
 
 class App(SQLModel, table=True):
@@ -37,11 +37,12 @@ class App(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     type: str
     name: str
+    base_url: str
     authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="apps")
     client_credentials_id: Optional[UUID] = Field(foreign_key="clientcredentials.id")
     client_credentials: Optional["ClientCredentials"] = Relationship(back_populates="apps")
-    tools: List["Tool"] = Relationship(back_populates="apps")
+    tools: List["Tool"] = Relationship(back_populates="app")
 
 
 ######### APP TYPES #########

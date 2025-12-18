@@ -6,16 +6,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from identity_auth_server.api.routes.authorization_service.authorization_service import AuthorizationServiceRouteImpl
-from identity_auth_server.core.repositories.app import AppPostgresRepository
-from identity_auth_server.core.repositories.authorization_server import AuthorizationServerPostgresRepository
+from identity_auth_server.api.dependencies import Container
+from identity_auth_server.api.routes import app as app_routes
+from identity_auth_server.api.routes import authorization as authorization_routes
 from identity_auth_server.database.postgres.postgres import PostgresDB
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import (
     TaskToolMatcherFactory,
     TaskToolMatcherType,
 )
-from identity_auth_server.services.authorization_server import AuthorizationServerServiceImpl
-from identity_auth_server.thirdparty.idp.keycloak.keycloak import KeycloakManager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  [%(name)s] %(message)s")
@@ -56,17 +54,6 @@ task_tool_matcher = task_tool_matcher_factory.create(TaskToolMatcherType.LLM_VER
 # trace_repository = TracePostgresRepository(database)
 # trace_service = TraceServiceImpl(trace_repository)
 
-# initialize the authorization service
-authorization_server_repository = AuthorizationServerPostgresRepository(database, None)
-app_repository = AppPostgresRepository(database, None)
-keycloak_manager = KeycloakManager()
-authorization_server_service = AuthorizationServerServiceImpl(
-    authorization_server_repository,
-    app_repository,
-    keycloak_manager,
-    api_url="http://localhost:3000",
-)
-
 # initialize the session service
 # session_repository = SessionPostgresRepository(database)
 # mcp_discover_service = McpDiscoverServiceImpl()
@@ -97,9 +84,10 @@ app = FastAPI(lifespan=lifespan)
 # trace_route = TraceRouteImpl(trace_service)
 # session_route = SessionRouteImpl(session_service)
 
-authorization_server_route = AuthorizationServiceRouteImpl(authorization_server_service)
+Container()
 
-app.include_router(authorization_server_route.router)
+app.include_router(authorization_routes.router)
+app.include_router(app_routes.router)
 # app.include_router(source_app_call_route.router)
 # app.include_router(source_app_response_route.router)
 # app.include_router(llm_app_call_route.router)
