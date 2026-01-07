@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Form
 
 from identity_auth_server.api.dependencies import Container
 from identity_auth_server.core.types import AppMetadataResponse, TokenResponse
-from identity_auth_server.services.authorization_server import AuthorizationServerService
+from identity_auth_server.services.authorization_server import AuthorizationServerService, TokenExchangeRequest
 
 """Expose authorizationService routes backed by the authorizationService service implementation."""
 
@@ -35,7 +35,29 @@ def token(
     grant_type: Annotated[str, Form()],
     client_id: Annotated[str, Form()],
     client_secret: Annotated[str, Form()],
-    input: Annotated[str, Form()] = "",
+    # input: Annotated[str, Form()] = "",
 ) -> TokenResponse:
     """Generate a new token based on the request parameters."""
     return auth_service.generate_token_oauth(app_id, grant_type, client_id, client_secret)
+
+
+@router.post("/{app_id}/oauth2/token_exchange")
+def token_exchange(
+    auth_service: Annotated[AuthorizationServerService, Depends(Container.get_authorization_service)],
+    app_id: str,
+    client_id: Annotated[str, Form()],
+    client_secret: Annotated[str, Form()],
+    subject_token: Annotated[str, Form()],
+    subject_token_type: Annotated[str, Form()],
+) -> TokenResponse:
+    """Do a token exchange for an app."""
+    return auth_service.exchange_token(
+        request=TokenExchangeRequest(
+            app_id=app_id,
+            client_id=client_id,
+            client_secret=client_secret,
+            subject_token=subject_token,
+            subject_token_type=subject_token_type,
+            scope=None,
+        ),
+    )

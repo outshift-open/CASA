@@ -1,12 +1,15 @@
 """Service layer for sessions."""
 
 import logging
+from urllib.parse import urlparse
 
 import jwt
+from pydantic import BaseModel, field_validator
 
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.types import (
+    ActorClaim,
     App,
     AppMetadataResponse,
     AuthorizationServer,
@@ -20,6 +23,25 @@ from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
+
+
+class TokenExchangeRequest(BaseModel):
+    """A model representing a token exchange request."""
+
+    app_id: str
+    client_id: str
+    client_secret: str
+    subject_token: str
+    subject_token_type: str
+    scope: str | None
+
+    @field_validator("subject_token_type", mode="before")
+    def validate_subject_token_type(cls, v: str) -> str:  # noqa: N805
+        """Validate the value of the subject_token_type field."""
+        supported_types = ["urn:ietf:params:oauth:token-type:access_token"]
+        if v not in supported_types:
+            raise ValueError(f"{v} is not supported, supported types: {supported_types}.")
+        return v
 
 
 class AuthorizationServerService:
@@ -38,10 +60,12 @@ class AuthorizationServerService:
         self.keycloak_manager = keycloak_manager
         self.api_url = api_url
 
-    def create_for_app(self, app: App) -> App:
-        app = self.app_repository.get_app_by_id(app.id)
-
+    def create_for_app(self, app_id: str) -> App:
         """Create a new authorization server for an App."""
+        app = self.app_repository.get_app_by_id(app_id)
+        if app is None:
+            raise Exception(f"App with id {app_id} not found.")
+
         # Create the authorization server object
         authorization_server = AuthorizationServer(
             realm=f"{app.name}-auth-server",
@@ -85,6 +109,8 @@ class AuthorizationServerService:
         """Generate app metadata response."""
         # Get app
         app = self.app_repository.get_app_by_id(app_id)
+        if app is None:
+            raise Exception(f"App with id {app_id} not found.")
 
         return AppMetadataResponse(
             client_name=app.name,
@@ -101,6 +127,9 @@ class AuthorizationServerService:
         if app is None:
             raise Exception(f"App with id {app_id} not found.")
 
+        if app.authorization_server is None:
+            raise Exception(f"App {app_id} has no authorization server configured.")
+
         token = self.keycloak_manager.get_token(
             app.authorization_server,
             client_credentials=ClientCredentials(client_id=client_id, client_secret=client_secret),
@@ -116,17 +145,53 @@ class AuthorizationServerService:
 
         return TokenResponse(access_token=token["access_token"], token_type="Bearer")
 
+    def exchange_token(self, request: TokenExchangeRequest) -> TokenResponse:
+        """Perform a token exchange and generate a JWT."""
+        subject_token = self.introspect_token(TokenIntrospectParams(token=request.subject_token))
+        subject_app = self.app_repository.get_app_by_id(subject_token.app_id)
+        if subject_app is None:
+            raise Exception("Invalid subject_token.")
+
+        actor_app = self.app_repository.get_app_by_id(request.app_id)
+        if actor_app is None:
+            raise Exception(f"App with id {request.app_id} not found.")
+
+        if actor_app.authorization_server is None:
+            raise Exception(f"App {actor_app.id} has no authorization server configured.")
+
+        # TODO: build the chain of actors in the "act" claim
+        scopes: list[str] = []
+        if request.scope:
+            scopes = [s for s in request.scope.split("") if s]
+
+        actor_token = self.keycloak_manager.get_token(
+            actor_app.authorization_server,
+            client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
+            sub=subject_token.sub,
+            act=ActorClaim(sub=request.client_id),
+            scopes=scopes,
+        )
+
+        token = actor_token["token"]
+
+        logger.debug(f"Got token from Keycloak {token}")
+
+        return TokenResponse(access_token=token["access_token"])
+
     def generate_token(self, authorization_server: AuthorizationServer, data: TokenRequestParams) -> TokenResponse:
         """Generate a new token based on the request parameters."""
         client_credentials = data.app.client_credentials
         act_client_credentials = data.act.client_credentials if data.act else None
+
+        if client_credentials is None:
+            raise Exception(f"App {data.app.id} has no client credentials.")
 
         # Get sub and act values
         sub = client_credentials.client_id
         act = None
         if act_client_credentials:
             sub = act_client_credentials.client_id
-            act = client_credentials.client_id
+            act = ActorClaim(sub=client_credentials.client_id)
 
         scopes = []
         for tool in data.tools:
@@ -152,12 +217,17 @@ class AuthorizationServerService:
         """Introspect a token to check its validity and retrieve metadata."""
         # Decrypt the JWT token and extract claims without using Keycloak
         claims = jwt.decode(data.token, options={"verify_signature": False})
+        sub = claims.get("sub")
+
+        parse_result = urlparse(sub)
+        app_id = next(path for path in parse_result.path.split("/") if path)
 
         return TokenIntrospectResponse(
-            sub=claims.get("sub"),
+            sub=sub,
             client_id=claims.get("client_id"),
             scope=claims.get("scope"),
             exp=claims.get("exp"),
             act=claims.get("act"),
             extra=claims.get("extra"),
+            app_id=app_id,
         )

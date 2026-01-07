@@ -18,6 +18,6 @@ def create_app(
     auth_service: Annotated[AuthorizationServerService, Depends(Container.get_authorization_service)],
     request: AppRequest,
 ) -> App:
-    """Create a new App"""
+    """Create a new App."""
     app = app_service.create_app(request)
-    return auth_service.create_for_app(app)
+    return auth_service.create_for_app(app.id)

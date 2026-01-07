@@ -7,7 +7,7 @@ import os
 import requests
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
-from identity_auth_server.core.types import AuthorizationServer, ClientCredentials
+from identity_auth_server.core.types import ActorClaim, AuthorizationServer, ClientCredentials
 
 # pylint:disable=logging-fstring-interpolation
 
@@ -142,8 +142,8 @@ class KeycloakManager:
         """Add protocol mappers to the client.
 
         Args:
-            realm: The realm name
-            client_db_id: The client database ID
+            authorization_server: The authorization server
+            client_int_id: The client database ID
         """
         # Remove all existing mappers
         existing_scopes = self._get_keycloak_admin(authorization_server).get_client_scopes()
@@ -216,7 +216,7 @@ class KeycloakManager:
         authorization_server: AuthorizationServer,
         client_credentials: ClientCredentials,
         sub: str = "",
-        act: str = "",
+        act: ActorClaim | None = None,
         scopes: list[str] = [],
         extra: dict | None = None,
     ):
@@ -262,7 +262,7 @@ class KeycloakManager:
             client_secret_key=client_credentials.client_secret,
             custom_headers={
                 "X-Requested-Sub": sub,
-                "X-Requested-Act": json.dumps({"sub": act}) if act else "",
+                "X-Requested-Act": act.model_dump_json(exclude_none=True) if act else "",
                 "X-Requested-Extra": extra_string,
             },
         )
@@ -270,7 +270,7 @@ class KeycloakManager:
         return {
             "token": keycloak_openid.token(grant_type="client_credentials", scope=" ".join(scopes)),
             "sub": sub,
-            "act": act,
+            "act": act.model_dump_json if act else "",
             "extra": extra,
             "scopes": scopes,
         }

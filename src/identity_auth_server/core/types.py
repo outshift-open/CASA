@@ -5,6 +5,7 @@ from enum import Enum
 from typing import List, Optional
 from uuid import UUID, uuid4
 
+from pydantic import BaseModel
 from sqlmodel import Field, Relationship, SQLModel
 
 # pylint: disable=too-few-public-methods
@@ -116,6 +117,7 @@ class TokenIntrospectResponse(SQLModel):
     act: str | None = None
     other: dict | None = None
     exp: int | None = None
+    app_id: str | None = None
 
 
 class AppMetadataResponse(SQLModel):
@@ -127,6 +129,21 @@ class AppMetadataResponse(SQLModel):
     response_types: list[str]
     token_endpoint_auth_method: str
     jwks_uri: str
+
+
+class ActorClaim(BaseModel):
+    """Pydantic model for the JWT 'act' (actor) claim.
+
+    Represents an actor in a delegation chain. Can be nested to represent
+    a chain of delegation where the outermost act claim represents the
+    current actor and nested act claims represent prior actors.
+
+    As per RFC 8693, for access control decisions, only the top-level
+    claims and the current actor (outermost act claim) should be considered.
+    """
+
+    sub: str  # Subject identifier of the actor
+    act: Optional["ActorClaim"] = None  # Nested actor claim for delegation chains
 
 
 ######### AS TYPES #########

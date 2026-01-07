@@ -9,7 +9,7 @@ from identity_auth_server.core.repositories.app import AppPostgresRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerPostgresRepository
 from identity_auth_server.core.types import App, TokenRequestParams, Tool
 from identity_auth_server.database.postgres.postgres import PostgresDB
-from identity_auth_server.services.authorization_server import AuthorizationServerServiceImpl
+from identity_auth_server.services.authorization_server import AuthorizationServerService
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 
@@ -46,7 +46,7 @@ def test_authorization_server(database_with_session, api_server):
     keycloak_manager = KeycloakManager()
 
     # Services
-    authorization_server_service = AuthorizationServerServiceImpl(
+    authorization_server_service = AuthorizationServerService(
         authorization_server_repository, app_repository, keycloak_manager, "http://localhost:3000"
     )
 
