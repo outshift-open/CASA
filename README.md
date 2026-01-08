@@ -4,8 +4,8 @@
 
 ## Prerequisites
 
--   Python 3.12 or higher
--   [uv](https://docs.astral.sh/uv/) package manager
+- Python 3.12 or higher
+- [uv](https://docs.astral.sh/uv/) package manager
 
 ## Quick Start
 
@@ -21,9 +21,9 @@ make init
 
 This will:
 
--   Create a Python virtual environment
--   Install all dependencies (including dev dependencies)
--   Set up pre-commit hooks
+- Create a Python virtual environment
+- Install all dependencies (including dev dependencies)
+- Set up pre-commit hooks
 
 #### Setup .env
 
@@ -211,27 +211,27 @@ The ZTA Auth explorer should also show the blocked and approved MCP tool calls i
 
 ### Available Commands
 
--   `make help` - Show all available commands
--   `make init` - Initialize development environment
--   `make update` - Update dependencies after changes to pyproject.toml
--   `make clean` - Clean up and recreate the virtual environment
--   `make test` - Run unit tests (excludes integration tests)
--   `make test-integration` - Run only integration tests
--   `make check` - Run code quality checks (linting, formatting)
--   `make build` - Build the package for distribution
+- `make help` - Show all available commands
+- `make init` - Initialize development environment
+- `make update` - Update dependencies after changes to pyproject.toml
+- `make clean` - Clean up and recreate the virtual environment
+- `make test` - Run unit tests (excludes integration tests)
+- `make test-integration` - Run only integration tests
+- `make check` - Run code quality checks (linting, formatting)
+- `make build` - Build the package for distribution
 
 ### Testing
 
 The test suite is organized into unit tests and integration tests:
 
--   **Unit tests** - Fast, isolated tests that don't require database or running services
--   **Integration tests** - End-to-end tests that require database and running FastAPI application
+- **Unit tests** - Fast, isolated tests that don't require database or running services
+- **Integration tests** - End-to-end tests that require database and running FastAPI application
 
 By default, `pytest` and `make test` run only unit tests (integration tests are skipped). This is useful for:
 
--   Fast local development
--   CI/CD pipelines without database setup
--   Quick validation of changes
+- Fast local development
+- CI/CD pipelines without database setup
+- Quick validation of changes
 
 To run different test suites:
 
@@ -250,24 +250,24 @@ pytest test/integration/ && pytest
 
 **Note:** Integration tests require:
 
--   PostgreSQL database running
--   Proper environment configuration (.env file)
--   Database migrations applied
+- PostgreSQL database running
+- Proper environment configuration (.env file)
+- Database migrations applied
 
 #### Docker Commands
 
--   `make docker-build` - Build the Docker image
--   `make docker-run` - Run the application using Docker Compose
--   `make docker-stop` - Stop Docker Compose services
+- `make docker-build` - Build the Docker image
+- `make docker-run` - Run the application using Docker Compose
+- `make docker-stop` - Stop Docker Compose services
 
 ### Code Quality
 
 This project uses modern Python development tools:
 
--   **uv** - Ultra-fast Python package manager
--   **Ruff** - Lightning-fast linting and formatting
--   **mypy** - Static type checking
--   **pytest** - Testing framework
--   **pre-commit** - Git hooks for code quality
+- **uv** - Ultra-fast Python package manager
+- **Ruff** - Lightning-fast linting and formatting
+- **mypy** - Static type checking
+- **pytest** - Testing framework
+- **pre-commit** - Git hooks for code quality
 
 Code quality checks run automatically on commit via pre-commit hooks.
