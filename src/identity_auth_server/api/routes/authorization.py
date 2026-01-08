@@ -6,7 +6,11 @@ from fastapi import APIRouter, Depends, Form
 
 from identity_auth_server.api.dependencies import Container
 from identity_auth_server.core.types import AppMetadataResponse, TokenResponse
-from identity_auth_server.services.authorization_server import AuthorizationServerService, TokenExchangeRequest, TokenRequest
+from identity_auth_server.services.authorization_server import (
+    AuthorizationServerService,
+    TokenExchangeRequest,
+    TokenRequest,
+)
 
 """Expose authorizationService routes backed by the authorizationService service implementation."""
 
@@ -37,12 +41,14 @@ def token(
     user_input: Annotated[str, Form()] = "",
 ) -> TokenResponse:
     """Generate a new token based on the request parameters."""
-    return auth_service.generate_token_oauth(TokenRequest(
-        app_id=app_id,
-        client_id=client_id,
-        client_secret=client_secret,
-        user_input=user_input,
-    ))
+    return auth_service.generate_token_oauth(
+        TokenRequest(
+            app_id=app_id,
+            client_id=client_id,
+            client_secret=client_secret,
+            user_input=user_input,
+        )
+    )
 
 
 @router.post("/{app_id}/oauth2/token_exchange")
