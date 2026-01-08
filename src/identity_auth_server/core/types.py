@@ -1,6 +1,6 @@
 """Data models for AS."""
 
-from datetime import date
+from datetime import date, datetime, timezone
 from enum import Enum
 from typing import List, Optional
 from uuid import UUID, uuid4
@@ -16,7 +16,13 @@ from sqlmodel import Field, Relationship, SQLModel
 class AppType(str, Enum):
     """Enumeration of app types."""
 
+    # Untrusted agents
     AGENT = "agent"
+
+    # Trusted clients
+    CLIENT = "client"
+
+    # Trusted MCP servers
     MCP_SERVER = "mcp_server"
 
 
@@ -47,6 +53,16 @@ class App(SQLModel, table=True):
 
 
 ######### APP TYPES #########
+
+######### User Input TYPES #########
+class UserInput(SQLModel, table=True):
+    """User Input model containing the user input prompt."""
+
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    prompt: str
+    created_at: datetime = datetime.now(timezone.utc)
+    app_id: Optional[UUID] = Field(foreign_key="app.id")
+
 
 ######### AS TYPES #########
 
@@ -96,6 +112,21 @@ class TokenRequestParams(SQLModel):
     other: dict | None = None
 
 
+class ActorClaim(BaseModel):
+    """Pydantic model for the JWT 'act' (actor) claim.
+
+    Represents an actor in a delegation chain. Can be nested to represent
+    a chain of delegation where the outermost act claim represents the
+    current actor and nested act claims represent prior actors.
+
+    As per RFC 8693, for access control decisions, only the top-level
+    claims and the current actor (outermost act claim) should be considered.
+    """
+
+    sub: str  # Subject identifier of the actor
+    act: Optional["ActorClaim"] = None  # Nested actor claim for delegation chains
+
+
 class TokenIntrospectParams(SQLModel):
     """Pydantic model for the token introspection parameters."""
 
@@ -108,15 +139,16 @@ class TokenResponse(SQLModel):
     access_token: str
 
 
-class TokenIntrospectResponse(SQLModel):
+class TokenIntrospectResponse(BaseModel):
     """Pydantic model for the token introspection response."""
 
     client_id: str | None = None
     scope: str | None = None
     sub: str | None = None
-    act: str | None = None
+    act: ActorClaim | None = None
     other: dict | None = None
     exp: int | None = None
+    user_input_id: str | None = None
     app_id: str | None = None
 
 
@@ -131,19 +163,6 @@ class AppMetadataResponse(SQLModel):
     jwks_uri: str
 
 
-class ActorClaim(BaseModel):
-    """Pydantic model for the JWT 'act' (actor) claim.
-
-    Represents an actor in a delegation chain. Can be nested to represent
-    a chain of delegation where the outermost act claim represents the
-    current actor and nested act claims represent prior actors.
-
-    As per RFC 8693, for access control decisions, only the top-level
-    claims and the current actor (outermost act claim) should be considered.
-    """
-
-    sub: str  # Subject identifier of the actor
-    act: Optional["ActorClaim"] = None  # Nested actor claim for delegation chains
 
 
 ######### AS TYPES #########

@@ -173,6 +173,25 @@ class KeycloakManager:
             },
         )
 
+        # Add protocol Mapper for X-Requested-Input-Id
+        self._get_keycloak_admin(authorization_server).add_mapper_to_client(
+            client_int_id,
+            {
+                "protocol": "openid-connect",
+                "protocolMapper": "POIT-gethttpheader",
+                "name": "X-Requested-Input-Id",
+                "config": {
+                    "http-header": "X-Requested-Input-Id",
+                    "claim.name": "uiid", # user input id
+                    "id.token.claim": "true",
+                    "access.token.claim": "true",
+                    "lightweight.claim": "false",
+                    "userinfo.token.claim": "true",
+                    "introspection.token.claim": "true",
+                },
+            },
+        )
+
         # Add Protocol Mapper for X-Requested-Act
         self._get_keycloak_admin(authorization_server).add_mapper_to_client(
             client_int_id,
@@ -183,6 +202,25 @@ class KeycloakManager:
                 "config": {
                     "http-header": "X-Requested-Act",
                     "claim.name": "act",
+                    "id.token.claim": "true",
+                    "access.token.claim": "true",
+                    "lightweight.claim": "false",
+                    "userinfo.token.claim": "true",
+                    "introspection.token.claim": "true",
+                },
+            },
+        )
+
+        # Add Protocol Mapper for X-Requested-Tools
+        self._get_keycloak_admin(authorization_server).add_mapper_to_client(
+            client_int_id,
+            {
+                "protocol": "openid-connect",
+                "protocolMapper": "POIT-gethttpheader",
+                "name": "X-Requested-Tools",
+                "config": {
+                    "http-header": "X-Requested-Tools",
+                    "claim.name": "tools",
                     "id.token.claim": "true",
                     "access.token.claim": "true",
                     "lightweight.claim": "false",
@@ -219,6 +257,8 @@ class KeycloakManager:
         act: ActorClaim | None = None,
         scopes: list[str] = [],
         extra: dict | None = None,
+        user_input_id: str = "",
+        tools: list[str] = [],
     ):
         """Get a token from Keycloak for the given client.
 
@@ -229,6 +269,8 @@ class KeycloakManager:
             act: Actor claim for delegation
             scopes: List of scopes to request
             extra: Extra parameters for the token request
+            user_input_id: the id of the initial user prompt
+            tools: the list of approved tools
 
         Returns:
             Token response from Keycloak
@@ -246,7 +288,7 @@ class KeycloakManager:
 
         extra_string = json.dumps(extra) if extra else "{}"
 
-        logger.debug(f"Requesting token with sub: {sub}, act: {act}, extra: {extra_string}, scopes: {scopes}")
+        logger.debug(f"Requesting token with sub: {sub}, act: {act}, extra: {extra_string}, scopes: {scopes}, user input id: {user_input_id}")
         logger.debug(f"Client ID: {client_credentials.client_id}, Client Int ID: {client_int_id}")
         logger.debug(f"Authorization Server Realm: {authorization_server.realm}")
         logger.debug(f"Client Secret: {client_credentials.client_secret}")
@@ -255,16 +297,22 @@ class KeycloakManager:
         scopes.append("openid")
         scopes.append("offline_access")
 
+        custom_headers={
+            "X-Requested-Sub": sub,
+            "X-Requested-Act": act.model_dump_json(exclude_none=True) if act else "",
+            "X-Requested-Extra": extra_string,
+            "X-Requested-Input-Id": user_input_id,
+        }
+
+        if tools:
+            custom_headers["X-Requested-Tools"] = json.dumps(tools)
+
         keycloak_openid = KeycloakOpenID(
             server_url=self.server_url,
             client_id=client_credentials.client_id,
             realm_name=authorization_server.realm,
             client_secret_key=client_credentials.client_secret,
-            custom_headers={
-                "X-Requested-Sub": sub,
-                "X-Requested-Act": act.model_dump_json(exclude_none=True) if act else "",
-                "X-Requested-Extra": extra_string,
-            },
+            custom_headers=custom_headers,
         )
 
         return {
@@ -273,6 +321,7 @@ class KeycloakManager:
             "act": act.model_dump_json if act else "",
             "extra": extra,
             "scopes": scopes,
+            "tools": tools,
         }
 
     def _get_keycloak_admin(self, authorization_server: AuthorizationServer | None) -> KeycloakAdmin:

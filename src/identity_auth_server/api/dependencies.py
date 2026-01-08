@@ -10,13 +10,16 @@ from identity_auth_server.core.repositories.authorization_server import (
     AuthorizationServerPostgresRepository,
     AuthorizationServerRepository,
 )
+from identity_auth_server.core.repositories.user_input import UserInputPostgresRepository
 from identity_auth_server.database.postgres.postgres import PostgresDB
+from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher, TaskToolMatcherFactory
+from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
 from identity_auth_server.services.app_service import AppService
 from identity_auth_server.services.authorization_server import AuthorizationServerService
+from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 T = TypeVar("T")
-V = TypeVar("V")
 
 
 class Provider(ABC, Generic[T]):
@@ -89,6 +92,12 @@ class Container:
 
     get_session = scoped(factory=provide_session, exit=exit_session)
 
+    def provide_task_tool_matcher(self: Provider[TaskToolMatcher]):
+        factory = TaskToolMatcherFactory()
+        return factory.create(TaskToolMatcherType.LLM_VERIFIER)
+
+    get_task_tool_matcher = singleton(factory=provide_task_tool_matcher)
+
     @staticmethod
     def get_app_repository(session: Annotated[Session, Depends(get_session)]):
         return AppPostgresRepository(session)
@@ -98,6 +107,10 @@ class Container:
         return AuthorizationServerPostgresRepository(session=session)
 
     @staticmethod
+    def get_user_input_repository(session: Annotated[Session, Depends(get_session)]):
+        return UserInputPostgresRepository(session=session)
+
+    @staticmethod
     def get_keycloak_manager():
         return KeycloakManager(
             server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
@@ -105,17 +118,26 @@ class Container:
             password=os.getenv("IDP_ADMIN_PASSWORD", "admin"),
         )
 
+    def get_mcp_discover():
+        return McpDiscoverService()
+
     @staticmethod
     def get_authorization_service(
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
         keycloak_manager: Annotated[KeycloakManager, Depends(get_keycloak_manager)],
+        mcp_discover: Annotated[McpDiscoverService, Depends(get_mcp_discover)],
+        task_tool_matcher: Annotated[TaskToolMatcher, Depends(get_task_tool_matcher)],
+        user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
     ):
         return AuthorizationServerService(
             authorization_server_repository,
             app_repository,
             keycloak_manager,
             api_url=os.getenv("AUTH_SERVER_URL", "http://localhost:3000"),
+            mcp_discover=mcp_discover,
+            task_tool_matcher=task_tool_matcher,
+            user_input_repository=user_input_repository,
         )
 
     @staticmethod

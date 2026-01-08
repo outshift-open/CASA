@@ -1,6 +1,8 @@
 """Service layer for sessions."""
 
+import json
 import logging
+from typing import Optional
 from urllib.parse import urlparse
 
 import jwt
@@ -8,6 +10,7 @@ from pydantic import BaseModel, field_validator
 
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
+from identity_auth_server.core.repositories.user_input import UserInputRepository
 from identity_auth_server.core.types import (
     ActorClaim,
     App,
@@ -18,22 +21,34 @@ from identity_auth_server.core.types import (
     TokenIntrospectResponse,
     TokenRequestParams,
     TokenResponse,
+    UserInput,
 )
+from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
+from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
+from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+class TokenRequest(BaseModel):
+    """A model representing a token generation request."""
+    app_id: str
+    client_id: str
+    client_secret: str
+    user_input: str
+
 
 class TokenExchangeRequest(BaseModel):
     """A model representing a token exchange request."""
-
     app_id: str
     client_id: str
     client_secret: str
     subject_token: str
     subject_token_type: str
     scope: str | None
+    mcp_server_url: Optional[str] = None
+    tools: list[str] | None = []
 
     @field_validator("subject_token_type", mode="before")
     def validate_subject_token_type(cls, v: str) -> str:  # noqa: N805
@@ -53,12 +68,18 @@ class AuthorizationServerService:
         app_repository: AppRepository,
         keycloak_manager: KeycloakManager,
         api_url: str,
+        mcp_discover: McpDiscoverService,
+        task_tool_matcher: TaskToolMatcher,
+        user_input_repository: UserInputRepository,
     ):
         """Store the backing session repository, keycloak manager, and client repository."""
         self.authorization_server_repository = authorization_server_repository
         self.app_repository = app_repository
         self.keycloak_manager = keycloak_manager
         self.api_url = api_url
+        self.mcp_discover = mcp_discover
+        self.task_tool_matcher = task_tool_matcher
+        self.user_input_repository = user_input_repository
 
     def create_for_app(self, app_id: str) -> App:
         """Create a new authorization server for an App."""
@@ -121,22 +142,29 @@ class AuthorizationServerService:
             jwks_uri=f"{self.api_url}/{app.id}/oauth2/.well-known/jwks.json",
         )
 
-    def generate_token_oauth(self, app_id: str, grant_type: str, client_id: str, client_secret: str) -> TokenResponse:
-        """Generate a new token with client_credential grant type for a trusted App."""
-        app = self.app_repository.get_app_by_id(app_id)
+    def generate_token_oauth(self, request: TokenRequest) -> TokenResponse:
+        """Generate a new token with client_credential grant type for a trusted App (Clients)."""
+        app = self.app_repository.get_app_by_id(request.app_id)
         if app is None:
-            raise Exception(f"App with id {app_id} not found.")
+            raise Exception(f"App with id {request.app_id} not found.")
 
         if app.authorization_server is None:
-            raise Exception(f"App {app_id} has no authorization server configured.")
+            raise Exception(f"App {request.app_id} has no authorization server configured.")
+
+        # store the user initial prompt
+        user_input = self.user_input_repository.create(UserInput(
+            prompt=request.user_input,
+            app_id=app.id,
+        ))
 
         token = self.keycloak_manager.get_token(
             app.authorization_server,
-            client_credentials=ClientCredentials(client_id=client_id, client_secret=client_secret),
-            sub=client_id,
+            client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
+            sub=request.client_id,
             act=None,
             scopes=[],
             extra={},
+            user_input_id=str(user_input.id),
         )
 
         token = token["token"]
@@ -159,7 +187,28 @@ class AuthorizationServerService:
         if actor_app.authorization_server is None:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
 
-        # TODO: build the chain of actors in the "act" claim
+        approved_tools = []
+
+        if request.mcp_server_url and request.tools:
+            mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
+            user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
+            for tool in list(set(request.tools)):
+                # TODO: add a check with existing approved tools (App.tools)
+                match = self.task_tool_matcher.match(
+                    TaskToolMatchInput(
+                        task=user_input.prompt,
+                        requested_tool=tool,
+                        mcp_server=mcp_server,
+                    )
+                )
+                # TODO: store them for caching purposes?
+                if match.task_tool_match:
+                    approved_tools.append(tool)
+
+        act = ActorClaim(sub=request.client_id)
+        if subject_token.act:
+            act.act = subject_token.act
+
         scopes: list[str] = []
         if request.scope:
             scopes = [s for s in request.scope.split("") if s]
@@ -168,8 +217,10 @@ class AuthorizationServerService:
             actor_app.authorization_server,
             client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
             sub=subject_token.sub,
-            act=ActorClaim(sub=request.client_id),
+            act=act,
             scopes=scopes,
+            user_input_id=subject_token.user_input_id,
+            tools=approved_tools,
         )
 
         token = actor_token["token"]
@@ -222,12 +273,18 @@ class AuthorizationServerService:
         parse_result = urlparse(sub)
         app_id = next(path for path in parse_result.path.split("/") if path)
 
+        act: Optional[ActorClaim] = None
+        act_str = claims.get("act")
+        if act_str:
+            act = ActorClaim.model_validate_json(act_str)
+
         return TokenIntrospectResponse(
             sub=sub,
             client_id=claims.get("client_id"),
             scope=claims.get("scope"),
             exp=claims.get("exp"),
-            act=claims.get("act"),
+            act=act,
             extra=claims.get("extra"),
+            user_input_id=claims.get("uiid"),
             app_id=app_id,
         )
