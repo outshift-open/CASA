@@ -1,27 +1,13 @@
 """Service layer for MCP Discovery operations."""
 
 import asyncio
-from abc import ABC, abstractmethod
 
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
 from identity_auth_server.types import McpServer
 
-
-class McpDiscoverService(ABC):
-    """Interface for McpDiscover."""
-
-    def __init__(self):
-        """Initialize the service."""
-
-    @abstractmethod
-    def discover_mcp_tools(self, mcp_server_url: str) -> McpServer:
-        """Discover MCP tools from the given MCP server URL."""
-        pass
-
-
-class McpDiscoverServiceImpl(McpDiscoverService):
+class McpDiscoverService:
     """Implementation of the McpAppToolCallService."""
 
     def discover_mcp_tools(self, mcp_server_url: str) -> McpServer:

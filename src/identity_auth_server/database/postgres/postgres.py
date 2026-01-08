@@ -5,8 +5,7 @@ import os
 from contextlib import contextmanager
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlmodel import Session, SQLModel, create_engine
 
 from identity_auth_server.database.database import Database
 from identity_auth_server.database.postgres.alembic_runner import run_alembic_migrations
@@ -14,8 +13,6 @@ from identity_auth_server.database.postgres.alembic_runner import run_alembic_mi
 load_dotenv()
 
 logger = logging.getLogger(__name__)
-
-Base = declarative_base()
 
 
 class PostgresDB(Database):
@@ -34,14 +31,15 @@ class PostgresDB(Database):
         self.database_url = (
             f"postgresql://{self.db_username}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
         )
+        logger.info(f"Database URL: {self.database_url}")
 
         self.engine = create_engine(self.database_url)
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        SQLModel.metadata.create_all(self.engine)
 
     @contextmanager
-    def session_scope(self):
+    def session_scope(self) -> Session:
         """Provide a transactional scope around a series of operations."""
-        session = self.SessionLocal()
+        session = Session(self.engine)
         try:
             yield session
             session.commit()
