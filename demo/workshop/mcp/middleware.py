@@ -10,7 +10,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from identity_auth_server import sdk
+import identity_auth_sdk
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -68,45 +68,27 @@ def extract_bearer_token(auth_header: str) -> str:
         raise AuthenticationError("Invalid Authorization header format")
 
 
-def validate_tool_call(
-    tool_name: str,
-    token: str,
-    auth_client: sdk.IdentityAuthClient,
-    validation_response: sdk.types.SessionMcpAppOutput,
-    mcp_server: sdk.types.McpServer,
-) -> None:
-    """Validate and authorize a tool call request.
-
-    Args:
-        tool_name: Name of the tool being called
-        token: Bearer token for authentication
-        auth_client: Identity auth client instance
-        validation_response: Previous token validation response
-        mcp_server: MCP server information
-
-    Raises:
-        ToolCallBlockedException: If tool call is blocked by policy
-    """
-    logger.info(f"Validating tool call: {tool_name}")
-
-    tool_call_response = auth_client.create_mcp_app_tool_call(
-        payload=sdk.types.McpAppToolCallInput(
-            source_app_call_token=validation_response.source_app_call_token,
-            llm_app_call_token=validation_response.llm_app_call_token,
-            token=token,
-            tool=tool_name,
-            mcp_server=mcp_server,
-        )
+def validate_mcp_token(token: str, tools: Optional[list[str]] = None) -> bool:
+    sdk_config = identity_auth_sdk.Configuration(
+        host = os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
     )
 
-    if tool_call_response.blocked:
-        logger.warning(f"Tool call blocked by policy: {tool_name}")
-        raise ToolCallBlockedException(f"Tool call blocked by policy: {tool_name}")
+    print("Validating MCP token:", token, "with tools:", tools)
+
+    with identity_auth_sdk.ApiClient(sdk_config) as api_client:
+        try:
+            api_instance = identity_auth_sdk.DefaultApi(api_client)
+            introspect_resp = api_instance.introspect(token, tools=tools)
+
+            print("Token validation response:", introspect_resp.active)
+
+            return introspect_resp.active
+        except Exception as e:
+            logger.error(f"Token validation failed: {e}")
+            return False
 
 
-def handle_call_tool_request(
-    request_data: dict, auth_header: str, auth_client: sdk.IdentityAuthClient, mcp_server: sdk.types.McpServer
-) -> None:
+def handle_call_tool_request(request_data: dict, auth_header: str) -> None:
     """Process and authorize MCP tool call requests.
 
     Args:
@@ -127,10 +109,10 @@ def handle_call_tool_request(
     logger.info(f"Tool call authenticated with token: {token[:10]}...")
 
     # Validate token and get validation response
-    validation_response = auth_client.validate_mcp_app_call_token(token=token)
-
-    # Validate tool call authorization
-    validate_tool_call(tool_name, token, auth_client, validation_response, mcp_server)
+    is_valid_token = validate_mcp_token(token, tools=[tool_name])
+    if not is_valid_token:
+        logger.warning(f"Tool call blocked by policy: {tool_name}")
+        raise ToolCallBlockedException(f"Tool call blocked by policy: {tool_name}")
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -152,10 +134,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.auth_base_url = auth_base_url or self.AUTH_BASE_URL
         self.mcp_instance = mcp_instance
-
-    def _create_auth_client(self) -> sdk.IdentityAuthClient:
-        """Create and return an auth client instance."""
-        return sdk.IdentityAuthClient(base_url=self.auth_base_url)
 
     async def get_available_tools(self) -> list:
         """Get list of available tools from MCP instance.
@@ -213,10 +191,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 return self._create_error_response("Authorization header required", 401)
 
             # Validate token
-            auth_client = self._create_auth_client()
             try:
                 token = extract_bearer_token(auth_header)
-                if not self._validate_token(token, auth_client):
+                if not validate_mcp_token(token):
                     logger.warning("Invalid token provided")
                     return self._create_error_response("Invalid or expired token", 401)
             except AuthenticationError as e:
@@ -226,7 +203,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             # Validate tool call authorization for tools/call
             try:
                 if body:
-                    await self._analyze_request_body(body, auth_header, auth_client)
+                    await self._analyze_request_body(body, auth_header)
             except ToolCallBlockedException as e:
                 logger.error(f"Tool call blocked: {e!s}")
                 return self._create_error_response(str(e), 403, is_json=True)
@@ -281,7 +258,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         response.headers["X-Process-Time"] = str(process_time)
         response.headers["X-Request-ID"] = request.headers.get("X-Request-ID", "unknown")
 
-    async def _analyze_request_body(self, body: bytes, auth_header: str, auth_client: sdk.IdentityAuthClient) -> None:
+    async def _analyze_request_body(self, body: bytes, auth_header: str) -> None:
         """Analyze request body for tool call requests and validate authorization.
 
         Args:
@@ -300,12 +277,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         try:
             request_data = json.loads(body.decode("utf-8"))
             if self._is_tool_call_request(request_data):
-                mcp_server = sdk.types.McpServer(
-                    name=self.mcp_instance.name if self.mcp_instance else "unknown",
-                    tools=await self.get_available_tools(),
-                    resources=[],
-                )
-                handle_call_tool_request(request_data, auth_header, auth_client, mcp_server)
+                handle_call_tool_request(request_data, auth_header)
         except ToolCallBlockedException:
             raise
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
@@ -321,21 +293,3 @@ class AuthMiddleware(BaseHTTPMiddleware):
             True if this is a tool call request
         """
         return isinstance(request_data, dict) and request_data.get("method") == "tools/call"
-
-    def _validate_token(self, token: str, auth_client: sdk.IdentityAuthClient) -> bool:
-        """Validate bearer token with auth service.
-
-        Args:
-            token: Bearer token to validate
-            auth_client: Auth client instance
-
-        Returns:
-            True if token is valid
-        """
-        try:
-            response = auth_client.validate_mcp_app_call_token(token=token)
-            logger.debug(f"Token validation response: {response}")
-            return response.valid
-        except Exception as e:
-            logger.error(f"Token validation failed: {e}")
-            return False

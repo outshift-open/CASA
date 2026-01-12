@@ -2,3 +2,4 @@ litellm[proxy]==1.77.5
 langchain-litellm==0.2.3
 langgraph==0.6.8
 langchain-mcp-adapters==0.1.11
+identity-auth-sdk

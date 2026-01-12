@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional
 from litellm.integrations.custom_logger import CustomLogger
 from litellm.types.utils import ModelResponse
 
-from identity_auth_server import sdk
-from identity_auth_server.sdk.types import LlmAppCallInput, LlmAppResponseInput
+# from identity_auth_server import sdk
+# from identity_auth_server.sdk.types import LlmAppCallInput, LlmAppResponseInput
 
 
 class MyCustomHandler(CustomLogger):

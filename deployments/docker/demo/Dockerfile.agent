@@ -5,11 +5,11 @@ WORKDIR /app
 RUN pip install uv
 
 COPY demo/workshop/requirements.txt ./requirements.txt
-RUN uv pip install --system -r requirements.txt
-
 COPY pyproject.toml uv.lock LICENSE README.md ./
 COPY src/ ./src/
+COPY ./sdk ./sdk
 RUN uv pip install --system .
+RUN uv pip install --system -r requirements.txt
 
 COPY demo/workshop/app/v2 ./v2
 RUN uv pip install --system ./v2

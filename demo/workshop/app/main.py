@@ -45,7 +45,6 @@ async def chat_with_agent(message: UserMessage, request: Request):
         messages=[{"role": "user", "content": message.content}], bearer_token=bearer_token
     )
     return AgentResponse(response=response)
-    # return AgentResponse(response="hello")
 
 
 app.add_middleware(AuthMiddleware)
