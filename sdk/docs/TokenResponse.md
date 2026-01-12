@@ -6,7 +6,7 @@ Pydantic model for the token response.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**access_token** | **str** |  | 
+**access_token** | **str** |  |
 
 ## Example
 
@@ -26,5 +26,3 @@ token_response_dict = token_response_instance.to_dict()
 token_response_from_dict = TokenResponse.from_dict(token_response_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

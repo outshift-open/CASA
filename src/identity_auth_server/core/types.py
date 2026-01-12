@@ -54,6 +54,7 @@ class App(SQLModel, table=True):
 
 ######### APP TYPES #########
 
+
 ######### User Input TYPES #########
 class UserInput(SQLModel, table=True):
     """User Input model containing the user input prompt."""
@@ -157,8 +158,6 @@ class AppMetadataResponse(SQLModel):
     response_types: list[str]
     token_endpoint_auth_method: str
     jwks_uri: str
-
-
 
 
 ######### AS TYPES #########

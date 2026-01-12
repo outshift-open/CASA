@@ -6,12 +6,12 @@ Input model for creating an app.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **UUID** |  | [optional] 
-**type** | **str** |  | 
-**name** | **str** |  | 
-**base_url** | **str** |  | 
-**authorization_server_id** | **UUID** |  | 
-**client_credentials_id** | **UUID** |  | 
+**id** | **UUID** |  | [optional]
+**type** | **str** |  |
+**name** | **str** |  |
+**base_url** | **str** |  |
+**authorization_server_id** | **UUID** |  |
+**client_credentials_id** | **UUID** |  |
 
 ## Example
 
@@ -31,5 +31,3 @@ app_dict = app_instance.to_dict()
 app_from_dict = App.from_dict(app_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

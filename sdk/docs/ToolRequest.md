@@ -5,10 +5,10 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**name** | **str** |  | 
-**description** | **str** |  | 
-**input_schema** | **str** |  | 
-**output_schema** | **str** |  | 
+**name** | **str** |  |
+**description** | **str** |  |
+**input_schema** | **str** |  |
+**output_schema** | **str** |  |
 
 ## Example
 
@@ -28,5 +28,3 @@ tool_request_dict = tool_request_instance.to_dict()
 tool_request_from_dict = ToolRequest.from_dict(tool_request_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

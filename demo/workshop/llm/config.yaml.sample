@@ -8,5 +8,5 @@ model_list:
 general_settings:
     custom_auth: custom_auth.user_api_key_auth
 
-#litellm_settings:
-#    callbacks: custom_callbacks.proxy_handler_instance
+litellm_settings:
+    callbacks: custom_callbacks.proxy_handler_instance

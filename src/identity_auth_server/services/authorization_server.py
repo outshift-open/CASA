@@ -30,8 +30,10 @@ from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+
 class TokenRequest(BaseModel):
     """A model representing a token generation request."""
+
     client_id: str
     client_secret: str
     user_input: str
@@ -39,6 +41,7 @@ class TokenRequest(BaseModel):
 
 class TokenExchangeRequest(BaseModel):
     """A model representing a token exchange request."""
+
     client_id: str
     client_secret: str
     subject_token: str
@@ -149,10 +152,12 @@ class AuthorizationServerService:
             raise Exception(f"App {app_id} has no authorization server configured.")
 
         # store the user initial prompt
-        user_input = self.user_input_repository.create(UserInput(
-            prompt=request.user_input,
-            app_id=app.id,
-        ))
+        user_input = self.user_input_repository.create(
+            UserInput(
+                prompt=request.user_input,
+                app_id=app.id,
+            )
+        )
 
         token = self.keycloak_manager.get_token(
             app.authorization_server,
@@ -304,7 +309,6 @@ class AuthorizationServerService:
                 if not set(tools).issubset(tools_claim):
                     return TokenIntrospectResponse(active=False)
 
-
         return TokenIntrospectResponse(
             sub=sub,
             client_id=claims.get("client_id"),
@@ -315,7 +319,7 @@ class AuthorizationServerService:
             user_input_id=claims.get("uiid"),
             app_id=app_id,
             tools_claim=tools_claim,
-            active=True
+            active=True,
         )
 
     def _get_app_id_from_client_id(self, client_id: str) -> str:

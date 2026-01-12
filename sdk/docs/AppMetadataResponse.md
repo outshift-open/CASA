@@ -6,12 +6,12 @@ Pydantic model for app metadata response.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**client_id** | **str** |  | 
-**client_name** | **str** |  | 
-**grant_types** | **List[str]** |  | 
-**response_types** | **List[str]** |  | 
-**token_endpoint_auth_method** | **str** |  | 
-**jwks_uri** | **str** |  | 
+**client_id** | **str** |  |
+**client_name** | **str** |  |
+**grant_types** | **List[str]** |  |
+**response_types** | **List[str]** |  |
+**token_endpoint_auth_method** | **str** |  |
+**jwks_uri** | **str** |  |
 
 ## Example
 
@@ -31,5 +31,3 @@ app_metadata_response_dict = app_metadata_response_instance.to_dict()
 app_metadata_response_from_dict = AppMetadataResponse.from_dict(app_metadata_response_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

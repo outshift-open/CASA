@@ -69,6 +69,7 @@ def token_exchange(
         ),
     )
 
+
 @router.post("/oauth2/introspect", generate_unique_id_function=lambda _: "introspect")
 def introspect(
     auth_service: Annotated[AuthorizationServerService, Depends(Container.get_authorization_service)],

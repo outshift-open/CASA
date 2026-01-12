@@ -39,7 +39,7 @@ configuration = identity_auth_sdk.Configuration(
 with identity_auth_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = identity_auth_sdk.DefaultApi(api_client)
-    app_id = 'app_id_example' # str | 
+    app_id = 'app_id_example' # str |
 
     try:
         # App Metadata
@@ -57,7 +57,7 @@ with identity_auth_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **app_id** | **str**|  | 
+ **app_id** | **str**|  |
 
 ### Return type
 
@@ -109,7 +109,7 @@ configuration = identity_auth_sdk.Configuration(
 with identity_auth_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = identity_auth_sdk.DefaultApi(api_client)
-    app_request = identity_auth_sdk.AppRequest() # AppRequest | 
+    app_request = identity_auth_sdk.AppRequest() # AppRequest |
 
     try:
         # Create App
@@ -127,7 +127,7 @@ with identity_auth_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **app_request** | [**AppRequest**](AppRequest.md)|  | 
+ **app_request** | [**AppRequest**](AppRequest.md)|  |
 
 ### Return type
 
@@ -239,7 +239,7 @@ configuration = identity_auth_sdk.Configuration(
 with identity_auth_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = identity_auth_sdk.DefaultApi(api_client)
-    token = 'token_example' # str | 
+    token = 'token_example' # str |
     tools = ['tools_example'] # List[str] |  (optional)
 
     try:
@@ -258,8 +258,8 @@ with identity_auth_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **token** | **str**|  | 
- **tools** | [**List[str]**](str.md)|  | [optional] 
+ **token** | **str**|  |
+ **tools** | [**List[str]**](str.md)|  | [optional]
 
 ### Return type
 
@@ -310,10 +310,10 @@ configuration = identity_auth_sdk.Configuration(
 with identity_auth_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = identity_auth_sdk.DefaultApi(api_client)
-    app_id = 'app_id_example' # str | 
-    client_id = 'client_id_example' # str | 
-    client_secret = 'client_secret_example' # str | 
-    user_input = 'user_input_example' # str | 
+    app_id = 'app_id_example' # str |
+    client_id = 'client_id_example' # str |
+    client_secret = 'client_secret_example' # str |
+    user_input = 'user_input_example' # str |
 
     try:
         # Token
@@ -331,10 +331,10 @@ with identity_auth_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **app_id** | **str**|  | 
- **client_id** | **str**|  | 
- **client_secret** | **str**|  | 
- **user_input** | **str**|  | 
+ **app_id** | **str**|  |
+ **client_id** | **str**|  |
+ **client_secret** | **str**|  |
+ **user_input** | **str**|  |
 
 ### Return type
 
@@ -385,11 +385,11 @@ configuration = identity_auth_sdk.Configuration(
 with identity_auth_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = identity_auth_sdk.DefaultApi(api_client)
-    app_id = 'app_id_example' # str | 
-    client_id = 'client_id_example' # str | 
-    client_secret = 'client_secret_example' # str | 
-    subject_token = 'subject_token_example' # str | 
-    subject_token_type = 'subject_token_type_example' # str | 
+    app_id = 'app_id_example' # str |
+    client_id = 'client_id_example' # str |
+    client_secret = 'client_secret_example' # str |
+    subject_token = 'subject_token_example' # str |
+    subject_token_type = 'subject_token_type_example' # str |
     scope = 'scope_example' # str |  (optional)
     mcp_server_url = 'mcp_server_url_example' # str |  (optional)
     tools = ['tools_example'] # List[str] |  (optional)
@@ -410,14 +410,14 @@ with identity_auth_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **app_id** | **str**|  | 
- **client_id** | **str**|  | 
- **client_secret** | **str**|  | 
- **subject_token** | **str**|  | 
- **subject_token_type** | **str**|  | 
- **scope** | **str**|  | [optional] 
- **mcp_server_url** | **str**|  | [optional] 
- **tools** | [**List[str]**](str.md)|  | [optional] 
+ **app_id** | **str**|  |
+ **client_id** | **str**|  |
+ **client_secret** | **str**|  |
+ **subject_token** | **str**|  |
+ **subject_token_type** | **str**|  |
+ **scope** | **str**|  | [optional]
+ **mcp_server_url** | **str**|  | [optional]
+ **tools** | [**List[str]**](str.md)|  | [optional]
 
 ### Return type
 
@@ -440,4 +440,3 @@ No authorization required
 **422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-

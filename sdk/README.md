@@ -67,7 +67,7 @@ configuration = identity_auth_sdk.Configuration(
 with identity_auth_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = identity_auth_sdk.DefaultApi(api_client)
-    app_id = 'app_id_example' # str | 
+    app_id = 'app_id_example' # str |
 
     try:
         # App Metadata
@@ -115,7 +115,3 @@ Endpoints do not require authorization.
 
 
 ## Author
-
-
-
-

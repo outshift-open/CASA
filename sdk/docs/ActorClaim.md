@@ -6,8 +6,8 @@ Pydantic model for the JWT 'act' (actor) claim.  Represents an actor in a delega
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**sub** | **str** |  | 
-**act** | [**ActorClaim**](ActorClaim.md) |  | [optional] 
+**sub** | **str** |  |
+**act** | [**ActorClaim**](ActorClaim.md) |  | [optional]
 
 ## Example
 
@@ -27,5 +27,3 @@ actor_claim_dict = actor_claim_instance.to_dict()
 actor_claim_from_dict = ActorClaim.from_dict(actor_claim_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

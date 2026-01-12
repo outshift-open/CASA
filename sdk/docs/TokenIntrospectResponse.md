@@ -6,16 +6,16 @@ Pydantic model for the token introspection response.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**client_id** | **str** |  | [optional] 
-**scope** | **str** |  | [optional] 
-**sub** | **str** |  | [optional] 
-**act** | [**ActorClaim**](ActorClaim.md) |  | [optional] 
-**other** | **Dict[str, object]** |  | [optional] 
-**exp** | **int** |  | [optional] 
-**user_input_id** | **str** |  | [optional] 
-**app_id** | **str** |  | [optional] 
-**tools** | **List[str]** |  | [optional] 
-**active** | **bool** |  | 
+**client_id** | **str** |  | [optional]
+**scope** | **str** |  | [optional]
+**sub** | **str** |  | [optional]
+**act** | [**ActorClaim**](ActorClaim.md) |  | [optional]
+**other** | **Dict[str, object]** |  | [optional]
+**exp** | **int** |  | [optional]
+**user_input_id** | **str** |  | [optional]
+**app_id** | **str** |  | [optional]
+**tools** | **List[str]** |  | [optional]
+**active** | **bool** |  |
 
 ## Example
 
@@ -35,5 +35,3 @@ token_introspect_response_dict = token_introspect_response_instance.to_dict()
 token_introspect_response_from_dict = TokenIntrospectResponse.from_dict(token_introspect_response_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-

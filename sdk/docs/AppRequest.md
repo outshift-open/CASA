@@ -5,9 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**type** | [**AppType**](AppType.md) |  | 
-**name** | **str** |  | 
-**base_url** | **str** |  | 
+**type** | [**AppType**](AppType.md) |  |
+**name** | **str** |  |
+**base_url** | **str** |  |
 **tools** | [**List[ToolRequest]**](ToolRequest.md) |  | [optional] [default to []]
 
 ## Example
@@ -28,5 +28,3 @@ app_request_dict = app_request_instance.to_dict()
 app_request_from_dict = AppRequest.from_dict(app_request_dict)
 ```
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
-
-
