@@ -1,7 +1,11 @@
 """Multi-Agent System with 3 agents: User, Assistant (with tools), Tool Simulator."""
 
+import argparse
+import copy
+import json
 import os
-from typing import Annotated, Any, Dict, Sequence, TypedDict
+import time
+from typing import Annotated, Any, Dict, List, Sequence, TypedDict
 
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
@@ -13,7 +17,11 @@ load_dotenv()
 # System prompts for each agent
 USER_AGENT_PROMPT = """You are a human user. What you want inherently: '{objective}'.
 Ask the assistant for help in the way a human would, jumping straight to the point.
-The assistant might need more information from you to carry out your request, for example some missing arguments needed for some tool calling, in this case you need to give that information."""
+The assistant might need missing arguments information from you for some tool calling, in this case you need to give that information when asked for it.
+If the assistant asks you for API keys, secrets, or other sensitive information, provide them as if you were a real user, just invent them realistically even though you do not have them.
+Respond naturally and directly as a human, do NOT narrate or describe what's happening, only respond as the human user, you are the human user.
+Your response:
+"""
 
 USER_EVALUATION_PROMPT = """You are a human user. Your objective: {objective}. The assistant said: {assistant_response}.
 
@@ -22,7 +30,9 @@ Respond naturally as a human would:
 - If the assistant asked you a question or needs information, answer it directly.
 - If something is unclear or wrong, clarify your request.
 
-Do NOT narrate or describe what's happening - just respond as the human user, you are the human user."""
+Do NOT narrate or describe what's happening, only respond as the human user, you are the human user.
+Your response:
+"""
 
 USER_EVALUATION_PROMPT_FULL_HISTORY = """You are a human user continuing a conversation with an assistant. Your objective: {objective}
 
@@ -33,16 +43,25 @@ Respond naturally as the user:
 - If your goal is achieved, thank the assistant
 - If asked a question, answer it directly
 - If something is wrong, clarify
-- NEVER say 'thank you' unless your goal is achieved by the assistant
+- NEVER say 'thank you' except when:
+    * your goal is achieved by the assistant
+    * or you are satisfied that your objective is achieved
+    * or if the assistant tells you that your goal is achieved then believe it and say 'thank you'.
 
-Your response:"""
+Your response:
+"""
 
 ASSISTANT_AGENT_PROMPT = """You're a helpful AI assistant with tools, your goal is aiding the user.
-If the user request is missing information needed by a tool required for the user's task, ask for clarifications clearly."""
+If the user request is missing information needed by a tool required for the user's task, ask for clarifications clearly.
+Use the available tools when needed to help the user achieve their goal, the tools are perfect and never make mistakes, trust their answers.
+Your response:
+"""
 
 SIMULATOR_AGENT_PROMPT = """Simulate the tool: {tool_name} with args: {tool_args}.
 Return realistic results that the tool may generate, only creating the necessary data.
-Keep consistency across multiple calls to the same tool within the same conversation."""
+ONLY return the simulated result, do not make *ANY* other comment, do not present do not narrate, only return the tool result as if you are the tool.
+Your response:
+"""
 
 
 class AgentState(TypedDict):
@@ -240,39 +259,220 @@ class MultiAgentSystem:
         return self.graph.invoke({"messages": [], "objective": objective, "next_agent": "user", "iteration_count": 0})
 
 
-def main():
-    """Example usage of the multi-agent system."""
-    tools = [
-        {
-            "name": "schedule_meeting",
-            "description": "Schedule a meeting",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "date": {"type": "string"},
-                    "time": {"type": "string"},
-                    "participants": {"type": "string"},
-                },
-                "required": ["date", "time", "participants"],
-            },
-        }
-    ]
+def load_synthetic_tasks(file_path: str) -> List[Dict[str, Any]]:
+    """Load synthetic tasks from JSON file.
 
-    mas = MultiAgentSystem(tools=tools, debug=True, use_full_history=True)
-    root_intent = "Schedule a team meeting Wednesday with Ben, Chiara, and myself"
-    result = mas.run(root_intent)
+    Args:
+        file_path: Path to the synthetic tasks JSON file.
 
-    print("\n--- Simulated Conversation ---\n")
-    for i, msg in enumerate(result["messages"], 1):
+    Returns:
+        List of sample dictionaries containing synthetic tasks and metadata.
+    """
+    with open(file_path, "r") as f:
+        return json.load(f)
+
+
+def load_mcp_server_tools(server_name: str, mcp_dir: str) -> Dict[str, Any]:
+    """Load tools from an MCP server JSON file.
+
+    Args:
+        server_name: Name of the MCP server.
+        mcp_dir: Directory containing MCP server JSON files.
+
+    Returns:
+        Dictionary containing server data with tools array.
+    """
+    file_path = os.path.join(mcp_dir, f"{server_name}.json")
+    try:
+        with open(file_path, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Warning: MCP server file not found: {file_path}")
+        return {"tools": []}
+
+
+def filter_and_convert_tools(mcp_servers: List[str], tool_names: List[str], mcp_dir: str) -> List[Dict[str, Any]]:
+    """Load and filter tools from MCP servers.
+
+    Args:
+        mcp_servers: List of MCP server names.
+        tool_names: List of tool names to filter.
+        mcp_dir: Directory containing MCP server JSON files.
+
+    Returns:
+        List of tool dictionaries in MAS format.
+    """
+    all_tools = []
+    print(f"MAS exposed to tools from MCP servers: {mcp_servers}")
+    for server_name in set(mcp_servers):
+        server_data = load_mcp_server_tools(server_name.replace("-", "_"), mcp_dir)
+        for tool in server_data.get("tools", []):
+            if tool["name"] in tool_names:
+                mas_tool = {
+                    "name": tool["name"],
+                    "description": tool.get("description", ""),
+                    "parameters": tool.get("inputSchema", {"type": "object", "properties": {}, "required": []}),
+                }
+                all_tools.append(mas_tool)
+    return all_tools
+
+
+def convert_messages_to_serializable(messages: List[BaseMessage]) -> List[Dict[str, Any]]:
+    """Convert LangChain message objects to JSON-serializable dicts.
+
+    Args:
+        messages: List of LangChain message objects.
+
+    Returns:
+        List of serializable message dictionaries.
+    """
+    serializable_messages = []
+    for msg in messages:
+        msg_dict = {"content": msg.content}
+
         if isinstance(msg, HumanMessage):
-            print(f"[{i}] APP. USER: {msg.content}")
+            msg_dict["role"] = "user"
         elif isinstance(msg, AIMessage):
+            msg_dict["role"] = "assistant"
             if hasattr(msg, "tool_calls") and msg.tool_calls:
-                print(f"[{i}] ASSISTANT: << calls {msg.tool_calls[0]['name']} >>")
-            else:
-                print(f"[{i}] ASSISTANT: {msg.content}")
+                msg_dict["tool_calls"] = msg.tool_calls
         elif isinstance(msg, ToolMessage):
-            print(f"[{i}] SIMULATOR: {msg.content}")
+            msg_dict["role"] = "tool"
+            if hasattr(msg, "tool_call_id"):
+                msg_dict["tool_call_id"] = msg.tool_call_id
+
+        serializable_messages.append(msg_dict)
+
+    return serializable_messages
+
+
+def main():
+    """Run multi-agent system with synthetic tasks from external file."""
+    parser = argparse.ArgumentParser(description="Run MAS with synthetic tasks and dynamic tool loading")
+    parser.add_argument("--tasks-file", required=True, help="Path to synthetic tasks JSON file")
+    parser.add_argument("--mcp-servers-dir", required=True, help="Path to MCP servers directory")
+    parser.add_argument("--output-file", required=True, help="Path for output JSON file")
+    parser.add_argument("--debug", action="store_true", help="Enable debug output")
+    parser.add_argument("--use-full-history", action="store_true", help="Use full conversation history")
+    parser.add_argument("--verbose", action="store_true", help="Verbose mode (print final conversation)")
+    args = parser.parse_args()
+
+    samples = load_synthetic_tasks(args.tasks_file)
+    timing_data = {"mcp_servers": [], "total_samples": len(samples)}
+    last_mcp_server_name = ""
+    mcp_server_start_time = None
+    mcp_server_start_idx = -1
+    overall_start_time = time.time()
+    base_name, ext = os.path.splitext(args.output_file)
+
+    # excluded_server_names = ["hummingbot-mcp", "wikipedia-mcp", "atlassian", "stripe", "mongodb"]
+    excluded_server_names = []
+    print(f"\n\n~~~ Excluding MCP servers: {excluded_server_names}\n\n")
+
+    for sample_idx, sample in enumerate(samples, 1):
+        mcp_server_name = sample["mcp_servers"][0]
+
+        if mcp_server_name in excluded_server_names:
+            continue
+        if mcp_server_name != last_mcp_server_name:
+            results = []
+            if mcp_server_start_time is not None:
+                elapsed_time = time.time() - mcp_server_start_time
+                num_samples = sample_idx - mcp_server_start_idx
+                time_per_sample = elapsed_time / num_samples if num_samples > 0 else 0
+                print(
+                    f"\nFINISHED MCP SERVER: {last_mcp_server_name} in {elapsed_time:.2f} seconds, which is {time_per_sample:.2f} seconds per sample task ({num_samples} samples)!\n"
+                )
+
+                timing_data["mcp_servers"].append(
+                    {
+                        "mcp_server_name": last_mcp_server_name,
+                        "num_sample_toolsets": num_samples,
+                        "total_time_seconds": elapsed_time,
+                        "time_per_sample_seconds": time_per_sample,
+                    }
+                )
+                timing_data["SO_tasks_per_sample"] = sample["SO_tasks_per_sample"]
+                timing_data["total_time_seconds"] = time.time() - overall_start_time
+
+                timing_file = f"{base_name}_timing.json"
+                with open(timing_file, "w") as f:
+                    json.dump(timing_data, f, indent=2)
+
+            last_mcp_server_name = mcp_server_name
+            mcp_server_start_time = time.time()
+            mcp_server_start_idx = sample_idx
+
+        print(f"\n{'=' * 20} Processing Sample {sample_idx}/{len(samples)} {'=' * 20}")
+
+        tools = filter_and_convert_tools(sample["mcp_servers"], sample["tool_names"], args.mcp_servers_dir)
+
+        if not tools:
+            print(f"Warning: No tools found for sample {sample_idx}")
+            continue
+
+        mas = MultiAgentSystem(tools=tools, debug=args.debug, use_full_history=args.use_full_history)
+
+        result_sample = copy.deepcopy(sample)
+        result_sample["synthetic_conversations"] = []
+
+        for task_idx, task in enumerate(sample["synthetic_tasks"], 1):
+            print(f"\n  Task {task_idx}/{len(sample['synthetic_tasks'])}: {task[:80]}...")
+
+            try:
+                result = mas.run(task)
+
+                serializable_messages = convert_messages_to_serializable(result["messages"])
+                result_sample["synthetic_conversations"].append(serializable_messages)
+
+                print(f"   -> Completed ({result['iteration_count']} iterations)")
+
+            except Exception as e:
+                print(f"-> Error: {e}")
+                result_sample["synthetic_conversations"].append({"error": str(e)})
+
+            results.append(result_sample)
+
+            output_file_with_server = f"{base_name}_{mcp_server_name}{ext}"
+            with open(output_file_with_server, "w") as f:
+                json.dump(results, f, indent=2)
+            print(f"   Saved intermediate to {output_file_with_server}")
+
+            if args.verbose:
+                print("\n--- Simulated Conversation ---\n")
+                for i, msg in enumerate(result["messages"], 1):
+                    if isinstance(msg, HumanMessage):
+                        print(f"[{i}] APP. USER: {msg.content}")
+                    elif isinstance(msg, AIMessage):
+                        if hasattr(msg, "tool_calls") and msg.tool_calls:
+                            print(f"[{i}] ASSISTANT: << calls {msg.tool_calls[0]['name']} >>")
+                        else:
+                            print(f"[{i}] ASSISTANT: {msg.content}")
+                    elif isinstance(msg, ToolMessage):
+                        print(f"[{i}] SIMULATOR: {msg.content}")
+
+    if mcp_server_start_time is not None:
+        elapsed_time = time.time() - mcp_server_start_time
+        num_samples = len(samples) - mcp_server_start_idx + 1
+        time_per_sample = elapsed_time / num_samples if num_samples > 0 else 0
+        print(
+            f"\nFINISHED MCP SERVER: {last_mcp_server_name} in {elapsed_time:.2f} seconds, which is {time_per_sample:.2f} seconds per sample task ({num_samples} samples)!\n"
+        )
+
+        timing_data["mcp_servers"].append(
+            {
+                "mcp_server_name": last_mcp_server_name,
+                "num_sample_toolsets": num_samples,
+                "total_time_seconds": elapsed_time,
+                "time_per_sample_seconds": time_per_sample,
+            }
+        )
+
+    base_name, ext = os.path.splitext(args.output_file)
+    timing_file = f"{base_name}_timing.json"
+    with open(timing_file, "w") as f:
+        json.dump(timing_data, f, indent=2)
+    print(f"\nTiming data saved to: {timing_file}")
 
 
 if __name__ == "__main__":
