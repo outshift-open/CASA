@@ -17,6 +17,8 @@ from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatch
 from identity_auth_server.services.app_service import AppService
 from identity_auth_server.services.authorization_server import AuthorizationServerService
 from identity_auth_server.services.mcp_discover import McpDiscoverService
+from identity_auth_server.telemetry.tracer import Tracer
+from identity_auth_server.telemetry.tracer_repository import TracerPostgresRepository, TracerRepository
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 T = TypeVar("T")
@@ -111,6 +113,10 @@ class Container:
         return UserInputPostgresRepository(session=session)
 
     @staticmethod
+    def get_tracer_repository(session: Annotated[Session, Depends(get_session)]):
+        return TracerPostgresRepository(session=session)
+
+    @staticmethod
     def get_keycloak_manager():
         return KeycloakManager(
             server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
@@ -122,6 +128,10 @@ class Container:
         return McpDiscoverService()
 
     @staticmethod
+    def get_tracer(tracer_repository: Annotated[TracerRepository, Depends(get_tracer_repository)]):
+        return Tracer(tracer_repository=tracer_repository)
+
+    @staticmethod
     def get_authorization_service(
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
@@ -129,6 +139,7 @@ class Container:
         mcp_discover: Annotated[McpDiscoverService, Depends(get_mcp_discover)],
         task_tool_matcher: Annotated[TaskToolMatcher, Depends(get_task_tool_matcher)],
         user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
+        tracer: Annotated[Tracer, Depends(get_tracer)],
     ):
         return AuthorizationServerService(
             authorization_server_repository,
@@ -138,6 +149,7 @@ class Container:
             mcp_discover=mcp_discover,
             task_tool_matcher=task_tool_matcher,
             user_input_repository=user_input_repository,
+            tracer=tracer,
         )
 
     @staticmethod

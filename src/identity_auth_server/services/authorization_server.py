@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import jwt
 from pydantic import BaseModel, field_validator
 
+from identity_auth_server.core.events import MCPCallStartedEvent, MCPToolBlockingReason, MCPToolBlockingType, TokenExchangedEvent, TokenIssuedEvent
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.repositories.user_input import UserInputRepository
@@ -25,6 +26,7 @@ from identity_auth_server.core.types import (
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
 from identity_auth_server.services.mcp_discover import McpDiscoverService
+from identity_auth_server.telemetry.tracer import Tracer
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
@@ -71,6 +73,7 @@ class AuthorizationServerService:
         mcp_discover: McpDiscoverService,
         task_tool_matcher: TaskToolMatcher,
         user_input_repository: UserInputRepository,
+        tracer: Tracer,
     ):
         """Store the backing session repository, keycloak manager, and client repository."""
         self.authorization_server_repository = authorization_server_repository
@@ -80,6 +83,7 @@ class AuthorizationServerService:
         self.mcp_discover = mcp_discover
         self.task_tool_matcher = task_tool_matcher
         self.user_input_repository = user_input_repository
+        self.tracer = tracer
 
     def create_for_app(self, app_id: str) -> App:
         """Create a new authorization server for an App."""
@@ -169,15 +173,17 @@ class AuthorizationServerService:
             user_input_id=str(user_input.id),
         )
 
-        token = token["token"]
+        token = token["token"]["access_token"]
 
         logger.debug(f"Got token from Keycloak {token}")
 
-        return TokenResponse(access_token=token["access_token"], token_type="Bearer")
+        self.tracer.record_event(TokenIssuedEvent(user_input_id=str(user_input.id), token=token))
+
+        return TokenResponse(access_token=token, token_type="Bearer")
 
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
-        subject_token = self._introspect_token2(token=request.subject_token)
+        subject_token = self._introspect_token(token=request.subject_token)
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id)
         if subject_app is None:
             raise Exception("Invalid subject_token.")
@@ -190,7 +196,9 @@ class AuthorizationServerService:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
 
         approved_tools = []
+        mcp_call_event: Optional[MCPCallStartedEvent] = None
 
+        # TODO: add deterministic check using the LLM response (from the events)
         if request.mcp_server_url and request.tools:
             mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
             user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
@@ -206,6 +214,19 @@ class AuthorizationServerService:
                 # TODO: store them for caching purposes?
                 if match.task_tool_match:
                     approved_tools.append(tool)
+                    mcp_call_event = MCPCallStartedEvent(
+                        user_input_id=subject_token.user_input_id,
+                        tool=tool,
+                        blocked=False,
+                    )
+                else:
+                    mcp_call_event = MCPCallStartedEvent(
+                        user_input_id=subject_token.user_input_id,
+                        tool=tool,
+                        blocked=True,
+                        blocking_type=MCPToolBlockingType.AI_POWERED,
+                        blocking_reason=MCPToolBlockingReason.TOOL_INTENT_MISMATCH,
+                    )
 
         act = ActorClaim(sub=request.client_id)
         if subject_token.act:
@@ -229,11 +250,31 @@ class AuthorizationServerService:
             tools=approved_tools,
         )
 
-        token = actor_token["token"]
+        token = actor_token["token"]["access_token"]
 
         logger.debug(f"Got token from Keycloak {token}")
 
-        return TokenResponse(access_token=token["access_token"])
+        self.tracer.record_event(
+            TokenExchangedEvent(
+                user_input_id=subject_token.user_input_id,
+                subject_token=request.subject_token,
+                act_token=token,
+                subject_app_id=str(subject_app.id),
+                act_app_id=str(actor_app.id),
+                tools=approved_tools,
+            )
+        )
+
+        if mcp_call_event is not None:
+            mcp_call_event.token = token
+            mcp_call_event.callee_app_id = str(actor_app.id)
+            if subject_token.act is not None:
+                mcp_call_event.caller_app_id = self._get_app_id_from_client_id(subject_token.act.sub)
+            else:
+                mcp_call_event.caller_app_id = subject_token.app_id
+            self.tracer.record_event(mcp_call_event)
+
+        return TokenResponse(access_token=token)
 
     def introspect_token(
         self,
@@ -242,7 +283,7 @@ class AuthorizationServerService:
         token: str,
         tools: Optional[list[str]] = None,
     ) -> TokenIntrospectResponse:
-        response = self._introspect_token2(token, tools)
+        response = self._introspect_token(token, tools)
         return response
 
     # def generate_token(self, authorization_server: AuthorizationServer, data: TokenRequestParams) -> TokenResponse:
@@ -280,7 +321,7 @@ class AuthorizationServerService:
 
     #     return TokenResponse(access_token=keycloak_token["access_token"], token_type="Bearer")
 
-    def _introspect_token2(self, token: str, tools: Optional[list[str]] = None) -> TokenIntrospectResponse:
+    def _introspect_token(self, token: str, tools: Optional[list[str]] = None) -> TokenIntrospectResponse:
         """Introspect a token to check its validity and retrieve metadata."""
         # Decrypt the JWT token and extract claims without using Keycloak
         claims = jwt.decode(token, options={"verify_signature": False})
