@@ -3,7 +3,7 @@ from fastapi import Request
 from litellm.proxy._types import UserAPIKeyAuth as BaseUserAPIKeyAuth
 from pydantic import model_validator
 
-from identity_auth_server import sdk
+import identity_auth_sdk
 
 
 class UserAPIKeyAuth(BaseUserAPIKeyAuth):
@@ -22,23 +22,23 @@ class UserAPIKeyAuth(BaseUserAPIKeyAuth):
 
 async def user_api_key_auth(_: Request, api_key: str) -> UserAPIKeyAuth:
     try:
-        auth_client = sdk.IdentityAuthClient(
-            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
+        sdk_config = identity_auth_sdk.Configuration(
+            host = os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
         )
 
         print("Validating API key:", api_key)
 
-        valid_token = auth_client.validate_llm_app_call_token(
-            token=api_key,
-        )
+        with identity_auth_sdk.ApiClient(sdk_config) as api_client:
+            api_instance = identity_auth_sdk.DefaultApi(api_client)
+            introspect_resp = api_instance.introspect(api_key)
 
-        print("API key valid:", valid_token.valid)
+            print("API key valid:", introspect_resp.active)
 
-        if valid_token.valid:
-            return UserAPIKeyAuth(
-                api_key=api_key,
-            )
-        else:
-            raise Exception("Invalid API key")
+            if introspect_resp.active:
+                return UserAPIKeyAuth(
+                    api_key=api_key,
+                )
+            else:
+                raise Exception("Invalid API key -> " + api_key)
     except Exception:
         raise Exception("Invalid API key")

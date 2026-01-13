@@ -4,14 +4,18 @@ WORKDIR /src
 
 RUN apt update && apt install -y gettext
 
+RUN pip install uv
+
 COPY pyproject.toml LICENSE README.md ./
 COPY ./src ./src
+COPY ./sdk ./sdk
 COPY ./demo/workshop/requirements.txt .
 COPY ./demo/workshop/llm ./llm
 COPY ./deployments/docker/demo/litellm/entrypoint.sh .
+COPY pyproject.toml .
 
-RUN pip install -r ./requirements.txt
-RUN pip install .
+RUN uv pip install --system .
+RUN uv pip install --system -r ./requirements.txt
 
 WORKDIR /src/llm
 

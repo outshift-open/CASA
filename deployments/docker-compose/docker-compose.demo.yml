@@ -45,6 +45,8 @@ services:
     container_name: identity-agent
     ports:
       - "8082:8082"
+    env_file:
+      - ../../.env
     environment:
       - LITELLM_URL=http://host.docker.internal:4000
       - MCP_SERVER_URL=http://host.docker.internal:3000/mcp
@@ -59,8 +61,9 @@ services:
     container_name: identity-trusted-agent
     ports:
       - "3999:3999"
+    env_file:
+      - ../../.env
     environment:
       - AUTH_SERVER_URL=http://host.docker.internal:8000
       - AGENT_CHAT_URL=http://host.docker.internal:8082/chat
-      - TRUSTED_CLIENT_BASE_URL=http://localhost:3999
     restart: unless-stopped

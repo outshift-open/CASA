@@ -54,6 +54,7 @@ class App(SQLModel, table=True):
 
 ######### APP TYPES #########
 
+
 ######### User Input TYPES #########
 class UserInput(SQLModel, table=True):
     """User Input model containing the user input prompt."""
@@ -127,12 +128,6 @@ class ActorClaim(BaseModel):
     act: Optional["ActorClaim"] = None  # Nested actor claim for delegation chains
 
 
-class TokenIntrospectParams(SQLModel):
-    """Pydantic model for the token introspection parameters."""
-
-    token: str
-
-
 class TokenResponse(SQLModel):
     """Pydantic model for the token response."""
 
@@ -142,14 +137,16 @@ class TokenResponse(SQLModel):
 class TokenIntrospectResponse(BaseModel):
     """Pydantic model for the token introspection response."""
 
-    client_id: str | None = None
-    scope: str | None = None
-    sub: str | None = None
-    act: ActorClaim | None = None
-    other: dict | None = None
-    exp: int | None = None
-    user_input_id: str | None = None
-    app_id: str | None = None
+    client_id: Optional[str] = None
+    scope: Optional[str] = None
+    sub: Optional[str] = None
+    act: Optional[ActorClaim] = None
+    other: Optional[dict] = None
+    exp: Optional[int] = None
+    user_input_id: Optional[str] = None
+    app_id: Optional[str] = None
+    tools: Optional[list[str]] = None
+    active: bool
 
 
 class AppMetadataResponse(SQLModel):
@@ -161,8 +158,6 @@ class AppMetadataResponse(SQLModel):
     response_types: list[str]
     token_endpoint_auth_method: str
     jwks_uri: str
-
-
 
 
 ######### AS TYPES #########

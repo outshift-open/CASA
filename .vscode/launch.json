@@ -14,6 +14,13 @@
                 "identity_auth_server.api.app:app",
                 "--reload"
             ]
+        },
+        {
+            "name": "Python Trusted Client Debugger",
+            "type": "debugpy",
+            "request": "launch",
+            "envFile": "${workspaceFolder}/.env",
+            "program": "${workspaceFolder}/demo/workshop/app/main.py"
         }
     ]
 }
