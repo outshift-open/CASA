@@ -8,7 +8,13 @@ from urllib.parse import urlparse
 import jwt
 from pydantic import BaseModel, field_validator
 
-from identity_auth_server.core.events import MCPCallStartedEvent, MCPToolBlockingReason, MCPToolBlockingType, TokenExchangedEvent, TokenIssuedEvent
+from identity_auth_server.core.events import (
+    MCPCallStartedEvent,
+    MCPToolBlockingReason,
+    MCPToolBlockingType,
+    TokenExchangedEvent,
+    TokenIssuedEvent,
+)
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.repositories.user_input import UserInputRepository

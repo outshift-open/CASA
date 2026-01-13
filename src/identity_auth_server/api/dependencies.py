@@ -70,6 +70,7 @@ def scoped(factory: Callable[..., T], exit: Callable[[T], None] | None = None) -
     Scoped = type("Scoped", (ScopedBase,), {"__call__": factory})
     return Scoped()
 
+
 # TODO: think of a better way to create factories
 # mypy: disable-error-code="misc"
 class Container:

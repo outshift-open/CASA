@@ -6,10 +6,9 @@ from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
 from pydantic import ConfigDict
-from sqlmodel import JSON, Column, Field, Relationship, SQLModel, Session
+from sqlmodel import JSON, Column, Field, Session, SQLModel
 
 from identity_auth_server.core.events import BaseEvent
-from identity_auth_server.core.types import UserInput
 
 
 class Trace(SQLModel, table=True):
@@ -28,8 +27,9 @@ class TracerRepository(ABC):
     def store_event(self, event):
         """Stores an event in the database."""
 
+
 class TracerPostgresRepository(TracerRepository):
-    "Postgre implementation of TracerRepository."
+    """Postgre implementation of TracerRepository."""
 
     def __init__(self, session: Session):
         self._session = session

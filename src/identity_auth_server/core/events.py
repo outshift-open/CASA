@@ -1,10 +1,10 @@
 """Domain events"""
 
+import uuid
 from abc import ABC
 from datetime import datetime, timezone
 from enum import StrEnum
 from typing import Optional
-import uuid
 
 from pydantic import BaseModel, Field
 
@@ -14,9 +14,11 @@ class BaseEvent(BaseModel, ABC):
     user_input_id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
 class TokenIssuedEvent(BaseEvent):
     token: str
     app_id: str
+
 
 class TokenExchangedEvent(BaseEvent):
     subject_token: str
@@ -25,6 +27,7 @@ class TokenExchangedEvent(BaseEvent):
     act_app_id: str
     tools: Optional[list[str]]
 
+
 class LLMCallStartedEvent(BaseEvent):
     call_id: str
     token: str
@@ -32,12 +35,14 @@ class LLMCallStartedEvent(BaseEvent):
     prompt: str
     tools: Optional[list[str]]
 
+
 class LLMCallEndedEvent(BaseEvent):
     call_id: str
     token: str
     app_id: str
     response: str
     tools: Optional[list[str]]
+
 
 class MCPToolBlockingReason(StrEnum):
     """Enumerates the seeded blocked-by reason names."""
@@ -48,10 +53,13 @@ class MCPToolBlockingReason(StrEnum):
     TOOL_PARAMETERS_MISMATCH = "tool_parameters_mismatch"
     MODIFIED_MCP_TOOL_DEFS = "modified_mcp_tool_defs"
 
+
 class MCPToolBlockingType(StrEnum):
     """Enumerates the MCP tool blocking type"""
+
     DETERMINISTIC = "DETERMINISTIC"
     AI_POWERED = "AI_POWERED"
+
 
 class MCPCallStartedEvent(BaseEvent):
     token: str = ""
