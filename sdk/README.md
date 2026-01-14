@@ -91,6 +91,8 @@ Class | Method | HTTP request | Description
 *DefaultApi* | [**introspect**](docs/DefaultApi.md#introspect) | **POST** /oauth2/introspect | Introspect
 *DefaultApi* | [**token**](docs/DefaultApi.md#token) | **POST** /{app_id}/oauth2/token | Token
 *DefaultApi* | [**token_exchange**](docs/DefaultApi.md#token_exchange) | **POST** /{app_id}/oauth2/token_exchange | Token Exchange
+*DefaultApi* | [**trace_llm_call_end**](docs/DefaultApi.md#trace_llm_call_end) | **POST** /trace/llm/call_end | Trace Llm Call End
+*DefaultApi* | [**trace_llm_call_start**](docs/DefaultApi.md#trace_llm_call_start) | **POST** /trace/llm/call_start | Trace Llm Call Start
 
 
 ## Documentation For Models
@@ -101,6 +103,10 @@ Class | Method | HTTP request | Description
  - [AppRequest](docs/AppRequest.md)
  - [AppType](docs/AppType.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [LLMCallEndedEvent](docs/LLMCallEndedEvent.md)
+ - [LLMCallEndedRequest](docs/LLMCallEndedRequest.md)
+ - [LLMCallStartedEvent](docs/LLMCallStartedEvent.md)
+ - [LLMCallStartedRequest](docs/LLMCallStartedRequest.md)
  - [LocationInner](docs/LocationInner.md)
  - [TokenIntrospectResponse](docs/TokenIntrospectResponse.md)
  - [TokenResponse](docs/TokenResponse.md)
@@ -111,7 +117,12 @@ Class | Method | HTTP request | Description
 <a id="documentation-for-authorization"></a>
 ## Documentation For Authorization
 
-Endpoints do not require authorization.
+
+Authentication schemes defined for the API:
+<a id="HTTPBearer"></a>
+### HTTPBearer
+
+- **Type**: Bearer authentication
 
 
 ## Author

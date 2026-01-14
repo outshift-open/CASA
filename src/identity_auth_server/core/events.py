@@ -33,7 +33,7 @@ class LLMCallStartedEvent(BaseEvent):
     token: str
     app_id: str
     prompt: str
-    tools: Optional[list[str]]
+    tools: Optional[str]
 
 
 class LLMCallEndedEvent(BaseEvent):
@@ -41,7 +41,7 @@ class LLMCallEndedEvent(BaseEvent):
     token: str
     app_id: str
     response: str
-    tools: Optional[list[str]]
+    tools: Optional[str]
 
 
 class MCPToolBlockingReason(StrEnum):

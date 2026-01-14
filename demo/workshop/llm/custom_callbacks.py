@@ -4,8 +4,7 @@ from typing import Any, Dict, Optional
 from litellm.integrations.custom_logger import CustomLogger
 from litellm.types.utils import ModelResponse
 
-# from identity_auth_server import sdk
-# from identity_auth_server.sdk.types import LlmAppCallInput, LlmAppResponseInput
+import identity_auth_sdk
 
 
 class MyCustomHandler(CustomLogger):
@@ -51,81 +50,78 @@ class MyCustomHandler(CustomLogger):
         print()  # Add newline for readability
 
     def log_pre_api_call(self, model, messages, kwargs):
-        auth_client = sdk.IdentityAuthClient(
-            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
+        print(f"------ log_pre_api_call ------\n")
+
+        sdk_config = identity_auth_sdk.Configuration(
+            host = os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
+            access_token = self._extract_user_api_key(kwargs)
         )
 
-        resp = auth_client.validate_llm_app_call_token(
-            token=self._extract_user_api_key(kwargs),
-        )
-
-        _ = auth_client.create_llm_app_call(
-            payload=LlmAppCallInput(
-                token=self._extract_user_api_key(kwargs),
-                source_app_call_token=resp.source_app_call_token,
-                messages=str(messages),
-                tools=str(kwargs.get("optional_params", {}).get("tools", [])),
-                proxy_call_id=kwargs.get("litellm_call_id", ""),
+        with identity_auth_sdk.ApiClient(sdk_config) as api_client:
+            api_instance = identity_auth_sdk.DefaultApi(api_client)
+            _ = api_instance.trace_llm_call_start(
+                identity_auth_sdk.LLMCallStartedRequest(
+                    call_id=kwargs.get("litellm_call_id", ""),
+                    prompt=str(messages),
+                    tools=str(kwargs.get("optional_params", {}).get("tools", [])),
+                )
             )
-        )
 
         # self._log_event("On Pre-API Call", messages=messages, kwargs=kwargs, log_messages=True, log_tools=True)
 
     def log_success_event(self, kwargs, response_obj, start_time, end_time):
-        auth_client = sdk.IdentityAuthClient(
-            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
+        print(f"------ log_pre_api_call ------\n")
+
+        sdk_config = identity_auth_sdk.Configuration(
+            host = os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
+            access_token = self._extract_user_api_key(kwargs)
         )
 
-        resp = auth_client.validate_llm_app_call_token(
-            token=self._extract_user_api_key(kwargs),
-        )
-
-        _ = auth_client.create_llm_app_response(
-            payload=LlmAppResponseInput(
-                token=self._extract_user_api_key(kwargs),
-                source_app_call_token=resp.source_app_call_token,
-                message=str(
-                    response_obj.choices[0].message.content
-                    if response_obj.choices and len(response_obj.choices) > 0
-                    else ""
-                ),
-                proxy_call_id=kwargs.get("litellm_call_id", ""),
-                tool_calls=str(
-                    response_obj.choices[0].message.tool_calls
-                    if response_obj.choices and len(response_obj.choices) > 0
-                    else None
-                ),
+        with identity_auth_sdk.ApiClient(sdk_config) as api_client:
+            api_instance = identity_auth_sdk.DefaultApi(api_client)
+            _ = api_instance.trace_llm_call_end(
+                identity_auth_sdk.LLMCallEndedRequest(
+                    call_id=kwargs.get("litellm_call_id", ""),
+                    response=str(
+                        response_obj.choices[0].message.content
+                        if response_obj.choices and len(response_obj.choices) > 0
+                        else ""
+                    ),
+                    tools=str(
+                        response_obj.choices[0].message.tool_calls
+                        if response_obj.choices and len(response_obj.choices) > 0
+                        else None
+                    ),
+                )
             )
-        )
 
         # self._log_event("On LLM Success", response_obj=response_obj, kwargs=kwargs, log_response=True)
 
     async def async_log_success_event(self, kwargs, response_obj, start_time, end_time):
-        auth_client = sdk.IdentityAuthClient(
-            base_url=os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
+        print(f"------ async_log_success_event ------\n")
+
+        sdk_config = identity_auth_sdk.Configuration(
+            host = os.getenv("AUTH_SERVER_URL", "http://localhost:8000"),
+            access_token = self._extract_user_api_key(kwargs)
         )
 
-        resp = auth_client.validate_llm_app_call_token(
-            token=self._extract_user_api_key(kwargs),
-        )
-
-        _ = auth_client.create_llm_app_response(
-            payload=LlmAppResponseInput(
-                token=self._extract_user_api_key(kwargs),
-                source_app_call_token=resp.source_app_call_token,
-                message=str(
-                    response_obj.choices[0].message.content
-                    if response_obj.choices and len(response_obj.choices) > 0
-                    else ""
-                ),
-                proxy_call_id=kwargs.get("litellm_call_id", ""),
-                tool_calls=str(
-                    response_obj.choices[0].message.tool_calls
-                    if response_obj.choices and len(response_obj.choices) > 0
-                    else None
-                ),
+        with identity_auth_sdk.ApiClient(sdk_config) as api_client:
+            api_instance = identity_auth_sdk.DefaultApi(api_client)
+            _ = api_instance.trace_llm_call_end(
+                identity_auth_sdk.LLMCallEndedRequest(
+                    call_id=kwargs.get("litellm_call_id", ""),
+                    response=str(
+                        response_obj.choices[0].message.content
+                        if response_obj.choices and len(response_obj.choices) > 0
+                        else ""
+                    ),
+                    tools=str(
+                        response_obj.choices[0].message.tool_calls
+                        if response_obj.choices and len(response_obj.choices) > 0
+                        else None
+                    ),
+                )
             )
-        )
 
         # self._log_event("On Async LLM Success", response_obj=response_obj, kwargs=kwargs, log_response=True)
         return

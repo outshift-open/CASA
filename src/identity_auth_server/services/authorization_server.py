@@ -351,6 +351,7 @@ class AuthorizationServerService:
 
         if act:
             act_app_id = self._get_app_id_from_client_id(act.sub)
+            app_id = act_app_id
             act_sub_app = self.app_repository.get_app_by_id(act_app_id)
             if act_sub_app and act_sub_app.type == AppType.MCP_SERVER and tools:
                 if not set(tools).issubset(tools_claim):

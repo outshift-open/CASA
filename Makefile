@@ -170,3 +170,11 @@ demo-stop:
 > @printf "$(YELLOW)Stopping the demo agents and LiteLLM$(NOCOLOR)\n"
 > docker compose -f deployments/docker-compose/docker-compose.demo.yml down
 .PHONY: demo-stop
+
+generate-sdk:
+> @printf "$(YELLOW)Generating the Python SDK for the Auth Server$(NOCOLOR)\n"
+> @printf "$(YELLOW)Make sure the auth server is running first$(NOCOLOR)\n"
+> curl -o openapi.json http://localhost:8000/openapi.json
+> docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g python -o /local/sdk --additional-properties=packageName=identity_auth_sdk
+> rm openapi.json
+.PHONY: generate-sdk

@@ -14,10 +14,10 @@
 
 import unittest
 
-from identity_auth_sdk.models.token_response import TokenResponse
+from identity_auth_sdk.models.llm_call_started_request import LLMCallStartedRequest
 
-class TestTokenResponse(unittest.TestCase):
-    """TokenResponse unit test stubs"""
+class TestLLMCallStartedRequest(unittest.TestCase):
+    """LLMCallStartedRequest unit test stubs"""
 
     def setUp(self):
         pass
@@ -25,26 +25,29 @@ class TestTokenResponse(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> TokenResponse:
-        """Test TokenResponse
+    def make_instance(self, include_optional) -> LLMCallStartedRequest:
+        """Test LLMCallStartedRequest
             include_optional is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `TokenResponse`
+        # uncomment below to create an instance of `LLMCallStartedRequest`
         """
-        model = TokenResponse()
+        model = LLMCallStartedRequest()
         if include_optional:
-            return TokenResponse(
-                access_token = ''
+            return LLMCallStartedRequest(
+                call_id = '',
+                prompt = '',
+                tools = ''
             )
         else:
-            return TokenResponse(
-                access_token = '',
+            return LLMCallStartedRequest(
+                call_id = '',
+                prompt = '',
         )
         """
 
-    def testTokenResponse(self):
-        """Test TokenResponse"""
+    def testLLMCallStartedRequest(self):
+        """Test LLMCallStartedRequest"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
