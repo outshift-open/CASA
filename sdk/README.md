@@ -87,6 +87,7 @@ Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *DefaultApi* | [**app_metadata**](docs/DefaultApi.md#app_metadata) | **GET** /{app_id}/oauth2/client-metadata.json | App Metadata
 *DefaultApi* | [**create_app_apps_post**](docs/DefaultApi.md#create_app_apps_post) | **POST** /apps | Create App
+*DefaultApi* | [**get_traces_trace_get**](docs/DefaultApi.md#get_traces_trace_get) | **GET** /trace | Get Traces
 *DefaultApi* | [**health_check_health_get**](docs/DefaultApi.md#health_check_health_get) | **GET** /health | Health Check
 *DefaultApi* | [**introspect**](docs/DefaultApi.md#introspect) | **POST** /oauth2/introspect | Introspect
 *DefaultApi* | [**token**](docs/DefaultApi.md#token) | **POST** /{app_id}/oauth2/token | Token

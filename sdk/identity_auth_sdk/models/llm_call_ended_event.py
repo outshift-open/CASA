@@ -34,7 +34,7 @@ class LLMCallEndedEvent(BaseModel):
     token: StrictStr
     app_id: StrictStr
     response: StrictStr
-    tools: Optional[List[StrictStr]]
+    tools: Optional[StrictStr]
     __properties: ClassVar[List[str]] = ["id", "user_input_id", "created_at", "call_id", "token", "app_id", "response", "tools"]
 
     model_config = ConfigDict(

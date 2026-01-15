@@ -2,7 +2,7 @@
 
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
@@ -78,3 +78,20 @@ def trace_llm_call_end(
 
     tracer.record_event(event)
     return event
+
+
+@router.get("/trace")
+def get_traces(
+    tracer: Annotated[Tracer, Depends(Container.get_tracer)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+):
+    """Retrieve paginated traces for all source app calls."""
+    try:
+        return tracer.get_traces(page, page_size)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    # except Exception as exc:
+    #     raise HTTPException(
+    #         status_code=500, detail="an unexpected error occurred while retrieving traces"
+    #     ) from exc

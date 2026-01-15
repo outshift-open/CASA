@@ -46,7 +46,7 @@ class LlmVerifierTaskToolMatcher(TaskToolMatcher):
             api_key=config.get("OPENAI_GPT4o_API_JWT_TOKEN"),
             base_url=config.get("OPENAI_GPT4o_API_BASE_URL"),
         )
-        self.model_id = config.get("OPENAI_GPT4o_MODEL_ID")
+        self.model_id = config.get("PIPELINE_OPENAI_GPT4o_MODEL_ID")
         self.tool_names = []
         self.tuning = False
 

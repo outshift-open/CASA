@@ -40,6 +40,13 @@ class TestDefaultApi(unittest.TestCase):
         """
         pass
 
+    def test_get_traces_trace_get(self) -> None:
+        """Test case for get_traces_trace_get
+
+        Get Traces
+        """
+        pass
+
     def test_health_check_health_get(self) -> None:
         """Test case for health_check_health_get
 

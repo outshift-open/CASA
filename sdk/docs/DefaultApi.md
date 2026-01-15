@@ -6,6 +6,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**app_metadata**](DefaultApi.md#app_metadata) | **GET** /{app_id}/oauth2/client-metadata.json | App Metadata
 [**create_app_apps_post**](DefaultApi.md#create_app_apps_post) | **POST** /apps | Create App
+[**get_traces_trace_get**](DefaultApi.md#get_traces_trace_get) | **GET** /trace | Get Traces
 [**health_check_health_get**](DefaultApi.md#health_check_health_get) | **GET** /health | Health Check
 [**introspect**](DefaultApi.md#introspect) | **POST** /oauth2/introspect | Introspect
 [**token**](DefaultApi.md#token) | **POST** /{app_id}/oauth2/token | Token
@@ -142,6 +143,76 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **get_traces_trace_get**
+> object get_traces_trace_get(page=page, page_size=page_size)
+
+Get Traces
+
+retrieve paginated traces for all source app calls.
+
+### Example
+
+
+```python
+import identity_auth_sdk
+from identity_auth_sdk.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = identity_auth_sdk.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with identity_auth_sdk.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = identity_auth_sdk.DefaultApi(api_client)
+    page = 1 # int |  (optional) (default to 1)
+    page_size = 20 # int |  (optional) (default to 20)
+
+    try:
+        # Get Traces
+        api_response = api_instance.get_traces_trace_get(page=page, page_size=page_size)
+        print("The response of DefaultApi->get_traces_trace_get:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->get_traces_trace_get: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **page** | **int**|  | [optional] [default to 1]
+ **page_size** | **int**|  | [optional] [default to 20]
+
+### Return type
+
+**object**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 ### HTTP response details

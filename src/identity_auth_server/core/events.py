@@ -18,6 +18,7 @@ class BaseEvent(BaseModel, ABC):
 class TokenIssuedEvent(BaseEvent):
     token: str
     app_id: str
+    prompt: str
 
 
 class TokenExchangedEvent(BaseEvent):

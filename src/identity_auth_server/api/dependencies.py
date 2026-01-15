@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 from typing import Annotated, Any, Callable, Generator, Generic, TypeVar
 
 from fastapi import Depends
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import Session
 
 from identity_auth_server.core.repositories.app import AppPostgresRepository, AppRepository
 from identity_auth_server.core.repositories.authorization_server import (
@@ -80,7 +81,7 @@ class Container:
     get_database = singleton(factory=provide_database)
 
     def provide_sessionmaker(self: Provider[sessionmaker], db: Annotated[PostgresDB, Depends(get_database)]):
-        return self.provide(lambda: sessionmaker(db.engine, expire_on_commit=False))
+        return self.provide(lambda: sessionmaker(db.engine, class_=Session, expire_on_commit=False))
 
     get_sessionmaker = singleton(factory=provide_sessionmaker)
 

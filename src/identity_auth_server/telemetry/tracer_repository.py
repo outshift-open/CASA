@@ -1,12 +1,13 @@
 """Tracer repository implementation"""
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from pydantic import ConfigDict
-from sqlmodel import JSON, Column, Field, Session, SQLModel
+from pydantic import BaseModel, ConfigDict
+from sqlmodel import JSON, Column, Field, Session, SQLModel, desc, func, select
 
 from identity_auth_server.core.events import BaseEvent
 
@@ -15,9 +16,18 @@ class Trace(SQLModel, table=True):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     user_input_id: Optional[UUID] = Field(foreign_key="userinput.id")
-    created_at: datetime = datetime.now(timezone.utc)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False)
     event_type: str
     event: Dict[str, Any] = Field(sa_column=Column(JSON))
+
+
+class TraceList(BaseModel):
+    """Paginated list of events."""
+
+    items: Dict[str, List[Trace]]
+    total: int
+    page: int
+    page_size: int
 
 
 class TracerRepository(ABC):
@@ -26,6 +36,11 @@ class TracerRepository(ABC):
     @abstractmethod
     def store_event(self, event):
         """Stores an event in the database."""
+
+    @abstractmethod
+    def get_all(self, page: int, page_size: int) -> TraceList:
+        """Retrieve traces for all source app calls using pagination."""
+        pass
 
 
 class TracerPostgresRepository(TracerRepository):
@@ -49,3 +64,36 @@ class TracerPostgresRepository(TracerRepository):
         # self._session.flush()
         self._session.commit()
         self._session.refresh(trace)
+
+    def get_all(self, page: int = 0, page_size: int = 100) -> TraceList:
+        """Retrieve traces for all source app calls using pagination."""
+        group_by_qry = (
+            select(Trace.user_input_id, func.max(Trace.created_at).label("created_at"))
+            .group_by(Trace.user_input_id)
+            .subquery()
+        )
+        paginated_qry = (
+            select(group_by_qry.c.user_input_id)
+            .order_by(desc(group_by_qry.c.created_at))
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        total_qry = select(func.count()).select_from(group_by_qry)
+        traces = self._session.exec(
+            select(Trace).filter(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))
+        ).all()
+        total = self._session.exec(total_qry).one()
+
+        items: Dict[str, List[Trace]] = defaultdict(list)
+        for trace in traces:
+            items[str(trace.user_input_id)].append(trace)
+
+        for id in items:
+            items[id].sort(key=lambda t: t.created_at)
+
+        return TraceList(
+            items=items,
+            total=total,
+            page=page,
+            page_size=page_size,
+        )

@@ -183,7 +183,9 @@ class AuthorizationServerService:
 
         logger.debug(f"Got token from Keycloak {token}")
 
-        self.tracer.record_event(TokenIssuedEvent(user_input_id=str(user_input.id), token=token, app_id=str(app.id)))
+        self.tracer.record_event(
+            TokenIssuedEvent(user_input_id=str(user_input.id), token=token, app_id=app_id, prompt=user_input.prompt)
+        )
 
         return TokenResponse(access_token=token, token_type="Bearer")
 

@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 **token** | **str** |  |
 **app_id** | **str** |  |
 **response** | **str** |  |
-**tools** | **List[str]** |  |
+**tools** | **str** |  |
 
 ## Example
 

@@ -42,9 +42,7 @@ class TestLLMCallEndedEvent(unittest.TestCase):
                 token = '',
                 app_id = '',
                 response = '',
-                tools = [
-                    ''
-                    ]
+                tools = ''
             )
         else:
             return LLMCallEndedEvent(
@@ -53,9 +51,7 @@ class TestLLMCallEndedEvent(unittest.TestCase):
                 token = '',
                 app_id = '',
                 response = '',
-                tools = [
-                    ''
-                    ],
+                tools = '',
         )
         """
 
