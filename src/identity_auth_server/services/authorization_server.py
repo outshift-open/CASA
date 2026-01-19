@@ -2,13 +2,15 @@
 
 import json
 import logging
-from typing import Optional
+import re
+from typing import List, Optional
 from urllib.parse import urlparse
 
 import jwt
 from pydantic import BaseModel, field_validator
 
 from identity_auth_server.core.events import (
+    LLMCallEndedEvent,
     MCPCallStartedEvent,
     MCPToolBlockingReason,
     MCPToolBlockingType,
@@ -65,6 +67,15 @@ class TokenExchangeRequest(BaseModel):
         if v not in supported_types:
             raise ValueError(f"{v} is not supported, supported types: {supported_types}.")
         return v
+
+
+class ProcessedTool(BaseModel):
+    """Object that holds the processed tool info."""
+
+    name: str
+    blocked: bool = False
+    blocking_type: Optional[MCPToolBlockingType] = None
+    blocking_reason: Optional[MCPToolBlockingReason] = None
 
 
 class AuthorizationServerService:
@@ -203,38 +214,8 @@ class AuthorizationServerService:
         if actor_app.authorization_server is None:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
 
-        approved_tools = []
-        mcp_call_event: Optional[MCPCallStartedEvent] = None
-
-        # TODO: add deterministic check using the LLM response (from the events)
-        if request.mcp_server_url and request.tools:
-            mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
-            user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
-            for tool in list(set(request.tools)):
-                # TODO: add a check with existing approved tools (App.tools)
-                match = self.task_tool_matcher.match(
-                    TaskToolMatchInput(
-                        task=user_input.prompt,
-                        requested_tool=tool,
-                        mcp_server=mcp_server,
-                    )
-                )
-                # TODO: store them for caching purposes?
-                if match.task_tool_match:
-                    approved_tools.append(tool)
-                    mcp_call_event = MCPCallStartedEvent(
-                        user_input_id=subject_token.user_input_id,
-                        tool=tool,
-                        blocked=False,
-                    )
-                else:
-                    mcp_call_event = MCPCallStartedEvent(
-                        user_input_id=subject_token.user_input_id,
-                        tool=tool,
-                        blocked=True,
-                        blocking_type=MCPToolBlockingType.AI_POWERED,
-                        blocking_reason=MCPToolBlockingReason.TOOL_INTENT_MISMATCH,
-                    )
+        processed_tools = self._process_requested_tools(request, subject_token)
+        approved_tools = [tool.name for tool in processed_tools if not tool.blocked]
 
         act = ActorClaim(sub=request.client_id)
         if subject_token.act:
@@ -273,21 +254,78 @@ class AuthorizationServerService:
             )
         )
 
-        if mcp_call_event is not None:
-            mcp_call_event.token = token
-            mcp_call_event.callee_app_id = str(actor_app.id)
-            if subject_token.act is not None:
-                mcp_call_event.caller_app_id = self._get_app_id_from_client_id(subject_token.act.sub)
-            else:
-                mcp_call_event.caller_app_id = subject_token.app_id
+        for tool in processed_tools:
+            mcp_call_event = MCPCallStartedEvent(
+                user_input_id=subject_token.user_input_id,
+                token=token,
+                tool=tool.name,
+                callee_app_id=str(actor_app.id),
+                caller_app_id=self._get_app_id_from_client_id(subject_token.act.sub)
+                if (subject_token.act is not None)
+                else subject_token.app_id,
+                blocked=tool.blocked,
+                blocking_type=tool.blocking_type,
+                blocking_reason=tool.blocking_reason,
+            )
             self.tracer.record_event(mcp_call_event)
 
         return TokenResponse(access_token=token)
 
+    def _process_requested_tools(
+        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse
+    ) -> List[ProcessedTool]:
+        processed_tools = []
+
+        if request.mcp_server_url and request.tools:
+            mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
+            user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
+            traces = self.tracer.get_traces_by_user_input_and_event_type(
+                subject_token.user_input_id,
+                LLMCallEndedEvent.__name__,
+            )
+            llm_selected_tools: list[str] = []
+            for trace in traces:
+                event = LLMCallEndedEvent(**trace.event)
+                if event.token != request.subject_token:
+                    continue
+                matches = re.findall(r"name='(.*?)'", event.tools)
+                if matches:
+                    llm_selected_tools = llm_selected_tools + list(set(matches))
+            for tool in list(set(request.tools)):
+                processed_tool = ProcessedTool(name=tool)
+                processed_tools.append(processed_tool)
+
+                if len(traces) == 0:
+                    processed_tool.blocked = True
+                    processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
+                    processed_tool.blocking_reason = MCPToolBlockingReason.NO_LLM_CALLS_MADE_BY_APP
+                    continue
+
+                if tool not in llm_selected_tools:
+                    processed_tool.blocked = True
+                    processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
+                    processed_tool.blocking_reason = MCPToolBlockingReason.TOOL_NOT_SELECTED_BY_LLM
+                    continue
+
+                match = self.task_tool_matcher.match(
+                    TaskToolMatchInput(
+                        task=user_input.prompt,
+                        requested_tool=tool,
+                        mcp_server=mcp_server,
+                    )
+                )
+                # TODO: store them for caching purposes?
+                if match.task_tool_match:
+                    processed_tool.blocked = False
+                else:
+                    processed_tool.blocked = True
+                    processed_tool.blocking_type = MCPToolBlockingType.AI_POWERED
+                    processed_tool.blocking_reason = MCPToolBlockingReason.TOOL_INTENT_MISMATCH
+
+        return processed_tools
+
     def introspect_token(
         self,
-        # client_id: str,
-        # client_secret: str,
         token: str,
         tools: Optional[list[str]] = None,
     ) -> TokenIntrospectResponse:

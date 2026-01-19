@@ -1,7 +1,7 @@
 """Tracing service implementation"""
 
 from identity_auth_server.core.events import BaseEvent
-from identity_auth_server.telemetry.tracer_repository import TraceList, TracerRepository
+from identity_auth_server.telemetry.tracer_repository import Trace, TraceList, TracerRepository
 
 
 class Tracer:
@@ -19,3 +19,6 @@ class Tracer:
             raise ValueError("page_size must be greater than 0")
 
         return self._tracer_repository.get_all(page, page_size)
+
+    def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
+        return self._tracer_repository.get_traces_by_user_input_and_event_type(user_input_id, event_type)
