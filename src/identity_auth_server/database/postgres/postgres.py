@@ -2,10 +2,9 @@
 
 import logging
 import os
-from contextlib import contextmanager
 
 from dotenv import load_dotenv
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import SQLModel, create_engine
 
 from identity_auth_server.database.database import Database
 
@@ -34,16 +33,3 @@ class PostgresDB(Database):
 
         self.engine = create_engine(self.database_url)
         SQLModel.metadata.create_all(self.engine)
-
-    @contextmanager
-    def session_scope(self) -> Session:
-        """Provide a transactional scope around a series of operations."""
-        session = Session(self.engine)
-        try:
-            yield session
-            session.commit()
-        except Exception:
-            session.rollback()
-            raise
-        finally:
-            session.close()

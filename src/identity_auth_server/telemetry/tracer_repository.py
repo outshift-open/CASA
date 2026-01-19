@@ -56,7 +56,6 @@ class TracerPostgresRepository(TracerRepository):
 
     def store_event(self, event: BaseEvent):
         """Stores an event in the database."""
-        # event.model_dump(mode="json")
         trace = Trace(
             id=event.id,
             user_input_id=UUID(event.user_input_id),
@@ -65,10 +64,6 @@ class TracerPostgresRepository(TracerRepository):
             event=event.model_dump(mode="json"),
         )
         self._session.add(trace)
-        # TODO: call commit only once in the session factory
-        # self._session.flush()
-        self._session.commit()
-        self._session.refresh(trace)
 
     def get_all(self, page: int = 0, page_size: int = 100) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""

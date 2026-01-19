@@ -53,7 +53,12 @@ class ScopedProvider(ABC, Generic[T]):
         pass
 
 
-def scoped(factory: Callable[..., T], exit: Callable[[T], None] | None = None) -> Callable[..., T]:
+def scoped(
+    factory: Callable[..., T],
+    after_yield_callback: Callable[[T], None] | None = None,
+    on_error_callback: Callable[[T, Exception], None] | None = None,
+    on_exit_callback: Callable[[T], None] | None = None,
+) -> Callable[..., T]:
     """Creates a scoped lifetime service, it is created once per client request."""
 
     class ScopedBase(ScopedProvider[T]):
@@ -64,9 +69,15 @@ def scoped(factory: Callable[..., T], exit: Callable[[T], None] | None = None) -
             instance = func(*args, **kwargs)
             try:
                 yield instance
+                if after_yield_callback:
+                    after_yield_callback(instance)
+            except Exception as e:
+                if on_error_callback:
+                    on_error_callback(instance, e)
+                raise e
             finally:
-                if exit is not None:
-                    exit(instance)
+                if on_exit_callback is not None:
+                    on_exit_callback(instance)
 
     Scoped = type("Scoped", (ScopedBase,), {"__call__": factory})
     return Scoped()
@@ -91,10 +102,23 @@ class Container:
         yield from self.provide(lambda: session_maker())
 
     @staticmethod
+    def session_commit(session: Session):
+        session.commit()
+
+    @staticmethod
+    def session_rollback(session: Session, ex: Exception):
+        session.rollback()
+
+    @staticmethod
     def exit_session(session: Session):
         session.close()
 
-    get_session = scoped(factory=provide_session, exit=exit_session)
+    get_session = scoped(
+        factory=provide_session,
+        after_yield_callback=session_commit,
+        on_error_callback=session_rollback,
+        on_exit_callback=exit_session,
+    )
 
     def provide_task_tool_matcher(self: Provider[TaskToolMatcher]):
         factory = TaskToolMatcherFactory()

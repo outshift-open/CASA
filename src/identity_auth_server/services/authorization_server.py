@@ -132,7 +132,9 @@ class AuthorizationServerService:
 
         logger.debug(f"Creating client credentials in Keycloak for app {app.id}")
 
-        client_credentials = self.keycloak_manager.create_client_credentials(authorization_server, client_credentials)
+        client_credentials = self.keycloak_manager.create_client_credentials(
+            authorization_server, client_credentials, self.app_metadata(app.id)
+        )
         # Add all scopes from the app to the authorization server
         self.keycloak_manager.add_authorization_server_scopes(
             authorization_server,

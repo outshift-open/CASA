@@ -39,8 +39,6 @@ class AppPostgresRepository(AppRepository):
     def _update_or_create_app(self, app: App) -> App:
         """Update or create app in the database."""
         self._session.add(app)
-        self._session.commit()
-        self._session.refresh(app)
 
         return app
 
@@ -72,8 +70,6 @@ class AppPostgresRepository(AppRepository):
         """Create a new tool in the database."""
         try:
             self._session.add(tool)
-            self._session.flush()
-            self._session.refresh(tool)
 
             return tool
         except IntegrityError as e:
