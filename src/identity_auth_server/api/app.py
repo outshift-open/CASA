@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 async def lifespan(_: FastAPI):
     """Application lifespan manager that runs migrations on startup."""
     logger.info("Application starting up...")
-    # database.run_startup_migrations()
     yield
 
 

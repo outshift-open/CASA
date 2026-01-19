@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine
 
 from identity_auth_server.database.database import Database
-from identity_auth_server.database.postgres.alembic_runner import run_alembic_migrations
 
 load_dotenv()
 
@@ -48,13 +47,3 @@ class PostgresDB(Database):
             raise
         finally:
             session.close()
-
-    def run_startup_migrations(self):
-        """Run database migrations on application startup using Alembic."""
-        try:
-            logger.info("Starting Alembic database migrations...")
-            run_alembic_migrations()
-            logger.info("Alembic database migrations completed successfully")
-        except Exception as e:
-            logger.error(f"Alembic database migration failed: {e!s}")
-            raise
