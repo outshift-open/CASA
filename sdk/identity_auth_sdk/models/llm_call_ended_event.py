@@ -17,22 +17,25 @@ import pprint
 import re  # noqa: F401
 import json
 
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, StrictStr
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
-class AppMetadataResponse(BaseModel):
+class LLMCallEndedEvent(BaseModel):
     """
-    Pydantic model for app metadata response.
+    LLMCallEndedEvent
     """ # noqa: E501
-    client_id: StrictStr
-    client_name: StrictStr
-    grant_types: List[StrictStr]
-    response_types: List[StrictStr]
-    token_endpoint_auth_method: StrictStr
-    jwks_uri: StrictStr
-    __properties: ClassVar[List[str]] = ["client_id", "client_name", "grant_types", "response_types", "token_endpoint_auth_method", "jwks_uri"]
+    id: Optional[StrictStr] = None
+    user_input_id: StrictStr
+    created_at: Optional[datetime] = None
+    call_id: StrictStr
+    token: StrictStr
+    app_id: StrictStr
+    response: StrictStr
+    tools: Optional[StrictStr]
+    __properties: ClassVar[List[str]] = ["id", "user_input_id", "created_at", "call_id", "token", "app_id", "response", "tools"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -52,7 +55,7 @@ class AppMetadataResponse(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of AppMetadataResponse from a JSON string"""
+        """Create an instance of LLMCallEndedEvent from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,11 +76,16 @@ class AppMetadataResponse(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # set to None if tools (nullable) is None
+        # and model_fields_set contains the field
+        if self.tools is None and "tools" in self.model_fields_set:
+            _dict['tools'] = None
+
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of AppMetadataResponse from a dict"""
+        """Create an instance of LLMCallEndedEvent from a dict"""
         if obj is None:
             return None
 
@@ -85,11 +93,13 @@ class AppMetadataResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "client_id": obj.get("client_id"),
-            "client_name": obj.get("client_name"),
-            "grant_types": obj.get("grant_types"),
-            "response_types": obj.get("response_types"),
-            "token_endpoint_auth_method": obj.get("token_endpoint_auth_method"),
-            "jwks_uri": obj.get("jwks_uri")
+            "id": obj.get("id"),
+            "user_input_id": obj.get("user_input_id"),
+            "created_at": obj.get("created_at"),
+            "call_id": obj.get("call_id"),
+            "token": obj.get("token"),
+            "app_id": obj.get("app_id"),
+            "response": obj.get("response"),
+            "tools": obj.get("tools")
         })
         return _obj

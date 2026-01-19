@@ -183,7 +183,9 @@ class AuthorizationServerService:
 
         logger.debug(f"Got token from Keycloak {token}")
 
-        self.tracer.record_event(TokenIssuedEvent(user_input_id=str(user_input.id), token=token, app_id=str(app.id)))
+        self.tracer.record_event(
+            TokenIssuedEvent(user_input_id=str(user_input.id), token=token, app_id=app_id, prompt=user_input.prompt)
+        )
 
         return TokenResponse(access_token=token, token_type="Bearer")
 
@@ -351,6 +353,7 @@ class AuthorizationServerService:
 
         if act:
             act_app_id = self._get_app_id_from_client_id(act.sub)
+            app_id = act_app_id
             act_sub_app = self.app_repository.get_app_by_id(act_app_id)
             if act_sub_app and act_sub_app.type == AppType.MCP_SERVER and tools:
                 if not set(tools).issubset(tools_claim):

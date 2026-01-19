@@ -21,16 +21,32 @@ repos:
           - id: ruff
             args: [--fix]
             types_or: [python, pyi, jupyter]
+            exclude: |
+              (?x)^(
+                sdk/    # generated python sdk
+              )
           - id: ruff-format
             types_or: [python, pyi, jupyter]
+            exclude: |
+              (?x)^(
+                sdk/    # generated python sdk
+              )
 
     - repo: https://github.com/pre-commit/mirrors-mypy
       rev: v1.17.1
       hooks:
           - id: mypy
             additional_dependencies: [types-PyYAML, types-requests]
+            exclude: |
+              (?x)^(
+                sdk/    # generated python sdk
+              )
 
     - repo: https://github.com/shellcheck-py/shellcheck-py
       rev: v0.10.0.1
       hooks:
           - id: shellcheck
+            exclude: |
+              (?x)^(
+                sdk/    # generated python sdk
+              )

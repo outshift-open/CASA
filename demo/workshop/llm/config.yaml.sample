@@ -1,7 +1,7 @@
 model_list:
     - model_name: gpt-4o
       litellm_params:
-          model: gpt-4o
+          model: ${OPENAI_GPT4o_MODEL_ID}
           api_base: ${OPENAI_GPT4o_API_BASE_URL}
           api_key: ${OPENAI_GPT4o_API_JWT_TOKEN}
 

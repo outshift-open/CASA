@@ -1,4 +1,14 @@
-import type { TraceListResponse } from './types'
+import {
+    MCP_TOOL_BLOCKING_DESCRIPTION,
+    NewEmptyTrace,
+    type LLMCallEndedEvent,
+    type LLMCallStartedEvent,
+    type MCPCallStartedEvent,
+    type NewTraceListResponse,
+    type TokenIssuedEvent,
+    type Trace,
+    type TraceListResponse
+} from './types'
 
 const DEFAULT_API_BASE_URL = 'http://127.0.0.1:8000'
 
@@ -40,5 +50,91 @@ export const fetchTraces = async ({ page, pageSize, signal }: FetchTracesOptions
         throw new Error(detail)
     }
 
-    return (await response.json()) as TraceListResponse
+    const traceListResponse = (await response.json()) as NewTraceListResponse
+    const traces: Trace[] = []
+
+    for (const uiid in traceListResponse.items) {
+        const finalTrace = NewEmptyTrace()
+        finalTrace.llm_app_calls = []
+        finalTrace.mcp_app_tool_calls = []
+        for (const trace of traceListResponse.items[uiid]) {
+            if (trace.event_type === "TokenIssuedEvent") {
+                const evt = trace.event as TokenIssuedEvent
+                finalTrace.source_app_call = {
+                    id: evt.id,
+                    created_at: evt.created_at,
+                    input: evt.prompt,
+                    token: evt.token,
+                }
+            } else if (trace.event_type === "LLMCallStartedEvent") {
+                const evt = trace.event as LLMCallStartedEvent
+                finalTrace.llm_app_calls.push({
+                    llm_app_call: {
+                        id: evt.id,
+                        created_at: evt.created_at,
+                        messages: evt.prompt,
+                        proxy_call_id: evt.call_id,
+                        token: evt.token,
+                        tools: evt.tools ?? "",
+                        source_app_call_id: "",
+                    }
+                })
+            } else if (trace.event_type === "LLMCallEndedEvent") {
+                const evt = trace.event as LLMCallEndedEvent
+                finalTrace.llm_app_calls.push({
+                    llm_app_response: {
+                        id: evt.id,
+                        created_at: evt.created_at,
+                        proxy_call_id: evt.call_id,
+                        llm_app_call_id: "",
+                        message: evt.response,
+                        token: evt.token,
+                        tool_calls: evt.tools ?? "",
+                    }
+                })
+            } else if (trace.event_type === "MCPCallStartedEvent") {
+                const evt = trace.event as MCPCallStartedEvent
+                finalTrace.mcp_app_tool_calls.push({
+                    tool_call: {
+                        id: evt.id,
+                        token: evt.token,
+                        tool: evt.tool,
+                        created_at: evt.created_at,
+                        blocked: evt.blocked,
+                        blocked_by_type_id: "",
+                        llm_app_call_id: "",
+                        llm_app_response_id: "",
+                        source_app_call_id: "",
+                    },
+                    blocked_by_type: evt.blocking_type,
+                    blocked_by_description: evt.blocking_reason ? MCP_TOOL_BLOCKING_DESCRIPTION[evt.blocking_reason] : null,
+                })
+            }
+        }
+
+        if (finalTrace.llm_app_calls.length > 0) {
+            const lastCall = finalTrace.llm_app_calls[finalTrace.llm_app_calls.length - 1];
+            if (lastCall.llm_app_response) {
+                finalTrace.source_app_response = {
+                    id: lastCall.llm_app_response.id,
+                    created_at: lastCall.llm_app_response.created_at,
+                    token: "",
+                    output: lastCall.llm_app_response.message,
+                    source_app_call_id: "",
+                }
+            }
+
+        }
+
+        traces.push(finalTrace)
+    }
+
+    const result = {
+        items: traces,
+        page: traceListResponse.page,
+        page_size: traceListResponse.page_size,
+        total: traceListResponse.total
+    } as TraceListResponse
+
+    return result
 }
