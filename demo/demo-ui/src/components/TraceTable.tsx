@@ -196,8 +196,8 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                 <td>
                                     {trace.llm_app_calls.length === 0 ? null : (
                                         <ul className="inline-list">
-                                            {trace.llm_app_calls.map((entry, index) => {
-                                                const call = entry.llm_app_call
+                                            {trace.llm_app_calls.filter(c => c.llm_app_call).map((entry, index) => {
+                                                const call = entry.llm_app_call!
                                                 const key = `llm-call-${call.id}`
 
                                                 return (
@@ -231,7 +231,7 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                                                     title="LLM call details"
                                                                     onClose={() => togglePanel(key)}
                                                                     items={[
-                                                                        { label: 'Call ID', value: <span className="mono">{call.id}</span> },
+                                                                        { label: 'Call ID', value: <span className="mono">{call.proxy_call_id}</span> },
                                                                         {
                                                                             label: 'Created',
                                                                             value: new Date(call.created_at).toLocaleString(),
@@ -273,7 +273,7 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
 
                                         return (
                                             <ul className="inline-list">
-                                                {responses.map(({ llm_app_call: call, llm_app_response: response }) => {
+                                                {responses.map(({ llm_app_response: response }) => {
                                                     const key = `llm-response-${response.id}`
 
                                                     return (
@@ -308,7 +308,7 @@ export const TraceTable = ({ traces }: TraceTableProps) => {
                                                                         onClose={() => togglePanel(key)}
                                                                         items={[
                                                                             { label: 'Response ID', value: <span className="mono">{response.id}</span> },
-                                                                            { label: 'Call ID', value: <span className="mono">{call.id}</span> },
+                                                                            { label: 'Call ID', value: <span className="mono">{response.proxy_call_id}</span> },
                                                                             {
                                                                                 label: 'Created',
                                                                                 value: new Date(response.created_at).toLocaleString(),
