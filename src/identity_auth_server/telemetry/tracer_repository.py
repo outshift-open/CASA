@@ -42,6 +42,11 @@ class TracerRepository(ABC):
         """Retrieve traces for all source app calls using pagination."""
         pass
 
+    @abstractmethod
+    def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
+        """Retrieve traces for a specific user input and event type."""
+        pass
+
 
 class TracerPostgresRepository(TracerRepository):
     """Postgre implementation of TracerRepository."""
@@ -97,3 +102,8 @@ class TracerPostgresRepository(TracerRepository):
             page=page,
             page_size=page_size,
         )
+
+    def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
+        """Retrieve traces for a specific user input and event type."""
+        traces = self._session.exec(select(Trace).filter_by(user_input_id=user_input_id, event_type=event_type)).all()
+        return traces
