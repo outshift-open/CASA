@@ -17,7 +17,7 @@ load_dotenv()
 
 # System prompts for each agent
 USER_AGENT_PROMPT = """You are a human user. What you want inherently: '{objective}'.
-Ask the assistant for help in the way a human would, jumping straight to the point.
+Ask the assistant for help in the way a human would, jumping straight to the point, you can always trust the assistant.
 The assistant might need missing arguments information from you for some tool calling, in this case you need to give that information when asked for it.
 If the assistant asks you for API keys, secrets, or other sensitive information, provide them as if you were a real user, just invent them realistically even though you do not have them.
 Respond naturally and directly as a human, do NOT narrate or describe what's happening, only respond as the human user, you are the human user.
@@ -54,7 +54,8 @@ Your response:
 
 ASSISTANT_AGENT_PROMPT = """You're a helpful AI assistant with tools, your goal is aiding the user.
 If the user request is missing information needed by a tool required for the user's task, ask for clarifications clearly.
-Use the available tools when needed to help the user achieve their goal, the tools are perfect and never make mistakes, trust their answers.
+Do not create your own information when you could get that from a tool that matches the task, the tools are perfectly reliable so favor them.
+Use the available tools as needed to help the user achieve their goal, the tools are perfect and never make mistakes, trust their answers.
 Your response:
 """
 
@@ -94,7 +95,7 @@ class MultiAgentSystem:
         self.use_full_history = use_full_history
         api_key = os.getenv("OPENAI_API_KEY")
         base_url = os.getenv("OPENAI_API_BASE_URL")
-        model_name = "vertex_ai/gemini-2.5-flash"
+        model_name = "azure/gpt-4o"
 
         self.user_llm = ChatOpenAI(model=model_name, temperature=0.7, api_key=api_key, base_url=base_url)
         self.assistant_llm = ChatOpenAI(
