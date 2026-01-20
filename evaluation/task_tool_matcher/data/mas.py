@@ -470,25 +470,35 @@ def main():
         for task_idx, task in enumerate(sample["synthetic_tasks"], 1):
             print(f"\n  Task {task_idx}/{len(sample['synthetic_tasks'])}: {task[:80]}...")
 
-            try:
-                result = mas.run(task)
+            max_retries = 3
+            retry_count = 0
+            success = False
 
-                serializable_messages = convert_messages_to_serializable(result["messages"])
-                result_sample["conversation_iters"].append(result["iteration_count"])
-                result_sample["number_tools_called"].append(
-                    count_tool_usage(serializable_messages, result_sample["tool_names"])
-                )
-                result_sample["number_tool_calls"].append(
-                    count_tool_calls(serializable_messages, result_sample["tool_names"])
-                )
-                result_sample["immediate_tool_call"].append(immediate_tool_call(serializable_messages))
-                result_sample["synthetic_conversations"].append(serializable_messages)
+            while retry_count < max_retries and not success:
+                try:
+                    result = mas.run(task)
 
-                print(f"   -> Completed ({result['iteration_count']} iterations)")
+                    serializable_messages = convert_messages_to_serializable(result["messages"])
+                    result_sample["conversation_iters"].append(result["iteration_count"])
+                    result_sample["number_tools_called"].append(
+                        count_tool_usage(serializable_messages, result_sample["tool_names"])
+                    )
+                    result_sample["number_tool_calls"].append(
+                        count_tool_calls(serializable_messages, result_sample["tool_names"])
+                    )
+                    result_sample["immediate_tool_call"].append(immediate_tool_call(serializable_messages))
+                    result_sample["synthetic_conversations"].append(serializable_messages)
 
-            except Exception as e:
-                print(f"-> Error: {e}")
-                result_sample["synthetic_conversations"].append({"error": str(e)})
+                    print(f"   -> Completed ({result['iteration_count']} iterations)")
+                    success = True
+
+                except Exception as e:
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        print(f"    -> Error (retry {retry_count}/{max_retries}): {e}")
+                    else:
+                        print(f"    -> Error (all {max_retries} retries failed): {e}")
+                        result_sample["synthetic_conversations"].append({"error": str(e)})
 
             if args.verbose:
                 print("\n--- Simulated Conversation ---\n")
