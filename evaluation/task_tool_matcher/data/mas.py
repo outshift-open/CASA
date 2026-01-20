@@ -57,8 +57,13 @@ Use the available tools when needed to help the user achieve their goal, the too
 Your response:
 """
 
-SIMULATOR_AGENT_PROMPT = """Simulate the tool: {tool_name} with args: {tool_args}.
-Return realistic results that the tool may generate, only creating the necessary data.
+SIMULATOR_AGENT_PROMPT = """You are a tool simulator, participating in a conversation between a user and an assistant.
+Your objective is to provide realistic tool answers when requested, only providing the answer that a tool would be expected to return.
+The conversation so far (you are Tool):
+{conversation_history}
+
+Now synthesize the Tool response for the tool: {tool_name} with args: {tool_args}.
+Return realistic results that the tool may generate, only creating the necessary data and ensuring results are consistent with the past conversation.
 ONLY return the simulated result, do not make *ANY* other comment, do not present do not narrate, only return the tool result as if you are the tool.
 Your response:
 """
@@ -204,10 +209,20 @@ class MultiAgentSystem:
         if not (hasattr(last_msg, "tool_calls") and last_msg.tool_calls):
             return {**state, "next_agent": "assistant"}
 
+        full_history_tools = "\n".join(
+            [
+                f"{'User' if isinstance(m, HumanMessage) else 'Assistant' if isinstance(m, AIMessage) else 'Tool'}: {m.content}"
+                for m in state["messages"]
+            ]
+        )
         results = []
         for tc in last_msg.tool_calls:
             input_messages = [
-                HumanMessage(content=SIMULATOR_AGENT_PROMPT.format(tool_name=tc["name"], tool_args=tc["args"]))
+                SystemMessage(
+                    content=SIMULATOR_AGENT_PROMPT.format(
+                        conversation_history=full_history_tools, tool_name=tc["name"], tool_args=tc["args"]
+                    )
+                )
             ]
             self._debug_log("SIMULATOR AGENT", state["iteration_count"] + 1, input_messages)
             sim = self.simulator_llm.invoke(input_messages)
@@ -346,6 +361,37 @@ def convert_messages_to_serializable(messages: List[BaseMessage]) -> List[Dict[s
     return serializable_messages
 
 
+def count_tool_usage(messages: list, tool_names: list) -> int:
+    """Count how many unique tools from tool_names were called in the messages."""
+    used_tools = {
+        tool_call.get("name")
+        for message in messages
+        if message.get("role") == "assistant"
+        for tool_call in message.get("tool_calls", [])
+        if tool_call.get("name") in tool_names
+    }
+    return len(used_tools)
+
+
+def count_tool_calls(messages: list, tool_names: list) -> int:
+    """Count how many tool calls from tool_names were made in the messages."""
+    called_tools = [
+        tool_call.get("name")
+        for message in messages
+        if message.get("role") == "assistant"
+        for tool_call in message.get("tool_calls", [])
+        if tool_call.get("name") in tool_names
+    ]
+    return len(called_tools)
+
+
+def immediate_tool_call(messages: list) -> bool:
+    """Check if the second message is an assistant tool call."""
+    if len(messages) < 2:
+        return False
+    return messages[1].get("role") == "assistant" and "tool_calls" in messages[1]
+
+
 def main():
     """Run multi-agent system with synthetic tasks from external file."""
     parser = argparse.ArgumentParser(description="Run MAS with synthetic tasks and dynamic tool loading")
@@ -414,6 +460,11 @@ def main():
         mas = MultiAgentSystem(tools=tools, debug=args.debug, use_full_history=args.use_full_history)
 
         result_sample = copy.deepcopy(sample)
+        result_sample["conversation"] = True
+        result_sample["conversation_iters"] = []
+        result_sample["number_tools_called"] = []
+        result_sample["number_tool_calls"] = []
+        result_sample["immediate_tool_call"] = []
         result_sample["synthetic_conversations"] = []
 
         for task_idx, task in enumerate(sample["synthetic_tasks"], 1):
@@ -423,6 +474,14 @@ def main():
                 result = mas.run(task)
 
                 serializable_messages = convert_messages_to_serializable(result["messages"])
+                result_sample["conversation_iters"].append(result["iteration_count"])
+                result_sample["number_tools_called"].append(
+                    count_tool_usage(serializable_messages, result_sample["tool_names"])
+                )
+                result_sample["number_tool_calls"].append(
+                    count_tool_calls(serializable_messages, result_sample["tool_names"])
+                )
+                result_sample["immediate_tool_call"].append(immediate_tool_call(serializable_messages))
                 result_sample["synthetic_conversations"].append(serializable_messages)
 
                 print(f"   -> Completed ({result['iteration_count']} iterations)")
@@ -430,13 +489,6 @@ def main():
             except Exception as e:
                 print(f"-> Error: {e}")
                 result_sample["synthetic_conversations"].append({"error": str(e)})
-
-            results.append(result_sample)
-
-            output_file_with_server = f"{base_name}_{mcp_server_name}{ext}"
-            with open(output_file_with_server, "w") as f:
-                json.dump(results, f, indent=2)
-            print(f"   Saved intermediate to {output_file_with_server}")
 
             if args.verbose:
                 print("\n--- Simulated Conversation ---\n")
@@ -450,6 +502,13 @@ def main():
                             print(f"[{i}] ASSISTANT: {msg.content}")
                     elif isinstance(msg, ToolMessage):
                         print(f"[{i}] SIMULATOR: {msg.content}")
+
+        results.append(result_sample)
+
+        output_file_with_server = f"{base_name}_{mcp_server_name}{ext}"
+        with open(output_file_with_server, "w") as f:
+            json.dump(results, f, indent=2)
+        print(f"   Saved intermediate to {output_file_with_server}")
 
     if mcp_server_start_time is not None:
         elapsed_time = time.time() - mcp_server_start_time
