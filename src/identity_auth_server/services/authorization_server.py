@@ -205,6 +205,8 @@ class AuthorizationServerService:
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
         subject_token = self._introspect_token(token=request.subject_token)
+        if subject_token.app_id is None:
+            raise Exception("Invalid subject_token: missing app_id.")
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id)
         if subject_app is None:
             raise Exception("Invalid subject_token.")
@@ -230,6 +232,11 @@ class AuthorizationServerService:
         # TODO: add call-tool scope
         # if approved_tools:
         #     scopes.append("call-tools")
+
+        if subject_token.sub is None:
+            raise Exception("Invalid subject_token: missing sub.")
+        if subject_token.user_input_id is None:
+            raise Exception("Invalid subject_token: missing user_input_id.")
 
         actor_token = self.keycloak_manager.get_token(
             actor_app.authorization_server,
@@ -331,6 +338,15 @@ class AuthorizationServerService:
         token: str,
         tools: Optional[list[str]] = None,
     ) -> TokenIntrospectResponse:
+        """Introspect a token and return its metadata.
+
+        Args:
+            token: The token to introspect.
+            tools: Optional list of tools to validate.
+
+        Returns:
+            Token introspection response with metadata.
+        """
         response = self._introspect_token(token, tools)
         return response
 

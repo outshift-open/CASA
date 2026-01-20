@@ -25,6 +25,14 @@ class AppRepository(ABC):
         """Retrieve a app by app_id."""
 
     @abstractmethod
+    def get_all_apps(self) -> list[App]:
+        """Retrieve all apps."""
+
+    @abstractmethod
+    def delete_app(self, app_id: str) -> None:
+        """Delete an app by app_id."""
+
+    @abstractmethod
     def create_tool(self, tool: Tool) -> Tool:
         """Create a new tool."""
 
@@ -65,6 +73,27 @@ class AppPostgresRepository(AppRepository):
             return app
         except Exception as e:
             raise Exception(f"Error retrieving app with id '{app_id}': {e}") from e
+
+    def get_all_apps(self) -> list[App]:
+        """Retrieve all apps."""
+        try:
+            from sqlmodel import select
+
+            statement = select(App)
+            apps = self._session.exec(statement).all()
+            return list(apps)
+        except Exception as e:
+            raise Exception(f"Error retrieving apps: {e}") from e
+
+    def delete_app(self, app_id: str) -> None:
+        """Delete an app by its ID."""
+        try:
+            app = self._session.get(App, app_id)
+            if app:
+                self._session.delete(app)
+                self._session.commit()
+        except Exception as e:
+            raise Exception(f"Error deleting app with id '{app_id}': {e}") from e
 
     def create_tool(self, tool: Tool) -> Tool:
         """Create a new tool in the database."""

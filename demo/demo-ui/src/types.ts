@@ -156,3 +156,18 @@ export interface NewTraceListResponse {
     page: number
     page_size: number
 }
+// Application types
+export type AppType = 'agent' | 'client' | 'mcp_server'
+
+export interface App {
+    id?: string
+    type: AppType
+    name: string
+    base_url: string
+    tools: string[]
+}
+
+export interface AppListResponse {
+    items: App[]
+    total: number
+}
