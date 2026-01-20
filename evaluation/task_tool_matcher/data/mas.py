@@ -5,6 +5,7 @@ import copy
 import json
 import os
 import time
+from collections import defaultdict
 from typing import Annotated, Any, Dict, List, Sequence, TypedDict
 
 from dotenv import load_dotenv
@@ -93,7 +94,7 @@ class MultiAgentSystem:
         self.use_full_history = use_full_history
         api_key = os.getenv("OPENAI_API_KEY")
         base_url = os.getenv("OPENAI_API_BASE_URL")
-        model_name = "gpt-4o"
+        model_name = "vertex_ai/gemini-2.5-flash"
 
         self.user_llm = ChatOpenAI(model=model_name, temperature=0.7, api_key=api_key, base_url=base_url)
         self.assistant_llm = ChatOpenAI(
@@ -512,6 +513,26 @@ def main():
                             print(f"[{i}] ASSISTANT: {msg.content}")
                     elif isinstance(msg, ToolMessage):
                         print(f"[{i}] SIMULATOR: {msg.content}")
+
+            try:
+                tools_called_turnidx = []
+                conversations = result_sample.get("synthetic_conversations", [])
+                for _, conversation in enumerate(conversations):
+                    tools_in_conv = defaultdict(list)
+                    for turn_idx, message in enumerate(conversation):
+                        if message.get("role") == "assistant" and "tool_calls" in message:
+                            tool_calls = message.get("tool_calls", [])
+                            for tool_call in tool_calls:
+                                tool_name = tool_call.get("name", "N/A")
+                                tools_in_conv[tool_name].append(turn_idx)
+                    tools_called_turnidx.append(dict(tools_in_conv))
+
+                synthetic_conversations = result_sample.pop("synthetic_conversations", [])
+                result_sample["tools_called_turnidx"] = tools_called_turnidx
+                result_sample["synthetic_conversations"] = synthetic_conversations
+            except Exception as e:
+                print(f"    -> Error extracting tools_called_turnidx: {e}")
+                result_sample["tools_called_turnidx"] = []
 
         results.append(result_sample)
 
