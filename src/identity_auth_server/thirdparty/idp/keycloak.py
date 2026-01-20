@@ -4,10 +4,9 @@ import json
 import logging
 import os
 
-import requests
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
-from identity_auth_server.core.types import ActorClaim, AuthorizationServer, ClientCredentials
+from identity_auth_server.core.types import ActorClaim, AppMetadataResponse, AuthorizationServer, ClientCredentials
 
 # pylint:disable=logging-fstring-interpolation
 
@@ -84,7 +83,10 @@ class KeycloakManager:
             logger.warning(f"Some scopes may already exist in realm {authorization_server.realm}")
 
     def create_client_credentials(
-        self, authorization_server: AuthorizationServer, client_credentials: ClientCredentials
+        self,
+        authorization_server: AuthorizationServer,
+        client_credentials: ClientCredentials,
+        metadata: AppMetadataResponse,
     ) -> ClientCredentials:
         """Create a new Keycloak client.
 
@@ -98,22 +100,16 @@ class KeycloakManager:
         Raises:
             ValueError: If metadata cannot be fetched from the client_id URL
         """
-        # Parse the contents of the url
-        try:
-            metadata = requests.get(client_credentials.client_id, timeout=REQUEST_TIMEOUT).json()
-        except Exception as e:
-            raise ValueError(f"Failed to fetch metadata from {client_credentials.client_id}: {e}")
-
         # Read if client exists
         try:
             # Define new client data
             payload = {
                 "clientId": client_credentials.client_id,
-                "name": metadata.get("client_name", "Unnamed Client"),
+                "name": metadata.client_name if len(metadata.client_name) > 0 else "Unnamed Client",
                 "enabled": True,
-                "publicClient": metadata.get("token_endpoint_auth_method", "") == "none",
-                "serviceAccountsEnabled": metadata.get("grant_types", []) == ["client_credentials"],
-                "redirectUris": metadata.get("redirect_uris", []),
+                "publicClient": metadata.token_endpoint_auth_method == "none",
+                "serviceAccountsEnabled": metadata.grant_types == ["client_credentials"],
+                "redirectUris": [],
                 "protocol": "openid-connect",
             }
 
@@ -182,7 +178,7 @@ class KeycloakManager:
                 "name": "X-Requested-Input-Id",
                 "config": {
                     "http-header": "X-Requested-Input-Id",
-                    "claim.name": "uiid", # user input id
+                    "claim.name": "uiid",  # user input id
                     "id.token.claim": "true",
                     "access.token.claim": "true",
                     "lightweight.claim": "false",
@@ -288,7 +284,9 @@ class KeycloakManager:
 
         extra_string = json.dumps(extra) if extra else "{}"
 
-        logger.debug(f"Requesting token with sub: {sub}, act: {act}, extra: {extra_string}, scopes: {scopes}, user input id: {user_input_id}")
+        logger.debug(
+            f"Requesting token with sub: {sub}, act: {act}, extra: {extra_string}, scopes: {scopes}, user input id: {user_input_id}"
+        )
         logger.debug(f"Client ID: {client_credentials.client_id}, Client Int ID: {client_int_id}")
         logger.debug(f"Authorization Server Realm: {authorization_server.realm}")
         logger.debug(f"Client Secret: {client_credentials.client_secret}")
@@ -297,7 +295,7 @@ class KeycloakManager:
         scopes.append("openid")
         scopes.append("offline_access")
 
-        custom_headers={
+        custom_headers = {
             "X-Requested-Sub": sub,
             "X-Requested-Act": act.model_dump_json(exclude_none=True) if act else "",
             "X-Requested-Extra": extra_string,

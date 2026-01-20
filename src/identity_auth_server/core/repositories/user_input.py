@@ -18,6 +18,7 @@ class UserInputRepository(ABC):
     def get_by_id(self, id: str) -> UserInput:
         """Get a UserInput by id."""
 
+
 class UserInputPostgresRepository(UserInputRepository):
     """PostgreSQL implementation of the UserInputRepository"""
 
@@ -28,10 +29,6 @@ class UserInputPostgresRepository(UserInputRepository):
     def create(self, user_input: UserInput) -> UserInput:
         """Create a new UserInput in the database."""
         self._session.add(user_input)
-        # self._session.flush()
-        # TODO: move this commit to the session factory
-        self._session.commit()
-        self._session.refresh(user_input)
         return user_input
 
     def get_by_id(self, id: str) -> UserInput:

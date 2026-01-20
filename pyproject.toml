@@ -31,7 +31,6 @@ dependencies = [
   "identity-service-sdk>=0.0.2",
   "PyJWT>=2.10.1",
   "sqlalchemy>=2.0.43",
-  "alembic>=1.16.5",
   "python-keycloak>=5.8.1",
   "requests>=2.32.5",
   "python-multipart>=0.0.20",

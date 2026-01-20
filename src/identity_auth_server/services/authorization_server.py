@@ -132,7 +132,9 @@ class AuthorizationServerService:
 
         logger.debug(f"Creating client credentials in Keycloak for app {app.id}")
 
-        client_credentials = self.keycloak_manager.create_client_credentials(authorization_server, client_credentials)
+        client_credentials = self.keycloak_manager.create_client_credentials(
+            authorization_server, client_credentials, self.app_metadata(app.id)
+        )
         # Add all scopes from the app to the authorization server
         self.keycloak_manager.add_authorization_server_scopes(
             authorization_server,
@@ -331,41 +333,6 @@ class AuthorizationServerService:
     ) -> TokenIntrospectResponse:
         response = self._introspect_token(token, tools)
         return response
-
-    # def generate_token(self, authorization_server: AuthorizationServer, data: TokenRequestParams) -> TokenResponse:
-    #     """Generate a new token based on the request parameters."""
-    #     client_credentials = data.app.client_credentials
-    #     act_client_credentials = data.act.client_credentials if data.act else None
-
-    #     if client_credentials is None:
-    #         raise Exception(f"App {data.app.id} has no client credentials.")
-
-    #     # Get sub and act values
-    #     sub = client_credentials.client_id
-    #     act = None
-    #     if act_client_credentials:
-    #         sub = act_client_credentials.client_id
-    #         act = ActorClaim(sub=client_credentials.client_id)
-
-    #     scopes = []
-    #     for tool in data.tools:
-    #         scopes.append("call_" + str(tool.id))
-
-    #     # Get a access_token from keycloak
-    #     keycloak_token = self.keycloak_manager.get_token(
-    #         authorization_server,
-    #         client_credentials,
-    #         sub=sub,
-    #         act=act,
-    #         scopes=scopes,
-    #         extra=data.other if data.other else {},
-    #     )
-
-    #     keycloak_token = keycloak_token["token"]
-
-    #     logger.debug(f"Got token from Keycloak {keycloak_token}")
-
-    #     return TokenResponse(access_token=keycloak_token["access_token"], token_type="Bearer")
 
     def _introspect_token(self, token: str, tools: Optional[list[str]] = None) -> TokenIntrospectResponse:
         """Introspect a token to check its validity and retrieve metadata."""

@@ -42,8 +42,6 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
     def create_authorization_server(self, authorization_server: AuthorizationServer) -> AuthorizationServer:
         """Persist an authorization server and return the created object."""
         self._session.add(authorization_server)
-        self._session.flush()
-        self._session.refresh(authorization_server)
 
         return authorization_server
 
@@ -57,8 +55,6 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
     def create_client_credentials(self, client_credential: ClientCredentials) -> ClientCredentials:
         """Persist client credentials and return the created object."""
         self._session.add(client_credential)
-        self._session.flush()
-        self._session.refresh(client_credential)
 
         return client_credential
 
@@ -75,7 +71,5 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
         token.value = sha256(token.value.encode("utf-8")).hexdigest()
 
         self._session.add(token)
-        self._session.flush()
-        self._session.refresh(token)
 
         return token
