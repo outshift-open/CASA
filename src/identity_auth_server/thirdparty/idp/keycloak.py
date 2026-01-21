@@ -132,6 +132,11 @@ class KeycloakManager:
         # Add Protocol Mappers
         self._add_protocol_mappers(authorization_server, client_int_id)
 
+        # Add the necessary scopes
+        self._get_keycloak_admin(authorization_server).create_client_scope(
+            payload={"name": "call-tools", "protocol": "openid-connect"}, skip_exists=True
+        )
+
         # Return client
         client = self._get_keycloak_admin(authorization_server).get_client(client_int_id)
 
@@ -282,24 +287,24 @@ class KeycloakManager:
         if not client_int_id:
             raise ValueError(f"Client ID not found for client_int_id: {client_credentials.client_id}")
 
+        compiled_scopes = ["openid", "offline_access"]
+
         for scope in scopes:
             scope_obj = self._get_keycloak_admin(authorization_server).get_client_scope_by_name(scope)
-            self._get_keycloak_admin(authorization_server).add_client_optional_client_scope(
-                client_int_id, scope_obj["id"], {}
-            )
+            if scope_obj:
+                self._get_keycloak_admin(authorization_server).add_client_optional_client_scope(
+                    client_int_id, scope_obj["id"], {}
+                )
+                compiled_scopes.append(scope)
 
         extra_string = json.dumps(extra) if extra else "{}"
 
         logger.debug(
-            f"Requesting token with sub: {sub}, act: {act}, extra: {extra_string}, scopes: {scopes}, user input id: {user_input_id}"
+            f"Requesting token with sub: {sub}, act: {act}, extra: {extra_string}, scopes: {compiled_scopes}, user input id: {user_input_id}"
         )
         logger.debug(f"Client ID: {client_credentials.client_id}, Client Int ID: {client_int_id}")
         logger.debug(f"Authorization Server Realm: {authorization_server.realm}")
         logger.debug(f"Client Secret: {client_credentials.client_secret}")
-
-        # Add default scopes
-        scopes.append("openid")
-        scopes.append("offline_access")
 
         custom_headers = {
             "X-Requested-Sub": sub,
@@ -320,11 +325,11 @@ class KeycloakManager:
         )
 
         return {
-            "token": keycloak_openid.token(grant_type="client_credentials", scope=" ".join(scopes)),
+            "token": keycloak_openid.token(grant_type="client_credentials", scope=" ".join(compiled_scopes)),
             "sub": sub,
             "act": act.model_dump_json if act else "",
             "extra": extra,
-            "scopes": scopes,
+            "scopes": compiled_scopes,
             "tools": tools,
         }
 
