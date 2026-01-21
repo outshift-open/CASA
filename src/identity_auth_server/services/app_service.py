@@ -1,11 +1,17 @@
 """Service layer for managing applications and their tools."""
 
+import logging
 from typing import List
 
 from pydantic import BaseModel
 
 from identity_auth_server.core.repositories.app import AppRepository
+from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.types import App, AppType, Tool
+from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class ToolRequest(BaseModel):
@@ -29,13 +35,16 @@ class AppRequest(BaseModel):
 class AppService:
     """Service for managing application lifecycle and operations."""
 
-    def __init__(self, app_repository: AppRepository):
-        """Initialize the app service.
-
-        Args:
-            app_repository: Repository for app persistence operations.
-        """
+    def __init__(
+        self,
+        app_repository: AppRepository,
+        keycloak_manager: KeycloakManager,
+        auth_repository: AuthorizationServerRepository,
+    ):
+        """Initialize the app service."""
         self.app_repository = app_repository
+        self.keycloak_manager = keycloak_manager
+        self.auth_repository = auth_repository
 
     def create_app(self, request: AppRequest) -> App:
         """Create app."""
@@ -87,4 +96,15 @@ class AppService:
 
     def delete_app(self, app_id: str) -> None:
         """Delete app."""
-        self.app_repository.delete_app(app_id)
+        app = self.app_repository.get_app_by_id(app_id)
+        if not app:
+            raise ValueError(f"App with id {app_id} not found")
+
+        logger.debug(f"Deleting app {app.id} from the database")
+        self.app_repository.delete_app(app)
+
+        if app.authorization_server:
+            logger.debug(f"Deleting the authorization server {app.authorization_server_id} for app {app.id}")
+
+            self.auth_repository.delete_authorization_server(app.authorization_server)
+            self.keycloak_manager.delete_authorization_server(app.authorization_server)

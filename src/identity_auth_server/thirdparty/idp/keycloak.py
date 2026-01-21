@@ -65,6 +65,12 @@ class KeycloakManager:
         except Exception:
             pass  # Realm already exists
 
+    def delete_authorization_server(self, authorization_server: AuthorizationServer):
+        try:
+            self._get_keycloak_admin(authorization_server).delete_realm(authorization_server.realm)
+        except Exception as e:
+            logger.error(f"Unable to delete the ream {authorization_server.realm}", e)
+
     def add_authorization_server_scopes(self, authorization_server: AuthorizationServer, scopes: list[str]):
         """Add scopes to the Keycloak Authorization Server (Realm).
 

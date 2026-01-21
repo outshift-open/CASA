@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from identity_auth_server.core.types import App, Tool
 
@@ -44,16 +44,10 @@ class AppPostgresRepository(AppRepository):
         """Initialize the repository with a database session."""
         self._session = session
 
-    def _update_or_create_app(self, app: App) -> App:
-        """Update or create app in the database."""
-        self._session.add(app)
-
-        return app
-
     def create_app(self, app: App) -> App:
         """Create a new app in the database."""
         try:
-            return self._update_or_create_app(app)
+            return self._session.add(app)
         except IntegrityError as e:
             raise ValueError(f"App with app_id '{app.id}' already exists") from e
         except Exception as e:
@@ -62,7 +56,7 @@ class AppPostgresRepository(AppRepository):
     def update_app(self, app: App) -> App:
         """Update an existing app in the database."""
         try:
-            return self._update_or_create_app(app)
+            return self._session.add(app)
         except Exception as e:
             raise Exception(f"Error updating app with id '{app.id}': {e}") from e
 
@@ -77,23 +71,17 @@ class AppPostgresRepository(AppRepository):
     def get_all_apps(self) -> list[App]:
         """Retrieve all apps."""
         try:
-            from sqlmodel import select
-
-            statement = select(App)
-            apps = self._session.exec(statement).all()
+            apps = self._session.exec(select(App)).all()
             return list(apps)
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
 
-    def delete_app(self, app_id: str) -> None:
-        """Delete an app by its ID."""
+    def delete_app(self, app: App) -> None:
+        """Delete an app."""
         try:
-            app = self._session.get(App, app_id)
-            if app:
-                self._session.delete(app)
-                self._session.commit()
+            self._session.delete(app)
         except Exception as e:
-            raise Exception(f"Error deleting app with id '{app_id}': {e}") from e
+            raise Exception(f"Error deleting app with id '{app.id}': {e}") from e
 
     def create_tool(self, tool: Tool) -> Tool:
         """Create a new tool in the database."""

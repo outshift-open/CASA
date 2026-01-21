@@ -110,7 +110,7 @@ class AuthorizationServerService:
 
         # Create the authorization server object
         authorization_server = AuthorizationServer(
-            realm=f"{app.name}-auth-server",
+            realm=f"{app.name}-{app.id}-auth-server",
         )
 
         # Create the client_credentials object
@@ -205,8 +205,6 @@ class AuthorizationServerService:
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
         subject_token = self._introspect_token(token=request.subject_token)
-        if subject_token.app_id is None:
-            raise Exception("Invalid subject_token: missing app_id.")
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id)
         if subject_app is None:
             raise Exception("Invalid subject_token.")

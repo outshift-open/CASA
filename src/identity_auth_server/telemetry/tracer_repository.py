@@ -12,7 +12,7 @@ from sqlmodel import JSON, Column, Field, Session, SQLModel, desc, func, select
 from identity_auth_server.core.events import BaseEvent
 
 
-class Trace(SQLModel, table=True):  # type: ignore[call-arg]
+class Trace(SQLModel, table=True):
     """SQLModel for storing event traces."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -87,7 +87,7 @@ class TracerPostgresRepository(TracerRepository):
         )
         total_qry = select(func.count()).select_from(group_by_qry)
         traces = self._session.exec(
-            select(Trace).filter(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))  # type: ignore[union-attr]
+            select(Trace).filter(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))
         ).all()
         total = self._session.exec(total_qry).one()
 

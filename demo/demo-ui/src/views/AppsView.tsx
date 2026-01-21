@@ -207,7 +207,7 @@ export function AppsView() {
                 />
               </div>
 
-              <div className="form-group">
+              {/* <div className="form-group">
                 <label htmlFor="tools">
                   Tools <span className="optional-label">(optional)</span>
                 </label>
@@ -220,7 +220,7 @@ export function AppsView() {
                   placeholder="e.g., tool1, tool2, tool3"
                 />
                 <span className="form-hint">Separate multiple tools with commas</span>
-              </div>
+              </div> */}
 
               <div className="form-actions">
                 <button type="submit" className="primary-button" disabled={submitting}>

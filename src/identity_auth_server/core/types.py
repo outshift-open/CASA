@@ -26,7 +26,7 @@ class AppType(str, Enum):
     MCP_SERVER = "mcp_server"
 
 
-class Tool(SQLModel, table=True):  # type: ignore[call-arg]
+class Tool(SQLModel, table=True):
     """MCP Tool model."""
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
@@ -38,7 +38,7 @@ class Tool(SQLModel, table=True):  # type: ignore[call-arg]
     app: Optional["App"] = Relationship(back_populates="tools")
 
 
-class App(SQLModel, table=True):  # type: ignore[call-arg]
+class App(SQLModel, table=True):
     """Input model for creating an app."""
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
@@ -56,7 +56,7 @@ class App(SQLModel, table=True):  # type: ignore[call-arg]
 
 
 ######### User Input TYPES #########
-class UserInput(SQLModel, table=True):  # type: ignore[call-arg]
+class UserInput(SQLModel, table=True):
     """User Input model containing the user input prompt."""
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
@@ -68,7 +68,7 @@ class UserInput(SQLModel, table=True):  # type: ignore[call-arg]
 ######### AS TYPES #########
 
 
-class AuthorizationServer(SQLModel, table=True):  # type: ignore[call-arg]
+class AuthorizationServer(SQLModel, table=True):
     """SQLModel an authorization server.
 
     Represents an authorization server with a unique realm.
@@ -76,11 +76,13 @@ class AuthorizationServer(SQLModel, table=True):  # type: ignore[call-arg]
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     realm: str
-    client_credentials: List["ClientCredentials"] = Relationship(back_populates="authorization_server")
+    client_credentials: List["ClientCredentials"] = Relationship(
+        back_populates="authorization_server", cascade_delete=True
+    )
     apps: List[App] = Relationship(back_populates="authorization_server")
 
 
-class ClientCredentials(SQLModel, table=True):  # type: ignore[call-arg]
+class ClientCredentials(SQLModel, table=True):
     """SQLModel for client credentials."""
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
@@ -93,7 +95,7 @@ class ClientCredentials(SQLModel, table=True):  # type: ignore[call-arg]
     apps: List[App] = Relationship(back_populates="client_credentials")
 
 
-class Token(SQLModel, table=True):  # type: ignore[call-arg]
+class Token(SQLModel, table=True):
     """Pydantic model for a token."""
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)

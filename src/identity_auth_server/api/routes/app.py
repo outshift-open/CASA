@@ -35,8 +35,8 @@ def get_apps(
 
 @router.get("/apps/{app_id}")
 def get_app(
-    app_id: str,
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
+    app_id: str,
 ) -> App:
     """Get an App by ID."""
     app = app_service.get_app_by_id(app_id)
@@ -47,9 +47,9 @@ def get_app(
 
 @router.put("/apps/{app_id}")
 def update_app(
+    app_service: Annotated[AppService, Depends(Container.get_app_service)],
     app_id: str,
     request: AppRequest,
-    app_service: Annotated[AppService, Depends(Container.get_app_service)],
 ) -> App:
     """Update an existing App."""
     try:
@@ -60,8 +60,8 @@ def update_app(
 
 @router.delete("/apps/{app_id}")
 def delete_app(
-    app_id: str,
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
+    app_id: str,
 ) -> dict:
     """Delete an App."""
     app = app_service.get_app_by_id(app_id)
