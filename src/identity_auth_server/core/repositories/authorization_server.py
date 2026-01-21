@@ -16,6 +16,10 @@ class AuthorizationServerRepository(ABC):
         """Create a new authorization server."""
 
     @abstractmethod
+    def delete_authorization_server(self, authorization_server: AuthorizationServer) -> None:
+        """Delete an existing authorization server."""
+
+    @abstractmethod
     def get_authorization_server_by_id(self, authorization_server_id: str) -> AuthorizationServer | None:
         """Retrieve an authorization server by its ID."""
 
@@ -44,6 +48,10 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
         self._session.add(authorization_server)
 
         return authorization_server
+
+    def delete_authorization_server(self, authorization_server: AuthorizationServer) -> None:
+        """Delete an existing authorization server."""
+        self._session.delete(authorization_server)
 
     def get_authorization_server_by_id(self, authorization_server_id: str) -> AuthorizationServer | None:
         """Retrieve an authorization server by its ID."""

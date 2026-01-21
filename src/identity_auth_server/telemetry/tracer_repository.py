@@ -1,4 +1,4 @@
-"""Tracer repository implementation"""
+"""Tracer repository implementation."""
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -13,6 +13,8 @@ from identity_auth_server.core.events import BaseEvent
 
 
 class Trace(SQLModel, table=True):
+    """SQLModel for storing event traces."""
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     user_input_id: Optional[UUID] = Field(foreign_key="userinput.id")
@@ -52,6 +54,11 @@ class TracerPostgresRepository(TracerRepository):
     """Postgre implementation of TracerRepository."""
 
     def __init__(self, session: Session):
+        """Initialize the tracer repository.
+
+        Args:
+            session: SQLModel database session.
+        """
         self._session = session
 
     def store_event(self, event: BaseEvent):

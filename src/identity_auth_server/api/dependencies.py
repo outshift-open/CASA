@@ -179,5 +179,9 @@ class Container:
         )
 
     @staticmethod
-    def get_app_service(app_repository: Annotated[AppRepository, Depends(get_app_repository)]):
-        return AppService(app_repository)
+    def get_app_service(
+        app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        keycloak_manager: Annotated[KeycloakManager, Depends(get_keycloak_manager)],
+        authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
+    ):
+        return AppService(app_repository, keycloak_manager, authorization_server_repository)

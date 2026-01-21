@@ -7,7 +7,9 @@ import {
     type NewTraceListResponse,
     type TokenIssuedEvent,
     type Trace,
-    type TraceListResponse
+    type TraceListResponse,
+    type App,
+    type AppListResponse
 } from './types'
 
 const DEFAULT_API_BASE_URL = 'http://127.0.0.1:8000'
@@ -138,3 +140,107 @@ export const fetchTraces = async ({ page, pageSize, signal }: FetchTracesOptions
 
     return result
 }
+
+// App API functions
+export const fetchApps = async (signal?: AbortSignal): Promise<AppListResponse> => {
+    const response = await fetch(`${API_BASE_URL}/apps`, {
+        signal,
+        headers: {
+            Accept: 'application/json',
+        },
+    })
+
+    if (!response.ok) {
+        let detail = `${response.status} ${response.statusText}`
+        try {
+            const payload = await response.json()
+            if (payload?.detail) {
+                detail = payload.detail
+            }
+        } catch (error) {
+            // Swallow JSON parsing errors
+        }
+        throw new Error(detail)
+    }
+
+    const apps = await response.json()
+    return {
+        items: Array.isArray(apps) ? apps : [],
+        total: Array.isArray(apps) ? apps.length : 0
+    }
+}
+
+export const createApp = async (app: Omit<App, 'id'>): Promise<App> => {
+    const response = await fetch(`${API_BASE_URL}/apps`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+        },
+        body: JSON.stringify(app),
+    })
+
+    if (!response.ok) {
+        let detail = `${response.status} ${response.statusText}`
+        try {
+            const payload = await response.json()
+            if (payload?.detail) {
+                detail = payload.detail
+            }
+        } catch (error) {
+            // Swallow JSON parsing errors
+        }
+        throw new Error(detail)
+    }
+
+    return response.json()
+}
+
+export const updateApp = async (id: string, app: Omit<App, 'id'>): Promise<App> => {
+    const response = await fetch(`${API_BASE_URL}/apps/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+        },
+        body: JSON.stringify(app),
+    })
+
+    if (!response.ok) {
+        let detail = `${response.status} ${response.statusText}`
+        try {
+            const payload = await response.json()
+            if (payload?.detail) {
+                detail = payload.detail
+            }
+        } catch (error) {
+            // Swallow JSON parsing errors
+        }
+        throw new Error(detail)
+    }
+
+    return response.json()
+}
+
+export const deleteApp = async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/apps/${id}`, {
+        method: 'DELETE',
+        headers: {
+            Accept: 'application/json',
+        },
+    })
+
+    if (!response.ok) {
+        let detail = `${response.status} ${response.statusText}`
+        try {
+            const payload = await response.json()
+            if (payload?.detail) {
+                detail = payload.detail
+            }
+        } catch (error) {
+            // Swallow JSON parsing errors
+        }
+        throw new Error(detail)
+    }
+}
+

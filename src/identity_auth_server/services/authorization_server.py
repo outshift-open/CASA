@@ -110,7 +110,7 @@ class AuthorizationServerService:
 
         # Create the authorization server object
         authorization_server = AuthorizationServer(
-            realm=f"{app.name}-auth-server",
+            realm=f"{app.name}-{app.id}-auth-server",
         )
 
         # Create the client_credentials object
@@ -231,6 +231,11 @@ class AuthorizationServerService:
         # if approved_tools:
         #     scopes.append("call-tools")
 
+        if subject_token.sub is None:
+            raise Exception("Invalid subject_token: missing sub.")
+        if subject_token.user_input_id is None:
+            raise Exception("Invalid subject_token: missing user_input_id.")
+
         actor_token = self.keycloak_manager.get_token(
             actor_app.authorization_server,
             client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
@@ -331,6 +336,15 @@ class AuthorizationServerService:
         token: str,
         tools: Optional[list[str]] = None,
     ) -> TokenIntrospectResponse:
+        """Introspect a token and return its metadata.
+
+        Args:
+            token: The token to introspect.
+            tools: Optional list of tools to validate.
+
+        Returns:
+            Token introspection response with metadata.
+        """
         response = self._introspect_token(token, tools)
         return response
 

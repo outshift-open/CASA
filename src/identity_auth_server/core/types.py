@@ -76,7 +76,9 @@ class AuthorizationServer(SQLModel, table=True):
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     realm: str
-    client_credentials: List["ClientCredentials"] = Relationship(back_populates="authorization_server")
+    client_credentials: List["ClientCredentials"] = Relationship(
+        back_populates="authorization_server", cascade_delete=True
+    )
     apps: List[App] = Relationship(back_populates="authorization_server")
 
 
