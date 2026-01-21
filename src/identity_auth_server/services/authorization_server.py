@@ -227,9 +227,8 @@ class AuthorizationServerService:
         if request.scope:
             scopes = [s for s in request.scope.split("") if s]
 
-        # TODO: add call-tool scope
-        # if approved_tools:
-        #     scopes.append("call-tools")
+        if approved_tools:
+            scopes.append("call-tools")
 
         if subject_token.sub is None:
             raise Exception("Invalid subject_token: missing sub.")
