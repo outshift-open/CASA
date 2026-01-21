@@ -47,7 +47,8 @@ class AppPostgresRepository(AppRepository):
     def create_app(self, app: App) -> App:
         """Create a new app in the database."""
         try:
-            return self._session.add(app)
+            self._session.add(app)
+            return app
         except IntegrityError as e:
             raise ValueError(f"App with app_id '{app.id}' already exists") from e
         except Exception as e:
@@ -56,7 +57,8 @@ class AppPostgresRepository(AppRepository):
     def update_app(self, app: App) -> App:
         """Update an existing app in the database."""
         try:
-            return self._session.add(app)
+            self._session.add(app)
+            return app
         except Exception as e:
             raise Exception(f"Error updating app with id '{app.id}': {e}") from e
 
