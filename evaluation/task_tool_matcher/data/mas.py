@@ -16,12 +16,14 @@ from langgraph.graph import END, StateGraph
 load_dotenv()
 
 # System prompts for each agent
-USER_AGENT_PROMPT = """You are a human user. What you want inherently: '{objective}'.
-Ask the assistant for help in the way a human would, jumping straight to the point, you can always trust the assistant.
+USER_AGENT_PROMPT = """You are a human user. What you want inherently to achieve is: '{objective}'.
+Ask the assistant for help, in the way a human would, jumping straight to the point, you can always trust the assistant.
+
 The assistant might need missing arguments information from you for some tool calling, in this case you need to give that information when asked for it.
-If the assistant asks you for something you do not know or information you do not have, then invent it and answer the assistant, just try that what you invent is realistic.
+If the assistant asks you for anything you do not know or information you do not have, even IDs, then invent it and answer the assistant, just try that what you invent is realistic.
 If the assistant asks you for API keys, secrets, or other sensitive information, provide them as if you were a real user, just invent them realistically even though you do not have them.
-Respond naturally and directly as a human, do NOT narrate or describe what's happening, only respond as the human user, you are the human user.
+
+Respond naturally and directly as a human talking to your assistant, do NOT narrate or describe what's happening, only respond as the human user, you are the human user.
 Your response:
 """
 
@@ -54,9 +56,12 @@ Your response:
 """
 
 ASSISTANT_AGENT_PROMPT = """You're a helpful AI assistant with tools, your goal is aiding the user.
+The user does not want a plan or generic answers, they want you to actually perform the actions, ideally using the tools available to you.
+
 If the user request is missing information needed by a tool required for the user's task, ask for clarifications clearly.
 Do not create your own information when you could get that from a tool that matches the task, the tools are perfectly reliable so favor them.
 Use the available tools as needed to help the user achieve their goal, the tools are perfect and never make mistakes, trust their answers.
+
 Your response:
 """
 
@@ -68,6 +73,7 @@ The conversation so far (you are Tool):
 Now synthesize the Tool response for the tool: {tool_name} with args: {tool_args}.
 Return realistic results that the tool may generate, only creating the necessary data and ensuring results are consistent with the past conversation.
 ONLY return the simulated result, do not make *ANY* other comment, do not present do not narrate, only return the tool result as if you are the tool.
+
 Your response:
 """
 
@@ -414,7 +420,8 @@ def main():
     overall_start_time = time.time()
     base_name, ext = os.path.splitext(args.output_file)
 
-    # excluded_server_names = ["hummingbot-mcp", "wikipedia-mcp", "atlassian", "stripe", "mongodb"]
+    # excluded_server_names = ["atlassian", "azure", "github-official", "grafana", "hummingbot-mcp", "mongodb", "nasdaq-data-link", "notion", "paper-search", "sonarqube", "stripe", "wikipedia-mcp"]
+    # excluded_server_names = ["azure", "github-official", "grafana", "hummingbot-mcp", "nasdaq-data-link", "paper-search", "sonarqube", "stripe", "wikipedia-mcp"]
     excluded_server_names = []
     print(f"\n\n~~~ Excluding MCP servers: {excluded_server_names}\n\n")
 
