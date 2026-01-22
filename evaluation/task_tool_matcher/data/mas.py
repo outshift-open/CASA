@@ -567,7 +567,6 @@ def main():
             }
         )
 
-    base_name, ext = os.path.splitext(args.output_file)
     timing_file = f"{base_name}_timing.json"
     with open(timing_file, "w") as f:
         json.dump(timing_data, f, indent=2)
