@@ -19,6 +19,7 @@ load_dotenv()
 USER_AGENT_PROMPT = """You are a human user. What you want inherently: '{objective}'.
 Ask the assistant for help in the way a human would, jumping straight to the point, you can always trust the assistant.
 The assistant might need missing arguments information from you for some tool calling, in this case you need to give that information when asked for it.
+If the assistant asks you for something you do not know or information you do not have, then invent it and answer the assistant, just try that what you invent is realistic.
 If the assistant asks you for API keys, secrets, or other sensitive information, provide them as if you were a real user, just invent them realistically even though you do not have them.
 Respond naturally and directly as a human, do NOT narrate or describe what's happening, only respond as the human user, you are the human user.
 Your response:
