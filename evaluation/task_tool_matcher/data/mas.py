@@ -70,7 +70,12 @@ Your objective is to provide realistic tool answers when requested, only providi
 The conversation so far (you are Tool):
 {conversation_history}
 
-Now synthesize the Tool response for the tool: {tool_name} with args: {tool_args}.
+Now synthesize the Tool response for the following tool:
+
+Name: {tool_name}
+Description: {tool_description}
+Args: {tool_args}
+
 Return realistic results that the tool may generate, only creating the necessary data and ensuring results are consistent with the past conversation.
 ONLY return the simulated result, do not make *ANY* other comment, do not present do not narrate, only return the tool result as if you are the tool.
 
@@ -100,6 +105,7 @@ class MultiAgentSystem:
         """
         self.debug = debug
         self.use_full_history = use_full_history
+        self.tools = tools
         api_key = os.getenv("OPENAI_API_KEY")
         base_url = os.getenv("OPENAI_API_BASE_URL")
         model_name = "azure/gpt-4o"
@@ -226,13 +232,22 @@ class MultiAgentSystem:
         )
         results = []
         for tc in last_msg.tool_calls:
+            tool_description = "No description provided."
+            for tool in self.tools:
+                if tool.get("name") == tc["name"]:
+                    tool_description = tool.get("description", tool_description)
+                    break
             input_messages = [
                 SystemMessage(
                     content=SIMULATOR_AGENT_PROMPT.format(
-                        conversation_history=full_history_tools, tool_name=tc["name"], tool_args=tc["args"]
+                        conversation_history=full_history_tools,
+                        tool_name=tc["name"],
+                        tool_description=tool_description,
+                        tool_args=tc["args"],
                     )
                 )
             ]
+            print(input_messages[0].content)
             self._debug_log("SIMULATOR AGENT", state["iteration_count"] + 1, input_messages)
             sim = self.simulator_llm.invoke(input_messages)
             self._debug_log_output("SIMULATOR AGENT", state["iteration_count"] + 1, sim)
