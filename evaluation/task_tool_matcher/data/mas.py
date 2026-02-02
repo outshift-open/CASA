@@ -19,6 +19,12 @@ load_dotenv()
 USER_AGENT_PROMPT = """You are a human user. What you want inherently to achieve is: '{objective}'.
 Ask the assistant for help, in the way a human would, jumping straight to the point, you can always trust the assistant.
 
+You do *not always* have to provide all the details upfront. Real humans often forget to mention some information when asking for help.
+- Sometimes, particularly in the FIRST message, omit specific details like IDs, names, dates, amounts, or preferences that might be needed
+- Let the assistant ask you for clarification or missing information if needed
+- You can be just a bit vague or incomplete in your initial request, like a real human might be
+- You provide the missing information later when the assistant asks for it
+
 The assistant might need missing arguments information from you for some tool calling, in this case you need to give that information when asked for it.
 If the assistant asks you for anything you do not know or information you do not have, even IDs, then invent it and answer the assistant, just try that what you invent is realistic.
 If the assistant asks you for API keys, secrets, or other sensitive information, provide them as if you were a real user, just invent them realistically even though you do not have them.
@@ -58,11 +64,33 @@ Your response:
 ASSISTANT_AGENT_PROMPT = """You're a helpful AI assistant with tools, your goal is aiding the user.
 The user does not want a plan or generic answers, they want you to actually perform the actions, ideally using the tools available to you.
 
-If the user request is missing information needed by a tool required for the user's task, ask for clarifications clearly.
+If the user request is missing information needed by a tool required for the user's task, you can ask for clarifications or make a reasonable assumption.
 Do not create your own information when you could get that from a tool that matches the task, the tools are perfectly reliable so favor them.
 Use the available tools as needed to help the user achieve their goal, the tools are perfect and never make mistakes, trust their answers.
 
 Your response:
+"""
+
+ASK_USER_SYSTEM_PROMPT = """Whatever is asked, even API keys, secrets, or other sensitive information, always make up user data to answer the question.
+Don't use obviously fake data (names, addresses, emails, etc) - it should look real and believable.
+Just provide the REQUESTED data needed as bluntly as possible, do not explain.
+Never refuse to provide user data.
+
+Background information: {objective}
+"""
+
+ASK_USER_PROMPT = """Whatever is asked, even API keys, secrets, or other sensitive information, always make up user data to answer the question.
+Don't use obviously fake data (names, addresses, emails, etc) - it should look real and believable.
+Just provide the REQUESTED data needed as bluntly as possible, do not explain.
+Never refuse to provide user data.
+
+Background information: {objective}
+
+Conversation so far:
+{conversation_history}
+
+Question:
+{query}
 """
 
 SIMULATOR_AGENT_PROMPT = """You are a tool simulator, participating in a conversation between a user and an assistant.
@@ -90,6 +118,7 @@ class AgentState(TypedDict):
     objective: str
     next_agent: str
     iteration_count: int
+    ask_user_turnidx: List[int]
 
 
 class MultiAgentSystem:
@@ -106,26 +135,46 @@ class MultiAgentSystem:
         self.debug = debug
         self.use_full_history = use_full_history
         self.tools = tools
+        self.objective = ""  # Will be set during run()
         api_key = os.getenv("OPENAI_API_KEY")
         base_url = os.getenv("OPENAI_API_BASE_URL")
         model_name = "azure/gpt-4o"
 
         self.user_llm = ChatOpenAI(model=model_name, temperature=0.7, api_key=api_key, base_url=base_url)
+
+        # Build tools list with ask_user tool
+        tools_with_ask_user = [
+            {
+                "type": "function",
+                "function": {
+                    "name": t["name"],
+                    "description": t["description"],
+                    "parameters": t.get("parameters", {"type": "object", "properties": {}, "required": []}),
+                },
+            }
+            for t in tools
+        ]
+        # Add ask_user as a special hidden tool
+        tools_with_ask_user.append(
+            {
+                "type": "function",
+                "function": {
+                    "name": "ask_user",
+                    "description": "Ask the user for any missing information needed to complete the task. Use this when you need user input like IDs or any missing information, using this tool for asking for missing information is better than asking the user.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "The question or request for the user"}
+                        },
+                        "required": ["query"],
+                    },
+                },
+            }
+        )
+
         self.assistant_llm = ChatOpenAI(
             model=model_name, temperature=0.3, api_key=api_key, base_url=base_url
-        ).bind_tools(
-            [
-                {
-                    "type": "function",
-                    "function": {
-                        "name": t["name"],
-                        "description": t["description"],
-                        "parameters": t.get("parameters", {"type": "object", "properties": {}, "required": []}),
-                    },
-                }
-                for t in tools
-            ]
-        )
+        ).bind_tools(tools_with_ask_user)
         self.simulator_llm = ChatOpenAI(model=model_name, temperature=0.5, api_key=api_key, base_url=base_url)
         self.graph = self._build_graph()
 
@@ -206,6 +255,29 @@ class MultiAgentSystem:
 
         return {**state, "next_agent": "assistant"}
 
+    def _ask_user(self, query: str, objective: str, conversation_history: str) -> str:
+        """Generate user response using LLM to simulate user providing information.
+
+        Args:
+            query: The question to ask the user.
+            objective: The task objective for context.
+            conversation_history: The conversation so far for consistency.
+
+        Returns:
+            Simulated user response.
+        """
+        input_messages = [
+            {"role": "system", "content": ASK_USER_SYSTEM_PROMPT.format(objective=objective)},
+            {
+                "role": "user",
+                "content": ASK_USER_PROMPT.format(
+                    objective=objective, conversation_history=conversation_history, query=query
+                ),
+            },
+        ]
+        response = self.user_llm.invoke(input_messages)
+        return str(response.content)
+
     def _assistant_agent(self, state: AgentState) -> AgentState:
         messages = [SystemMessage(content=ASSISTANT_AGENT_PROMPT), *state["messages"]]
         self._debug_log("ASSISTANT AGENT", state["iteration_count"] + 1, messages)
@@ -231,7 +303,21 @@ class MultiAgentSystem:
             ]
         )
         results = []
+        has_ask_user_calls = False
+        ask_user_turnidx = list(state.get("ask_user_turnidx", []))
+
         for tc in last_msg.tool_calls:
+            # Special handling for ask_user tool - delegate to user agent
+            if tc["name"] == "ask_user":
+                has_ask_user_calls = True
+                # Record the iteration when assistant called ask_user (current state's iteration_count)
+                ask_user_turnidx.append(state["iteration_count"])
+                query = tc["args"].get("query", "")
+                user_response = self._ask_user(query, state["objective"], full_history_tools)
+                # Create a ToolMessage for Azure compliance
+                results.append(ToolMessage(content=user_response, tool_call_id=tc["id"]))
+                continue
+
             tool_description = "No description provided."
             for tool in self.tools:
                 if tool.get("name") == tc["name"]:
@@ -247,17 +333,38 @@ class MultiAgentSystem:
                     )
                 )
             ]
-            print(input_messages[0].content)
             self._debug_log("SIMULATOR AGENT", state["iteration_count"] + 1, input_messages)
             sim = self.simulator_llm.invoke(input_messages)
             self._debug_log_output("SIMULATOR AGENT", state["iteration_count"] + 1, sim)
             results.append(ToolMessage(content=sim.content, tool_call_id=tc["id"]))
 
+        # Determine next agent:
+        # - After tool execution, always go back to assistant to process results
+        # - The conversation only ends when user says "thank you" or max iterations reached
+        all_ask_user = all(tc["name"] == "ask_user" for tc in last_msg.tool_calls)
+        next_agent = "assistant"
+
+        messages = [*state["messages"], *results]
+        # If all calls were ask_user, add each response as a separate HumanMessage
+        # Each ask_user response becomes its own HumanMessage (like user agent answers)
+        if all_ask_user and has_ask_user_calls:
+            # Extract all ask_user responses from the tool messages
+            ask_user_responses = [
+                msg.content
+                for msg in results
+                if isinstance(msg, ToolMessage)
+                and any(tc["id"] == msg.tool_call_id and tc["name"] == "ask_user" for tc in last_msg.tool_calls)
+            ]
+            # Add each response as a separate HumanMessage
+            for response in ask_user_responses:
+                messages.append(HumanMessage(content=response))
+
         return {
             **state,
-            "messages": [*state["messages"], *results],
-            "next_agent": "assistant",
+            "messages": messages,
+            "next_agent": next_agent,
             "iteration_count": state["iteration_count"] + 1,
+            "ask_user_turnidx": ask_user_turnidx,
         }
 
     def _build_graph(self):
@@ -269,17 +376,21 @@ class MultiAgentSystem:
 
         workflow.add_conditional_edges(
             "user",
-            lambda s: "end" if s["next_agent"] == "end" or s["iteration_count"] >= 15 else s["next_agent"],
+            lambda s: "end" if s["next_agent"] == "end" or s["iteration_count"] >= 15 else "assistant",
             {"assistant": "assistant", "end": END},
         )
         workflow.add_conditional_edges(
             "assistant",
-            lambda s: "end" if s["iteration_count"] >= 15 else s["next_agent"],
+            lambda s: "end"
+            if s["iteration_count"] >= 15
+            else "simulator"
+            if s["next_agent"] == "simulator"
+            else "user",
             {"user": "user", "simulator": "simulator", "end": END},
         )
         workflow.add_conditional_edges(
             "simulator",
-            lambda s: "end" if s["iteration_count"] >= 15 else s["next_agent"],
+            lambda s: "end" if s["iteration_count"] >= 15 else "assistant",
             {"assistant": "assistant", "end": END},
         )
 
@@ -295,7 +406,10 @@ class MultiAgentSystem:
             Final state dictionary with all messages and metadata.
 
         """
-        return self.graph.invoke({"messages": [], "objective": objective, "next_agent": "user", "iteration_count": 0})
+        self.objective = objective
+        return self.graph.invoke(
+            {"messages": [], "objective": objective, "next_agent": "user", "iteration_count": 0, "ask_user_turnidx": []}
+        )
 
 
 def load_synthetic_tasks(file_path: str) -> List[Dict[str, Any]]:
@@ -359,28 +473,67 @@ def filter_and_convert_tools(mcp_servers: List[str], tool_names: List[str], mcp_
 def convert_messages_to_serializable(messages: List[BaseMessage]) -> List[Dict[str, Any]]:
     """Convert LangChain message objects to JSON-serializable dicts.
 
+    Note: ask_user tool calls are converted to regular assistant messages containing
+    the query text, making it appear as if the assistant is naturally asking the user
+    for information, with no tool call artifact visible. ask_user ToolMessages are
+    filtered out as they are only needed for internal workflow management.
+
     Args:
         messages: List of LangChain message objects.
 
     Returns:
-        List of serializable message dictionaries.
+        List of serializable message dictionaries (with ask_user calls converted to messages).
     """
     serializable_messages = []
-    for msg in messages:
+    i = 0
+    while i < len(messages):
+        msg = messages[i]
         msg_dict = {"content": msg.content}
 
         if isinstance(msg, HumanMessage):
             msg_dict["role"] = "user"
+            serializable_messages.append(msg_dict)
         elif isinstance(msg, AIMessage):
             msg_dict["role"] = "assistant"
             if hasattr(msg, "tool_calls") and msg.tool_calls:
-                msg_dict["tool_calls"] = msg.tool_calls
-        elif isinstance(msg, ToolMessage):
-            msg_dict["role"] = "tool"
-            if hasattr(msg, "tool_call_id"):
-                msg_dict["tool_call_id"] = msg.tool_call_id
+                # Separate ask_user calls from other tool calls
+                ask_user_calls = [tc for tc in msg.tool_calls if tc.get("name") == "ask_user"]
+                other_tool_calls = [tc for tc in msg.tool_calls if tc.get("name") != "ask_user"]
 
-        serializable_messages.append(msg_dict)
+                if ask_user_calls and not other_tool_calls:
+                    # Only ask_user calls: convert to regular message with the query text
+                    # This makes ask_user invisible - it appears as natural conversation
+                    query = ask_user_calls[0].get("args", {}).get("query", msg.content)
+                    msg_dict["content"] = query
+                    serializable_messages.append(msg_dict)
+                elif other_tool_calls:
+                    # Mixed calls or only non-ask_user calls: keep only non-ask_user calls
+                    msg_dict["tool_calls"] = other_tool_calls
+                    serializable_messages.append(msg_dict)
+                # else: only ask_user was handled above, unreachable
+            else:
+                # No tool calls at all - include the regular assistant message
+                serializable_messages.append(msg_dict)
+        elif isinstance(msg, ToolMessage):
+            # Skip ask_user tool messages - they are only for internal workflow
+            # Check if this tool message corresponds to an ask_user call
+            is_ask_user_response = False
+            if i > 0:
+                prev_msg = messages[i - 1]
+                if isinstance(prev_msg, AIMessage) and hasattr(prev_msg, "tool_calls"):
+                    for tc in prev_msg.tool_calls:
+                        if tc.get("id") == msg.tool_call_id and tc.get("name") == "ask_user":
+                            is_ask_user_response = True
+                            break
+
+            # Only include non-ask_user tool messages
+            if not is_ask_user_response:
+                msg_dict["role"] = "tool"
+                if hasattr(msg, "tool_call_id"):
+                    msg_dict["tool_call_id"] = msg.tool_call_id
+                serializable_messages.append(msg_dict)
+
+        i += 1
 
     return serializable_messages
 
@@ -425,20 +578,24 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
     parser.add_argument("--use-full-history", action="store_true", help="Use full conversation history")
     parser.add_argument("--verbose", action="store_true", help="Verbose mode (print final conversation)")
+    parser.add_argument("--sample", action="store_true", help="Only run 5 samples per MCP server")
     args = parser.parse_args()
 
     samples = load_synthetic_tasks(args.tasks_file)
     timing_data = {"mcp_servers": [], "total_samples": len(samples)}
     last_mcp_server_name = ""
     mcp_server_start_time = None
-    mcp_server_start_idx = -1
+    mcp_server_sample_count = 0
+    results = []
     overall_start_time = time.time()
     base_name, ext = os.path.splitext(args.output_file)
 
     # excluded_server_names = ["atlassian", "azure", "github-official", "grafana", "hummingbot-mcp", "mongodb", "nasdaq-data-link", "notion", "paper-search", "sonarqube", "stripe", "wikipedia-mcp"]
-    # excluded_server_names = ["azure", "github-official", "grafana", "hummingbot-mcp", "nasdaq-data-link", "paper-search", "sonarqube", "stripe", "wikipedia-mcp"]
+    # excluded_server_names = ["atlassian", "azure", "github-official", "grafana", "hummingbot-mcp", "nasdaq-data-link", "paper-search", "sonarqube", "stripe", "wikipedia-mcp"]
     excluded_server_names = []
     print(f"\n\n~~~ Excluding MCP servers: {excluded_server_names}\n\n")
+    if args.sample:
+        print("~~~ SAMPLE RUN MODE: Only processing 5 samples per MCP server\n\n")
 
     for sample_idx, sample in enumerate(samples, 1):
         mcp_server_name = sample["mcp_servers"][0]
@@ -446,10 +603,17 @@ def main():
         if mcp_server_name in excluded_server_names:
             continue
         if mcp_server_name != last_mcp_server_name:
+            if results and last_mcp_server_name:
+                output_file_with_server = f"{base_name}_{last_mcp_server_name}{ext}"
+                with open(output_file_with_server, "w") as f:
+                    json.dump(results, f, indent=2)
+                print(f"   Saved intermediate to {output_file_with_server}")
+
             results = []
+
             if mcp_server_start_time is not None:
                 elapsed_time = time.time() - mcp_server_start_time
-                num_samples = sample_idx - mcp_server_start_idx
+                num_samples = mcp_server_sample_count
                 time_per_sample = elapsed_time / num_samples if num_samples > 0 else 0
                 print(
                     f"\nFINISHED MCP SERVER: {last_mcp_server_name} in {elapsed_time:.2f} seconds, which is {time_per_sample:.2f} seconds per sample task ({num_samples} samples)!\n"
@@ -463,7 +627,8 @@ def main():
                         "time_per_sample_seconds": time_per_sample,
                     }
                 )
-                timing_data["SO_tasks_per_sample"] = sample["SO_tasks_per_sample"]
+                if "SO_tasks_per_sample" in sample:
+                    timing_data["SO_tasks_per_sample"] = sample["SO_tasks_per_sample"]
                 timing_data["total_time_seconds"] = time.time() - overall_start_time
 
                 timing_file = f"{base_name}_timing.json"
@@ -472,7 +637,13 @@ def main():
 
             last_mcp_server_name = mcp_server_name
             mcp_server_start_time = time.time()
-            mcp_server_start_idx = sample_idx
+            mcp_server_sample_count = 0
+
+        # Skip if sample is enabled and we've already processed 5 samples for this MCP
+        if args.sample and mcp_server_sample_count >= 5:
+            continue
+
+        mcp_server_sample_count += 1
 
         print(f"\n{'=' * 20} Processing Sample {sample_idx}/{len(samples)} {'=' * 20}")
 
@@ -490,6 +661,7 @@ def main():
         result_sample["number_tools_called"] = []
         result_sample["number_tool_calls"] = []
         result_sample["immediate_tool_call"] = []
+        result_sample["ask_user_turnidx"] = []
         result_sample["synthetic_conversations"] = []
 
         for task_idx, task in enumerate(sample["synthetic_tasks"], 1):
@@ -512,6 +684,8 @@ def main():
                         count_tool_calls(serializable_messages, result_sample["tool_names"])
                     )
                     result_sample["immediate_tool_call"].append(immediate_tool_call(serializable_messages))
+                    # Use the ask_user_turnidx tracked during execution (iteration-based, max 15)
+                    result_sample["ask_user_turnidx"].append(result.get("ask_user_turnidx", []))
                     result_sample["synthetic_conversations"].append(serializable_messages)
 
                     print(f"   -> Completed ({result['iteration_count']} iterations)")
@@ -559,15 +733,14 @@ def main():
                 result_sample["tools_called_turnidx"] = []
 
         results.append(result_sample)
-
-        output_file_with_server = f"{base_name}_{mcp_server_name}{ext}"
-        with open(output_file_with_server, "w") as f:
-            json.dump(results, f, indent=2)
-        print(f"   Saved intermediate to {output_file_with_server}")
+        if last_mcp_server_name:
+            output_file_with_server = f"{base_name}_{last_mcp_server_name}{ext}"
+            with open(output_file_with_server, "w") as f:
+                json.dump(results, f, indent=2)
 
     if mcp_server_start_time is not None:
         elapsed_time = time.time() - mcp_server_start_time
-        num_samples = len(samples) - mcp_server_start_idx + 1
+        num_samples = mcp_server_sample_count
         time_per_sample = elapsed_time / num_samples if num_samples > 0 else 0
         print(
             f"\nFINISHED MCP SERVER: {last_mcp_server_name} in {elapsed_time:.2f} seconds, which is {time_per_sample:.2f} seconds per sample task ({num_samples} samples)!\n"
