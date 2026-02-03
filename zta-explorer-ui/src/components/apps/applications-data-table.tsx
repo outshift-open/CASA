@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/incompatible-library */
 import {useState} from 'react';
 import {
     ColumnDef,
@@ -85,7 +86,11 @@ export function ApplicationsDataTable<TData, TValue>({
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                                <TableRow
+                                    key={row.id}
+                                    data-state={row.getIsSelected() && 'selected'}
+                                    className="transition-colors hover:bg-muted/50"
+                                >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -95,8 +100,15 @@ export function ApplicationsDataTable<TData, TValue>({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
+                                <TableCell colSpan={columns.length} className="h-32 text-center">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                        <p className="text-sm font-medium">No applications found</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {globalFilter
+                                                ? 'Try adjusting your search'
+                                                : 'Get started by creating a new application'}
+                                        </p>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         )}

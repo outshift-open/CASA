@@ -16,6 +16,7 @@ export function ApplicationsPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deletingAppId, setDeletingAppId] = useState<string | null>(null);
+    const [deletingAppName, setDeletingAppName] = useState<string>('');
     const [editingApp, setEditingApp] = useState<App | null>(null);
 
     const handleOpenDialog = useCallback((app?: App) => {
@@ -28,8 +29,9 @@ export function ApplicationsPage() {
         setEditingApp(null);
     }, []);
 
-    const handleDelete = useCallback((id: string) => {
+    const handleDelete = useCallback((id: string, name: string) => {
         setDeletingAppId(id);
+        setDeletingAppName(name);
         setIsDeleteDialogOpen(true);
     }, []);
 
@@ -101,7 +103,10 @@ export function ApplicationsPage() {
                         total={data?.total || 0}
                         isLoading={isLoading}
                         onEdit={handleOpenDialog}
-                        onDelete={handleDelete}
+                        onDelete={(id) => {
+                            const app = data?.items?.find((a) => a.id === id);
+                            handleDelete(id, app?.name || '');
+                        }}
                         onRefresh={handleRefresh}
                     />
                 </ApiStateHandler>
@@ -118,6 +123,7 @@ export function ApplicationsPage() {
             <ApplicationDeleteDialog
                 open={isDeleteDialogOpen}
                 isPending={deleteApp.isPending}
+                appName={deletingAppName}
                 onClose={() => setIsDeleteDialogOpen(false)}
                 onConfirm={confirmDelete}
             />

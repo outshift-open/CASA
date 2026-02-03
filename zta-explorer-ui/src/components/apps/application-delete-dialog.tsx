@@ -11,18 +11,28 @@ import {Button} from '@/components/ui/button';
 interface ApplicationDeleteDialogProps {
     open: boolean;
     isPending: boolean;
+    appName?: string;
     onClose: () => void;
     onConfirm: () => void;
 }
 
-export function ApplicationDeleteDialog({open, isPending, onClose, onConfirm}: ApplicationDeleteDialogProps) {
+export function ApplicationDeleteDialog({open, isPending, appName, onClose, onConfirm}: ApplicationDeleteDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Delete Application</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete this application? This action cannot be undone.
+                        Are you sure you want to delete
+                        {appName ? (
+                            <>
+                                {' '}
+                                <span className="font-semibold text-foreground">{appName}</span>
+                            </>
+                        ) : (
+                            ' this application'
+                        )}
+                        ? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

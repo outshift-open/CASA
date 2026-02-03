@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {MoreHorizontal, Pencil, Trash2} from 'lucide-react';
+import {MoreHorizontal, Pencil, Trash2, ArrowUpDown} from 'lucide-react';
 import type {App, AppType} from '@/types/app.types';
 
 const APP_TYPE_LABELS: Record<AppType, string> = {
@@ -27,12 +27,26 @@ const APP_TYPE_VARIANTS: Record<AppType, 'default' | 'secondary' | 'destructive'
 export const createColumns = (onEdit: (app: App) => void, onDelete: (id: string) => void): ColumnDef<App>[] => [
     {
         accessorKey: 'name',
-        header: 'Name',
+        header: ({column}) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            );
+        },
         cell: ({row}) => <div className="font-medium">{row.getValue('name')}</div>
     },
     {
         accessorKey: 'type',
-        header: 'Type',
+        header: ({column}) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Type
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            );
+        },
         cell: ({row}) => {
             const type = row.getValue('type') as AppType;
             return <Badge variant={APP_TYPE_VARIANTS[type]}>{APP_TYPE_LABELS[type]}</Badge>;
@@ -40,7 +54,14 @@ export const createColumns = (onEdit: (app: App) => void, onDelete: (id: string)
     },
     {
         accessorKey: 'base_url',
-        header: 'Base URL',
+        header: ({column}) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Base URL
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            );
+        },
         cell: ({row}) => <div className="text-sm text-muted-foreground">{row.getValue('base_url')}</div>
     },
     {
@@ -70,29 +91,31 @@ export const createColumns = (onEdit: (app: App) => void, onDelete: (id: string)
     },
     {
         id: 'actions',
-        header: () => <div className="w-[70px]"></div>,
+        header: () => <div className="text-center">Actions</div>,
         cell: ({row}) => {
             const app = row.original;
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => onEdit(app)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => app.id && onDelete(app.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex justify-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => onEdit(app)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => app.id && onDelete(app.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             );
         }
     }
