@@ -5,8 +5,7 @@ import {SiteHeader} from '@/components/site-header';
 import {DashboardPage} from '@/pages/dashboard-page';
 import {ApplicationsPage} from '@/pages/applications-page';
 import {SettingsPage} from '@/pages/settings-page';
-import {HelpPage} from '@/pages/help-page';
-import {SearchPage} from '@/pages/search-page';
+import {NotFoundPage} from '@/pages/not-found-page';
 import {Toaster} from '@/components/ui/sonner';
 
 function App() {
@@ -28,9 +27,7 @@ function App() {
                                 <Route path="/" element={<DashboardPage />} />
                                 <Route path="/applications" element={<ApplicationsPage />} />
                                 <Route path="/settings" element={<SettingsPage />} />
-                                <Route path="/help" element={<HelpPage />} />
-                                <Route path="/search" element={<SearchPage />} />
-                                <Route path="*" element={<Navigate to="/" replace />} />
+                                <Route path="*" element={<NotFoundPage />} />
                             </Routes>
                         </div>
                     </div>

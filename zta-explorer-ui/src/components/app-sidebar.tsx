@@ -60,16 +60,6 @@ const bottomNavItems = [
         title: 'Settings',
         url: '/settings',
         icon: Settings
-    },
-    {
-        title: 'Get Help',
-        url: '/help',
-        icon: HelpCircle
-    },
-    {
-        title: 'Search',
-        url: '/search',
-        icon: Search
     }
 ];
 
@@ -144,7 +134,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                                 className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                                side="top"
+                                side="right"
                                 align="end"
                                 sideOffset={4}
                             >
@@ -160,16 +150,16 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>
+                                <DropdownMenuItem disabled>
                                     <User className="mr-2 h-4 w-4" />
                                     Account
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem disabled>
                                     <Bell className="mr-2 h-4 w-4" />
                                     Notifications
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>
+                                <DropdownMenuItem disabled>
                                     <LogOut className="mr-2 h-4 w-4" />
                                     Log out
                                 </DropdownMenuItem>

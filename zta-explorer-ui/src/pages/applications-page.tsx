@@ -7,6 +7,7 @@ import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, Di
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {Textarea} from '@/components/ui/textarea';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {Badge} from '@/components/ui/badge';
 import {
@@ -269,24 +270,30 @@ export function ApplicationsPage() {
                                     : 'Fill in the details to create a new application.'}
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
+                        <div className="grid gap-6 py-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name" className="text-sm font-medium">
+                                    Name <span className="text-destructive">*</span>
+                                </Label>
                                 <Input
                                     id="name"
+                                    placeholder="Enter application name"
                                     value={formData.name}
                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                                     required
+                                    className="w-full"
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="type">Type</Label>
+                                <Label htmlFor="type" className="text-sm font-medium">
+                                    Type <span className="text-destructive">*</span>
+                                </Label>
                                 <Select
                                     value={formData.type}
                                     onValueChange={(value: AppType) => setFormData({...formData, type: value})}
                                 >
-                                    <SelectTrigger id="type">
-                                        <SelectValue />
+                                    <SelectTrigger id="type" className="w-full">
+                                        <SelectValue placeholder="Select application type" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="agent">Agent</SelectItem>
@@ -296,23 +303,32 @@ export function ApplicationsPage() {
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="base_url">Base URL</Label>
+                                <Label htmlFor="base_url" className="text-sm font-medium">
+                                    Base URL <span className="text-destructive">*</span>
+                                </Label>
                                 <Input
                                     id="base_url"
                                     type="url"
+                                    placeholder="https://example.com/api"
                                     value={formData.base_url}
                                     onChange={(e) => setFormData({...formData, base_url: e.target.value})}
                                     required
+                                    className="w-full"
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="tools">Tools (comma-separated)</Label>
-                                <Input
+                                <Label htmlFor="tools" className="text-sm font-medium">
+                                    Tools <span className="text-muted-foreground text-xs">(optional)</span>
+                                </Label>
+                                <Textarea
                                     id="tools"
+                                    placeholder="Enter tools separated by commas&#10;Example: tool1, tool2, tool3"
                                     value={formData.tools}
                                     onChange={(e) => setFormData({...formData, tools: e.target.value})}
-                                    placeholder="tool1, tool2, tool3"
+                                    className="w-full min-h-[80px] resize-none"
+                                    rows={3}
                                 />
+                                <p className="text-xs text-muted-foreground">Separate multiple tools with commas</p>
                             </div>
                         </div>
                         <DialogFooter>
