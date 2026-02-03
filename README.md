@@ -72,7 +72,37 @@ The first time you run the server, it will automatically apply database migratio
 
 The server will be available at `http://localhost:8000` with interactive API documentation at `http://localhost:8000/docs`.
 
-### Run the demo setup
+### Option 2: ZTA Explorer UI
+
+For a graphical interface to manage applications and explore the ZTA system, you can run the ZTA Explorer UI:
+
+#### Prerequisites
+
+Ensure you have the UI environment configured:
+
+```shell
+cp zta-explorer-ui/.env.sample zta-explorer-ui/.env
+```
+
+Update `zta-explorer-ui/.env` with your API server URL (default: `http://localhost:8000`).
+
+#### Run with Docker Compose
+
+```shell
+make ui-run
+```
+
+The UI will be available at `http://localhost:1234`.
+
+To stop the UI:
+
+```shell
+make ui-stop
+```
+
+For more information about the UI, see the [ZTA Explorer UI README](zta-explorer-ui/README.md).
+
+### Option 3: Run the Demo Setup
 
 To run everything on docker, simply run:
 
@@ -259,6 +289,8 @@ pytest test/integration/ && pytest
 - `make docker-build` - Build the Docker image
 - `make docker-run` - Run the application using Docker Compose
 - `make docker-stop` - Stop Docker Compose services
+- `make ui-run` - Run the ZTA Explorer UI
+- `make ui-stop` - Stop the ZTA Explorer UI
 
 ### Code Quality
 

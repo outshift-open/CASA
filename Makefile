@@ -171,6 +171,16 @@ demo-stop:
 > docker compose -f deployments/docker-compose/docker-compose.demo.yml down
 .PHONY: demo-stop
 
+ui-run: # Run the ZTA Explorer UI using Docker Compose.
+> @printf "$(YELLOW)Starting ZTA Explorer UI with Docker Compose$(NOCOLOR)\n"
+> cd deployments/docker-compose && docker compose -f docker-compose.ui.yml up --build -d
+.PHONY: ui-run
+
+ui-stop: # Stop the ZTA Explorer UI.
+> @printf "$(YELLOW)Stopping ZTA Explorer UI$(NOCOLOR)\n"
+> cd deployments/docker-compose && docker compose -f docker-compose.ui.yml down
+.PHONY: ui-stop
+
 generate-sdk:
 > @printf "$(YELLOW)Generating the Python SDK for the Auth Server$(NOCOLOR)\n"
 > @printf "$(YELLOW)Make sure the auth server is running first$(NOCOLOR)\n"

@@ -6,6 +6,7 @@ repos:
       hooks:
           - id: check-added-large-files # Prevent giant files from being committed
             args: ["--maxkb=2500"] # Increase limit to 2.5MB
+            exclude: "^zta-explorer-ui/\\.yarn/releases/" # Yarn binaries are meant to be committed
           - id: detect-private-key # Checks for the existence of private keys
           - id: check-case-conflict # Check for files with names that would conflict on a case-insensitive filesystem
           - id: check-merge-conflict # Check for files that contain merge conflict strings

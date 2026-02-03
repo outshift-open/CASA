@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  zta-explorer-ui:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile.ui
+    ports:
+      - "1234:80"
