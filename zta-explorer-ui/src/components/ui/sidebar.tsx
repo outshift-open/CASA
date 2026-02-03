@@ -381,7 +381,11 @@ function SidebarGroupLabel({className, asChild = false, ...props}: React.Compone
     );
 }
 
-function SidebarGroupAction({className, asChild = false, ...props}: React.ComponentProps<'button'> & {asChild?: boolean}) {
+function SidebarGroupAction({
+    className,
+    asChild = false,
+    ...props
+}: React.ComponentProps<'button'> & {asChild?: boolean}) {
     const Comp = asChild ? Slot.Root : 'button';
 
     return (

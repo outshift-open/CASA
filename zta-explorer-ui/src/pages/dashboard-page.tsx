@@ -72,8 +72,8 @@ export function DashboardPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-sm text-muted-foreground">
-                            This dashboard provides an overview of your authentication and authorization infrastructure. Use
-                            the sidebar to navigate between different sections:
+                            This dashboard provides an overview of your authentication and authorization infrastructure.
+                            Use the sidebar to navigate between different sections:
                         </p>
                         <ul className="space-y-2 text-sm">
                             <li className="flex items-start gap-2">

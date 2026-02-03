@@ -81,7 +81,9 @@ export class ErrorBoundary extends Component<Props, State> {
                                     </div>
                                     {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
                                         <details className="cursor-pointer">
-                                            <summary className="text-sm font-medium">Stack Trace (Development Only)</summary>
+                                            <summary className="text-sm font-medium">
+                                                Stack Trace (Development Only)
+                                            </summary>
                                             <div className="mt-2 max-h-64 overflow-auto rounded-md bg-muted p-3">
                                                 <pre className="text-xs">{this.state.errorInfo.componentStack}</pre>
                                             </div>

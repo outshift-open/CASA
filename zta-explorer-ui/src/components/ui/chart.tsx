@@ -242,7 +242,13 @@ function ChartLegendContent({
     }
 
     return (
-        <div className={cn('flex items-center justify-center gap-4', verticalAlign === 'top' ? 'pb-3' : 'pt-3', className)}>
+        <div
+            className={cn(
+                'flex items-center justify-center gap-4',
+                verticalAlign === 'top' ? 'pb-3' : 'pt-3',
+                className
+            )}
+        >
             {payload
                 .filter((item) => item.type !== 'none')
                 .map((item) => {
@@ -252,7 +258,9 @@ function ChartLegendContent({
                     return (
                         <div
                             key={item.value}
-                            className={cn('[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3')}
+                            className={cn(
+                                '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
+                            )}
                         >
                             {itemConfig?.icon && !hideIcon ? (
                                 <itemConfig.icon />

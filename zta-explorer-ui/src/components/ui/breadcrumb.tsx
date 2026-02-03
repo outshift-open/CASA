@@ -35,7 +35,11 @@ function BreadcrumbLink({
     const Comp = asChild ? Slot.Root : 'a';
 
     return (
-        <Comp data-slot="breadcrumb-link" className={cn('hover:text-foreground transition-colors', className)} {...props} />
+        <Comp
+            data-slot="breadcrumb-link"
+            className={cn('hover:text-foreground transition-colors', className)}
+            {...props}
+        />
     );
 }
 
@@ -81,4 +85,12 @@ function BreadcrumbEllipsis({className, ...props}: React.ComponentProps<'span'>)
     );
 }
 
-export {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbEllipsis};
+export {
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+    BreadcrumbEllipsis
+};
