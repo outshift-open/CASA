@@ -155,7 +155,7 @@ export function ApplicationsPage() {
                         <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                     </Button>
                     <Button onClick={() => handleOpenDialog()}>
-                        <Plus className="mr-2 h-4 w-4" />
+                        <Plus className="mr-0.5 h-4 w-4" />
                         Add Application
                     </Button>
                 </div>

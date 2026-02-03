@@ -3,16 +3,11 @@ import {
     Shield,
     Settings,
     LayoutDashboard,
-    Plus,
-    Mail,
     MoreVertical,
     AppWindow,
     User,
-    CreditCard,
     Bell,
     LogOut,
-    HelpCircle,
-    Search,
     ChevronLeft,
     ChevronRight
 } from 'lucide-react';
@@ -72,14 +67,14 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <a href="#">
+                            <NavLink to="/">
                                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                     <Shield className="size-4" />
                                 </div>
-                                <div className="grid flex-1 text-left text-sm leading-tight">
+                                <div className="grid flex-1 text-left text-sm leading-tight ml-2">
                                     <span className="truncate font-semibold">ZTA Explorer</span>
                                 </div>
-                            </a>
+                            </NavLink>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
