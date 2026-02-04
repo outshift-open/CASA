@@ -57,7 +57,7 @@ def create_diagram():
     ax.text(
         28,
         51,
-        "Conversation-Simulation MAS_wrong Overview",
+        "Conversation-Simulation MAS Overview w/ Non-Matching Tools",
         fontsize=48,
         fontweight="bold",
         ha="center",
@@ -66,7 +66,7 @@ def create_diagram():
     ax.text(
         28,
         49.2,
-        "LangGraph MAS for Wrong/Null Tool Scenario Evaluation",
+        "LangGraph MAS for Correct and Wrong/Null Tool Scenarios",
         fontsize=24,
         ha="center",
         color=COLORS["arrow"],
@@ -110,7 +110,7 @@ def create_diagram():
         )
 
     # === OPERATION MODES - MOVED DOWN to avoid overlap ===
-    ax.text(28, 39.8, "OPERATION MODES", fontsize=34, fontweight="bold", ha="center", color=COLORS["text"])
+    ax.text(28, 39.8, "MATCHING MODES", fontsize=34, fontweight="bold", ha="center", color=COLORS["text"])
     my = 34.5  # mode boxes y position - lower to give space
     mh, mw = 4.2, 17
 
