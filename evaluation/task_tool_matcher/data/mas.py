@@ -578,7 +578,7 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
     parser.add_argument("--use-full-history", action="store_true", help="Use full conversation history")
     parser.add_argument("--verbose", action="store_true", help="Verbose mode (print final conversation)")
-    parser.add_argument("--sample", action="store_true", help="Only run 5 samples per MCP server")
+    parser.add_argument("--sample", action="store_true", help="Only run some samples per MCP server")
     args = parser.parse_args()
 
     samples = load_synthetic_tasks(args.tasks_file)
@@ -595,7 +595,7 @@ def main():
     excluded_server_names = []
     print(f"\n\n~~~ Excluding MCP servers: {excluded_server_names}\n\n")
     if args.sample:
-        print("~~~ SAMPLE RUN MODE: Only processing 5 samples per MCP server\n\n")
+        print("~~~ SAMPLE RUN MODE: Only processing some samples per MCP server\n\n")
 
     for sample_idx, sample in enumerate(samples, 1):
         mcp_server_name = sample["mcp_servers"][0]
@@ -639,8 +639,8 @@ def main():
             mcp_server_start_time = time.time()
             mcp_server_sample_count = 0
 
-        # Skip if sample is enabled and we've already processed 5 samples for this MCP
-        if args.sample and mcp_server_sample_count >= 5:
+        # Skip if sample is enabled and we've already processed 15 samples for this MCP
+        if args.sample and mcp_server_sample_count >= 15:
             continue
 
         mcp_server_sample_count += 1
