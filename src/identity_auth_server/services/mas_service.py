@@ -1,6 +1,7 @@
 from typing import List
 
 from pydantic import BaseModel
+
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.multi_agent_system import MultiAgentSystemRepository
 from identity_auth_server.core.types import MultiAgentSystem

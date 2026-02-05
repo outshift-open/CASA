@@ -1,13 +1,17 @@
 """Routing module for MAS operations."""
 
-
 from typing import Annotated, List
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from identity_auth_server.api.dependencies import Container
 from identity_auth_server.core.types import MultiAgentSystem
-from identity_auth_server.services.mas_service import MultiAgentSystemAppsBindingRequest, MultiAgentSystemCreateRequest, MultiAgentSystemService, MultiAgentSystemUpdateRequest
-
+from identity_auth_server.services.mas_service import (
+    MultiAgentSystemAppsBindingRequest,
+    MultiAgentSystemCreateRequest,
+    MultiAgentSystemService,
+    MultiAgentSystemUpdateRequest,
+)
 
 router = APIRouter(tags=["Multi Agent Systems"])
 

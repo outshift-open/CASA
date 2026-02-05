@@ -11,7 +11,10 @@ from identity_auth_server.core.repositories.authorization_server import (
     AuthorizationServerPostgresRepository,
     AuthorizationServerRepository,
 )
-from identity_auth_server.core.repositories.multi_agent_system import MultiAgentSystemPostgresRepository, MultiAgentSystemRepository
+from identity_auth_server.core.repositories.multi_agent_system import (
+    MultiAgentSystemPostgresRepository,
+    MultiAgentSystemRepository,
+)
 from identity_auth_server.core.repositories.user_input import UserInputPostgresRepository
 from identity_auth_server.database.postgres.postgres import PostgresDB
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher, TaskToolMatcherFactory

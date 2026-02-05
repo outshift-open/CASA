@@ -66,6 +66,3 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
             return list(masList)
         except Exception as e:
             raise Exception(f"Error retrieving MAS list: {e}") from e
-
-
-
