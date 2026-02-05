@@ -11,7 +11,7 @@ from identity_auth_server.core.events import LLMCallEndedEvent, LLMCallStartedEv
 from identity_auth_server.services.authorization_server import AuthorizationServerService
 from identity_auth_server.telemetry.tracer import Tracer
 
-router = APIRouter()
+router = APIRouter(tags=["Traces"])
 jwt_security = HTTPBearer()
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,

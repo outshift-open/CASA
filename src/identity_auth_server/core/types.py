@@ -50,9 +50,17 @@ class App(SQLModel, table=True):
     client_credentials_id: Optional[UUID] = Field(foreign_key="clientcredentials.id")
     client_credentials: Optional["ClientCredentials"] = Relationship(back_populates="apps")
     tools: List["Tool"] = Relationship(back_populates="app")
+    mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
+    mas: Optional["MultiAgentSystem"] = Relationship(back_populates="apps")
 
 
-######### APP TYPES #########
+class MultiAgentSystem(SQLModel, table=True):
+    """An entity describing a multi agent system, which is a set of apps."""
+
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    name: str
+    apps: List["App"] = Relationship(back_populates="mas")
+    created_at: datetime = datetime.now(timezone.utc)
 
 
 ######### User Input TYPES #########

@@ -14,7 +14,7 @@ from identity_auth_server.services.authorization_server import (
 
 """Expose authorizationService routes backed by the authorizationService service implementation."""
 
-router = APIRouter()
+router = APIRouter(tags=["Authorization Server"])
 
 
 @router.get("/health")

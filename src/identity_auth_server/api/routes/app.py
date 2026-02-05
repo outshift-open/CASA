@@ -9,7 +9,7 @@ from identity_auth_server.core.types import App
 from identity_auth_server.services.app_service import AppRequest, AppService
 from identity_auth_server.services.authorization_server import AuthorizationServerService
 
-router = APIRouter()
+router = APIRouter(tags=["Apps"])
 
 
 @router.post("/apps")
