@@ -15,7 +15,6 @@ import {
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {ChevronLeft, ChevronRight, Search} from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
@@ -23,17 +22,13 @@ interface DataTableProps<TData, TValue> {
     data: TData[];
     searchPlaceholder?: string;
     hideSearch?: boolean;
-    typeFilter?: string;
-    onTypeFilterChange?: (value: string) => void;
 }
 
-export function ApplicationsDataTable<TData, TValue>({
+export function MASDataTable<TData, TValue>({
     columns,
     data,
     searchPlaceholder = 'Search...',
-    hideSearch = false,
-    typeFilter = 'all',
-    onTypeFilterChange
+    hideSearch = false
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -73,19 +68,6 @@ export function ApplicationsDataTable<TData, TValue>({
                             className="pl-9"
                         />
                     </div>
-                    {onTypeFilterChange && (
-                        <Select value={typeFilter} onValueChange={onTypeFilterChange}>
-                            <SelectTrigger className="w-[150px]">
-                                <SelectValue placeholder="All types" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All types</SelectItem>
-                                <SelectItem value="agent">Agent</SelectItem>
-                                <SelectItem value="client">Client</SelectItem>
-                                <SelectItem value="mcp_server">MCP Server</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    )}
                 </div>
             )}
             <div className="rounded-md border">
@@ -122,14 +104,10 @@ export function ApplicationsDataTable<TData, TValue>({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-32 text-center">
-                                    <div className="flex flex-col items-center justify-center gap-2">
-                                        <p className="text-sm font-medium">No applications found</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {globalFilter
-                                                ? 'Try adjusting your search'
-                                                : 'Get started by creating a new application'}
-                                        </p>
+                                <TableCell colSpan={columns.length} className="h-24 text-center">
+                                    <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                        <p>No Multi-Agent Systems yet.</p>
+                                        <p className="text-sm">Create your first MAS to get started.</p>
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -137,7 +115,7 @@ export function ApplicationsDataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-2">
                 <div className="text-sm text-muted-foreground">
                     {table.getFilteredRowModel().rows.length} of {table.getCoreRowModel().rows.length} row(s)
                 </div>
@@ -151,11 +129,8 @@ export function ApplicationsDataTable<TData, TValue>({
                         <ChevronLeft className="h-4 w-4" />
                         Previous
                     </Button>
-                    <div className="flex items-center gap-1 text-sm">
-                        <span>Page</span>
-                        <strong>
-                            {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-                        </strong>
+                    <div className="text-sm font-medium">
+                        Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
                     </div>
                     <Button
                         variant="outline"

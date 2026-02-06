@@ -1,11 +1,14 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Shield, Lock, Activity, Loader2, AppWindow} from 'lucide-react';
+import {Shield, Lock, Activity, Loader2, AppWindow, Network} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
+import {useMAS} from '@/hooks/use-mas';
 import {useState} from 'react';
 
 export function DashboardPage() {
     const {data: appsData, isLoading, error} = useApps();
+    const {data: masData, isLoading: masLoading, error: masError} = useMAS();
     const totalApps = appsData?.total ?? 0;
+    const totalMAS = masData?.length ?? 0;
 
     // Generate random stats (these would come from real endpoints in production)
     const [activeSessions] = useState(() => Math.floor(Math.random() * 50) + 10);
@@ -14,7 +17,7 @@ export function DashboardPage() {
     return (
         <>
             <div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
@@ -29,6 +32,22 @@ export function DashboardPage() {
                                 <div className="text-2xl font-bold">{totalApps}</div>
                             )}
                             <p className="text-xs text-muted-foreground">Agents, Clients & MCP Servers</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Multi-Agent Systems</CardTitle>
+                            <Network className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            {masLoading ? (
+                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            ) : masError ? (
+                                <div className="text-sm text-destructive">Error</div>
+                            ) : (
+                                <div className="text-2xl font-bold">{totalMAS}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground">Configured MAS</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -80,6 +99,13 @@ export function DashboardPage() {
                                 <AppWindow className="h-4 w-4 mt-0.5 text-primary" />
                                 <div>
                                     <strong>Applications:</strong> Manage your agents, clients, and MCP servers
+                                </div>
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <Network className="h-4 w-4 mt-0.5 text-primary" />
+                                <div>
+                                    <strong>Multi-Agent Systems:</strong> Configure and orchestrate multi-agent
+                                    workflows
                                 </div>
                             </li>
                             <li className="flex items-start gap-2">

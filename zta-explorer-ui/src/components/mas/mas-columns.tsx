@@ -10,21 +10,14 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye} from 'lucide-react';
-import type {App, AppType} from '@/types/app.types';
+import type {MAS} from '@/types/mas.types';
+import {DateHover} from '@/components/ui/date-hover';
 
-const APP_TYPE_LABELS: Record<AppType, string> = {
-    agent: 'Agent',
-    client: 'Client',
-    mcp_server: 'MCP Server'
-};
-
-const APP_TYPE_VARIANTS: Record<AppType, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    agent: 'default',
-    client: 'secondary',
-    mcp_server: 'outline'
-};
-
-export const createColumns = (onDelete: (id: string) => void, navigate: (path: string) => void): ColumnDef<App>[] => [
+export const createMASColumns = (
+    onEdit: (mas: MAS) => void,
+    onDelete: (id: string) => void,
+    navigate: (path: string) => void
+): ColumnDef<MAS>[] => [
     {
         accessorKey: 'name',
         header: ({column}) => {
@@ -43,7 +36,7 @@ export const createColumns = (onDelete: (id: string) => void, navigate: (path: s
             return (
                 <div
                     className="font-medium cursor-pointer hover:underline"
-                    onClick={() => navigate(`/apps/${row.original.id}`)}
+                    onClick={() => navigate(`/mas/${row.original.id}`)}
                 >
                     {row.getValue('name')}
                 </div>
@@ -51,26 +44,34 @@ export const createColumns = (onDelete: (id: string) => void, navigate: (path: s
         }
     },
     {
-        accessorKey: 'type',
-        header: ({column}) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="cursor-pointer"
-                >
-                    Type
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            );
-        },
+        accessorKey: 'apps',
+        header: 'Applications',
         cell: ({row}) => {
-            const type = row.getValue('type') as AppType;
-            return <Badge variant={APP_TYPE_VARIANTS[type]}>{APP_TYPE_LABELS[type]}</Badge>;
+            const apps = row.getValue('apps') as MAS['apps'];
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {apps && apps.length > 0 ? (
+                        <>
+                            {apps.slice(0, 3).map((app) => (
+                                <Badge key={app.id} variant="secondary" className="text-xs">
+                                    {app.name}
+                                </Badge>
+                            ))}
+                            {apps.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                    +{apps.length - 3} more
+                                </Badge>
+                            )}
+                        </>
+                    ) : (
+                        <span className="text-xs text-muted-foreground">No apps</span>
+                    )}
+                </div>
+            );
         }
     },
     {
-        accessorKey: 'base_url',
+        accessorKey: 'created_at',
         header: ({column}) => {
             return (
                 <Button
@@ -78,43 +79,44 @@ export const createColumns = (onDelete: (id: string) => void, navigate: (path: s
                     onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
                     className="cursor-pointer"
                 >
-                    Base URL
+                    Created
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             );
         },
-        cell: ({row}) => <div className="text-sm text-muted-foreground">{row.getValue('base_url')}</div>
+        cell: ({row}) => <DateHover date={row.getValue('created_at')} className="text-sm" />
     },
     {
         id: 'actions',
         header: () => <div className="text-center">Actions</div>,
         cell: ({row}) => {
-            const app = row.original;
+            const mas = row.original;
             return (
                 <div className="flex justify-center">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="cursor-pointer">
+                            <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
+                                <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => navigate(`/apps/${app.id}`)} className="cursor-pointer">
+                            <DropdownMenuItem onClick={() => navigate(`/mas/${mas.id}`)} className="cursor-pointer">
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => navigate(`/apps/${app.id}/edit`)}
+                                onClick={() => navigate(`/mas/${mas.id}/edit`)}
                                 className="cursor-pointer"
                             >
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
+                                onClick={() => onDelete(mas.id)}
                                 className="text-destructive cursor-pointer"
-                                onClick={() => app.id && onDelete(app.id)}
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete

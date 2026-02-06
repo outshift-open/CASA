@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useLocation} from 'react-router-dom';
 import {
     Shield,
     Settings,
@@ -9,7 +10,8 @@ import {
     Bell,
     LogOut,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Network
 } from 'lucide-react';
 import {NavLink} from 'react-router-dom';
 
@@ -47,6 +49,11 @@ const mainNavItems = [
         title: 'Applications',
         url: '/applications',
         icon: AppWindow
+    },
+    {
+        title: 'Multi-Agent Systems',
+        url: '/mas',
+        icon: Network
     }
 ];
 
@@ -60,6 +67,20 @@ const bottomNavItems = [
 
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     const {toggleSidebar, state} = useSidebar();
+    const location = useLocation();
+
+    const isActiveRoute = (url: string) => {
+        if (url === '/') {
+            return location.pathname === '/';
+        }
+        if (url === '/applications') {
+            return location.pathname === '/applications' || location.pathname.startsWith('/apps');
+        }
+        if (url === '/mas') {
+            return location.pathname === '/mas' || location.pathname.startsWith('/mas/');
+        }
+        return location.pathname === url || location.pathname.startsWith(url + '/');
+    };
 
     return (
         <Sidebar collapsible="icon" {...props}>
@@ -84,7 +105,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenu>
                         {mainNavItems.map((item) => (
                             <SidebarMenuItem key={item.title}>
-                                <SidebarMenuButton tooltip={item.title} asChild>
+                                <SidebarMenuButton tooltip={item.title} asChild isActive={isActiveRoute(item.url)}>
                                     <NavLink to={item.url} end={item.url === '/'}>
                                         {item.icon && <item.icon />}
                                         <span>{item.title}</span>
@@ -99,7 +120,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenu>
                     {bottomNavItems.map((item) => (
                         <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton tooltip={item.title} asChild>
+                            <SidebarMenuButton tooltip={item.title} asChild isActive={isActiveRoute(item.url)}>
                                 <NavLink to={item.url}>
                                     {item.icon && <item.icon />}
                                     <span>{item.title}</span>
@@ -115,7 +136,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton
                                     size="lg"
-                                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
                                 >
                                     <Avatar className="h-8 w-8 rounded-lg">
                                         <AvatarFallback className="rounded-lg">AS</AvatarFallback>
@@ -147,16 +168,16 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem disabled>
+                                <DropdownMenuItem disabled className="cursor-pointer">
                                     <User className="mr-2 h-4 w-4" />
                                     Account
                                 </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
+                                <DropdownMenuItem disabled className="cursor-pointer">
                                     <Bell className="mr-2 h-4 w-4" />
                                     Notifications
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem disabled>
+                                <DropdownMenuItem disabled className="cursor-pointer">
                                     <LogOut className="mr-2 h-4 w-4" />
                                     Log out
                                 </DropdownMenuItem>
