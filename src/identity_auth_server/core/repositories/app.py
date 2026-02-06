@@ -1,6 +1,7 @@
 """PostgreSQL implementation of AppRepository."""
 
 from abc import ABC, abstractmethod
+from typing import List
 
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
@@ -25,8 +26,12 @@ class AppRepository(ABC):
         """Retrieve a app by app_id."""
 
     @abstractmethod
-    def get_all_apps(self) -> list[App]:
+    def get_all_apps(self) -> List[App]:
         """Retrieve all apps."""
+
+    @abstractmethod
+    def get_mas_apps(self, mas_id: str) -> List[App]:
+        """Retrieve all apps in a MAS."""
 
     @abstractmethod
     def delete_app(self, app_id: str) -> None:
@@ -70,10 +75,18 @@ class AppPostgresRepository(AppRepository):
         except Exception as e:
             raise Exception(f"Error retrieving app with id '{app_id}': {e}") from e
 
-    def get_all_apps(self) -> list[App]:
+    def get_all_apps(self) -> List[App]:
         """Retrieve all apps."""
         try:
             apps = self._session.exec(select(App)).all()
+            return list(apps)
+        except Exception as e:
+            raise Exception(f"Error retrieving apps: {e}") from e
+
+    def get_mas_apps(self, mas_id):
+        """Retrieve all apps in a MAS."""
+        try:
+            apps = self._session.exec(select(App).where(App.mas_id == mas_id)).all()
             return list(apps)
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
