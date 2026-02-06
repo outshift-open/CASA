@@ -46,14 +46,14 @@ const mainNavItems = [
         icon: LayoutDashboard
     },
     {
-        title: 'Applications',
-        url: '/applications',
-        icon: AppWindow
-    },
-    {
         title: 'Multi-Agent Systems',
         url: '/mas',
         icon: Network
+    },
+    {
+        title: 'Applications',
+        url: '/applications',
+        icon: AppWindow
     }
 ];
 

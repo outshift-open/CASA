@@ -1,6 +1,7 @@
 import {ColumnDef} from '@tanstack/react-table';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
+import {TextHover} from '@/components/ui/text-hover';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye} from 'lucide-react';
+import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye, Network} from 'lucide-react';
 import type {App, AppType} from '@/types/app.types';
 
 const APP_TYPE_LABELS: Record<AppType, string> = {
@@ -29,23 +30,30 @@ export const createColumns = (onDelete: (id: string) => void, navigate: (path: s
         accessorKey: 'name',
         header: ({column}) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="cursor-pointer"
-                >
-                    Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        className="cursor-pointer"
+                    >
+                        Name
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
             );
         },
         cell: ({row}) => {
+            const name = row.getValue('name') as string;
             return (
-                <div
-                    className="font-medium cursor-pointer hover:underline"
-                    onClick={() => navigate(`/apps/${row.original.id}`)}
-                >
-                    {row.getValue('name')}
+                <div className="flex justify-center">
+                    <TextHover text={name}>
+                        <div
+                            className="font-semibold cursor-pointer underline decoration-dotted hover:decoration-solid"
+                            onClick={() => navigate(`/apps/${row.original.id}`)}
+                        >
+                            {name}
+                        </div>
+                    </TextHover>
                 </div>
             );
         }
@@ -54,36 +62,101 @@ export const createColumns = (onDelete: (id: string) => void, navigate: (path: s
         accessorKey: 'type',
         header: ({column}) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="cursor-pointer"
-                >
-                    Type
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        className="cursor-pointer"
+                    >
+                        Type
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
             );
         },
         cell: ({row}) => {
             const type = row.getValue('type') as AppType;
-            return <Badge variant={APP_TYPE_VARIANTS[type]}>{APP_TYPE_LABELS[type]}</Badge>;
+            return (
+                <div className="flex justify-center">
+                    <Badge variant={APP_TYPE_VARIANTS[type]}>{APP_TYPE_LABELS[type]}</Badge>
+                </div>
+            );
         }
     },
     {
         accessorKey: 'base_url',
         header: ({column}) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="cursor-pointer"
-                >
-                    Base URL
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        className="cursor-pointer"
+                    >
+                        Base URL
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
             );
         },
-        cell: ({row}) => <div className="text-sm text-muted-foreground">{row.getValue('base_url')}</div>
+        cell: ({row}) => {
+            const baseUrl = row.getValue('base_url') as string;
+            return (
+                <div className="flex justify-center">
+                    <TextHover text={baseUrl} maxWidth="max-w-sm">
+                        <div className="text-sm text-muted-foreground">{baseUrl}</div>
+                    </TextHover>
+                </div>
+            );
+        }
+    },
+    {
+        accessorKey: 'mas_id',
+        header: ({column}) => {
+            return (
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        className="cursor-pointer"
+                    >
+                        Multi-Agent System
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
+            );
+        },
+        cell: ({row}) => {
+            const app = row.original;
+            const mas = app.mas;
+
+            if (!mas) {
+                return (
+                    <div className="flex justify-center">
+                        <span className="text-muted-foreground text-sm">-</span>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex justify-center">
+                    <TextHover text={mas.name} maxWidth="max-w-[200px]">
+                        <div
+                            className="flex items-center gap-1.5 cursor-pointer hover:decoration-solid min-w-0"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/mas/${mas.id}`);
+                            }}
+                        >
+                            <Network className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                            <span className="text-xs font-semibold underline decoration-dotted truncate">
+                                {mas.name}
+                            </span>
+                        </div>
+                    </TextHover>
+                </div>
+            );
+        }
     },
     {
         id: 'actions',

@@ -3,8 +3,10 @@ import {Shield, Lock, Activity, Loader2, AppWindow, Network} from 'lucide-react'
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
 import {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 
 export function DashboardPage() {
+    const navigate = useNavigate();
     const {data: appsData, isLoading, error} = useApps();
     const {data: masData, isLoading: masLoading, error: masError} = useMAS();
     const totalApps = appsData?.total ?? 0;
@@ -18,23 +20,7 @@ export function DashboardPage() {
         <>
             <div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-                            <AppWindow className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? (
-                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                            ) : error ? (
-                                <div className="text-sm text-destructive">Error</div>
-                            ) : (
-                                <div className="text-2xl font-bold">{totalApps}</div>
-                            )}
-                            <p className="text-xs text-muted-foreground">Agents, Clients & MCP Servers</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
+                    <Card className="cursor-pointer hover:bg-accent transition-colors" onClick={() => navigate('/mas')}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Multi-Agent Systems</CardTitle>
                             <Network className="h-4 w-4 text-muted-foreground" />
@@ -48,6 +34,25 @@ export function DashboardPage() {
                                 <div className="text-2xl font-bold">{totalMAS}</div>
                             )}
                             <p className="text-xs text-muted-foreground">Configured MAS</p>
+                        </CardContent>
+                    </Card>
+                    <Card
+                        className="cursor-pointer hover:bg-accent transition-colors"
+                        onClick={() => navigate('/applications')}
+                    >
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+                            <AppWindow className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            {isLoading ? (
+                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            ) : error ? (
+                                <div className="text-sm text-destructive">Error</div>
+                            ) : (
+                                <div className="text-2xl font-bold">{totalApps}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground">Agents, Clients & MCP Servers</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -95,17 +100,23 @@ export function DashboardPage() {
                             Use the sidebar to navigate between different sections:
                         </p>
                         <ul className="space-y-2 text-sm">
-                            <li className="flex items-start gap-2">
-                                <AppWindow className="h-4 w-4 mt-0.5 text-primary" />
-                                <div>
-                                    <strong>Applications:</strong> Manage your agents, clients, and MCP servers
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-2">
+                            <li
+                                className="flex items-start gap-2 cursor-pointer hover:bg-accent p-2 -m-2 rounded transition-colors"
+                                onClick={() => navigate('/mas')}
+                            >
                                 <Network className="h-4 w-4 mt-0.5 text-primary" />
                                 <div>
                                     <strong>Multi-Agent Systems:</strong> Configure and orchestrate multi-agent
                                     workflows
+                                </div>
+                            </li>
+                            <li
+                                className="flex items-start gap-2 cursor-pointer hover:bg-accent p-2 -m-2 rounded transition-colors"
+                                onClick={() => navigate('/applications')}
+                            >
+                                <AppWindow className="h-4 w-4 mt-0.5 text-primary" />
+                                <div>
+                                    <strong>Applications:</strong> Manage your agents, clients, and MCP servers
                                 </div>
                             </li>
                             <li className="flex items-start gap-2">

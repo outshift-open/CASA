@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {useMemo, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
@@ -6,6 +6,7 @@ import {MASDataTable} from './mas-data-table';
 import {createMASColumns} from './mas-columns';
 import {RefreshCw} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
+import {masService} from '@/services/mas.service';
 
 interface MASTableProps {
     data: MAS[];
@@ -18,7 +19,50 @@ interface MASTableProps {
 
 export function MASTable({data, total, isLoading, onEdit, onDelete, onRefresh}: MASTableProps) {
     const navigate = useNavigate();
-    const columns = useMemo(() => createMASColumns(onEdit, onDelete, navigate), [onEdit, onDelete, navigate]);
+    const [appCounts, setAppCounts] = useState<Record<string, number>>({});
+    const [countsLoading, setCountsLoading] = useState<Record<string, boolean>>({});
+    const [countsError, setCountsError] = useState<Record<string, boolean>>({});
+
+    // Fetch app counts for each MAS
+    useEffect(() => {
+        if (!data || data.length === 0) return;
+
+        const fetchAppCounts = async () => {
+            // Initialize loading state for all MAS
+            const loadingState: Record<string, boolean> = {};
+            data.forEach((mas) => {
+                loadingState[mas.id] = true;
+            });
+            setCountsLoading(loadingState);
+
+            const counts: Record<string, number> = {};
+            const errors: Record<string, boolean> = {};
+            const loading: Record<string, boolean> = {};
+
+            for (const mas of data) {
+                try {
+                    const apps = await masService.getMASApps(mas.id);
+                    counts[mas.id] = apps.length;
+                    errors[mas.id] = false;
+                } catch (_error) {
+                    counts[mas.id] = 0;
+                    errors[mas.id] = true;
+                }
+                loading[mas.id] = false;
+            }
+
+            setAppCounts(counts);
+            setCountsError(errors);
+            setCountsLoading(loading);
+        };
+
+        fetchAppCounts();
+    }, [data]);
+
+    const columns = useMemo(
+        () => createMASColumns(onEdit, onDelete, navigate, appCounts, countsLoading, countsError),
+        [onEdit, onDelete, navigate, appCounts, countsLoading, countsError]
+    );
     const hasData = data && data.length > 0;
 
     return (
