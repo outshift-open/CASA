@@ -9,6 +9,14 @@ export const useApps = () => {
     });
 };
 
+export const useAppById = (id: string) => {
+    return useQuery({
+        queryKey: ['apps', id],
+        queryFn: () => appService.getAppById(id),
+        enabled: !!id
+    });
+};
+
 export const useCreateApp = () => {
     const queryClient = useQueryClient();
 
@@ -25,8 +33,9 @@ export const useUpdateApp = () => {
 
     return useMutation({
         mutationFn: ({id, app}: {id: string; app: UpdateAppRequest}) => appService.updateApp(id, app),
-        onSuccess: () => {
+        onSuccess: (_, {id}) => {
             queryClient.invalidateQueries({queryKey: ['apps']});
+            queryClient.invalidateQueries({queryKey: ['apps', id]});
         }
     });
 };

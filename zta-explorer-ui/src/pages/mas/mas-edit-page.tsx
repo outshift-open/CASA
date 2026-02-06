@@ -1,5 +1,5 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useMAS, useUpdateMAS} from '@/hooks/use-mas';
+import {useMASById, useUpdateMAS} from '@/hooks/use-mas';
 import {useApps} from '@/hooks/use-apps';
 import {useState, useEffect} from 'react';
 import {useForm} from 'react-hook-form';
@@ -19,11 +19,9 @@ import {masSchema, type MASFormData} from '@/lib/validations/mas.schema';
 export function MASEditPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
-    const {data: masData, isLoading, error, refetch} = useMAS();
+    const {data: mas, isLoading, error, refetch} = useMASById(id || '');
     const {data: appsData} = useApps();
     const updateMAS = useUpdateMAS();
-
-    const mas = masData?.find((m) => m.id === id);
 
     const [selectedAppIds, setSelectedAppIds] = useState<Set<string>>(new Set());
     const [appSelectionError, setAppSelectionError] = useState<string>('');

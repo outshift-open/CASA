@@ -1,5 +1,5 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useApps, useDeleteApp} from '@/hooks/use-apps';
+import {useAppById, useDeleteApp} from '@/hooks/use-apps';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -25,11 +25,9 @@ const APP_TYPE_VARIANTS: Record<AppType, 'default' | 'secondary' | 'destructive'
 export function AppDetailPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
-    const {data, isLoading, error, refetch} = useApps();
+    const {data: app, isLoading, error, refetch} = useAppById(id || '');
     const deleteApp = useDeleteApp();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-    const app = data?.items?.find((a) => a.id === id);
 
     const handleDelete = async () => {
         if (!id) return;
@@ -37,7 +35,7 @@ export function AppDetailPage() {
         try {
             await deleteApp.mutateAsync(id);
             toast.success('Application deleted successfully');
-            navigate('/apps');
+            navigate('/applications');
         } catch (error) {
             console.error('Failed to delete app:', error);
             toast.error('Failed to delete application');
@@ -57,6 +55,7 @@ export function AppDetailPage() {
                             variant="outline"
                             onClick={() => navigate(`/apps/${id}/edit`)}
                             className="cursor-pointer"
+                            disabled={isLoading || !!error || !app}
                         >
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit
@@ -65,6 +64,7 @@ export function AppDetailPage() {
                             variant="destructive"
                             onClick={() => setIsDeleteDialogOpen(true)}
                             className="cursor-pointer"
+                            disabled={isLoading || !!error || !app}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
@@ -106,23 +106,6 @@ export function AppDetailPage() {
                                             <p className="text-sm font-medium text-muted-foreground">Base URL</p>
                                             <p className="text-base font-mono text-sm">{app.base_url}</p>
                                         </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <p className="text-sm font-medium text-muted-foreground">
-                                            Tools ({app.tools?.length || 0})
-                                        </p>
-                                        {app.tools && app.tools.length > 0 ? (
-                                            <div className="flex flex-wrap gap-2">
-                                                {app.tools.map((tool, index) => (
-                                                    <Badge key={index} variant="outline">
-                                                        {tool}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">No tools configured</p>
-                                        )}
                                     </div>
                                 </CardContent>
                             </Card>

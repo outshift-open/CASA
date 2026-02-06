@@ -10,6 +10,11 @@ export const appService = {
         };
     },
 
+    getAppById: async (id: string): Promise<App> => {
+        const {data} = await apiClient.get(`/apps/${id}`);
+        return data;
+    },
+
     createApp: async (app: CreateAppRequest): Promise<App> => {
         const {data} = await apiClient.post('/apps', app);
         return data;

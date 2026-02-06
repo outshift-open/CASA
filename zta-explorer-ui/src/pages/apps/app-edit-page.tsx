@@ -1,5 +1,5 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useApps, useUpdateApp} from '@/hooks/use-apps';
+import {useAppById, useUpdateApp} from '@/hooks/use-apps';
 import {useForm, Controller} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
@@ -16,10 +16,8 @@ import {applicationSchema, type ApplicationFormData} from '@/lib/validations/app
 export function AppEditPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
-    const {data, isLoading, error, refetch} = useApps();
+    const {data: app, isLoading, error, refetch} = useAppById(id || '');
     const updateApp = useUpdateApp();
-
-    const app = data?.items?.find((a) => a.id === id);
 
     const {
         register,

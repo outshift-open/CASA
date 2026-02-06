@@ -8,6 +8,14 @@ export const useMAS = () => {
     });
 };
 
+export const useMASById = (id: string) => {
+    return useQuery({
+        queryKey: ['mas', id],
+        queryFn: () => masService.getMASById(id),
+        enabled: !!id
+    });
+};
+
 export const useCreateMAS = () => {
     const queryClient = useQueryClient();
 
@@ -42,8 +50,9 @@ export const useUpdateMAS = () => {
 
             return mas;
         },
-        onSuccess: () => {
+        onSuccess: (_, {id}) => {
             queryClient.invalidateQueries({queryKey: ['mas']});
+            queryClient.invalidateQueries({queryKey: ['mas', id]});
         }
     });
 };

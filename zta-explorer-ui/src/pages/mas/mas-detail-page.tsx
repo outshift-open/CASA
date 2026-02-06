@@ -1,5 +1,5 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useMAS, useDeleteMAS} from '@/hooks/use-mas';
+import {useMASById, useDeleteMAS} from '@/hooks/use-mas';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -12,11 +12,9 @@ import {useState} from 'react';
 export function MASDetailPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
-    const {data, isLoading, error, refetch} = useMAS();
+    const {data: mas, isLoading, error, refetch} = useMASById(id || '');
     const deleteMAS = useDeleteMAS();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-    const mas = data?.find((m) => m.id === id);
 
     const handleDelete = async () => {
         if (!id) return;
@@ -44,6 +42,7 @@ export function MASDetailPage() {
                             variant="outline"
                             onClick={() => navigate(`/mas/${id}/edit`)}
                             className="cursor-pointer"
+                            disabled={isLoading || !!error || !mas}
                         >
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit
@@ -52,6 +51,7 @@ export function MASDetailPage() {
                             variant="destructive"
                             onClick={() => setIsDeleteDialogOpen(true)}
                             className="cursor-pointer"
+                            disabled={isLoading || !!error || !mas}
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete

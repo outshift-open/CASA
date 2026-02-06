@@ -7,6 +7,11 @@ export const masService = {
         return Array.isArray(data) ? data : [];
     },
 
+    getMASById: async (id: string): Promise<MAS> => {
+        const {data} = await apiClient.get(`/mas/${id}`);
+        return data;
+    },
+
     createMAS: async (mas: CreateMASRequest): Promise<MAS> => {
         const {data} = await apiClient.put('/mas', mas);
         return data;
