@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
 from identity_auth_server.core.types import App, Tool
@@ -78,7 +79,7 @@ class AppPostgresRepository(AppRepository):
     def get_all_apps(self) -> List[App]:
         """Retrieve all apps."""
         try:
-            apps = self._session.exec(select(App)).all()
+            apps = self._session.exec(select(App).options(joinedload(App.mas))).all()
             return list(apps)
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
@@ -86,7 +87,7 @@ class AppPostgresRepository(AppRepository):
     def get_mas_apps(self, mas_id):
         """Retrieve all apps in a MAS."""
         try:
-            apps = self._session.exec(select(App).where(App.mas_id == mas_id)).all()
+            apps = self._session.exec(select(App).where(App.mas_id == mas_id).options(joinedload(App.mas))).all()
             return list(apps)
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
