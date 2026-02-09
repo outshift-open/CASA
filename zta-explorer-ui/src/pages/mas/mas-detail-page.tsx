@@ -1,10 +1,11 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useMASById, useMASApps, useDeleteMAS} from '@/hooks/use-mas';
+import {useMASById, useDeleteMAS} from '@/hooks/use-mas';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
+import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {MASDeleteDialog, MASAppsTable} from '@/components/mas';
-import {Pencil, Trash2} from 'lucide-react';
+import {MASDeleteDialog, MASInfoTab, MASTracesTab} from '@/components/mas';
+import {Pencil, Trash2, Info, Activity} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 
@@ -12,9 +13,9 @@ export function MASDetailPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
     const {data: mas, isLoading, error, refetch} = useMASById(id || '');
-    const {data: apps, isLoading: appsLoading, error: appsError} = useMASApps(id || '');
     const deleteMAS = useDeleteMAS();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('info');
 
     const handleDelete = async () => {
         if (!id) return;
@@ -70,38 +71,29 @@ export function MASDetailPage() {
                     {mas && (
                         <div className="grid gap-6">
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>{mas.name}</CardTitle>
-                                    <CardDescription>Multi-Agent System configuration and applications</CardDescription>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                                    <div>
+                                        <CardTitle>{mas.name}</CardTitle>
+                                        <CardDescription>
+                                            Multi-Agent System configuration and applications
+                                        </CardDescription>
+                                    </div>
+                                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                                        <TabsList>
+                                            <TabsTrigger value="info">
+                                                <Info className="mr-2 h-4 w-4" />
+                                                Info
+                                            </TabsTrigger>
+                                            <TabsTrigger value="traces">
+                                                <Activity className="mr-2 h-4 w-4" />
+                                                Traces
+                                            </TabsTrigger>
+                                        </TabsList>
+                                    </Tabs>
                                 </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <div className="grid gap-4">
-                                        <div className="space-y-2">
-                                            <p className="text-sm font-medium text-muted-foreground">Name</p>
-                                            <p className="text-base">{mas.name}</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <p className="text-sm font-medium text-muted-foreground">Created</p>
-                                            <p className="text-base">{new Date(mas.created_at).toLocaleString()}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <p className="text-sm font-medium text-muted-foreground">
-                                            Applications ({apps?.length || 0})
-                                        </p>
-                                        {appsLoading ? (
-                                            <p className="text-sm text-muted-foreground">Loading applications...</p>
-                                        ) : appsError ? (
-                                            <p className="text-sm text-destructive">Error loading applications</p>
-                                        ) : apps && apps.length > 0 ? (
-                                            <MASAppsTable apps={apps} isLoading={appsLoading} />
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">
-                                                No applications associated with this MAS
-                                            </p>
-                                        )}
-                                    </div>
+                                <CardContent>
+                                    {activeTab === 'info' && <MASInfoTab mas={mas} />}
+                                    {activeTab === 'traces' && <MASTracesTab />}
                                 </CardContent>
                             </Card>
                         </div>
