@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
-from identity_auth_server.core.types import App, Tool
+from identity_auth_server.core.types import App, Scope, Tool
 
 
 class AppRepository(ABC):
@@ -35,6 +35,10 @@ class AppRepository(ABC):
     @abstractmethod
     def create_tool(self, tool: Tool) -> Tool:
         """Create a new tool."""
+
+    @abstractmethod
+    def get_or_create_scopes(self, scope_names: list[str]) -> list[Scope]:
+        """Get or create scopes by name."""
 
 
 class AppPostgresRepository(AppRepository):
@@ -95,3 +99,25 @@ class AppPostgresRepository(AppRepository):
             raise ValueError(f"Tool with tool_id '{tool.id}' already exists") from e
         except Exception as e:
             raise Exception(f"Error creating tool: {e}") from e
+
+    def get_or_create_scopes(self, scope_names: list[str]) -> list[Scope]:
+        """Get existing scopes and create missing ones."""
+        if not scope_names:
+            return []
+
+        unique_names = list({name.strip() for name in scope_names if name.strip()})
+        if not unique_names:
+            return []
+
+        existing_scopes = self._session.exec(select(Scope).where(Scope.name.in_(unique_names))).all()
+        existing_by_name = {scope.name: scope for scope in existing_scopes}
+
+        created_scopes: list[Scope] = []
+        for name in unique_names:
+            if name in existing_by_name:
+                continue
+            scope = Scope(name=name)
+            self._session.add(scope)
+            created_scopes.append(scope)
+
+        return list(existing_scopes) + created_scopes

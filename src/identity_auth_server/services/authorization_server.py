@@ -216,7 +216,7 @@ class AuthorizationServerService:
         if actor_app.authorization_server is None:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
 
-        processed_tools = self._process_requested_tools(request, subject_token)
+        processed_tools = self._process_requested_tools(request, subject_token, actor_app)
         approved_tools = [tool.name for tool in processed_tools if not tool.blocked]
 
         act = ActorClaim(sub=request.client_id)
@@ -278,13 +278,18 @@ class AuthorizationServerService:
         return TokenResponse(access_token=token)
 
     def _process_requested_tools(
-        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse
+        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse, actor_app: App
     ) -> List[ProcessedTool]:
         processed_tools = []
 
         if request.mcp_server_url and request.tools:
             mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
             user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
+            subject_scopes = set((subject_token.scope or "").split())
+            tool_scopes_by_name: dict[str, set[str]] = {}
+            for tool in actor_app.tools:
+                if tool.scopes:
+                    tool_scopes_by_name[tool.name] = {scope.name for scope in tool.scopes}
             traces = self.tracer.get_traces_by_user_input_and_event_type(
                 subject_token.user_input_id,
                 LLMCallEndedEvent.__name__,
@@ -311,6 +316,13 @@ class AuthorizationServerService:
                     processed_tool.blocked = True
                     processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
                     processed_tool.blocking_reason = MCPToolBlockingReason.TOOL_NOT_SELECTED_BY_LLM
+                    continue
+
+                required_scopes = tool_scopes_by_name.get(tool, set())
+                if required_scopes and not required_scopes.issubset(subject_scopes):
+                    processed_tool.blocked = True
+                    processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
+                    processed_tool.blocking_reason = MCPToolBlockingReason.INSUFFICIENT_SCOPE
                     continue
 
                 match = self.task_tool_matcher.match(

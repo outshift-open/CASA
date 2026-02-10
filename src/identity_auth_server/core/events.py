@@ -53,6 +53,7 @@ class MCPToolBlockingReason(StrEnum):
     TOOL_INTENT_MISMATCH = "tool_intent_mismatch"
     TOOL_PARAMETERS_MISMATCH = "tool_parameters_mismatch"
     MODIFIED_MCP_TOOL_DEFS = "modified_mcp_tool_defs"
+    INSUFFICIENT_SCOPE = "insufficient_scope"
 
 
 class MCPToolBlockingType(StrEnum):

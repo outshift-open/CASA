@@ -21,7 +21,7 @@ class ToolRequest(BaseModel):
     description: str
     input_schema: str
     output_schema: str
-
+    scopes: list[str] | None = None
 
 class AppRequest(BaseModel):
     """Request model for app creation and updates."""
@@ -58,6 +58,7 @@ class AppService:
                     description=tool.description,
                     input_schema=tool.input_schema,
                     output_schema=tool.output_schema,
+                    scopes=self.app_repository.get_or_create_scopes(tool.scopes or []),
                 )
                 for tool in request.tools
             ],
@@ -88,6 +89,7 @@ class AppService:
                 description=tool.description,
                 input_schema=tool.input_schema,
                 output_schema=tool.output_schema,
+                scopes=self.app_repository.get_or_create_scopes(tool.scopes or []),
             )
             for tool in request.tools
         ]
