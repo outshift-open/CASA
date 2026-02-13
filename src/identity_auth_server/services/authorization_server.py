@@ -133,7 +133,7 @@ class AuthorizationServerService:
         logger.debug(f"Creating client credentials in Keycloak for app {app.id}")
 
         client_credentials = self.keycloak_manager.create_client_credentials(
-            authorization_server, client_credentials, self.app_metadata(app.id)
+            authorization_server, client_credentials, self.app_metadata(app_id)
         )
         # Add all scopes from the app to the authorization server
         self.keycloak_manager.add_authorization_server_scopes(
@@ -205,6 +205,8 @@ class AuthorizationServerService:
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
         subject_token = self._introspect_token(token=request.subject_token)
+        if subject_token.app_id is None:
+            raise Exception("Invalid subject_token: missing app_id.")
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id)
         if subject_app is None:
             raise Exception("Invalid subject_token.")
@@ -225,7 +227,7 @@ class AuthorizationServerService:
 
         scopes: list[str] = []
         if request.scope:
-            scopes = [s for s in request.scope.split("") if s]
+            scopes = [s for s in request.scope.split() if s]
 
         if approved_tools:
             scopes.append("call-tools")
@@ -282,6 +284,9 @@ class AuthorizationServerService:
     ) -> List[ProcessedTool]:
         processed_tools = []
 
+        if subject_token.user_input_id is None:
+            raise Exception("Invalid subject_token: missing user_input_id.")
+
         if request.mcp_server_url and request.tools:
             mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
             user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
@@ -299,11 +304,11 @@ class AuthorizationServerService:
                 event = LLMCallEndedEvent(**trace.event)
                 if event.token != request.subject_token:
                     continue
-                matches = re.findall(r"name='(.*?)'", event.tools)
+                matches = re.findall(r"name='(.*?)'", event.tools or "")
                 if matches:
                     llm_selected_tools = llm_selected_tools + list(set(matches))
-            for tool in list(set(request.tools)):
-                processed_tool = ProcessedTool(name=tool)
+            for tool_name in list(set(request.tools)):
+                processed_tool = ProcessedTool(name=tool_name)
                 processed_tools.append(processed_tool)
 
                 if len(traces) == 0:
@@ -312,13 +317,13 @@ class AuthorizationServerService:
                     processed_tool.blocking_reason = MCPToolBlockingReason.NO_LLM_CALLS_MADE_BY_APP
                     continue
 
-                if tool not in llm_selected_tools:
+                if tool_name not in llm_selected_tools:
                     processed_tool.blocked = True
                     processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
                     processed_tool.blocking_reason = MCPToolBlockingReason.TOOL_NOT_SELECTED_BY_LLM
                     continue
 
-                required_scopes = tool_scopes_by_name.get(tool, set())
+                required_scopes = tool_scopes_by_name.get(tool_name, set())
                 if required_scopes and not required_scopes.issubset(subject_scopes):
                     processed_tool.blocked = True
                     processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
@@ -328,7 +333,7 @@ class AuthorizationServerService:
                 match = self.task_tool_matcher.match(
                     TaskToolMatchInput(
                         task=user_input.prompt,
-                        requested_tool=tool,
+                        requested_tool=tool_name,
                         mcp_server=mcp_server,
                     )
                 )
@@ -395,10 +400,10 @@ class AuthorizationServerService:
             scope=claims.get("scope"),
             exp=claims.get("exp"),
             act=act,
-            extra=claims.get("extra"),
+            other=claims.get("extra"),
             user_input_id=claims.get("uiid"),
             app_id=app_id,
-            tools_claim=tools_claim,
+            tools=tools_claim,
             active=True,
         )
 

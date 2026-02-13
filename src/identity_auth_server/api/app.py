@@ -10,6 +10,7 @@ from identity_auth_server.api.dependencies import Container
 from identity_auth_server.api.routes import app as app_routes
 from identity_auth_server.api.routes import authorization as authorization_routes
 from identity_auth_server.api.routes import multi_agent_system as mas_routes
+from identity_auth_server.api.routes import scope as scope_routes
 from identity_auth_server.api.routes import trace as trace_routes
 
 # Configure logging
@@ -32,6 +33,7 @@ app.include_router(authorization_routes.router)
 app.include_router(app_routes.router)
 app.include_router(trace_routes.router)
 app.include_router(mas_routes.router)
+app.include_router(scope_routes.router)
 
 # Allow all origins (for local development)
 app.add_middleware(

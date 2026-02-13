@@ -33,16 +33,28 @@ def get_apps(
     return app_service.get_all_apps()
 
 
-@router.get("/apps/{app_id}")
+@router.get("/apps/{app_id}", response_model=None)
 def get_app(
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
     app_id: str,
-) -> App:
+) -> dict:
     """Get an App by ID."""
     app = app_service.get_app_by_id(app_id)
     if not app:
         raise HTTPException(status_code=404, detail=f"App with id '{app_id}' not found")
-    return app
+    payload = app.model_dump(mode="json", exclude_none=True)
+    payload["tools"] = [
+        {
+            "id": tool.id,
+            "name": tool.name,
+            "description": tool.description,
+            "input_schema": tool.input_schema,
+            "output_schema": tool.output_schema,
+            "scopes": [{"id": scope.id, "name": scope.name} for scope in tool.scopes],
+        }
+        for tool in app.tools
+    ]
+    return payload
 
 
 @router.put("/apps/{app_id}")

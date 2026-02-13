@@ -1,5 +1,7 @@
 """Data models for AS."""
 
+# mypy: disable-error-code="call-arg"
+
 from datetime import date, datetime, timezone
 from enum import Enum
 from typing import List, Optional

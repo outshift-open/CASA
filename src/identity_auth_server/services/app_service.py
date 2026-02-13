@@ -7,7 +7,8 @@ from pydantic import BaseModel
 
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
-from identity_auth_server.core.types import App, AppType, Tool
+from identity_auth_server.core.repositories.scope import ScopeRepository
+from identity_auth_server.core.types import App, AppType, Scope, Tool
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ class ToolRequest(BaseModel):
     input_schema: str
     output_schema: str
     scopes: list[str] | None = None
+
 
 class AppRequest(BaseModel):
     """Request model for app creation and updates."""
@@ -38,13 +40,34 @@ class AppService:
     def __init__(
         self,
         app_repository: AppRepository,
+        scope_repository: ScopeRepository,
         keycloak_manager: KeycloakManager,
         auth_repository: AuthorizationServerRepository,
     ):
         """Initialize the app service."""
         self.app_repository = app_repository
+        self.scope_repository = scope_repository
         self.keycloak_manager = keycloak_manager
         self.auth_repository = auth_repository
+
+    def _resolve_scopes(self, scope_names: list[str] | None) -> list[Scope]:
+        if not scope_names:
+            return []
+
+        cleaned_names = [name.strip() for name in scope_names if name.strip()]
+        if not cleaned_names:
+            return []
+
+        existing_scopes = self.scope_repository.get_scopes_by_names(cleaned_names)
+        existing_by_name = {scope.name: scope for scope in existing_scopes}
+
+        for name in cleaned_names:
+            if name in existing_by_name:
+                continue
+            created = self.scope_repository.create_scope(Scope(name=name))
+            existing_by_name[name] = created
+
+        return list(existing_by_name.values())
 
     def create_app(self, request: AppRequest) -> App:
         """Create app."""
@@ -58,7 +81,7 @@ class AppService:
                     description=tool.description,
                     input_schema=tool.input_schema,
                     output_schema=tool.output_schema,
-                    scopes=self.app_repository.get_or_create_scopes(tool.scopes or []),
+                    scopes=self._resolve_scopes(tool.scopes),
                 )
                 for tool in request.tools
             ],
@@ -89,7 +112,7 @@ class AppService:
                 description=tool.description,
                 input_schema=tool.input_schema,
                 output_schema=tool.output_schema,
-                scopes=self.app_repository.get_or_create_scopes(tool.scopes or []),
+                scopes=self._resolve_scopes(tool.scopes),
             )
             for tool in request.tools
         ]

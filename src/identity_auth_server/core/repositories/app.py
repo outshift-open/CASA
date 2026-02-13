@@ -3,9 +3,10 @@
 from abc import ABC, abstractmethod
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
-from identity_auth_server.core.types import App, Scope, Tool
+from identity_auth_server.core.types import App, Tool
 
 
 class AppRepository(ABC):
@@ -29,16 +30,12 @@ class AppRepository(ABC):
         """Retrieve all apps."""
 
     @abstractmethod
-    def delete_app(self, app_id: str) -> None:
-        """Delete an app by app_id."""
+    def delete_app(self, app: App) -> None:
+        """Delete an app."""
 
     @abstractmethod
     def create_tool(self, tool: Tool) -> Tool:
         """Create a new tool."""
-
-    @abstractmethod
-    def get_or_create_scopes(self, scope_names: list[str]) -> list[Scope]:
-        """Get or create scopes by name."""
 
 
 class AppPostgresRepository(AppRepository):
@@ -69,8 +66,10 @@ class AppPostgresRepository(AppRepository):
     def get_app_by_id(self, app_id: str) -> App | None:
         """Retrieve an app by its ID."""
         try:
-            app = self._session.get(App, app_id)
-            return app
+            app = self._session.exec(
+                select(App).where(App.id == app_id).options(joinedload(App.tools).joinedload(Tool.scopes))
+            )
+            return app.first()
         except Exception as e:
             raise Exception(f"Error retrieving app with id '{app_id}': {e}") from e
 
@@ -99,25 +98,3 @@ class AppPostgresRepository(AppRepository):
             raise ValueError(f"Tool with tool_id '{tool.id}' already exists") from e
         except Exception as e:
             raise Exception(f"Error creating tool: {e}") from e
-
-    def get_or_create_scopes(self, scope_names: list[str]) -> list[Scope]:
-        """Get existing scopes and create missing ones."""
-        if not scope_names:
-            return []
-
-        unique_names = list({name.strip() for name in scope_names if name.strip()})
-        if not unique_names:
-            return []
-
-        existing_scopes = self._session.exec(select(Scope).where(Scope.name.in_(unique_names))).all()
-        existing_by_name = {scope.name: scope for scope in existing_scopes}
-
-        created_scopes: list[Scope] = []
-        for name in unique_names:
-            if name in existing_by_name:
-                continue
-            scope = Scope(name=name)
-            self._session.add(scope)
-            created_scopes.append(scope)
-
-        return list(existing_scopes) + created_scopes
