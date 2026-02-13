@@ -1,7 +1,7 @@
 """Data models for AS."""
 
 from datetime import date, datetime, timezone
-from enum import Enum
+from enum import Enum, IntFlag, auto
 from typing import List, Optional
 from uuid import UUID, uuid4
 
@@ -38,6 +38,12 @@ class Tool(SQLModel, table=True):
     app: Optional["App"] = Relationship(back_populates="tools")
 
 
+class ToolCheckFlags(IntFlag):
+    DETERMINISTIC_TOOL_SELECTED = auto()
+    DETERMINISTIC_LLM_SELECTED_TOOLS = auto()
+    AI_POWERED_TOOL_MATCH = auto()
+
+
 class App(SQLModel, table=True):
     """Input model for creating an app."""
 
@@ -60,6 +66,11 @@ class MultiAgentSystem(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     name: str
     apps: List["App"] = Relationship(back_populates="mas")
+    enabled_tool_checks: Optional[ToolCheckFlags] = Field(
+        default=ToolCheckFlags.DETERMINISTIC_TOOL_SELECTED
+        | ToolCheckFlags.DETERMINISTIC_LLM_SELECTED_TOOLS
+        | ToolCheckFlags.AI_POWERED_TOOL_MATCH
+    )
     created_at: datetime = datetime.now(timezone.utc)
 
 
