@@ -6,6 +6,7 @@ from typing import Any, cast
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
+from identity_auth_server.core.exceptions import ResourceAlreadyExistsError
 from identity_auth_server.core.types import Scope
 
 
@@ -52,9 +53,12 @@ class ScopePostgresRepository(ScopeRepository):
         """Create a new scope in the database."""
         try:
             self._session.add(scope)
+            # Force SQL execution now (not at request teardown commit) so unique
+            # constraint violations can be returned as proper HTTP errors.
+            self._session.flush()
             return scope
         except IntegrityError as e:
-            raise ValueError(f"Scope with name '{scope.name}' already exists") from e
+            raise ResourceAlreadyExistsError(f"Scope with name '{scope.name}' already exists") from e
         except Exception as e:
             raise Exception(f"Error creating scope: {e}") from e
 
@@ -62,7 +66,11 @@ class ScopePostgresRepository(ScopeRepository):
         """Update an existing scope in the database."""
         try:
             self._session.add(scope)
+            # Same rationale as create: surface constraint violations immediately.
+            self._session.flush()
             return scope
+        except IntegrityError as e:
+            raise ResourceAlreadyExistsError(f"Scope with name '{scope.name}' already exists") from e
         except Exception as e:
             raise Exception(f"Error updating scope with id '{scope.id}': {e}") from e
 

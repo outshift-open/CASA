@@ -5,6 +5,7 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException
 
 from identity_auth_server.api.dependencies import Container
+from identity_auth_server.core.exceptions import ResourceAlreadyExistsError, ResourceNotFoundError
 from identity_auth_server.core.types import Scope
 from identity_auth_server.services.scope_service import ScopeRequest, ScopeService
 
@@ -17,7 +18,12 @@ def create_scope(
     request: ScopeRequest,
 ) -> Scope:
     """Create a new scope."""
-    return scope_service.create_scope(request)
+    try:
+        return scope_service.create_scope(request)
+    except ResourceAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/scopes")
@@ -49,8 +55,12 @@ def update_scope(
     """Update an existing scope."""
     try:
         return scope_service.update_scope(scope_id, request)
-    except ValueError as e:
+    except ResourceNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ResourceAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/scopes/{scope_id}")
@@ -61,7 +71,7 @@ def delete_scope(
     """Delete a scope."""
     try:
         scope_service.delete_scope(scope_id)
-    except ValueError as e:
+    except ResourceNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
     return {"message": f"Scope with id '{scope_id}' deleted successfully"}

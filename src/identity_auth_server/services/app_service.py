@@ -5,6 +5,7 @@ from typing import List
 
 from pydantic import BaseModel
 
+from identity_auth_server.core.exceptions import ResourceAlreadyExistsError
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.repositories.scope import ScopeRepository
@@ -64,8 +65,13 @@ class AppService:
         for name in cleaned_names:
             if name in existing_by_name:
                 continue
-            created = self.scope_repository.create_scope(Scope(name=name))
-            existing_by_name[name] = created
+            try:
+                created = self.scope_repository.create_scope(Scope(name=name))
+                existing_by_name[name] = created
+            except ResourceAlreadyExistsError:
+                scope = self.scope_repository.get_scope_by_name(name)
+                if scope is not None:
+                    existing_by_name[name] = scope
 
         return list(existing_by_name.values())
 
