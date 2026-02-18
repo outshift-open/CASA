@@ -1,12 +1,12 @@
 """Data models for AS."""
 
 from datetime import date, datetime, timezone
-from enum import Enum
+from enum import Enum, IntFlag
 from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Column, Field, Integer, Relationship, SQLModel
 
 # pylint: disable=too-few-public-methods
 
@@ -38,6 +38,13 @@ class Tool(SQLModel, table=True):
     app: Optional["App"] = Relationship(back_populates="tools")
 
 
+class ToolCheckFlags(IntFlag):
+    NONE = 0
+    DETERMINISTIC_TOOL_SELECTED = 1 << 0
+    DETERMINISTIC_LLM_SELECTED_TOOLS = 1 << 1
+    AI_POWERED_TOOL_MATCH = 1 << 2
+
+
 class App(SQLModel, table=True):
     """Input model for creating an app."""
 
@@ -60,6 +67,12 @@ class MultiAgentSystem(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     name: str
     apps: List["App"] = Relationship(back_populates="mas")
+    enabled_tool_checks: Optional[ToolCheckFlags] = Field(
+        default=ToolCheckFlags.DETERMINISTIC_TOOL_SELECTED
+        | ToolCheckFlags.DETERMINISTIC_LLM_SELECTED_TOOLS
+        | ToolCheckFlags.AI_POWERED_TOOL_MATCH,
+        sa_column=Column(Integer, nullable=False),
+    )
     created_at: datetime = datetime.now(timezone.utc)
 
 

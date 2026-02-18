@@ -6,6 +6,12 @@ from fastapi import Depends
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session
 
+from identity_auth_server.checks.checks import (
+    LlmSelectedToolsDeterministicCheck,
+    ToolIntentAICheck,
+    ToolSelectedDeterministicCheck,
+)
+from identity_auth_server.checks.factory import ToolCheckFactory
 from identity_auth_server.core.repositories.app import AppPostgresRepository, AppRepository
 from identity_auth_server.core.repositories.authorization_server import (
     AuthorizationServerPostgresRepository,
@@ -167,6 +173,16 @@ class Container:
         return Tracer(tracer_repository=tracer_repository)
 
     @staticmethod
+    def get_tool_check_factory(task_tool_matcher: Annotated[TaskToolMatcher, Depends(get_task_tool_matcher)]):
+        return ToolCheckFactory(
+            checks=[
+                ToolSelectedDeterministicCheck(),
+                LlmSelectedToolsDeterministicCheck(),
+                ToolIntentAICheck(task_tool_matcher),
+            ]
+        )
+
+    @staticmethod
     def get_authorization_service(
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
@@ -175,6 +191,7 @@ class Container:
         task_tool_matcher: Annotated[TaskToolMatcher, Depends(get_task_tool_matcher)],
         user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
         tracer: Annotated[Tracer, Depends(get_tracer)],
+        tool_check_factory: Annotated[ToolCheckFactory, Depends(get_tool_check_factory)],
     ):
         return AuthorizationServerService(
             authorization_server_repository,
@@ -185,6 +202,7 @@ class Container:
             task_tool_matcher=task_tool_matcher,
             user_input_repository=user_input_repository,
             tracer=tracer,
+            tool_check_factory=tool_check_factory,
         )
 
     @staticmethod
