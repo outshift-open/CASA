@@ -41,12 +41,17 @@ class BaseToolCheck(ABC):
 
 @dataclass(frozen=True)
 class AndToolCheck(BaseToolCheck):
+    flag = ToolCheckFlags.NONE
     first: BaseToolCheck
     second: BaseToolCheck
 
     def is_satisfied(self, payload: Payload) -> CheckResult:
+        if self.first is None and self.second is None:
+            return CheckResult(satisfied=True)
+
         if self.first is None or self.second is None:
-            return False
+            return CheckResult(satisfied=False)
+
         check_result = self.first.is_satisfied(payload)
         if not check_result.satisfied:
             return check_result

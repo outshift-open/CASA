@@ -51,6 +51,9 @@ class ToolIntentAICheck(BaseToolCheck):
             )
         )
         if not match.task_tool_match:
+            # TODO: store them for caching purposes?
             check_result.satisfied = False
             check_result.blocking_type = MCPToolBlockingType.AI_POWERED
             check_result.blocking_reason = MCPToolBlockingReason.TOOL_INTENT_MISMATCH
+
+        return check_result
