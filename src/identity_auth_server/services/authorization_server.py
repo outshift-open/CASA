@@ -133,7 +133,7 @@ class AuthorizationServerService:
         logger.debug(f"Creating client credentials in Keycloak for app {app.id}")
 
         client_credentials = self.keycloak_manager.create_client_credentials(
-            authorization_server, client_credentials, self.app_metadata(app_id)
+            authorization_server, client_credentials, self.app_metadata(app.id)
         )
         # Add all scopes from the app to the authorization server
         self.keycloak_manager.add_authorization_server_scopes(
@@ -205,8 +205,6 @@ class AuthorizationServerService:
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
         subject_token = self._introspect_token(token=request.subject_token)
-        if subject_token.app_id is None:
-            raise Exception("Invalid subject_token: missing app_id.")
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id)
         if subject_app is None:
             raise Exception("Invalid subject_token.")
@@ -218,7 +216,7 @@ class AuthorizationServerService:
         if actor_app.authorization_server is None:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
 
-        processed_tools = self._process_requested_tools(request, subject_token, actor_app)
+        processed_tools = self._process_requested_tools(request, subject_token)
         approved_tools = [tool.name for tool in processed_tools if not tool.blocked]
 
         act = ActorClaim(sub=request.client_id)
@@ -227,7 +225,7 @@ class AuthorizationServerService:
 
         scopes: list[str] = []
         if request.scope:
-            scopes = [s for s in request.scope.split() if s]
+            scopes = [s for s in request.scope.split("") if s]
 
         if approved_tools:
             scopes.append("call-tools")
@@ -280,21 +278,13 @@ class AuthorizationServerService:
         return TokenResponse(access_token=token)
 
     def _process_requested_tools(
-        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse, actor_app: App
+        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse
     ) -> List[ProcessedTool]:
         processed_tools = []
-
-        if subject_token.user_input_id is None:
-            raise Exception("Invalid subject_token: missing user_input_id.")
 
         if request.mcp_server_url and request.tools:
             mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
             user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
-            subject_scopes = set((subject_token.scope or "").split())
-            tool_scopes_by_name: dict[str, set[str]] = {}
-            for tool in actor_app.tools:
-                if tool.scopes:
-                    tool_scopes_by_name[tool.name] = {scope.name for scope in tool.scopes}
             traces = self.tracer.get_traces_by_user_input_and_event_type(
                 subject_token.user_input_id,
                 LLMCallEndedEvent.__name__,
@@ -304,11 +294,11 @@ class AuthorizationServerService:
                 event = LLMCallEndedEvent(**trace.event)
                 if event.token != request.subject_token:
                     continue
-                matches = re.findall(r"name='(.*?)'", event.tools or "")
+                matches = re.findall(r"name='(.*?)'", event.tools)
                 if matches:
                     llm_selected_tools = llm_selected_tools + list(set(matches))
-            for tool_name in list(set(request.tools)):
-                processed_tool = ProcessedTool(name=tool_name)
+            for tool in list(set(request.tools)):
+                processed_tool = ProcessedTool(name=tool)
                 processed_tools.append(processed_tool)
 
                 if len(traces) == 0:
@@ -317,23 +307,16 @@ class AuthorizationServerService:
                     processed_tool.blocking_reason = MCPToolBlockingReason.NO_LLM_CALLS_MADE_BY_APP
                     continue
 
-                if tool_name not in llm_selected_tools:
+                if tool not in llm_selected_tools:
                     processed_tool.blocked = True
                     processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
                     processed_tool.blocking_reason = MCPToolBlockingReason.TOOL_NOT_SELECTED_BY_LLM
                     continue
 
-                required_scopes = tool_scopes_by_name.get(tool_name, set())
-                if required_scopes and not required_scopes.issubset(subject_scopes):
-                    processed_tool.blocked = True
-                    processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
-                    processed_tool.blocking_reason = MCPToolBlockingReason.INSUFFICIENT_SCOPE
-                    continue
-
                 match = self.task_tool_matcher.match(
                     TaskToolMatchInput(
                         task=user_input.prompt,
-                        requested_tool=tool_name,
+                        requested_tool=tool,
                         mcp_server=mcp_server,
                     )
                 )
@@ -400,10 +383,10 @@ class AuthorizationServerService:
             scope=claims.get("scope"),
             exp=claims.get("exp"),
             act=act,
-            other=claims.get("extra"),
+            extra=claims.get("extra"),
             user_input_id=claims.get("uiid"),
             app_id=app_id,
-            tools=tools_claim,
+            tools_claim=tools_claim,
             active=True,
         )
 

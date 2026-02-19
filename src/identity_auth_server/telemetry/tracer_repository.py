@@ -1,11 +1,9 @@
 """Tracer repository implementation."""
 
-# mypy: disable-error-code="call-arg"
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
@@ -88,10 +86,8 @@ class TracerPostgresRepository(TracerRepository):
             .limit(page_size)
         )
         total_qry = select(func.count()).select_from(group_by_qry)
-
-        user_input_id_col = cast(Any, Trace.user_input_id)
         traces = self._session.exec(
-            select(Trace).filter(user_input_id_col.in_(paginated_qry)).order_by(desc(Trace.created_at))
+            select(Trace).filter(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))
         ).all()
         total = self._session.exec(total_qry).one()
 
