@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Form
 
 from identity_auth_server.api.dependencies import Container
 from identity_auth_server.core.types import AppMetadataResponse, TokenIntrospectResponse, TokenResponse
+from identity_auth_server.services.app_service import AppService
 from identity_auth_server.services.authorization_server import (
     AuthorizationServerService,
     TokenExchangeRequest,
@@ -25,11 +26,11 @@ def health_check() -> dict:
 
 @router.get("/{app_id}/oauth2/client-metadata.json", generate_unique_id_function=lambda _: "app_metadata")
 def app_metadata(
-    auth_service: Annotated[AuthorizationServerService, Depends(Container.get_authorization_service)],
+    app_service: Annotated[AppService, Depends(Container.get_app_service)],
     app_id: str,
 ) -> AppMetadataResponse:
-    """Generate a new token based on the request parameters."""
-    return auth_service.app_metadata(app_id)
+    """Get an Application client metadata."""
+    return app_service.app_metadata(app_id)
 
 
 @router.post("/{app_id}/oauth2/token", generate_unique_id_function=lambda _: "token")

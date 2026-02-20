@@ -2,14 +2,17 @@
 
 import logging
 from typing import List
+from uuid import uuid4
 
 from pydantic import BaseModel
 
 from identity_auth_server.core.exceptions import ResourceAlreadyExistsError
+from identity_auth_server.core.idp.idp_client import IdpClient
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
+from identity_auth_server.core.repositories.multi_agent_system import MultiAgentSystemRepository
 from identity_auth_server.core.repositories.scope import ScopeRepository
-from identity_auth_server.core.types import App, AppType, Scope, Tool
+from identity_auth_server.core.types import App, AppMetadataResponse, AppType, ClientCredentials, Scope, Tool
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
@@ -32,6 +35,7 @@ class AppRequest(BaseModel):
     type: AppType
     name: str
     base_url: str
+    mas_id: str
     tools: List[ToolRequest] = []
 
 
@@ -44,12 +48,18 @@ class AppService:
         scope_repository: ScopeRepository,
         keycloak_manager: KeycloakManager,
         auth_repository: AuthorizationServerRepository,
+        mas_repository: MultiAgentSystemRepository,
+        idp_client: IdpClient,
+        api_url: str,
     ):
         """Initialize the app service."""
         self.app_repository = app_repository
         self.scope_repository = scope_repository
         self.keycloak_manager = keycloak_manager
         self.auth_repository = auth_repository
+        self.mas_repository = mas_repository
+        self.idp_client = idp_client
+        self.api_url = api_url
 
     def _resolve_scopes(self, scope_names: list[str] | None) -> list[Scope]:
         if not scope_names:
@@ -77,10 +87,17 @@ class AppService:
 
     def create_app(self, request: AppRequest) -> App:
         """Create app."""
+        mas = self.mas_repository.get_by_id(request.mas_id)
+        if mas is None:
+            raise Exception(f"Multi Agent System with id {request.mas_id} not found.")
+
+        app_id = uuid4()
         app = App(
+            id=app_id,
             type=request.type,
             name=request.name,
             base_url=request.base_url,
+            mas_id=mas.id,
             tools=[
                 Tool(
                     name=tool.name,
@@ -91,9 +108,42 @@ class AppService:
                 )
                 for tool in request.tools
             ],
+            client_credentials=ClientCredentials(
+                id=uuid4(),
+                name=f"{request.name}-client-credentials",
+                client_id=f"{self.api_url}/{app_id}/oauth2/client-metadata.json",
+                authorization_server_id=mas.authorization_server.id,
+            ),
         )
 
+        logger.debug(f"Creating client credentials in IdP for app {app.id}")
+
+        client_credentials = self.idp_client.create_client_credentials(
+            mas.authorization_server, app.client_credentials, self._get_app_metadata(app)
+        )
+        app.client_credentials.client_secret = client_credentials.client_secret
+
         return self.app_repository.create_app(app)
+
+    def app_metadata(self, app_id: str) -> AppMetadataResponse:
+        """Generate app metadata response."""
+        # Get app
+        app = self.app_repository.get_app_by_id(app_id)
+        if app is None:
+            raise Exception(f"App with id {app_id} not found.")
+
+        return self._get_app_metadata(app)
+
+    def _get_app_metadata(self, app: App) -> AppMetadataResponse:
+        """Generate app metadata response."""
+        return AppMetadataResponse(
+            client_name=app.name,
+            client_id=f"{self.api_url}/{app.id}/oauth2/client-metadata.json",
+            grant_types=["client_credentials"],
+            response_types=["token"],
+            token_endpoint_auth_method="private_key_jwt",
+            jwks_uri=f"{self.api_url}/{app.id}/oauth2/.well-known/jwks.json",
+        )
 
     def get_all_apps(self) -> List[App]:
         """Get all apps."""

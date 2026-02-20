@@ -24,17 +24,13 @@ from identity_auth_server.core.repositories.authorization_server import Authoriz
 from identity_auth_server.core.repositories.user_input import UserInputRepository
 from identity_auth_server.core.types import (
     ActorClaim,
-    App,
-    AppMetadataResponse,
     AppType,
-    AuthorizationServer,
     ClientCredentials,
     TokenIntrospectResponse,
     TokenResponse,
     ToolCheckFlags,
     UserInput,
 )
-from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
 from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.telemetry.tracer import Tracer
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
@@ -88,9 +84,7 @@ class AuthorizationServerService:
         authorization_server_repository: AuthorizationServerRepository,
         app_repository: AppRepository,
         keycloak_manager: KeycloakManager,
-        api_url: str,
         mcp_discover: McpDiscoverService,
-        task_tool_matcher: TaskToolMatcher,
         user_input_repository: UserInputRepository,
         tracer: Tracer,
         tool_check_factory: ToolCheckFactory,
@@ -99,75 +93,10 @@ class AuthorizationServerService:
         self.authorization_server_repository = authorization_server_repository
         self.app_repository = app_repository
         self.keycloak_manager = keycloak_manager
-        self.api_url = api_url
         self.mcp_discover = mcp_discover
-        self.task_tool_matcher = task_tool_matcher
         self.user_input_repository = user_input_repository
         self.tracer = tracer
         self.tool_check_factory = tool_check_factory
-
-    def create_for_app(self, app_id: str) -> App:
-        """Create a new authorization server for an App."""
-        app = self.app_repository.get_app_by_id(app_id)
-        if app is None:
-            raise Exception(f"App with id {app_id} not found.")
-
-        # Create the authorization server object
-        authorization_server = AuthorizationServer(
-            realm=f"{app.name}-{app.id}-auth-server",
-        )
-
-        # Create the client_credentials object
-        client_credentials = ClientCredentials(
-            name=f"{app.name}-client-credentials", client_id=f"{self.api_url}/{app.id}/oauth2/client-metadata.json"
-        )
-
-        # Persist the authorization server
-        authorization_server = self.authorization_server_repository.create_authorization_server(authorization_server)
-
-        # Persist the client credentials
-        client_credentials.authorization_server_id = authorization_server.id
-        self.authorization_server_repository.create_client_credentials(client_credentials)
-
-        logger.debug(f"Creating authorization server {authorization_server.id} for app {app.id}")
-
-        # Create in Keycloak
-        self.keycloak_manager.create_authorization_server(authorization_server)
-
-        logger.debug(f"Creating client credentials in Keycloak for app {app.id}")
-
-        client_credentials = self.keycloak_manager.create_client_credentials(
-            authorization_server, client_credentials, self.app_metadata(app.id)
-        )
-        # Add all scopes from the app to the authorization server
-        self.keycloak_manager.add_authorization_server_scopes(
-            authorization_server,
-            scopes=list(map(lambda t: "call_" + str(t.id), app.tools)),
-        )
-
-        # Add AuthorizationServer and ClientCredentials to the app
-        app.authorization_server_id = authorization_server.id
-        app.client_credentials_id = client_credentials.id
-
-        self.app_repository.update_app(app)
-
-        return app
-
-    def app_metadata(self, app_id: str) -> AppMetadataResponse:
-        """Generate app metadata response."""
-        # Get app
-        app = self.app_repository.get_app_by_id(app_id)
-        if app is None:
-            raise Exception(f"App with id {app_id} not found.")
-
-        return AppMetadataResponse(
-            client_name=app.name,
-            client_id=f"{self.api_url}/{app.id}/oauth2/client-metadata.json",
-            grant_types=["client_credentials"],
-            response_types=["token"],
-            token_endpoint_auth_method="private_key_jwt",
-            jwks_uri=f"{self.api_url}/{app.id}/oauth2/.well-known/jwks.json",
-        )
 
     def generate_token_oauth(self, app_id: str, request: TokenRequest) -> TokenResponse:
         """Generate a new token with client_credential grant type for a trusted App (Clients)."""
@@ -175,7 +104,7 @@ class AuthorizationServerService:
         if app is None:
             raise Exception(f"App with id {app_id} not found.")
 
-        if app.authorization_server is None:
+        if app.mas.authorization_server is None:
             raise Exception(f"App {app_id} has no authorization server configured.")
 
         # store the user initial prompt
@@ -187,7 +116,7 @@ class AuthorizationServerService:
         )
 
         token = self.keycloak_manager.get_token(
-            app.authorization_server,
+            app.mas.authorization_server,
             client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
             sub=request.client_id,
             act=None,
@@ -217,7 +146,7 @@ class AuthorizationServerService:
         if actor_app is None:
             raise Exception(f"App with id {app_id} not found.")
 
-        if actor_app.authorization_server is None:
+        if actor_app.mas.authorization_server is None:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
 
         processed_tools = self._process_requested_tools(request, subject_token, actor_app.mas.enabled_tool_checks)
@@ -240,7 +169,7 @@ class AuthorizationServerService:
             raise Exception("Invalid subject_token: missing user_input_id.")
 
         actor_token = self.keycloak_manager.get_token(
-            actor_app.authorization_server,
+            actor_app.mas.authorization_server,
             client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
             sub=subject_token.sub,
             act=act,

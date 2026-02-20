@@ -22,7 +22,7 @@ def create_app(
     app = app_service.create_app(request)
     if app.id is None:
         raise HTTPException(status_code=500, detail="App creation failed: missing ID")
-    app = auth_service.create_for_app(str(app.id))
+
     return AppViewModel.model_validate(app)
 
 

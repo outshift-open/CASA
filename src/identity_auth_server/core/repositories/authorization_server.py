@@ -1,11 +1,10 @@
 """PostgreSQL implementation of SessionRepository."""
 
 from abc import ABC, abstractmethod
-from hashlib import sha256
 
 from sqlmodel import Session, select
 
-from identity_auth_server.core.types import AuthorizationServer, ClientCredentials, Token
+from identity_auth_server.core.types import AuthorizationServer, ClientCredentials
 
 
 class AuthorizationServerRepository(ABC):
@@ -30,10 +29,6 @@ class AuthorizationServerRepository(ABC):
     @abstractmethod
     def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
         """Find client credentials by client ID."""
-
-    @abstractmethod
-    def create_token(self, token: Token) -> Token:
-        """Create a new token."""
 
 
 class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
@@ -72,12 +67,3 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
         authorization_server = self._session.exec(statement).first()
 
         return authorization_server
-
-    def create_token(self, token: Token) -> Token:
-        """Persist a source app session and return the generated token."""
-        # Hash the token value before storing
-        token.value = sha256(token.value.encode("utf-8")).hexdigest()
-
-        self._session.add(token)
-
-        return token
