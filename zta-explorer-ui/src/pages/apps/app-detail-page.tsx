@@ -5,7 +5,7 @@ import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {ApplicationDeleteDialog} from '@/components/apps';
-import {Pencil, Trash2} from 'lucide-react';
+import {Pencil, Trash2, Network} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 import type {AppType} from '@/types/app.types';
@@ -105,6 +105,27 @@ export function AppDetailPage() {
                                         <div className="space-y-2 md:col-span-2">
                                             <p className="text-sm font-medium text-muted-foreground">Base URL</p>
                                             <p className="text-base font-mono text-sm">{app.base_url}</p>
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <p className="text-sm font-medium text-muted-foreground">
+                                                Multi-Agent System
+                                            </p>
+                                            {app.mas ? (
+                                                <div
+                                                    className="flex items-center gap-2 cursor-pointer hover:decoration-solid text-base"
+                                                    onClick={() => navigate(`/mas/${app.mas_id}`)}
+                                                >
+                                                    <Network className="h-4 w-4 text-muted-foreground" />
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold">{app.mas.name}</span>
+                                                        <span className="font-mono text-xs text-muted-foreground">
+                                                            {app.mas.id}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-base text-muted-foreground">-</p>
+                                            )}
                                         </div>
                                     </div>
                                 </CardContent>

@@ -99,6 +99,10 @@ class AppService:
         """Get all apps."""
         return self.app_repository.get_all_apps()
 
+    def get_mas_apps(self, mas_id: str) -> List[App]:
+        """Get all apps in a MAS."""
+        return self.app_repository.get_mas_apps(mas_id)
+
     def get_app_by_id(self, app_id: str) -> App | None:
         """Get app by ID."""
         return self.app_repository.get_app_by_id(app_id)

@@ -1,6 +1,7 @@
 import {ColumnDef} from '@tanstack/react-table';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
+import {TextHover} from '@/components/ui/text-hover';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,82 +10,113 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye} from 'lucide-react';
+import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye, Loader2, AlertCircle} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
 import {DateHover} from '@/components/ui/date-hover';
 
 export const createMASColumns = (
     onEdit: (mas: MAS) => void,
     onDelete: (id: string) => void,
-    navigate: (path: string) => void
+    navigate: (path: string) => void,
+    appCounts: Record<string, number> = {},
+    countsLoading: Record<string, boolean> = {},
+    countsError: Record<string, boolean> = {}
 ): ColumnDef<MAS>[] => [
     {
         accessorKey: 'name',
         header: ({column}) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="cursor-pointer"
-                >
-                    Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        className="cursor-pointer"
+                    >
+                        Name
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
             );
         },
         cell: ({row}) => {
+            const name = row.getValue('name') as string;
             return (
-                <div
-                    className="font-medium cursor-pointer hover:underline"
-                    onClick={() => navigate(`/mas/${row.original.id}`)}
-                >
-                    {row.getValue('name')}
+                <div className="flex justify-center">
+                    <TextHover text={name}>
+                        <div
+                            className="font-semibold cursor-pointer underline decoration-dotted hover:decoration-solid"
+                            onClick={() => navigate(`/mas/${row.original.id}`)}
+                        >
+                            {name}
+                        </div>
+                    </TextHover>
                 </div>
             );
         }
     },
     {
         accessorKey: 'apps',
-        header: 'Applications',
-        cell: ({row}) => {
-            const apps = row.getValue('apps') as MAS['apps'];
+        header: ({column}) => {
             return (
-                <div className="flex flex-wrap gap-1">
-                    {apps && apps.length > 0 ? (
-                        <>
-                            {apps.slice(0, 3).map((app) => (
-                                <Badge key={app.id} variant="secondary" className="text-xs">
-                                    {app.name}
-                                </Badge>
-                            ))}
-                            {apps.length > 3 && (
-                                <Badge variant="outline" className="text-xs">
-                                    +{apps.length - 3} more
-                                </Badge>
-                            )}
-                        </>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        className="cursor-pointer"
+                    >
+                        Apps
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
+            );
+        },
+        cell: ({row}) => {
+            const masId = row.original.id;
+            const isLoading = countsLoading[masId];
+            const hasError = countsError[masId];
+            const count = appCounts[masId] ?? 0;
+
+            return (
+                <div className="flex justify-center">
+                    {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    ) : hasError ? (
+                        <TextHover text="Error loading count">
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                        </TextHover>
                     ) : (
-                        <span className="text-xs text-muted-foreground">No apps</span>
+                        <Badge variant="secondary">{count}</Badge>
                     )}
                 </div>
             );
+        },
+        sortingFn: (rowA, rowB) => {
+            const countA = appCounts[rowA.original.id] ?? 0;
+            const countB = appCounts[rowB.original.id] ?? 0;
+            return countA - countB;
         }
     },
     {
         accessorKey: 'created_at',
         header: ({column}) => {
             return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-                    className="cursor-pointer"
-                >
-                    Created
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex justify-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                        className="cursor-pointer"
+                    >
+                        Created
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
             );
         },
-        cell: ({row}) => <DateHover date={row.getValue('created_at')} className="text-sm" />
+        cell: ({row}) => (
+            <div className="flex justify-center">
+                <DateHover date={row.getValue('created_at')} className="text-sm" />
+            </div>
+        )
     },
     {
         id: 'actions',

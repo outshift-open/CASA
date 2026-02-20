@@ -2,10 +2,10 @@ import {useParams, useNavigate} from 'react-router-dom';
 import {useMASById, useDeleteMAS} from '@/hooks/use-mas';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
-import {Badge} from '@/components/ui/badge';
+import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {MASDeleteDialog} from '@/components/mas';
-import {Pencil, Trash2} from 'lucide-react';
+import {MASDeleteDialog, MASInfoTab, MASTracesTab} from '@/components/mas';
+import {Pencil, Trash2, Info, Activity} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 
@@ -15,6 +15,7 @@ export function MASDetailPage() {
     const {data: mas, isLoading, error, refetch} = useMASById(id || '');
     const deleteMAS = useDeleteMAS();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('info');
 
     const handleDelete = async () => {
         if (!id) return;
@@ -70,63 +71,29 @@ export function MASDetailPage() {
                     {mas && (
                         <div className="grid gap-6">
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>{mas.name}</CardTitle>
-                                    <CardDescription>Multi-Agent System configuration and applications</CardDescription>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                                    <div>
+                                        <CardTitle>{mas.name}</CardTitle>
+                                        <CardDescription>
+                                            Multi-Agent System configuration and applications
+                                        </CardDescription>
+                                    </div>
+                                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                                        <TabsList>
+                                            <TabsTrigger value="info">
+                                                <Info className="mr-2 h-4 w-4" />
+                                                Info
+                                            </TabsTrigger>
+                                            <TabsTrigger value="traces">
+                                                <Activity className="mr-2 h-4 w-4" />
+                                                Traces
+                                            </TabsTrigger>
+                                        </TabsList>
+                                    </Tabs>
                                 </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <div className="grid gap-4">
-                                        <div className="space-y-2">
-                                            <p className="text-sm font-medium text-muted-foreground">Name</p>
-                                            <p className="text-base">{mas.name}</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <p className="text-sm font-medium text-muted-foreground">Created</p>
-                                            <p className="text-base">{new Date(mas.created_at).toLocaleString()}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <p className="text-sm font-medium text-muted-foreground">
-                                            Applications ({mas.apps?.length || 0})
-                                        </p>
-                                        {mas.apps && mas.apps.length > 0 ? (
-                                            <div className="grid gap-3">
-                                                {mas.apps.map((app) => (
-                                                    <Card
-                                                        key={app.id}
-                                                        className="cursor-pointer hover:bg-accent transition-colors"
-                                                        onClick={() => navigate(`/apps/${app.id}`)}
-                                                    >
-                                                        <CardContent className="p-4">
-                                                            <div className="flex items-start justify-between gap-4">
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex items-center gap-2 mb-1.5">
-                                                                        <p className="font-semibold truncate">
-                                                                            {app.name}
-                                                                        </p>
-                                                                        <Badge
-                                                                            variant="secondary"
-                                                                            className="text-xs shrink-0"
-                                                                        >
-                                                                            {app.type}
-                                                                        </Badge>
-                                                                    </div>
-                                                                    <p className="text-sm text-muted-foreground truncate">
-                                                                        {app.base_url}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">
-                                                No applications associated with this MAS
-                                            </p>
-                                        )}
-                                    </div>
+                                <CardContent>
+                                    {activeTab === 'info' && <MASInfoTab mas={mas} />}
+                                    {activeTab === 'traces' && <MASTracesTab />}
                                 </CardContent>
                             </Card>
                         </div>

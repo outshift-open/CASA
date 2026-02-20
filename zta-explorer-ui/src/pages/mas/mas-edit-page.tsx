@@ -1,7 +1,7 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useMASById, useUpdateMAS} from '@/hooks/use-mas';
+import {useMASById, useMASApps, useUpdateMAS} from '@/hooks/use-mas';
 import {useApps} from '@/hooks/use-apps';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
@@ -12,14 +12,16 @@ import {Checkbox} from '@/components/ui/checkbox';
 import {Badge} from '@/components/ui/badge';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {Search} from 'lucide-react';
+import {Search, Plus} from 'lucide-react';
 import {toast} from 'sonner';
 import {masSchema, type MASFormData} from '@/lib/validations/mas.schema';
+import {ApplicationFormDialog} from '@/components/apps';
 
 export function MASEditPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
     const {data: mas, isLoading, error, refetch} = useMASById(id || '');
+    const {data: masApps} = useMASApps(id || '');
     const {data: appsData} = useApps();
     const updateMAS = useUpdateMAS();
 
@@ -27,6 +29,9 @@ export function MASEditPage() {
     const [appSelectionError, setAppSelectionError] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [typeFilter, setTypeFilter] = useState<string>('all');
+    const [isAppDialogOpen, setIsAppDialogOpen] = useState<boolean>(false);
+    const [newlyCreatedAppId, setNewlyCreatedAppId] = useState<string | null>(null);
+    const appRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
     const {
         register,
@@ -45,10 +50,16 @@ export function MASEditPage() {
             reset({
                 name: mas.name || ''
             });
-            setSelectedAppIds(new Set(mas.apps?.map((app) => app.id).filter((id): id is string => !!id) || []));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mas]);
+
+    // Pre-select apps that belong to this MAS
+    useEffect(() => {
+        if (masApps && masApps.length > 0) {
+            setSelectedAppIds(new Set(masApps.map((app) => app.id).filter((id): id is string => !!id)));
+        }
+    }, [masApps]);
 
     const toggleApp = (appId: string) => {
         const newSelected = new Set(selectedAppIds);
@@ -60,6 +71,25 @@ export function MASEditPage() {
         setSelectedAppIds(newSelected);
         setAppSelectionError('');
     };
+
+    const handleAppCreated = (appId: string) => {
+        const newSelected = new Set(selectedAppIds);
+        newSelected.add(appId);
+        setSelectedAppIds(newSelected);
+        setAppSelectionError('');
+        setNewlyCreatedAppId(appId);
+    };
+
+    useEffect(() => {
+        if (newlyCreatedAppId && appsData?.items) {
+            const element = appRefs.current.get(newlyCreatedAppId);
+            if (element) {
+                element.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+                // Clear after scrolling by scheduling it outside the effect
+                setTimeout(() => setNewlyCreatedAppId(null), 0);
+            }
+        }
+    }, [newlyCreatedAppId, appsData]);
 
     const filteredApps =
         appsData?.items?.filter((app) => {
@@ -140,12 +170,24 @@ export function MASEditPage() {
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label className="text-sm font-medium">
-                                                Applications <span className="text-destructive">*</span>{' '}
-                                                <span className="text-muted-foreground text-xs">
-                                                    ({selectedAppIds.size} selected, minimum 2 required)
-                                                </span>
-                                            </Label>
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-sm font-medium">
+                                                    Applications <span className="text-destructive">*</span>{' '}
+                                                    <span className="text-muted-foreground text-xs">
+                                                        ({selectedAppIds.size} selected, minimum 2 required)
+                                                    </span>
+                                                </Label>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setIsAppDialogOpen(true)}
+                                                    disabled={updateMAS.isPending}
+                                                >
+                                                    <Plus className="h-4 w-4 mr-1" />
+                                                    New App
+                                                </Button>
+                                            </div>
                                             {appsData?.items && appsData.items.length > 0 && (
                                                 <div className="flex gap-2">
                                                     <div className="relative flex-1">
@@ -214,10 +256,17 @@ export function MASEditPage() {
                                                     {filteredApps.length > 0 ? (
                                                         <div className="divide-y">
                                                             {filteredApps.map((app) => (
-                                                                <label
+                                                                <div
                                                                     key={app.id}
-                                                                    htmlFor={`app-${app.id}`}
-                                                                    className="flex items-center gap-3 p-4 hover:bg-accent cursor-pointer transition-colors"
+                                                                    ref={(el) => {
+                                                                        if (el && app.id) {
+                                                                            appRefs.current.set(
+                                                                                app.id,
+                                                                                el as HTMLDivElement
+                                                                            );
+                                                                        }
+                                                                    }}
+                                                                    className="flex items-center gap-3 p-4 hover:bg-accent transition-colors"
                                                                 >
                                                                     <Checkbox
                                                                         id={`app-${app.id}`}
@@ -227,7 +276,10 @@ export function MASEditPage() {
                                                                         }
                                                                         disabled={updateMAS.isPending}
                                                                     />
-                                                                    <div className="flex-1 min-w-0">
+                                                                    <label
+                                                                        htmlFor={`app-${app.id}`}
+                                                                        className="flex-1 min-w-0 cursor-pointer"
+                                                                    >
                                                                         <div className="flex items-center gap-2 mb-1.5">
                                                                             <span className="text-sm font-semibold truncate">
                                                                                 {app.name}
@@ -242,8 +294,8 @@ export function MASEditPage() {
                                                                         <p className="text-xs text-muted-foreground truncate">
                                                                             {app.base_url}
                                                                         </p>
-                                                                    </div>
-                                                                </label>
+                                                                    </label>
+                                                                </div>
                                                             ))}
                                                         </div>
                                                     ) : appsData?.items && appsData.items.length > 0 ? (
@@ -282,6 +334,11 @@ export function MASEditPage() {
                     </>
                 )}
             </ApiStateHandler>
+            <ApplicationFormDialog
+                open={isAppDialogOpen}
+                onOpenChange={setIsAppDialogOpen}
+                onSuccess={handleAppCreated}
+            />
         </div>
     );
 }

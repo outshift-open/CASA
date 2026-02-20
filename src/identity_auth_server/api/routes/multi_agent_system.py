@@ -5,7 +5,9 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException
 
 from identity_auth_server.api.dependencies import Container
+from identity_auth_server.api.routes.view_models import AppViewModel
 from identity_auth_server.core.types import MultiAgentSystem
+from identity_auth_server.services.app_service import AppService
 from identity_auth_server.services.mas_service import (
     MultiAgentSystemAppsBindingRequest,
     MultiAgentSystemCreateRequest,
@@ -75,3 +77,13 @@ def get_mas_by_id(
     if not mas:
         raise HTTPException(status_code=404, detail=f"MAS with id '{mas_id}' not found")
     return mas
+
+
+@router.get("/mas/{mas_id}/apps")
+def get_mas_apps(
+    app_service: Annotated[AppService, Depends(Container.get_app_service)],
+    mas_id: str,
+) -> List[AppViewModel]:
+    """Get all the apps related to a MAS."""
+    apps = app_service.get_mas_apps(mas_id)
+    return [AppViewModel.model_validate(app) for app in apps]

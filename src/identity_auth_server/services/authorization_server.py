@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 import jwt
 from pydantic import BaseModel, field_validator
 
+from identity_auth_server.checks.base import Payload
+from identity_auth_server.checks.factory import ToolCheckFactory
 from identity_auth_server.core.events import (
     LLMCallEndedEvent,
     MCPCallStartedEvent,
@@ -29,10 +31,10 @@ from identity_auth_server.core.types import (
     ClientCredentials,
     TokenIntrospectResponse,
     TokenResponse,
+    ToolCheckFlags,
     UserInput,
 )
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
-from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
 from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.telemetry.tracer import Tracer
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
@@ -91,6 +93,7 @@ class AuthorizationServerService:
         task_tool_matcher: TaskToolMatcher,
         user_input_repository: UserInputRepository,
         tracer: Tracer,
+        tool_check_factory: ToolCheckFactory,
     ):
         """Store the backing session repository, keycloak manager, and client repository."""
         self.authorization_server_repository = authorization_server_repository
@@ -101,6 +104,7 @@ class AuthorizationServerService:
         self.task_tool_matcher = task_tool_matcher
         self.user_input_repository = user_input_repository
         self.tracer = tracer
+        self.tool_check_factory = tool_check_factory
 
     def create_for_app(self, app_id: str) -> App:
         """Create a new authorization server for an App."""
@@ -216,7 +220,7 @@ class AuthorizationServerService:
         if actor_app.authorization_server is None:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
 
-        processed_tools = self._process_requested_tools(request, subject_token)
+        processed_tools = self._process_requested_tools(request, subject_token, actor_app.mas.enabled_tool_checks)
         approved_tools = [tool.name for tool in processed_tools if not tool.blocked]
 
         act = ActorClaim(sub=request.client_id)
@@ -278,7 +282,7 @@ class AuthorizationServerService:
         return TokenResponse(access_token=token)
 
     def _process_requested_tools(
-        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse
+        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse, tool_check_flags: ToolCheckFlags
     ) -> List[ProcessedTool]:
         processed_tools = []
 
@@ -301,32 +305,22 @@ class AuthorizationServerService:
                 processed_tool = ProcessedTool(name=tool)
                 processed_tools.append(processed_tool)
 
-                if len(traces) == 0:
-                    processed_tool.blocked = True
-                    processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
-                    processed_tool.blocking_reason = MCPToolBlockingReason.NO_LLM_CALLS_MADE_BY_APP
-                    continue
-
-                if tool not in llm_selected_tools:
-                    processed_tool.blocked = True
-                    processed_tool.blocking_type = MCPToolBlockingType.DETERMINISTIC
-                    processed_tool.blocking_reason = MCPToolBlockingReason.TOOL_NOT_SELECTED_BY_LLM
-                    continue
-
-                match = self.task_tool_matcher.match(
-                    TaskToolMatchInput(
-                        task=user_input.prompt,
+                tool_check = self.tool_check_factory.get_tool_check(tool_check_flags)
+                check_result = tool_check.is_satisfied(
+                    payload=Payload(
+                        llm_selected_tools=llm_selected_tools,
                         requested_tool=tool,
                         mcp_server=mcp_server,
+                        user_input=user_input,
                     )
                 )
-                # TODO: store them for caching purposes?
-                if match.task_tool_match:
+
+                if check_result.satisfied:
                     processed_tool.blocked = False
                 else:
                     processed_tool.blocked = True
-                    processed_tool.blocking_type = MCPToolBlockingType.AI_POWERED
-                    processed_tool.blocking_reason = MCPToolBlockingReason.TOOL_INTENT_MISMATCH
+                    processed_tool.blocking_type = check_result.blocking_type
+                    processed_tool.blocking_reason = check_result.blocking_reason
 
         return processed_tools
 

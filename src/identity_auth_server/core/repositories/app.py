@@ -1,6 +1,7 @@
 """PostgreSQL implementation of AppRepository."""
 
 from abc import ABC, abstractmethod
+from typing import List
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
@@ -26,12 +27,16 @@ class AppRepository(ABC):
         """Retrieve a app by app_id."""
 
     @abstractmethod
-    def get_all_apps(self) -> list[App]:
+    def get_all_apps(self) -> List[App]:
         """Retrieve all apps."""
 
     @abstractmethod
-    def delete_app(self, app: App) -> None:
-        """Delete an app."""
+    def get_mas_apps(self, mas_id: str) -> List[App]:
+        """Retrieve all apps in a MAS."""
+
+    @abstractmethod
+    def delete_app(self, app_id: str) -> None:
+        """Delete an app by app_id."""
 
     @abstractmethod
     def create_tool(self, tool: Tool) -> Tool:
@@ -73,10 +78,18 @@ class AppPostgresRepository(AppRepository):
         except Exception as e:
             raise Exception(f"Error retrieving app with id '{app_id}': {e}") from e
 
-    def get_all_apps(self) -> list[App]:
+    def get_all_apps(self) -> List[App]:
         """Retrieve all apps."""
         try:
-            apps = self._session.exec(select(App)).all()
+            apps = self._session.exec(select(App).options(joinedload(App.mas))).all()
+            return list(apps)
+        except Exception as e:
+            raise Exception(f"Error retrieving apps: {e}") from e
+
+    def get_mas_apps(self, mas_id):
+        """Retrieve all apps in a MAS."""
+        try:
+            apps = self._session.exec(select(App).where(App.mas_id == mas_id).options(joinedload(App.mas))).all()
             return list(apps)
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
