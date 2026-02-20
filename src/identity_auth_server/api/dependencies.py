@@ -35,7 +35,6 @@ from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.services.scope_service import ScopeService
 from identity_auth_server.telemetry.tracer import Tracer
 from identity_auth_server.telemetry.tracer_repository import TracerPostgresRepository, TracerRepository
-from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 T = TypeVar("T")
 
@@ -166,14 +165,6 @@ class Container:
         return MultiAgentSystemPostgresRepository(session=session)
 
     @staticmethod
-    def get_keycloak_manager():
-        return KeycloakManager(
-            server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
-            username=os.getenv("IDP_ADMIN_USERNAME", "admin"),
-            password=os.getenv("IDP_ADMIN_PASSWORD", "admin"),
-        )
-
-    @staticmethod
     def get_idp_client():
         return KeycloakClient(
             server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
@@ -203,7 +194,7 @@ class Container:
     def get_authorization_service(
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
-        keycloak_manager: Annotated[KeycloakManager, Depends(get_keycloak_manager)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
         mcp_discover: Annotated[McpDiscoverService, Depends(get_mcp_discover)],
         user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
         tracer: Annotated[Tracer, Depends(get_tracer)],
@@ -212,7 +203,7 @@ class Container:
         return AuthorizationServerService(
             authorization_server_repository,
             app_repository,
-            keycloak_manager,
+            idp_client,
             mcp_discover=mcp_discover,
             user_input_repository=user_input_repository,
             tracer=tracer,
@@ -223,7 +214,6 @@ class Container:
     def get_app_service(
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
         scope_repository: Annotated[ScopeRepository, Depends(get_scope_repository)],
-        keycloak_manager: Annotated[KeycloakManager, Depends(get_keycloak_manager)],
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
         mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
         idp_client: Annotated[IdpClient, Depends(get_idp_client)],
@@ -231,7 +221,6 @@ class Container:
         return AppService(
             app_repository,
             scope_repository,
-            keycloak_manager,
             authorization_server_repository,
             mas_repository=mas_repository,
             idp_client=idp_client,

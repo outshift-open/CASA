@@ -19,6 +19,7 @@ from identity_auth_server.core.events import (
     TokenExchangedEvent,
     TokenIssuedEvent,
 )
+from identity_auth_server.core.idp.idp_client import IdpClient
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.repositories.user_input import UserInputRepository
@@ -33,7 +34,6 @@ from identity_auth_server.core.types import (
 )
 from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.telemetry.tracer import Tracer
-from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -83,7 +83,7 @@ class AuthorizationServerService:
         self,
         authorization_server_repository: AuthorizationServerRepository,
         app_repository: AppRepository,
-        keycloak_manager: KeycloakManager,
+        idp_client: IdpClient,
         mcp_discover: McpDiscoverService,
         user_input_repository: UserInputRepository,
         tracer: Tracer,
@@ -92,7 +92,7 @@ class AuthorizationServerService:
         """Store the backing session repository, keycloak manager, and client repository."""
         self.authorization_server_repository = authorization_server_repository
         self.app_repository = app_repository
-        self.keycloak_manager = keycloak_manager
+        self.idp_client = idp_client
         self.mcp_discover = mcp_discover
         self.user_input_repository = user_input_repository
         self.tracer = tracer
@@ -103,6 +103,9 @@ class AuthorizationServerService:
         app = self.app_repository.get_app_by_id(app_id)
         if app is None:
             raise Exception(f"App with id {app_id} not found.")
+
+        if app.mas is None:
+            raise Exception(f"App {app_id} does not belong to a Multi Agent System.")
 
         if app.mas.authorization_server is None:
             raise Exception(f"App {app_id} has no authorization server configured.")
@@ -115,9 +118,9 @@ class AuthorizationServerService:
             )
         )
 
-        token = self.keycloak_manager.get_token(
+        token_payload = self.idp_client.get_token(
             app.mas.authorization_server,
-            client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
+            client_creds=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
             sub=request.client_id,
             act=None,
             scopes=[],
@@ -125,26 +128,31 @@ class AuthorizationServerService:
             user_input_id=str(user_input.id),
         )
 
-        token = token["token"]["access_token"]
+        access_token = token_payload.token["access_token"]
 
-        logger.debug(f"Got token from Keycloak {token}")
+        logger.debug(f"Got token from Keycloak {access_token}")
 
         self.tracer.record_event(
-            TokenIssuedEvent(user_input_id=str(user_input.id), token=token, app_id=app_id, prompt=user_input.prompt)
+            TokenIssuedEvent(
+                user_input_id=str(user_input.id), token=access_token, app_id=app_id, prompt=user_input.prompt
+            )
         )
 
-        return TokenResponse(access_token=token, token_type="Bearer")
+        return TokenResponse(access_token=access_token, token_type="Bearer")
 
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
         subject_token = self._introspect_token(token=request.subject_token)
-        subject_app = self.app_repository.get_app_by_id(subject_token.app_id)
+        subject_app = self.app_repository.get_app_by_id(subject_token.app_id if subject_token.app_id else "")
         if subject_app is None:
             raise Exception("Invalid subject_token.")
 
         actor_app = self.app_repository.get_app_by_id(app_id)
         if actor_app is None:
             raise Exception(f"App with id {app_id} not found.")
+
+        if actor_app.mas is None:
+            raise Exception(f"App {app_id} does not belong to a Multi Agent System.")
 
         if actor_app.mas.authorization_server is None:
             raise Exception(f"App {actor_app.id} has no authorization server configured.")
@@ -168,9 +176,9 @@ class AuthorizationServerService:
         if subject_token.user_input_id is None:
             raise Exception("Invalid subject_token: missing user_input_id.")
 
-        actor_token = self.keycloak_manager.get_token(
+        actor_token = self.idp_client.get_token(
             actor_app.mas.authorization_server,
-            client_credentials=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
+            client_creds=ClientCredentials(client_id=request.client_id, client_secret=request.client_secret),
             sub=subject_token.sub,
             act=act,
             scopes=scopes,
@@ -178,7 +186,7 @@ class AuthorizationServerService:
             tools=approved_tools,
         )
 
-        token = actor_token["token"]["access_token"]
+        token = actor_token.token["access_token"]
 
         logger.debug(f"Got token from Keycloak {token}")
 
@@ -211,11 +219,17 @@ class AuthorizationServerService:
         return TokenResponse(access_token=token)
 
     def _process_requested_tools(
-        self, request: TokenExchangeRequest, subject_token: TokenIntrospectResponse, tool_check_flags: ToolCheckFlags
+        self,
+        request: TokenExchangeRequest,
+        subject_token: TokenIntrospectResponse,
+        tool_check_flags: ToolCheckFlags | None,
     ) -> List[ProcessedTool]:
         processed_tools = []
 
-        if request.mcp_server_url and request.tools:
+        if tool_check_flags is None:
+            return []
+
+        if request.mcp_server_url and request.tools and subject_token.user_input_id:
             mcp_server = self.mcp_discover.discover_mcp_tools(request.mcp_server_url)
             user_input = self.user_input_repository.get_by_id(subject_token.user_input_id)
             traces = self.tracer.get_traces_by_user_input_and_event_type(
@@ -225,7 +239,7 @@ class AuthorizationServerService:
             llm_selected_tools: list[str] = []
             for trace in traces:
                 event = LLMCallEndedEvent(**trace.event)
-                if event.token != request.subject_token:
+                if event.token != request.subject_token or event.tools is None:
                     continue
                 matches = re.findall(r"name='(.*?)'", event.tools)
                 if matches:

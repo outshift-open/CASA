@@ -27,6 +27,10 @@ class AuthorizationServerRepository(ABC):
         """Create new client credentials."""
 
     @abstractmethod
+    def delete_client_credentials(self, client_credential: ClientCredentials) -> None:
+        """Delete existing client credentials."""
+
+    @abstractmethod
     def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
         """Find client credentials by client ID."""
 
@@ -60,6 +64,10 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
         self._session.add(client_credential)
 
         return client_credential
+
+    def delete_client_credentials(self, client_credential: ClientCredentials) -> None:
+        """Delete existing client credentials."""
+        self._session.delete(client_credential)
 
     def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
         """Find client credentials by client ID."""

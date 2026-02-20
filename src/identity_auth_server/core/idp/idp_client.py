@@ -11,10 +11,10 @@ from identity_auth_server.core.types import ActorClaim, AppMetadataResponse, Aut
 class TokenPayload(BaseModel):
     token: dict
     sub: str
-    act: ActorClaim | None
-    extra: dict | None
-    scopes: List[str]
-    tools: List[str]
+    act: ActorClaim | None = None
+    extra: dict | None = None
+    scopes: List[str] = []
+    tools: List[str] = []
 
 
 class IdpClient(ABC):
@@ -24,15 +24,15 @@ class IdpClient(ABC):
         pass
 
     @abstractmethod
-    def create_authorization_server(self, authz_serv: AuthorizationServer):
+    def create_authorization_server(self, authz_serv: AuthorizationServer) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_authorization_server(self, authz_serv: AuthorizationServer):
+    def delete_authorization_server(self, authz_serv: AuthorizationServer) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def create_scopes(self, authz_serv: AuthorizationServer):
+    def create_scopes(self, authz_serv: AuthorizationServer, scopes: list[str]) -> None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -42,6 +42,10 @@ class IdpClient(ABC):
         client_creds: ClientCredentials,
         metadata: AppMetadataResponse,
     ) -> ClientCredentials:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def delete_client_credentials(self, authz_serv: AuthorizationServer, client_creds: ClientCredentials) -> None:
         raise NotImplementedError()
 
     @abstractmethod
