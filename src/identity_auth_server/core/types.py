@@ -1,5 +1,7 @@
 """Data models for AS."""
 
+# mypy: disable-error-code="call-arg"
+
 from datetime import date, datetime, timezone
 from enum import Enum, IntFlag
 from typing import List, Optional
@@ -26,6 +28,13 @@ class AppType(str, Enum):
     MCP_SERVER = "mcp_server"
 
 
+class ToolScope(SQLModel, table=True):
+    """Link table between Tool and Scope."""
+
+    tool_id: UUID = Field(foreign_key="tool.id", primary_key=True)
+    scope_id: UUID = Field(foreign_key="scope.id", primary_key=True)
+
+
 class Tool(SQLModel, table=True):
     """MCP Tool model."""
 
@@ -36,6 +45,21 @@ class Tool(SQLModel, table=True):
     output_schema: str
     app_id: Optional[UUID] = Field(foreign_key="app.id")
     app: Optional["App"] = Relationship(back_populates="tools")
+    scopes: List["Scope"] = Relationship(
+        back_populates="tools",
+        link_model=ToolScope,
+    )
+
+
+class Scope(SQLModel, table=True):
+    """Scope model."""
+
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    name: str = Field(index=True, unique=True)
+    tools: List[Tool] = Relationship(
+        back_populates="scopes",
+        link_model=ToolScope,
+    )
 
 
 class ToolCheckFlags(IntFlag):

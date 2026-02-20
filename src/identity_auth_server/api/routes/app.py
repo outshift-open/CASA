@@ -35,7 +35,7 @@ def get_apps(
     return [AppViewModel.model_validate(app) for app in apps]
 
 
-@router.get("/apps/{app_id}")
+@router.get("/apps/{app_id}", response_model=None)
 def get_app(
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
     app_id: str,

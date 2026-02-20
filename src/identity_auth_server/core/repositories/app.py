@@ -71,8 +71,10 @@ class AppPostgresRepository(AppRepository):
     def get_app_by_id(self, app_id: str) -> App | None:
         """Retrieve an app by its ID."""
         try:
-            app = self._session.get(App, app_id)
-            return app
+            app = self._session.exec(
+                select(App).where(App.id == app_id).options(joinedload(App.tools).joinedload(Tool.scopes))
+            )
+            return app.first()
         except Exception as e:
             raise Exception(f"Error retrieving app with id '{app_id}': {e}") from e
 

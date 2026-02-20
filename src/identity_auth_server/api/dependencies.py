@@ -21,6 +21,7 @@ from identity_auth_server.core.repositories.multi_agent_system import (
     MultiAgentSystemPostgresRepository,
     MultiAgentSystemRepository,
 )
+from identity_auth_server.core.repositories.scope import ScopePostgresRepository, ScopeRepository
 from identity_auth_server.core.repositories.user_input import UserInputPostgresRepository
 from identity_auth_server.database.postgres.postgres import PostgresDB
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher, TaskToolMatcherFactory
@@ -29,6 +30,7 @@ from identity_auth_server.services.app_service import AppService
 from identity_auth_server.services.authorization_server import AuthorizationServerService
 from identity_auth_server.services.mas_service import MultiAgentSystemService
 from identity_auth_server.services.mcp_discover import McpDiscoverService
+from identity_auth_server.services.scope_service import ScopeService
 from identity_auth_server.telemetry.tracer import Tracer
 from identity_auth_server.telemetry.tracer_repository import TracerPostgresRepository, TracerRepository
 from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
@@ -146,6 +148,10 @@ class Container:
         return AuthorizationServerPostgresRepository(session=session)
 
     @staticmethod
+    def get_scope_repository(session: Annotated[Session, Depends(get_session)]):
+        return ScopePostgresRepository(session=session)
+
+    @staticmethod
     def get_user_input_repository(session: Annotated[Session, Depends(get_session)]):
         return UserInputPostgresRepository(session=session)
 
@@ -165,6 +171,7 @@ class Container:
             password=os.getenv("IDP_ADMIN_PASSWORD", "admin"),
         )
 
+    @staticmethod
     def get_mcp_discover():
         return McpDiscoverService()
 
@@ -208,10 +215,17 @@ class Container:
     @staticmethod
     def get_app_service(
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        scope_repository: Annotated[ScopeRepository, Depends(get_scope_repository)],
         keycloak_manager: Annotated[KeycloakManager, Depends(get_keycloak_manager)],
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
     ):
-        return AppService(app_repository, keycloak_manager, authorization_server_repository)
+        return AppService(app_repository, scope_repository, keycloak_manager, authorization_server_repository)
+
+    @staticmethod
+    def get_scope_service(
+        scope_repository: Annotated[ScopeRepository, Depends(get_scope_repository)],
+    ):
+        return ScopeService(scope_repository)
 
     @staticmethod
     def get_mas_service(
