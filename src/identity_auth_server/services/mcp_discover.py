@@ -3,9 +3,10 @@
 import asyncio
 
 from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.streamable_http import streamable_http_client
 
 from identity_auth_server.types import McpServer
+
 
 class McpDiscoverService:
     """Implementation of the McpAppToolCallService."""
@@ -15,7 +16,7 @@ class McpDiscoverService:
 
         async def _discover() -> McpServer:
             # Connect to a streamable HTTP server
-            async with streamablehttp_client(mcp_server_url) as (
+            async with streamable_http_client(mcp_server_url) as (
                 read_stream,
                 write_stream,
                 _,

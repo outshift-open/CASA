@@ -38,6 +38,7 @@ class ToolViewModel(BaseModel):
 class MultiAgentSystemViewModel(BaseModel):
     id: UUID
     name: str
+    authorization_server_id: Optional[UUID]
     created_at: datetime
 
     # To be able to create an instance from a SQLModel
@@ -49,8 +50,6 @@ class AppViewModel(BaseModel):
     type: str
     name: str
     base_url: str
-    authorization_server_id: Optional[UUID]
-    client_credentials_id: Optional[UUID]
     tools: List[ToolViewModel]
     mas_id: Optional[UUID]
     mas: Optional[MultiAgentSystemViewModel]

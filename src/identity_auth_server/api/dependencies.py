@@ -12,6 +12,8 @@ from identity_auth_server.checks.checks import (
     ToolSelectedDeterministicCheck,
 )
 from identity_auth_server.checks.factory import ToolCheckFactory
+from identity_auth_server.core.idp.idp_client import IdpClient
+from identity_auth_server.core.idp.keycloak_client import KeycloakClient
 from identity_auth_server.core.repositories.app import AppPostgresRepository, AppRepository
 from identity_auth_server.core.repositories.authorization_server import (
     AuthorizationServerPostgresRepository,
@@ -33,7 +35,6 @@ from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.services.scope_service import ScopeService
 from identity_auth_server.telemetry.tracer import Tracer
 from identity_auth_server.telemetry.tracer_repository import TracerPostgresRepository, TracerRepository
-from identity_auth_server.thirdparty.idp.keycloak import KeycloakManager
 
 T = TypeVar("T")
 
@@ -164,8 +165,8 @@ class Container:
         return MultiAgentSystemPostgresRepository(session=session)
 
     @staticmethod
-    def get_keycloak_manager():
-        return KeycloakManager(
+    def get_idp_client():
+        return KeycloakClient(
             server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
             username=os.getenv("IDP_ADMIN_USERNAME", "admin"),
             password=os.getenv("IDP_ADMIN_PASSWORD", "admin"),
@@ -193,9 +194,8 @@ class Container:
     def get_authorization_service(
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
-        keycloak_manager: Annotated[KeycloakManager, Depends(get_keycloak_manager)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
         mcp_discover: Annotated[McpDiscoverService, Depends(get_mcp_discover)],
-        task_tool_matcher: Annotated[TaskToolMatcher, Depends(get_task_tool_matcher)],
         user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
         tracer: Annotated[Tracer, Depends(get_tracer)],
         tool_check_factory: Annotated[ToolCheckFactory, Depends(get_tool_check_factory)],
@@ -203,10 +203,8 @@ class Container:
         return AuthorizationServerService(
             authorization_server_repository,
             app_repository,
-            keycloak_manager,
-            api_url=os.getenv("AUTH_SERVER_URL", "http://localhost:3000"),
+            idp_client,
             mcp_discover=mcp_discover,
-            task_tool_matcher=task_tool_matcher,
             user_input_repository=user_input_repository,
             tracer=tracer,
             tool_check_factory=tool_check_factory,
@@ -216,10 +214,18 @@ class Container:
     def get_app_service(
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
         scope_repository: Annotated[ScopeRepository, Depends(get_scope_repository)],
-        keycloak_manager: Annotated[KeycloakManager, Depends(get_keycloak_manager)],
         authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
+        mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
     ):
-        return AppService(app_repository, scope_repository, keycloak_manager, authorization_server_repository)
+        return AppService(
+            app_repository,
+            scope_repository,
+            authorization_server_repository,
+            mas_repository=mas_repository,
+            idp_client=idp_client,
+            api_url=os.getenv("AUTH_SERVER_URL", "http://localhost:3000"),
+        )
 
     @staticmethod
     def get_scope_service(
@@ -231,5 +237,7 @@ class Container:
     def get_mas_service(
         mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
     ):
-        return MultiAgentSystemService(mas_repository, app_repository)
+        return MultiAgentSystemService(mas_repository, app_repository, authorization_server_repository, idp_client)

@@ -1,10 +1,17 @@
+import logging
 from typing import List
+from uuid import uuid4
 
 from pydantic import BaseModel
 
+from identity_auth_server.core.idp.idp_client import IdpClient
 from identity_auth_server.core.repositories.app import AppRepository
+from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.repositories.multi_agent_system import MultiAgentSystemRepository
-from identity_auth_server.core.types import MultiAgentSystem
+from identity_auth_server.core.types import AuthorizationServer, MultiAgentSystem
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class MultiAgentSystemCreateRequest(BaseModel):
@@ -28,13 +35,33 @@ class MultiAgentSystemAppsBindingRequest(BaseModel):
 class MultiAgentSystemService:
     """A service exposing the APIs related to managing and using MAS."""
 
-    def __init__(self, mas_repository: MultiAgentSystemRepository, app_repository: AppRepository):
+    def __init__(
+        self,
+        mas_repository: MultiAgentSystemRepository,
+        app_repository: AppRepository,
+        auth_srv_repository: AuthorizationServerRepository,
+        idp_client: IdpClient,
+    ):
         self._mas_repository = mas_repository
         self._app_repository = app_repository
+        self._auth_srv_repository = auth_srv_repository
+        self._idp_client = idp_client
 
     def create_mas(self, request: MultiAgentSystemCreateRequest) -> MultiAgentSystem:
         """Create a new Multi Agent System."""
-        mas = MultiAgentSystem(name=request.name)
+        mas = MultiAgentSystem(id=uuid4(), name=request.name)
+
+        logger.debug(f"Creating authorization server for Multi Agent System {mas.id}")
+
+        authorization_server = self._auth_srv_repository.create_authorization_server(
+            AuthorizationServer(
+                realm=f"{mas.name}-{mas.id}-auth-server",
+            )
+        )
+        self._idp_client.create_authorization_server(authorization_server)
+
+        mas.authorization_server_id = authorization_server.id
+
         return self._mas_repository.create(mas)
 
     def bind_apps(self, mas_id: str, request: MultiAgentSystemAppsBindingRequest):
@@ -67,6 +94,14 @@ class MultiAgentSystemService:
 
         for app in mas.apps:
             self._app_repository.delete_app(app)
+
+        # deleting the mas means deleting the auth server for now
+        if mas.authorization_server:
+            logger.debug(
+                f"Deleting the authorization server {mas.authorization_server_id} for the Multi Agent System {mas.id}"
+            )
+            self._auth_srv_repository.delete_authorization_server(mas.authorization_server)
+            self._idp_client.delete_authorization_server(mas.authorization_server)
 
         return self._mas_repository.delete(mas)
 

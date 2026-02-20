@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from identity_auth_server.api.dependencies import Container
 from identity_auth_server.api.routes.view_models import AppViewModel
 from identity_auth_server.services.app_service import AppRequest, AppService
-from identity_auth_server.services.authorization_server import AuthorizationServerService
 
 router = APIRouter(tags=["Apps"])
 
@@ -15,14 +14,13 @@ router = APIRouter(tags=["Apps"])
 @router.post("/apps")
 def create_app(
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
-    auth_service: Annotated[AuthorizationServerService, Depends(Container.get_authorization_service)],
     request: AppRequest,
 ) -> AppViewModel:
     """Create a new App."""
     app = app_service.create_app(request)
     if app.id is None:
         raise HTTPException(status_code=500, detail="App creation failed: missing ID")
-    app = auth_service.create_for_app(str(app.id))
+
     return AppViewModel.model_validate(app)
 
 
@@ -35,7 +33,7 @@ def get_apps(
     return [AppViewModel.model_validate(app) for app in apps]
 
 
-@router.get("/apps/{app_id}", response_model=None)
+@router.get("/apps/{app_id}")
 def get_app(
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
     app_id: str,

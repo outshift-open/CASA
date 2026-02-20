@@ -1,11 +1,10 @@
 """PostgreSQL implementation of SessionRepository."""
 
 from abc import ABC, abstractmethod
-from hashlib import sha256
 
 from sqlmodel import Session, select
 
-from identity_auth_server.core.types import AuthorizationServer, ClientCredentials, Token
+from identity_auth_server.core.types import AuthorizationServer, ClientCredentials
 
 
 class AuthorizationServerRepository(ABC):
@@ -28,12 +27,12 @@ class AuthorizationServerRepository(ABC):
         """Create new client credentials."""
 
     @abstractmethod
-    def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
-        """Find client credentials by client ID."""
+    def delete_client_credentials(self, client_credential: ClientCredentials) -> None:
+        """Delete existing client credentials."""
 
     @abstractmethod
-    def create_token(self, token: Token) -> Token:
-        """Create a new token."""
+    def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
+        """Find client credentials by client ID."""
 
 
 class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
@@ -66,18 +65,13 @@ class AuthorizationServerPostgresRepository(AuthorizationServerRepository):
 
         return client_credential
 
+    def delete_client_credentials(self, client_credential: ClientCredentials) -> None:
+        """Delete existing client credentials."""
+        self._session.delete(client_credential)
+
     def get_client_credentials_by_client_id(self, client_id: str) -> ClientCredentials | None:
         """Find client credentials by client ID."""
         statement = select(ClientCredentials).where(ClientCredentials.client_id == client_id)
         authorization_server = self._session.exec(statement).first()
 
         return authorization_server
-
-    def create_token(self, token: Token) -> Token:
-        """Persist a source app session and return the generated token."""
-        # Hash the token value before storing
-        token.value = sha256(token.value.encode("utf-8")).hexdigest()
-
-        self._session.add(token)
-
-        return token

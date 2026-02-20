@@ -2,17 +2,16 @@
 
 # mypy: disable-error-code="call-arg"
 
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from enum import Enum, IntFlag
 from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
+from sqlalchemy.orm import RelationshipProperty
 from sqlmodel import Column, Field, Integer, Relationship, SQLModel
 
 # pylint: disable=too-few-public-methods
-
-######### APP TYPES #########
 
 
 class AppType(str, Enum):
@@ -76,10 +75,11 @@ class App(SQLModel, table=True):
     type: str
     name: str
     base_url: str
-    authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
-    authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="apps")
-    client_credentials_id: Optional[UUID] = Field(foreign_key="clientcredentials.id")
-    client_credentials: Optional["ClientCredentials"] = Relationship(back_populates="apps")
+    client_credentials: Optional["ClientCredentials"] = Relationship(
+        sa_relationship=RelationshipProperty(
+            "ClientCredentials", back_populates="app", uselist=False, foreign_keys="ClientCredentials.app_id"
+        )
+    )
     tools: List["Tool"] = Relationship(back_populates="app")
     mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
     mas: Optional["MultiAgentSystem"] = Relationship(back_populates="apps")
@@ -97,10 +97,11 @@ class MultiAgentSystem(SQLModel, table=True):
         | ToolCheckFlags.AI_POWERED_TOOL_MATCH,
         sa_column=Column(Integer, nullable=False),
     )
+    authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
+    authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="multi_agent_systems")
     created_at: datetime = datetime.now(timezone.utc)
 
 
-######### User Input TYPES #########
 class UserInput(SQLModel, table=True):
     """User Input model containing the user input prompt."""
 
@@ -108,9 +109,6 @@ class UserInput(SQLModel, table=True):
     prompt: str
     created_at: datetime = datetime.now(timezone.utc)
     app_id: Optional[UUID] = Field(foreign_key="app.id")
-
-
-######### AS TYPES #########
 
 
 class AuthorizationServer(SQLModel, table=True):
@@ -124,7 +122,7 @@ class AuthorizationServer(SQLModel, table=True):
     client_credentials: List["ClientCredentials"] = Relationship(
         back_populates="authorization_server", cascade_delete=True
     )
-    apps: List[App] = Relationship(back_populates="authorization_server")
+    multi_agent_systems: List[MultiAgentSystem] = Relationship(back_populates="authorization_server")
 
 
 class ClientCredentials(SQLModel, table=True):
@@ -134,20 +132,12 @@ class ClientCredentials(SQLModel, table=True):
     name: str
     authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="client_credentials")
+    app_id: Optional[UUID] = Field(foreign_key="app.id")
+    app: Optional["App"] = Relationship(
+        sa_relationship=RelationshipProperty("App", back_populates="client_credentials")
+    )
     client_id: str
     client_secret: Optional[str] = Field(default=None)
-    tokens: List["Token"] = Relationship(back_populates="client_credential")
-    apps: List[App] = Relationship(back_populates="client_credentials")
-
-
-class Token(SQLModel, table=True):
-    """Pydantic model for a token."""
-
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    client_credential_id: Optional[UUID] = Field(foreign_key="clientcredentials.id")
-    client_credential: Optional["ClientCredentials"] = Relationship(back_populates="tokens")
-    value: str  # This will be hashed
-    expires_at: date
 
 
 class TokenRequestParams(SQLModel):
@@ -205,6 +195,3 @@ class AppMetadataResponse(SQLModel):
     response_types: list[str]
     token_endpoint_auth_method: str
     jwks_uri: str
-
-
-######### AS TYPES #########
