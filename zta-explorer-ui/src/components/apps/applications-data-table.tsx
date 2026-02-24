@@ -149,7 +149,6 @@ export function ApplicationsDataTable<TData, TValue>({
                         disabled={!table.getCanPreviousPage()}
                     >
                         <ChevronLeft className="h-4 w-4" />
-                        Previous
                     </Button>
                     <div className="flex items-center gap-1 text-sm">
                         <span>Page</span>
@@ -163,7 +162,6 @@ export function ApplicationsDataTable<TData, TValue>({
                         onClick={() => table.nextPage()}
                         disabled={!table.getCanNextPage()}
                     >
-                        Next
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>

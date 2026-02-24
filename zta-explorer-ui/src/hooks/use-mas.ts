@@ -20,7 +20,8 @@ export const useMASApps = (masId: string) => {
     return useQuery({
         queryKey: ['mas', masId, 'apps'],
         queryFn: () => masService.getMASApps(masId),
-        enabled: !!masId
+        enabled: !!masId,
+        refetchOnMount: 'always'
     });
 };
 
@@ -28,15 +29,9 @@ export const useCreateMAS = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({name, app_ids}: {name: string; app_ids: string[]}) => {
-            // Step 1: Create MAS
+        mutationFn: async ({name}: {name: string; app_ids?: string[]}) => {
+            // Create MAS - apps are added later when creating apps with mas_id
             const mas = await masService.createMAS({name});
-
-            // Step 2: Bind apps if any
-            if (app_ids.length > 0) {
-                await masService.bindApps(mas.id, {app_ids});
-            }
-
             return mas;
         },
         onSuccess: () => {
@@ -49,13 +44,9 @@ export const useUpdateMAS = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({id, name, app_ids}: {id: string; name: string; app_ids: string[]}) => {
-            // Update MAS name
+        mutationFn: async ({id, name}: {id: string; name: string}) => {
+            // Update MAS name only - apps manage their own mas_id
             const mas = await masService.updateMAS(id, {name});
-
-            // Update bound apps
-            await masService.bindApps(id, {app_ids});
-
             return mas;
         },
         onSuccess: (_, {id}) => {
@@ -73,6 +64,8 @@ export const useDeleteMAS = () => {
         mutationFn: (id: string) => masService.deleteMAS(id),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['mas']});
+            // Invalidate apps since deleting MAS cascades to delete its apps
+            queryClient.invalidateQueries({queryKey: ['apps']});
         }
     });
 };
