@@ -89,6 +89,46 @@ class KeycloakClient(IdpClient):
         except Exception:
             logger.warning(f"Some scopes may already exist in realm {authz_serv.realm}")
 
+    def update_scope(self, authz_serv: AuthorizationServer, old_name: str, new_name: str) -> None:
+        """Update a scope in the Keycloak Authorization Server (Realm).
+
+        Args:
+            authz_serv: The AuthorizationServer object containing realm information
+            old_name: Current name of the scope
+            new_name: New name for the scope
+        """
+        try:
+            # Get the existing scope
+            scope = self._get_keycloak_admin(authz_serv).get_client_scope_by_name(old_name)
+            if scope:
+                # Keycloak doesn't support renaming, so delete and recreate
+                self._get_keycloak_admin(authz_serv).delete_client_scope(scope["id"])
+                logger.info(f"Deleted scope: {old_name}")
+
+                # Create with new name
+                self._get_keycloak_admin(authz_serv).create_client_scope(
+                    {"name": new_name, "protocol": "openid-connect"}, True
+                )
+                logger.info(f"Created scope: {new_name}")
+        except Exception as e:
+            logger.error(f"Unable to update scope {old_name} to {new_name} in realm {authz_serv.realm}", e)
+
+    def delete_scope(self, authz_serv: AuthorizationServer, scope_name: str) -> None:
+        """Delete a scope from the Keycloak Authorization Server (Realm).
+
+        Args:
+            authz_serv: The AuthorizationServer object containing realm information
+            scope_name: Name of the scope to delete
+        """
+        try:
+            # Get the scope by name
+            scope = self._get_keycloak_admin(authz_serv).get_client_scope_by_name(scope_name)
+            if scope:
+                self._get_keycloak_admin(authz_serv).delete_client_scope(scope["id"])
+                logger.info(f"Deleted scope: {scope_name}")
+        except Exception as e:
+            logger.error(f"Unable to delete scope {scope_name} in realm {authz_serv.realm}", e)
+
     def create_client_credentials(
         self,
         authz_serv: AuthorizationServer,
