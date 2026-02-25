@@ -127,7 +127,6 @@ export function MASDataTable<TData, TValue>({
                         disabled={!table.getCanPreviousPage()}
                     >
                         <ChevronLeft className="h-4 w-4" />
-                        Previous
                     </Button>
                     <div className="text-sm font-medium">
                         Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
@@ -138,7 +137,6 @@ export function MASDataTable<TData, TValue>({
                         onClick={() => table.nextPage()}
                         disabled={!table.getCanNextPage()}
                     >
-                        Next
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>

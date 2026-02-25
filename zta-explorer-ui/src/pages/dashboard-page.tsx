@@ -119,7 +119,7 @@ export function DashboardPage() {
                                     <strong>Applications:</strong> Manage your agents, clients, and MCP servers
                                 </div>
                             </li>
-                            <li className="flex items-start gap-2">
+                            <li className="flex items-start gap-2 p-2 -m-2">
                                 <Shield className="h-4 w-4 mt-0.5 text-primary" />
                                 <div>
                                     <strong>Settings:</strong> Configure your authentication policies and preferences

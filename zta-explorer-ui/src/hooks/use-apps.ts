@@ -22,8 +22,12 @@ export const useCreateApp = () => {
 
     return useMutation({
         mutationFn: (app: CreateAppRequest) => appService.createApp(app),
-        onSuccess: () => {
+        onSuccess: (newApp) => {
             queryClient.invalidateQueries({queryKey: ['apps']});
+            // Invalidate MAS apps cache since a new app was added to a MAS
+            if (newApp.mas_id) {
+                queryClient.invalidateQueries({queryKey: ['mas', newApp.mas_id, 'apps']});
+            }
         }
     });
 };
@@ -33,9 +37,13 @@ export const useUpdateApp = () => {
 
     return useMutation({
         mutationFn: ({id, app}: {id: string; app: UpdateAppRequest}) => appService.updateApp(id, app),
-        onSuccess: (_, {id}) => {
+        onSuccess: (updatedApp, {id}) => {
             queryClient.invalidateQueries({queryKey: ['apps']});
             queryClient.invalidateQueries({queryKey: ['apps', id]});
+            // Invalidate MAS apps cache since app details might have changed
+            if (updatedApp.mas_id) {
+                queryClient.invalidateQueries({queryKey: ['mas', updatedApp.mas_id, 'apps']});
+            }
         }
     });
 };
@@ -47,6 +55,11 @@ export const useDeleteApp = () => {
         mutationFn: (id: string) => appService.deleteApp(id),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['apps']});
+            // Invalidate all MAS apps caches since we don't know which MAS this app belonged to
+            queryClient.invalidateQueries({
+                queryKey: ['mas'],
+                predicate: (query) => query.queryKey.length === 3 && query.queryKey[2] === 'apps'
+            });
         }
     });
 };
