@@ -17,9 +17,14 @@ export function DashboardPage() {
     const [authRequests] = useState(() => Math.floor(Math.random() * 500) + 100);
 
     return (
-        <>
+        <div className="space-y-6">
             <div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                <h1 className="text-2xl font-bold">Dashboard</h1>
+                <p className="text-muted-foreground">Overview of your Zero Trust Architecture</p>
+            </div>
+
+            <div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card className="cursor-pointer hover:bg-accent transition-colors" onClick={() => navigate('/mas')}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Multi-Agent Systems</CardTitle>
@@ -55,34 +60,24 @@ export function DashboardPage() {
                             <p className="text-xs text-muted-foreground">Agents, Clients & MCP Servers</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-dashed">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
                             <Activity className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{activeSessions}</div>
-                            <p className="text-xs text-muted-foreground">Currently authenticated</p>
+                            <p className="text-xs text-muted-foreground">Coming soon</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-dashed">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Authorization Requests</CardTitle>
                             <Lock className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{authRequests}</div>
-                            <p className="text-xs text-muted-foreground">Last 24 hours</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Security Status</CardTitle>
-                            <Shield className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-green-600">Secure</div>
-                            <p className="text-xs text-muted-foreground">All systems operational</p>
+                            <p className="text-xs text-muted-foreground">Coming soon</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -119,7 +114,10 @@ export function DashboardPage() {
                                     <strong>Applications:</strong> Manage your agents, clients, and MCP servers
                                 </div>
                             </li>
-                            <li className="flex items-start gap-2 p-2 -m-2">
+                            <li
+                                className="flex items-start gap-2 cursor-pointer hover:bg-accent p-2 -m-2 rounded transition-colors"
+                                onClick={() => navigate('/settings')}
+                            >
                                 <Shield className="h-4 w-4 mt-0.5 text-primary" />
                                 <div>
                                     <strong>Settings:</strong> Configure your authentication policies and preferences
@@ -129,6 +127,6 @@ export function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
-        </>
+        </div>
     );
 }

@@ -1,5 +1,5 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useMASById, useDeleteMAS} from '@/hooks/use-mas';
+import {useMASById, useDeleteMAS, useMASApps} from '@/hooks/use-mas';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
@@ -13,6 +13,7 @@ export function MASDetailPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
     const {data: mas, isLoading, error, refetch} = useMASById(id || '');
+    const {data: apps} = useMASApps(id || '');
     const deleteMAS = useDeleteMAS();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('info');
@@ -105,6 +106,7 @@ export function MASDetailPage() {
                 open={isDeleteDialogOpen}
                 isPending={deleteMAS.isPending}
                 masName={mas?.name || ''}
+                appCount={apps?.length || 0}
                 onClose={() => setIsDeleteDialogOpen(false)}
                 onConfirm={handleDelete}
             />

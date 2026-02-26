@@ -31,6 +31,7 @@ export interface App {
     tools: Tool[];
     mas_id?: string;
     mas?: MAS;
+    created_at?: string;
 }
 
 export interface AppListResponse {

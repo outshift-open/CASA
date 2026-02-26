@@ -5,10 +5,23 @@ import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {ApplicationDeleteDialog} from '@/components/apps';
-import {Pencil, Trash2, Network} from 'lucide-react';
+import {Pencil, Trash2, Network, Copy, Download} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 import type {AppType} from '@/types/app.types';
+
+function formatRelativeTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+    return `${Math.floor(diffInSeconds / 31536000)} years ago`;
+}
 
 const APP_TYPE_LABELS: Record<AppType, string> = {
     agent: 'Agent',
@@ -40,6 +53,42 @@ export function AppDetailPage() {
             console.error('Failed to delete app:', error);
             toast.error('Failed to delete application');
         }
+    };
+
+    const copyToClipboard = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
+        toast.success(`${label} copied to clipboard`);
+    };
+
+    const exportConfig = () => {
+        if (!app) return;
+
+        const config = {
+            app: {
+                id: app.id,
+                name: app.name,
+                type: app.type,
+                base_url: app.base_url,
+                mas_id: app.mas_id,
+                created_at: app.created_at
+            },
+            mas: app.mas
+                ? {
+                      id: app.mas.id,
+                      name: app.mas.name
+                  }
+                : null,
+            tools: app.tools
+        };
+
+        const blob = new Blob([JSON.stringify(config, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${app.name}-config.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        toast.success('Configuration exported successfully');
     };
 
     return (
@@ -89,7 +138,20 @@ export function AppDetailPage() {
                                             <CardTitle>{app.name}</CardTitle>
                                             <CardDescription>Application information and configuration</CardDescription>
                                         </div>
-                                        <Badge variant={APP_TYPE_VARIANTS[app.type]}>{APP_TYPE_LABELS[app.type]}</Badge>
+                                        <div className="flex gap-2">
+                                            <Badge variant={APP_TYPE_VARIANTS[app.type]}>
+                                                {APP_TYPE_LABELS[app.type]}
+                                            </Badge>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={exportConfig}
+                                                className="cursor-pointer"
+                                            >
+                                                <Download className="mr-2 h-3 w-3" />
+                                                Export Config
+                                            </Button>
+                                        </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
@@ -112,12 +174,14 @@ export function AppDetailPage() {
                                             </p>
                                             {app.mas ? (
                                                 <div
-                                                    className="flex items-center gap-2 cursor-pointer hover:decoration-solid text-base"
+                                                    className="flex items-center gap-2 cursor-pointer text-base group"
                                                     onClick={() => navigate(`/mas/${app.mas_id}`)}
                                                 >
                                                     <Network className="h-4 w-4 text-muted-foreground" />
                                                     <div className="flex flex-col">
-                                                        <span className="font-semibold">{app.mas.name}</span>
+                                                        <span className="font-semibold underline decoration-dotted group-hover:decoration-solid">
+                                                            {app.mas.name}
+                                                        </span>
                                                         <span className="font-mono text-xs text-muted-foreground">
                                                             {app.mas.id}
                                                         </span>
@@ -127,6 +191,33 @@ export function AppDetailPage() {
                                                 <p className="text-base text-muted-foreground">-</p>
                                             )}
                                         </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm font-medium text-muted-foreground">
+                                                    Application ID
+                                                </p>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => copyToClipboard(app.id || '', 'Application ID')}
+                                                    className="cursor-pointer h-6 px-2"
+                                                >
+                                                    <Copy className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs font-mono bg-muted px-2 py-1 rounded">{app.id}</p>
+                                        </div>
+                                        {app.created_at && (
+                                            <div className="space-y-2 md:col-span-2">
+                                                <p className="text-sm font-medium text-muted-foreground">Created</p>
+                                                <div>
+                                                    <p className="text-base">{formatRelativeTime(app.created_at)}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {new Date(app.created_at).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>

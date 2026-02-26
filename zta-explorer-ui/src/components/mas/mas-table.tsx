@@ -12,12 +12,11 @@ interface MASTableProps {
     data: MAS[];
     total: number;
     isLoading: boolean;
-    onEdit: (mas: MAS) => void;
-    onDelete: (id: string) => void;
+    onDelete: (id: string, appCount: number) => void;
     onRefresh: () => void;
 }
 
-export function MASTable({data, total, isLoading, onEdit, onDelete, onRefresh}: MASTableProps) {
+export function MASTable({data, total, isLoading, onDelete, onRefresh}: MASTableProps) {
     const navigate = useNavigate();
     const [appCounts, setAppCounts] = useState<Record<string, number>>({});
     const [countsLoading, setCountsLoading] = useState<Record<string, boolean>>({});
@@ -44,7 +43,7 @@ export function MASTable({data, total, isLoading, onEdit, onDelete, onRefresh}: 
                     const apps = await masService.getMASApps(mas.id);
                     counts[mas.id] = apps.length;
                     errors[mas.id] = false;
-                } catch (_error) {
+                } catch {
                     counts[mas.id] = 0;
                     errors[mas.id] = true;
                 }
@@ -60,8 +59,8 @@ export function MASTable({data, total, isLoading, onEdit, onDelete, onRefresh}: 
     }, [data]);
 
     const columns = useMemo(
-        () => createMASColumns(onEdit, onDelete, navigate, appCounts, countsLoading, countsError),
-        [onEdit, onDelete, navigate, appCounts, countsLoading, countsError]
+        () => createMASColumns(onDelete, navigate, appCounts, countsLoading, countsError),
+        [onDelete, navigate, appCounts, countsLoading, countsError]
     );
     const hasData = data && data.length > 0;
 
@@ -72,7 +71,7 @@ export function MASTable({data, total, isLoading, onEdit, onDelete, onRefresh}: 
                     <div className="space-y-2">
                         <CardTitle>Multi-Agent Systems</CardTitle>
                         <CardDescription>
-                            {total || 0} MAS {total !== 1 ? 'registered' : 'registered'}
+                            {total || 0} {total === 1 ? 'system' : 'systems'} registered
                         </CardDescription>
                     </div>
                     {!isLoading && (

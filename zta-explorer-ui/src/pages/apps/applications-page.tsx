@@ -52,10 +52,11 @@ export function ApplicationsPage() {
         <>
             <div className="flex items-center justify-between">
                 <div>
+                    <h1 className="text-2xl font-bold">Applications</h1>
                     <p className="text-muted-foreground">Manage agents, clients, and MCP servers</p>
                 </div>
-                <Button onClick={() => navigate('/apps/create')}>
-                    <Plus className="mr-0.5 h-4 w-4" />
+                <Button onClick={() => navigate('/apps/create')} className="cursor-pointer">
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Application
                 </Button>
             </div>

@@ -15,8 +15,7 @@ import type {MAS} from '@/types/mas.types';
 import {DateHover} from '@/components/ui/date-hover';
 
 export const createMASColumns = (
-    onEdit: (mas: MAS) => void,
-    onDelete: (id: string) => void,
+    onDelete: (id: string, appCount: number) => void,
     navigate: (path: string) => void,
     appCounts: Record<string, number> = {},
     countsLoading: Record<string, boolean> = {},
@@ -147,7 +146,7 @@ export const createMASColumns = (
                                 Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => onDelete(mas.id)}
+                                onClick={() => onDelete(mas.id, appCounts[mas.id] ?? 0)}
                                 className="text-destructive cursor-pointer"
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />

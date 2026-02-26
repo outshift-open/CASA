@@ -1,4 +1,4 @@
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 import {useCreateApp} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
 import {useForm, Controller} from 'react-hook-form';
@@ -11,14 +11,17 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from '@/components/ui/command';
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
+import {Badge} from '@/components/ui/badge';
 import {toast} from 'sonner';
 import {applicationSchema, type ApplicationFormData} from '@/lib/validations/application.schema';
-import {AlertCircle, Plus, Check, ChevronsUpDown} from 'lucide-react';
+import {AlertCircle, Plus, Check, ChevronsUpDown, Network} from 'lucide-react';
 import {cn} from '@/lib/utils';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 
 export function AppCreatePage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const prefilledMasId = searchParams.get('mas_id');
     const createApp = useCreateApp();
     const {data: masData, isLoading: masLoading, error: masError, refetch: refetchMAS} = useMAS();
     const [masComboboxOpen, setMasComboboxOpen] = useState(false);
@@ -27,6 +30,7 @@ export function AppCreatePage() {
         register,
         handleSubmit,
         control,
+        setValue,
         formState: {errors}
     } = useForm<ApplicationFormData>({
         resolver: zodResolver(applicationSchema),
@@ -34,9 +38,19 @@ export function AppCreatePage() {
             type: 'agent',
             name: '',
             base_url: '',
-            mas_id: ''
+            mas_id: prefilledMasId || ''
         }
     });
+
+    // Update mas_id when masData loads and we have a prefilled value
+    useEffect(() => {
+        if (prefilledMasId && masData) {
+            const masExists = masData.some((mas) => mas.id === prefilledMasId);
+            if (masExists) {
+                setValue('mas_id', prefilledMasId);
+            }
+        }
+    }, [prefilledMasId, masData, setValue]);
 
     const onSubmit = async (data: ApplicationFormData) => {
         try {
@@ -56,12 +70,21 @@ export function AppCreatePage() {
     };
 
     const hasMAS = masData && masData.length > 0;
+    const prefilledMAS = prefilledMasId && masData ? masData.find((mas) => mas.id === prefilledMasId) : null;
 
     return (
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold">Create Application</h1>
                 <p className="text-muted-foreground">Add a new agent, client, or MCP server</p>
+                {prefilledMAS && (
+                    <div className="mt-2 flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                            <Network className="mr-1 h-3 w-3" />
+                            For MAS: {prefilledMAS.name}
+                        </Badge>
+                    </div>
+                )}
             </div>
 
             {masLoading && (

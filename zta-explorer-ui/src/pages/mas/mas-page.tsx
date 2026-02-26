@@ -15,10 +15,12 @@ export function MASPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deletingMASId, setDeletingMASId] = useState<string | null>(null);
     const [deletingMASName, setDeletingMASName] = useState<string>('');
+    const [deletingMASAppCount, setDeletingMASAppCount] = useState<number>(0);
 
-    const handleDelete = useCallback((id: string, name: string) => {
+    const handleDelete = useCallback((id: string, name: string, appCount: number) => {
         setDeletingMASId(id);
         setDeletingMASName(name);
+        setDeletingMASAppCount(appCount);
         setIsDeleteDialogOpen(true);
     }, []);
 
@@ -74,10 +76,9 @@ export function MASPage() {
                         data={data || []}
                         total={data?.length || 0}
                         isLoading={isLoading}
-                        onEdit={() => {}}
-                        onDelete={(id: string) => {
+                        onDelete={(id: string, appCount: number) => {
                             const mas = data?.find((m) => m.id === id);
-                            handleDelete(id, mas?.name || '');
+                            handleDelete(id, mas?.name || '', appCount);
                         }}
                         onRefresh={handleRefresh}
                     />
@@ -88,6 +89,7 @@ export function MASPage() {
                 open={isDeleteDialogOpen}
                 isPending={deleteMAS.isPending}
                 masName={deletingMASName}
+                appCount={deletingMASAppCount}
                 onClose={() => setIsDeleteDialogOpen(false)}
                 onConfirm={confirmDelete}
             />

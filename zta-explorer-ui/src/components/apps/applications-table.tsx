@@ -2,6 +2,7 @@ import {useMemo, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
+import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {ApplicationsDataTable} from './applications-data-table';
 import {createColumns} from './columns';
 import {RefreshCw} from 'lucide-react';
@@ -38,9 +39,22 @@ export function ApplicationsTable({data, total, isLoading, onDelete, onRefresh}:
                         </CardDescription>
                     </div>
                     {!isLoading && (
-                        <Button variant="outline" size="icon" onClick={onRefresh} className="cursor-pointer">
-                            <RefreshCw className="h-4 w-4" />
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={onRefresh}
+                                    className="cursor-pointer"
+                                    aria-label="Refresh applications"
+                                >
+                                    <RefreshCw className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Refresh applications</p>
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
             </CardHeader>
