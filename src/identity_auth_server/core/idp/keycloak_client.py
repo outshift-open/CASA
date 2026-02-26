@@ -98,18 +98,8 @@ class KeycloakClient(IdpClient):
             new_name: New name for the scope
         """
         try:
-            # Get the existing scope
-            scope = self._get_keycloak_admin(authz_serv).get_client_scope_by_name(old_name)
-            if scope:
-                # Keycloak doesn't support renaming, so delete and recreate
-                self._get_keycloak_admin(authz_serv).delete_client_scope(scope["id"])
-                logger.info(f"Deleted scope: {old_name}")
-
-                # Create with new name
-                self._get_keycloak_admin(authz_serv).create_client_scope(
-                    {"name": new_name, "protocol": "openid-connect"}, True
-                )
-                logger.info(f"Created scope: {new_name}")
+            self.delete_scope(authz_serv, old_name)
+            self.create_scopes(authz_serv, [new_name])
         except Exception as e:
             logger.error(f"Unable to update scope {old_name} to {new_name} in realm {authz_serv.realm}", e)
 
