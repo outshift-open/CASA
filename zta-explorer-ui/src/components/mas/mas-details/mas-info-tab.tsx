@@ -1,5 +1,5 @@
 import {useMASApps} from '@/hooks/use-mas';
-import {MASAppsTable} from '@/components/mas';
+import {MASAppsTable, MASGraphView} from '@/components/mas';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
@@ -52,9 +52,7 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
                             <MASAppsTable apps={apps} />
                         </TabsContent>
                         <TabsContent value="graph" className="mt-4">
-                            <div className="flex items-center justify-center py-12 text-muted-foreground">
-                                <p>Graph view coming soon...</p>
-                            </div>
+                            <MASGraphView mas={mas} apps={apps} />
                         </TabsContent>
                     </Tabs>
                 ) : (
