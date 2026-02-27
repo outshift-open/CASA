@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from identity_auth_server.api.dependencies import Container
 from identity_auth_server.core.exceptions import ResourceAlreadyExistsError, ResourceNotFoundError
 from identity_auth_server.core.types import Scope
-from identity_auth_server.services.scope_service import ScopeRequest, ScopeService
+from identity_auth_server.services.scope_service import ScopeCreateRequest, ScopeService, ScopeUpdateRequest
 
 router = APIRouter(tags=["Scopes"])
 
@@ -15,7 +15,7 @@ router = APIRouter(tags=["Scopes"])
 @router.post("/scopes")
 def create_scope(
     scope_service: Annotated[ScopeService, Depends(Container.get_scope_service)],
-    request: ScopeRequest,
+    request: ScopeCreateRequest,
 ) -> Scope:
     """Create a new scope."""
     try:
@@ -50,7 +50,7 @@ def get_scope(
 def update_scope(
     scope_service: Annotated[ScopeService, Depends(Container.get_scope_service)],
     scope_id: str,
-    request: ScopeRequest,
+    request: ScopeUpdateRequest,
 ) -> Scope:
     """Update an existing scope."""
     try:

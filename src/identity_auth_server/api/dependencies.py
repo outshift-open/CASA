@@ -230,8 +230,10 @@ class Container:
     @staticmethod
     def get_scope_service(
         scope_repository: Annotated[ScopeRepository, Depends(get_scope_repository)],
+        mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
     ):
-        return ScopeService(scope_repository)
+        return ScopeService(scope_repository, mas_repository, idp_client)
 
     @staticmethod
     def get_mas_service(

@@ -55,6 +55,8 @@ class Scope(SQLModel, table=True):
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     name: str = Field(index=True, unique=True)
+    mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
+    mas: Optional["MultiAgentSystem"] = Relationship(back_populates="scopes")
     tools: List[Tool] = Relationship(
         back_populates="scopes",
         link_model=ToolScope,
@@ -91,6 +93,7 @@ class MultiAgentSystem(SQLModel, table=True):
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     name: str
     apps: List["App"] = Relationship(back_populates="mas")
+    scopes: List["Scope"] = Relationship(back_populates="mas")
     enabled_tool_checks: Optional[ToolCheckFlags] = Field(
         default=ToolCheckFlags.DETERMINISTIC_TOOL_SELECTED
         | ToolCheckFlags.DETERMINISTIC_LLM_SELECTED_TOOLS

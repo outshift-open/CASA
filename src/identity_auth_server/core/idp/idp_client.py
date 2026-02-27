@@ -36,6 +36,14 @@ class IdpClient(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def update_scope(self, authz_serv: AuthorizationServer, old_name: str, new_name: str) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def delete_scope(self, authz_serv: AuthorizationServer, scope_name: str) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
     def create_client_credentials(
         self,
         authz_serv: AuthorizationServer,

@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, cast
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
 from identity_auth_server.core.exceptions import ResourceAlreadyExistsError
@@ -84,7 +85,7 @@ class ScopePostgresRepository(ScopeRepository):
     def get_scope_by_id(self, scope_id: str) -> Scope | None:
         """Retrieve a scope by its ID."""
         try:
-            return self._session.get(Scope, scope_id)
+            return self._session.exec(select(Scope).where(Scope.id == scope_id).options(joinedload(Scope.mas))).first()
         except Exception as e:
             raise Exception(f"Error retrieving scope with id '{scope_id}': {e}") from e
 
