@@ -12,6 +12,7 @@ export interface Tool {
     description: string;
     input_schema: string;
     output_schema: string;
+    app_id?: string;
     scopes?: string[];
 }
 
