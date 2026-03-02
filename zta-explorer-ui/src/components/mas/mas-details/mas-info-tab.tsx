@@ -1,11 +1,9 @@
 import {useMASApps} from '@/hooks/use-mas';
-import {MASAppsTable, MASGraphView} from '@/components/mas';
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
+import {useMASScopes} from '@/hooks/use-scopes';
 import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
-import {Table, Network, Plus, Copy, Download, Bot, AppWindow, Server, CheckCircle2} from 'lucide-react';
-import {useNavigate} from 'react-router-dom';
+import {Network, Copy, Download, Bot, AppWindow, Server, CheckCircle2, Tags} from 'lucide-react';
 import {toast} from 'sonner';
 import {useMemo} from 'react';
 import type {MAS} from '@/types/mas.types';
@@ -47,8 +45,8 @@ function formatRelativeTime(dateString: string): string {
 }
 
 export function MASInfoTab({mas}: MASInfoTabProps) {
-    const navigate = useNavigate();
-    const {data: apps, isLoading: appsLoading, error: appsError} = useMASApps(mas.id);
+    const {data: apps} = useMASApps(mas.id);
+    const {data: scopes} = useMASScopes(mas.id);
 
     const stats = useMemo(() => {
         if (!apps) return {byType: {agent: 0, client: 0, mcp_server: 0}, totalTools: 0};
@@ -186,7 +184,7 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
             </div>
 
             {/* Additional Stats */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
                 <Card className="py-3">
                     <CardContent className="p-4">
                         <div className="space-y-2">
@@ -198,6 +196,19 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
                             <p className="text-xs text-muted-foreground">
                                 Across {apps?.length || 0} application{apps?.length !== 1 ? 's' : ''}
                             </p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="py-3">
+                    <CardContent className="p-4">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <Tags className="h-4 w-4 text-primary" />
+                                <p className="text-sm font-medium text-muted-foreground">Total Scopes</p>
+                            </div>
+                            <p className="text-2xl font-bold">{scopes?.length || 0}</p>
+                            <p className="text-xs text-muted-foreground">Authorization scopes</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -228,78 +239,6 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
                         </div>
                     </CardContent>
                 </Card>
-            </div>
-
-            {/* Applications Section */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-lg font-semibold">Applications</p>
-                        <p className="text-sm text-muted-foreground">
-                            {apps?.length || 0} application{apps?.length !== 1 ? 's' : ''} configured
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => navigate(`/apps/create?mas_id=${mas.id}`)}
-                        size="sm"
-                        className="cursor-pointer"
-                    >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Application
-                    </Button>
-                </div>
-
-                {appsLoading ? (
-                    <Card>
-                        <CardContent className="pt-6">
-                            <p className="text-sm text-muted-foreground text-center py-8">Loading applications...</p>
-                        </CardContent>
-                    </Card>
-                ) : appsError ? (
-                    <Card>
-                        <CardContent className="pt-6">
-                            <p className="text-sm text-destructive text-center py-8">Error loading applications</p>
-                        </CardContent>
-                    </Card>
-                ) : apps && apps.length > 0 ? (
-                    <Tabs defaultValue="table" className="w-full">
-                        <TabsList>
-                            <TabsTrigger value="table">
-                                <Table className="mr-2 h-4 w-4" />
-                                Table
-                            </TabsTrigger>
-                            <TabsTrigger value="graph">
-                                <Network className="mr-2 h-4 w-4" />
-                                Graph
-                            </TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="table" className="mt-4">
-                            <MASAppsTable apps={apps} />
-                        </TabsContent>
-                        <TabsContent value="graph" className="mt-4">
-                            <MASGraphView mas={mas} apps={apps} />
-                        </TabsContent>
-                    </Tabs>
-                ) : (
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex flex-col items-center justify-center py-8 text-center">
-                                <div className="rounded-full bg-muted p-3 mb-4">
-                                    <Plus className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                                <h3 className="text-lg font-semibold mb-2">No Applications Yet</h3>
-                                <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                                    This Multi-Agent System doesn't have any applications associated with it yet. Create
-                                    your first application to get started.
-                                </p>
-                                <Button onClick={() => navigate('/apps/create')}>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Create Application
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
             </div>
         </div>
     );

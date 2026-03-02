@@ -3,6 +3,7 @@ import {ChevronRight, Home} from 'lucide-react';
 import {ThemeToggle} from '@/components/theme-toggle';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
+import {useScopes} from '@/hooks/use-scopes';
 import {Button} from '@/components/ui/button';
 
 const routeTitles: Record<string, string> = {
@@ -10,6 +11,7 @@ const routeTitles: Record<string, string> = {
     '/applications': 'Applications',
     '/apps': 'Applications',
     '/mas': 'Multi-Agent Systems',
+    '/scopes': 'Scopes',
     '/settings': 'Settings',
     '/help': 'Get Help',
     '/search': 'Search'
@@ -18,13 +20,15 @@ const routeTitles: Record<string, string> = {
 // Map breadcrumb paths to actual routes
 const routeRedirects: Record<string, string> = {
     '/apps': '/applications',
-    '/mas': '/mas'
+    '/mas': '/mas',
+    '/scopes': '/scopes'
 };
 
 export function SiteHeader() {
     const location = useLocation();
     const {data: appsData} = useApps();
     const {data: masData} = useMAS();
+    const {data: scopesData} = useScopes();
 
     // Parse the current path into breadcrumb segments
     const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -52,6 +56,10 @@ export function SiteHeader() {
             // It's a MAS ID - try to find the MAS name
             const mas = masData?.find((m) => m.id === segment);
             label = mas?.name || segment;
+        } else if (pathSegments[index - 1] === 'scopes' && segment !== 'create') {
+            // It's a scope ID - try to find the scope name
+            const scope = Array.isArray(scopesData) ? scopesData.find((s) => s.id === segment) : null;
+            label = scope?.name || segment;
         }
 
         breadcrumbs.push({

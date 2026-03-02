@@ -6,7 +6,10 @@ import {MASDataTable} from './mas-data-table';
 import {createMASColumns} from './mas-columns';
 import {RefreshCw} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
+import type {App} from '@/types/app.types';
+import type {Scope} from '@/types/scope.types';
 import {masService} from '@/services/mas.service';
+import {scopeService} from '@/services/scope.service';
 
 interface MASTableProps {
     data: MAS[];
@@ -18,15 +21,16 @@ interface MASTableProps {
 
 export function MASTable({data, total, isLoading, onDelete, onRefresh}: MASTableProps) {
     const navigate = useNavigate();
-    const [appCounts, setAppCounts] = useState<Record<string, number>>({});
+    const [masApps, setMasApps] = useState<Record<string, App[]>>({});
+    const [masScopes, setMasScopes] = useState<Record<string, Scope[]>>({});
     const [countsLoading, setCountsLoading] = useState<Record<string, boolean>>({});
     const [countsError, setCountsError] = useState<Record<string, boolean>>({});
 
-    // Fetch app counts for each MAS
+    // Fetch apps and scopes for each MAS
     useEffect(() => {
         if (!data || data.length === 0) return;
 
-        const fetchAppCounts = async () => {
+        const fetchData = async () => {
             // Initialize loading state for all MAS
             const loadingState: Record<string, boolean> = {};
             data.forEach((mas) => {
@@ -34,33 +38,40 @@ export function MASTable({data, total, isLoading, onDelete, onRefresh}: MASTable
             });
             setCountsLoading(loadingState);
 
-            const counts: Record<string, number> = {};
+            const appsData: Record<string, App[]> = {};
+            const scopesData: Record<string, Scope[]> = {};
             const errors: Record<string, boolean> = {};
             const loading: Record<string, boolean> = {};
 
             for (const mas of data) {
                 try {
-                    const apps = await masService.getMASApps(mas.id);
-                    counts[mas.id] = apps.length;
+                    const [apps, scopes] = await Promise.all([
+                        masService.getMASApps(mas.id),
+                        scopeService.getMASScopes(mas.id)
+                    ]);
+                    appsData[mas.id] = apps;
+                    scopesData[mas.id] = scopes;
                     errors[mas.id] = false;
                 } catch {
-                    counts[mas.id] = 0;
+                    appsData[mas.id] = [];
+                    scopesData[mas.id] = [];
                     errors[mas.id] = true;
                 }
                 loading[mas.id] = false;
             }
 
-            setAppCounts(counts);
+            setMasApps(appsData);
+            setMasScopes(scopesData);
             setCountsError(errors);
             setCountsLoading(loading);
         };
 
-        fetchAppCounts();
+        fetchData();
     }, [data]);
 
     const columns = useMemo(
-        () => createMASColumns(onDelete, navigate, appCounts, countsLoading, countsError),
-        [onDelete, navigate, appCounts, countsLoading, countsError]
+        () => createMASColumns(onDelete, navigate, masApps, masScopes, countsLoading, countsError),
+        [onDelete, navigate, masApps, masScopes, countsLoading, countsError]
     );
     const hasData = data && data.length > 0;
 

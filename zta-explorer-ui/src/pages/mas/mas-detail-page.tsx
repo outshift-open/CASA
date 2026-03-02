@@ -4,8 +4,8 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Button} from '@/components/ui/button';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {MASDeleteDialog, MASInfoTab, MASTracesTab} from '@/components/mas';
-import {Pencil, Trash2, Info, Activity} from 'lucide-react';
+import {MASDeleteDialog, MASInfoTab, MASAppsTab, MASScopesTab, MASTracesTab} from '@/components/mas';
+import {Pencil, Trash2, Info, Activity, AppWindow, Tags} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 
@@ -85,6 +85,14 @@ export function MASDetailPage() {
                                                 <Info className="mr-2 h-4 w-4" />
                                                 Info
                                             </TabsTrigger>
+                                            <TabsTrigger value="apps">
+                                                <AppWindow className="mr-2 h-4 w-4" />
+                                                Applications
+                                            </TabsTrigger>
+                                            <TabsTrigger value="scopes">
+                                                <Tags className="mr-2 h-4 w-4" />
+                                                Scopes
+                                            </TabsTrigger>
                                             <TabsTrigger value="traces">
                                                 <Activity className="mr-2 h-4 w-4" />
                                                 Traces
@@ -94,6 +102,8 @@ export function MASDetailPage() {
                                 </CardHeader>
                                 <CardContent>
                                     {activeTab === 'info' && <MASInfoTab mas={mas} />}
+                                    {activeTab === 'apps' && <MASAppsTab mas={mas} />}
+                                    {activeTab === 'scopes' && <MASScopesTab mas={mas} />}
                                     {activeTab === 'traces' && <MASTracesTab />}
                                 </CardContent>
                             </Card>

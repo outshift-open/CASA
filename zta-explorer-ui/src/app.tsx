@@ -11,6 +11,10 @@ import {MASPage} from '@/pages/mas/mas-page';
 import {MASDetailPage} from '@/pages/mas/mas-detail-page';
 import {MASEditPage} from '@/pages/mas/mas-edit-page';
 import {MASCreatePage} from '@/pages/mas/mas-create-page';
+import {ScopesPage} from '@/pages/scopes/scopes-page';
+import {ScopeDetailPage} from '@/pages/scopes/scope-detail-page';
+import {ScopeEditPage} from '@/pages/scopes/scope-edit-page';
+import {ScopeCreatePage} from '@/pages/scopes/scope-create-page';
 import {SettingsPage} from '@/pages/settings-page';
 import {NotFoundPage} from '@/pages/not-found-page';
 import {Toaster} from '@/components/ui/sonner';
@@ -40,6 +44,10 @@ function App() {
                                 <Route path="/mas/create" element={<MASCreatePage />} />
                                 <Route path="/mas/:id" element={<MASDetailPage />} />
                                 <Route path="/mas/:id/edit" element={<MASEditPage />} />
+                                <Route path="/scopes" element={<ScopesPage />} />
+                                <Route path="/scopes/create" element={<ScopeCreatePage />} />
+                                <Route path="/scopes/:id" element={<ScopeDetailPage />} />
+                                <Route path="/scopes/:id/edit" element={<ScopeEditPage />} />
                                 <Route path="/settings" element={<SettingsPage />} />
                                 <Route path="*" element={<NotFoundPage />} />
                             </Routes>

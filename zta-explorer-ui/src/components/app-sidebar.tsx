@@ -11,7 +11,8 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Network
+    Network,
+    Tags
 } from 'lucide-react';
 import {NavLink} from 'react-router-dom';
 
@@ -54,6 +55,11 @@ const mainNavItems = [
         title: 'Applications',
         url: '/applications',
         icon: AppWindow
+    },
+    {
+        title: 'Scopes',
+        url: '/scopes',
+        icon: Tags
     }
 ];
 
@@ -78,6 +84,9 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
         }
         if (url === '/mas') {
             return location.pathname === '/mas' || location.pathname.startsWith('/mas/');
+        }
+        if (url === '/scopes') {
+            return location.pathname === '/scopes' || location.pathname.startsWith('/scopes/');
         }
         return location.pathname === url || location.pathname.startsWith(url + '/');
     };
