@@ -85,7 +85,9 @@ class ScopePostgresRepository(ScopeRepository):
     def get_scope_by_id(self, scope_id: str) -> Scope | None:
         """Retrieve a scope by its ID."""
         try:
-            return self._session.exec(select(Scope).where(Scope.id == scope_id).options(joinedload(Scope.mas))).first()
+            return self._session.exec(
+                select(Scope).where(Scope.id == scope_id).options(joinedload(Scope.mas), joinedload(Scope.tools))
+            ).first()
         except Exception as e:
             raise Exception(f"Error retrieving scope with id '{scope_id}': {e}") from e
 
