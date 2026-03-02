@@ -5,8 +5,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Button} from '@/components/ui/button';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {ScopeDeleteDialog} from '@/components/scopes';
-import {Pencil, Trash2, Network, Copy, Shield, CheckCircle2, Wrench, ExternalLink} from 'lucide-react';
-import {Badge} from '@/components/ui/badge';
+import {Pencil, Trash2, Network, Copy, Wrench, ExternalLink} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 
@@ -35,6 +34,10 @@ export function ScopeDetailPage() {
         navigator.clipboard.writeText(text);
         toast.success(`${label} copied to clipboard`);
     };
+
+    // Check if MAS has any MCP server apps - check both scope.mas and separately fetched mas
+    const masData = scope?.mas || mas;
+    const hasMcpServers = masData?.apps?.some((app) => app.type === 'mcp_server') ?? false;
 
     return (
         <>
@@ -138,58 +141,60 @@ export function ScopeDetailPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card>
-                                <CardHeader>
-                                    <div className="flex items-center gap-2">
-                                        <Wrench className="h-5 w-5" />
-                                        <div>
-                                            <CardTitle>Tools Using This Scope</CardTitle>
-                                            <CardDescription>
-                                                {scope.tools?.length || 0} tool{scope.tools?.length !== 1 ? 's' : ''}{' '}
-                                                require this scope
-                                            </CardDescription>
+                            {hasMcpServers && (
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center gap-2">
+                                            <Wrench className="h-5 w-5" />
+                                            <div>
+                                                <CardTitle>Tools Using This Scope</CardTitle>
+                                                <CardDescription>
+                                                    {scope.tools?.length || 0} tool
+                                                    {scope.tools?.length !== 1 ? 's' : ''} require this scope
+                                                </CardDescription>
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    {!scope.tools || scope.tools.length === 0 ? (
-                                        <div className="text-center py-8">
-                                            <p className="text-sm text-muted-foreground">
-                                                No tools are currently using this scope
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {scope.tools.map((tool) => (
-                                                <div
-                                                    key={tool.id}
-                                                    className="flex items-start justify-between p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-                                                >
-                                                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                                                        <Wrench className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-medium truncate">{tool.name}</p>
-                                                            <p className="text-xs text-muted-foreground truncate">
-                                                                {tool.description}
-                                                            </p>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {!scope.tools || scope.tools.length === 0 ? (
+                                            <div className="text-center py-8">
+                                                <p className="text-sm text-muted-foreground">
+                                                    No tools are currently using this scope
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {scope.tools.map((tool) => (
+                                                    <div
+                                                        key={tool.id}
+                                                        className="flex items-start justify-between p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+                                                    >
+                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                            <Wrench className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-medium truncate">{tool.name}</p>
+                                                                <p className="text-xs text-muted-foreground truncate">
+                                                                    {tool.description}
+                                                                </p>
+                                                            </div>
                                                         </div>
+                                                        {tool.app_id && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => navigate(`/apps/${tool.app_id}`)}
+                                                                className="cursor-pointer h-7 flex-shrink-0"
+                                                            >
+                                                                <ExternalLink className="h-3 w-3" />
+                                                            </Button>
+                                                        )}
                                                     </div>
-                                                    {tool.app_id && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => navigate(`/apps/${tool.app_id}`)}
-                                                            className="cursor-pointer h-7 flex-shrink-0"
-                                                        >
-                                                            <ExternalLink className="h-3 w-3" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
                         </div>
                     )}
                 </ApiStateHandler>
