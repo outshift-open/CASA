@@ -1,17 +1,19 @@
+"""View models for API responses.
+
+The reason for creating view models is because we want to include
+relationships when serializing to JSON. By default SQLAlchemy doesn't
+include relationships in the serialized model.
+"""
+
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-# The reason for creating view models for the App is
-# because we want to include the MAS when serializing
-# the App to JSON. By default SQLAlchemy doesn't include
-# relationships in the serialized model.
 
-
-class ScopeViewModel(BaseModel):
-    """View model for Scope with only essential fields."""
+class ScopeViewModelMinimal(BaseModel):
+    """Minimal view model for Scope with only essential fields (used in Tool.scopes)."""
 
     id: UUID
     name: str
@@ -29,13 +31,15 @@ class ToolViewModel(BaseModel):
     input_schema: str
     output_schema: str
     app_id: Optional[UUID]
-    scopes: List[ScopeViewModel]
+    scopes: List[ScopeViewModelMinimal]
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)
 
 
 class MultiAgentSystemViewModel(BaseModel):
+    """View model for Multi-Agent System."""
+
     id: UUID
     name: str
     authorization_server_id: Optional[UUID]
@@ -46,6 +50,8 @@ class MultiAgentSystemViewModel(BaseModel):
 
 
 class AppViewModel(BaseModel):
+    """View model for App including tools and MAS relationships."""
+
     id: UUID
     type: str
     name: str
@@ -53,6 +59,19 @@ class AppViewModel(BaseModel):
     tools: List[ToolViewModel]
     mas_id: Optional[UUID]
     mas: Optional[MultiAgentSystemViewModel]
+
+    # To be able to create an instance from a SQLModel
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScopeViewModel(BaseModel):
+    """Full view model for Scope including relationships."""
+
+    id: UUID
+    name: str
+    mas_id: Optional[UUID]
+    mas: Optional[MultiAgentSystemViewModel]
+    tools: List[ToolViewModel]
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)

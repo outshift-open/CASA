@@ -5,8 +5,8 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException
 
 from identity_auth_server.api.dependencies import Container
+from identity_auth_server.api.routes.view_models import ScopeViewModel
 from identity_auth_server.core.exceptions import ResourceAlreadyExistsError, ResourceNotFoundError
-from identity_auth_server.core.types import Scope
 from identity_auth_server.services.scope_service import ScopeCreateRequest, ScopeService, ScopeUpdateRequest
 
 router = APIRouter(tags=["Scopes"])
@@ -16,10 +16,11 @@ router = APIRouter(tags=["Scopes"])
 def create_scope(
     scope_service: Annotated[ScopeService, Depends(Container.get_scope_service)],
     request: ScopeCreateRequest,
-) -> Scope:
+) -> ScopeViewModel:
     """Create a new scope."""
     try:
-        return scope_service.create_scope(request)
+        scope = scope_service.create_scope(request)
+        return ScopeViewModel.model_validate(scope)
     except ResourceAlreadyExistsError as e:
         raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
@@ -29,21 +30,22 @@ def create_scope(
 @router.get("/scopes")
 def get_scopes(
     scope_service: Annotated[ScopeService, Depends(Container.get_scope_service)],
-) -> List[Scope]:
+) -> List[ScopeViewModel]:
     """Get all scopes."""
-    return scope_service.get_all_scopes()
+    scopes = scope_service.get_all_scopes()
+    return [ScopeViewModel.model_validate(scope) for scope in scopes]
 
 
 @router.get("/scopes/{scope_id}")
 def get_scope(
     scope_service: Annotated[ScopeService, Depends(Container.get_scope_service)],
     scope_id: str,
-) -> Scope:
+) -> ScopeViewModel:
     """Get a scope by ID."""
     scope = scope_service.get_scope_by_id(scope_id)
     if not scope:
         raise HTTPException(status_code=404, detail=f"Scope with id '{scope_id}' not found")
-    return scope
+    return ScopeViewModel.model_validate(scope)
 
 
 @router.put("/scopes/{scope_id}")
@@ -51,10 +53,11 @@ def update_scope(
     scope_service: Annotated[ScopeService, Depends(Container.get_scope_service)],
     scope_id: str,
     request: ScopeUpdateRequest,
-) -> Scope:
+) -> ScopeViewModel:
     """Update an existing scope."""
     try:
-        return scope_service.update_scope(scope_id, request)
+        scope = scope_service.update_scope(scope_id, request)
+        return ScopeViewModel.model_validate(scope)
     except ResourceNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except ResourceAlreadyExistsError as e:

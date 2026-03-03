@@ -50,9 +50,8 @@ class ScopeService:
 
     def create_scope(self, request: ScopeCreateRequest) -> Scope:
         """Create a new scope."""
-
         try:
-            mas = self.mas_repository.get_by_id(request.mas_id)
+            mas = self.mas_repository.get_by_id(str(request.mas_id))
         except Exception as e:
             raise ValueError(f"Invalid Multi Agent System ID: {request.mas_id}") from e
 
@@ -82,7 +81,7 @@ class ScopeService:
             if scope.mas and scope.mas.authorization_server:
                 self.idp_client.update_scope(scope.mas.authorization_server, old_name, scope.name)
             else:
-                logger.warning(f"Scope has no MAS or authorization server, skipping IdP update")
+                logger.warning("Scope has no MAS or authorization server, skipping IdP update")
 
             return updated_scope
 
@@ -93,7 +92,6 @@ class ScopeService:
         scope = self.scope_repository.get_scope_by_id(scope_id)
         if not scope:
             raise ResourceNotFoundError(f"Scope with id '{scope_id}' not found")
-
 
         if scope.mas and scope.mas.authorization_server:
             try:

@@ -127,6 +127,9 @@ class AppService:
 
         logger.debug(f"Creating client credentials in IdP for app {app.id}")
 
+        if not app.client_credentials:
+            raise Exception(f"App {app.id} does not have client credentials")
+
         client_credentials = self.idp_client.create_client_credentials(
             authorization_server, app.client_credentials, self._get_app_metadata(app)
         )
@@ -196,12 +199,12 @@ class AppService:
 
         client_credentials = app.client_credentials
         mas = app.mas
-        authorization_server: AuthorizationServer = None
+        authorization_server: AuthorizationServer | None = None
         if mas:
             authorization_server = mas.authorization_server
 
         logger.debug(f"Deleting app {app.id} from the database")
-        self.app_repository.delete_app(app)
+        self.app_repository.delete_app(app_id)
 
         if client_credentials and mas and authorization_server:
             logger.debug(f"Deleting client credentials {client_credentials.id} for app {app.id}")

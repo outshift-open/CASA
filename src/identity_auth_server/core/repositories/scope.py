@@ -85,7 +85,13 @@ class ScopePostgresRepository(ScopeRepository):
     def get_scope_by_id(self, scope_id: str) -> Scope | None:
         """Retrieve a scope by its ID."""
         try:
-            return self._session.exec(select(Scope).where(Scope.id == scope_id).options(joinedload(Scope.mas))).first()
+            statement = (
+                select(Scope)
+                .where(Scope.id == scope_id)
+                .options(joinedload(Scope.tools))
+                .options(joinedload(Scope.mas))
+            )
+            return self._session.exec(statement).first()
         except Exception as e:
             raise Exception(f"Error retrieving scope with id '{scope_id}': {e}") from e
 
@@ -109,6 +115,7 @@ class ScopePostgresRepository(ScopeRepository):
     def get_all_scopes(self) -> list[Scope]:
         """Retrieve all scopes."""
         try:
-            return list(self._session.exec(select(Scope)).all())
+            statement = select(Scope).options(joinedload(Scope.tools)).options(joinedload(Scope.mas))
+            return list(self._session.exec(statement).unique().all())
         except Exception as e:
             raise Exception(f"Error retrieving scopes: {e}") from e

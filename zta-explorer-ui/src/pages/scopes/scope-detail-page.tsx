@@ -40,16 +40,10 @@ export function ScopeDetailPage() {
         toast.success(`${label} copied to clipboard`);
     };
 
-    // Get all tools from MAS apps that use this scope
-    // Only MCP server apps have tools
+    // Get tools directly from the scope (backend now includes this relationship)
     const toolsUsingScope = useMemo(() => {
-        if (!mas?.apps || !scope) return [];
-
-        const allTools = mas.apps.filter((app) => app.type === 'mcp_server').flatMap((app) => app.tools || []);
-
-        // Filter tools that have this scope in their scopes list
-        return allTools.filter((tool) => tool.scopes?.some((s) => s.id === scope.id));
-    }, [mas, scope]);
+        return scope?.tools || [];
+    }, [scope]);
 
     const hasTools = toolsUsingScope.length > 0;
 

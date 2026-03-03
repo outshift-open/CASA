@@ -94,12 +94,14 @@ class AppPostgresRepository(AppRepository):
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
 
-    def delete_app(self, app: App) -> None:
+    def delete_app(self, app_id: str) -> None:
         """Delete an app."""
         try:
-            self._session.delete(app)
+            app = self.get_app_by_id(app_id)
+            if app:
+                self._session.delete(app)
         except Exception as e:
-            raise Exception(f"Error deleting app with id '{app.id}': {e}") from e
+            raise Exception(f"Error deleting app with id '{app_id}': {e}") from e
 
     def create_tool(self, tool: Tool) -> Tool:
         """Create a new tool in the database."""
