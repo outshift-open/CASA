@@ -204,7 +204,7 @@ class AppService:
             authorization_server = mas.authorization_server
 
         logger.debug(f"Deleting app {app.id} from the database")
-        self.app_repository.delete_app(app_id)
+        self.app_repository.delete_app(app)
 
         if client_credentials and mas and authorization_server:
             logger.debug(f"Deleting client credentials {client_credentials.id} for app {app.id}")
