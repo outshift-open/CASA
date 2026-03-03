@@ -57,6 +57,10 @@ export function useDeleteScope() {
         mutationFn: (id: string) => scopeService.deleteScope(id),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['scopes']});
+            // Invalidate all MAS-specific scope caches since we don't know which MAS this scope belonged to
+            queryClient.invalidateQueries({
+                predicate: (query) => query.queryKey[0] === 'scopes' && query.queryKey[1] === 'mas'
+            });
         }
     });
 }

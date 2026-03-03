@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
 from identity_auth_server.core.exceptions import ResourceAlreadyExistsError
-from identity_auth_server.core.types import MultiAgentSystem, Scope
+from identity_auth_server.core.types import Scope
 
 
 class ScopeRepository(ABC):
@@ -85,14 +85,7 @@ class ScopePostgresRepository(ScopeRepository):
     def get_scope_by_id(self, scope_id: str) -> Scope | None:
         """Retrieve a scope by its ID."""
         try:
-            return self._session.exec(
-                select(Scope)
-                .where(Scope.id == scope_id)
-                .options(
-                    joinedload(Scope.mas).joinedload(MultiAgentSystem.apps),
-                    joinedload(Scope.tools),
-                )
-            ).first()
+            return self._session.exec(select(Scope).where(Scope.id == scope_id).options(joinedload(Scope.mas))).first()
         except Exception as e:
             raise Exception(f"Error retrieving scope with id '{scope_id}': {e}") from e
 

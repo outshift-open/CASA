@@ -6,6 +6,11 @@ export interface MAS {
     created_at: string;
 }
 
+export interface ScopeMinimal {
+    id: string;
+    name: string;
+}
+
 export interface Tool {
     id?: string;
     name: string;
@@ -13,7 +18,7 @@ export interface Tool {
     input_schema: string;
     output_schema: string;
     app_id?: string;
-    scopes?: string[];
+    scopes?: ScopeMinimal[];
 }
 
 export interface ToolRequest {

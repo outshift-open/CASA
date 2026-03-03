@@ -188,3 +188,29 @@ generate-sdk:
 > docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g python -o /local/sdk --additional-properties=packageName=identity_auth_sdk
 > rm openapi.json
 .PHONY: generate-sdk
+
+demo-data: # Create demo data in the backend (requires backend to be running).
+> @printf "$(YELLOW)Creating demo data$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --verbose
+.PHONY: demo-data
+
+demo-data-dry-run: # Preview demo data that would be created without actually creating it.
+> @printf "$(YELLOW)Running demo data generator in dry-run mode$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --dry-run
+.PHONY: demo-data-dry-run
+
+demo-data-clear: # Clear all existing data (does NOT recreate demo data).
+> @printf "$(YELLOW)Clearing existing data$(NOCOLOR)\n"
+> @printf "$(RED)WARNING: This will delete ALL existing data!$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --clear --verbose
+.PHONY: demo-data-clear
+
+demo-data-reset: # Clear all existing data and create fresh demo data.
+> @printf "$(YELLOW)Resetting data: clearing and recreating$(NOCOLOR)\n"
+> @printf "$(RED)WARNING: This will delete ALL existing data!$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --clear --verbose && python scripts/create_demo_data.py --verbose
+.PHONY: demo-data-reset

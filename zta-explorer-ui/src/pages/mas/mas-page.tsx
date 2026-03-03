@@ -34,7 +34,6 @@ export function MASPage() {
             toast.success('MAS deleted successfully');
             setIsDeleteDialogOpen(false);
             setDeletingMASId(null);
-            await refetch(); // Force refetch to update table
         } catch (error) {
             console.error('Failed to delete MAS:', error);
             toast.error('Failed to delete MAS');
@@ -55,6 +54,7 @@ export function MASPage() {
         <>
             <div className="flex items-center justify-between">
                 <div>
+                    <h1 className="text-2xl font-bold">Multi-Agent Systems</h1>
                     <p className="text-muted-foreground">Manage Multi-Agent Systems</p>
                 </div>
                 <Button onClick={() => navigate('/mas/create')}>

@@ -84,7 +84,7 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                                             • {tool.name}
                                             {tool.scopes && tool.scopes.length > 0 && (
                                                 <span className="text-muted-foreground ml-1">
-                                                    ({tool.scopes.join(', ')})
+                                                    ({tool.scopes.map((s) => s.name).join(', ')})
                                                 </span>
                                             )}
                                         </li>
