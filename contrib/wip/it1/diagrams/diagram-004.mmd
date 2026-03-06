@@ -1,0 +1,33 @@
+graph TB
+    subgraph "🔴 Untrusted"
+        EXT[External Users<br/>& LLM Services]
+    end
+
+    subgraph "🟡 Semi-Trusted"
+        AGENTS[Agent Pods]
+        SIDECARS[Sidecar Proxies]
+    end
+
+    subgraph "🟢 Trusted"
+        AUTH[Auth Service]
+        POLICY[Policy Service]
+        CES[Cognitive Engines]
+        SCHEMA[Schema Registry]
+    end
+
+    subgraph "🔵 Highly Trusted"
+        KC[Keycloak IdP]
+        DB[PostgreSQL]
+    end
+
+    EXT -.->|mTLS| SIDECARS
+    AGENTS -->|localhost only| SIDECARS
+    SIDECARS -.->|token ops| AUTH
+    SIDECARS -.->|L9 validation| CES
+    AUTH --> KC
+    CES --> SCHEMA
+
+    style EXT fill:#ff6b6b
+    style AGENTS fill:#ffe66d
+    style AUTH fill:#95e1d3
+    style KC fill:#4ecdc4

@@ -1,0 +1,33 @@
+graph TB
+    subgraph "External"
+        USER[👤 Users]
+        LLM[🤖 LLMs]
+    end
+
+    subgraph "K8s: Agents"
+        AGENT[🤖 Agent] --> SIDE[🛡️ Sidecar<br/>L7→L8→L9]
+        TOOL[🔧 Tools] --> SIDE_T[🛡️ Sidecar]
+    end
+
+    subgraph "K8s: Control"
+        AUTH[🔐 Auth]
+        SCHEMA[📚 Schemas]
+        CE[🧠 CEs]
+    end
+
+    subgraph "Network"
+        EBPF[⚡ eBPF]
+    end
+
+    USER --> SIDE
+    SIDE -.->|Tokens| AUTH
+    SIDE -.->|L9 validate| CE
+    SIDE -.->|Schemas| SCHEMA
+    SIDE --> SIDE_T
+    AGENT -.->|Allowed| LLM
+
+    EBPF -.->|Blocks| AGENT
+
+    style CE fill:#95e1d3
+    style EBPF fill:#ff6b6b
+    style AUTH fill:#4ecdc4

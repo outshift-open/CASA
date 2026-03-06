@@ -1,0 +1,25 @@
+graph LR
+    subgraph "Fast Path: Sidecar-Adjacent CEs"
+        AGENT[Agent Pod]
+        SIDECAR[Sidecar]
+        CE_GUARD[Guardrail CE<br/>30-50ms]
+        CE_TBAC[TBAC CE<br/>20-30ms]
+
+        AGENT --> SIDECAR
+        SIDECAR --> CE_GUARD
+        SIDECAR --> CE_TBAC
+    end
+
+    subgraph "Thorough Path: Central Pool"
+        CE_VERIFY[Verification CE<br/>200-500ms]
+        CE_COMPLY[Compliance CE<br/>100-300ms]
+        CE_MEMORY[Memory CE<br/>500ms-2s]
+    end
+
+    SIDECAR -.->|For commits,<br/>high-risk ops| CE_VERIFY
+    SIDECAR -.->|For commits,<br/>high-risk ops| CE_COMPLY
+
+    style CE_GUARD fill:#ff6b6b
+    style CE_TBAC fill:#ff6b6b
+    style CE_VERIFY fill:#95e1d3
+    style CE_COMPLY fill:#95e1d3

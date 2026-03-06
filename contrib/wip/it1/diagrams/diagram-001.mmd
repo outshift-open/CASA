@@ -1,0 +1,58 @@
+graph TB
+    subgraph "External"
+        USER[👤 Users]
+        LLM[🤖 LLM Service<br/>OpenAI API]
+    end
+
+    subgraph "Kubernetes Cluster"
+        subgraph "ZTA Control Plane Namespace"
+            AUTH[🔐 Auth Service<br/>Token issuance]
+            POLICY[📋 Policy Service<br/>MAS/App config]
+            SCHEMA[📚 Schema Registry<br/>L9 contracts]
+            TELEM[📊 Telemetry<br/>Audit logs]
+        end
+
+        subgraph "Cognitive Engine Namespace"
+            CE_GUARD[🛡️ Guardrail CE]
+            CE_VERIFY[✅ Verification CE]
+            CE_COMPLY[⚖️ Compliance CE]
+            CE_TBAC[🎯 TBAC CE]
+            CE_MEMORY[🧠 Memory CE]
+            CE_ADAPT[🔄 L8↔L9 Adaptor]
+        end
+
+        subgraph "Agent Workspace Namespace"
+            subgraph "Agent Pod"
+                AGENT[🤖 Agent]
+                SIDECAR_A[🛡️ Sidecar<br/>L7→L8→L9]
+                CE_LOCAL[⚡ Local CE<br/>50ms checks]
+            end
+
+            subgraph "Tool Pod"
+                TOOL[🔧 MCP Server]
+                SIDECAR_T[🛡️ Sidecar<br/>L7→L8→L9]
+            end
+        end
+
+        subgraph "Network Layer"
+            EBPF[⚡ eBPF/Cilium<br/>Deny-by-default]
+        end
+    end
+
+    USER -->|1. Task| SIDECAR_A
+    SIDECAR_A -->|2. Get token| AUTH
+    AGENT -->|3. Call tool| SIDECAR_A
+    SIDECAR_A -->|4. L9 validation| CE_VERIFY
+    SIDECAR_A -->|5. Schema check| SCHEMA
+    SIDECAR_A -->|6. L8 MCP call| SIDECAR_T
+    AGENT -.->|7. LLM call| LLM
+
+    EBPF -.->|Enforces| AGENT
+    EBPF -.->|Enforces| TOOL
+
+    style CE_GUARD fill:#ff6b6b
+    style CE_VERIFY fill:#95e1d3
+    style CE_COMPLY fill:#95e1d3
+    style EBPF fill:#ff6b6b
+    style AUTH fill:#4ecdc4
+    style SCHEMA fill:#ffe66d

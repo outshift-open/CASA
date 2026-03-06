@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant App as Agent
+    participant Sidecar as Sidecar Proxy
+    participant Auth as Auth Service
+    participant CE as Cognitive Engine
+    participant Schema as Schema Registry
+    participant Tool as MCP Server
+
+    App->>Sidecar: L7: HTTP POST /call-tool
+    Note over Sidecar: LAYER 7 → LAYER 8
+    Sidecar->>Sidecar: Parse HTTP, extract JWT
+    Sidecar->>Auth: Validate token
+    Auth-->>Sidecar: Valid, scope=call-tools
+
+    Note over Sidecar: LAYER 8 → LAYER 9
+    Sidecar->>Schema: Lookup schema for tool
+    Schema-->>Sidecar: urn:acme:tools:v1.0 (draft)
+    Sidecar->>Sidecar: Construct L9 header:<br/>kind=delegation<br/>schema_id=...
+
+    Sidecar->>CE: Validate L9 message
+    CE-->>Sidecar: ✅ Approved
+
+    Sidecar->>Tool: L8 MCP + L9 header
+    Tool-->>Sidecar: Result
+
+    Note over Sidecar: LAYER 9 → LAYER 8 → LAYER 7
+    Sidecar->>Sidecar: Strip L9 header
+    Sidecar-->>App: L7: HTTP 200 OK
