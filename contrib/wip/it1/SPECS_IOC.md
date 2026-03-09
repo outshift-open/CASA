@@ -109,21 +109,21 @@ graph TB
     end
 
     subgraph "Kubernetes Cluster"
-        subgraph "ZTA Control Plane Namespace"
-            direction TD
-            AUTH[🔐 Auth Service<br/>Token issuance]
-            POLICY[📋 Policy Service<br/>MAS/App config]
-            SCHEMA[📚 Schema Registry<br/>L9 contracts]
-            TELEM[📊 Telemetry<br/>Audit logs]
-        end
+        subgraph ""
+            subgraph "ZTA Control Plane Namespace"
+                AUTH[🔐 Auth Service<br/>Token issuance]
+                POLICY[📋 Policy Service<br/>MAS/App config]
+                SCHEMA[📚 Schema Registry<br/>L9 contracts]
+                TELEM[📊 Telemetry<br/>Audit logs]
+            end
 
-        subgraph "Cognitive Engine Namespace"
-            direction TD
-            CE_GUARD[🛡️ Guardrail CE]
-            CE_VERIFY[✅ Verification CE]
-            CE_COMPLY[⚖️ Compliance CE]
-            CE_TBAC[🎯 TBAC CE]
-            CE_MEMORY[🧠 Memory CE]
+            subgraph "Cognitive Engine Namespace"
+                CE_GUARD[🛡️ Guardrail CE]
+                CE_VERIFY[✅ Verification CE]
+                CE_COMPLY[⚖️ Compliance CE]
+                CE_TBAC[🎯 TBAC CE]
+                CE_MEMORY[🧠 Memory CE]
+            end
         end
 
         subgraph "Agent Workspace Namespace"
