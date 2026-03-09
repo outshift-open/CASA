@@ -109,7 +109,7 @@ graph TB
     end
 
     subgraph "Kubernetes Cluster"
-        subgraph ""
+        subgraph "Namespaces"
             subgraph "ZTA Control Plane Namespace"
                 AUTH[🔐 Auth Service<br/>Token issuance]
                 POLICY[📋 Policy Service<br/>MAS/App config]
