@@ -143,13 +143,13 @@ graph TB
         end
     end
 
-    USER -->|1. Task| SIDECAR_A
-    SIDECAR_A -->|2. Get token| AUTH
-    AGENT -->|3. Call tool| SIDECAR_A
-    SIDECAR_A -->|4. L9 validation| CE_VERIFY
-    SIDECAR_A -->|5. Schema check| SCHEMA
-    SIDECAR_A -->|6. L8 MCP call| SIDECAR_T
-    AGENT -.->|7. LLM call| LLM
+    USER -->|Task| SIDECAR_A
+    SIDECAR_A -->|Get token| AUTH
+    AGENT -->|Call tool| SIDECAR_A
+    SIDECAR_A -->|L9 validation| CE_VERIFY
+    SIDECAR_A -->|Schema check| SCHEMA
+    SIDECAR_A -->|L8 MCP call| SIDECAR_T
+    AGENT -.->|LLM call| LLM
 
     EBPF -.->|Enforces| AGENT
     EBPF -.->|Enforces| TOOL
