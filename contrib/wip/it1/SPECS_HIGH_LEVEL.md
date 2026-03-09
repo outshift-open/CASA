@@ -83,13 +83,13 @@ graph TB
         CILIUM[Cilium<br/>Deny-by-default<br/>FQDN filtering<br/>Flow logging]
     end
 
-    USER -->|1. Task| UA
-    UAS -->|2. Get token T1| AUTH
-    AG -->|3. Exchange T1→T2| AUTH
-    AGS -->|4. LLM call with T2| LLM
-    AGS -->|5. Exchange T1→T3| AUTH
-    AGS -->|6. MCP call with T3| MCPS
-    MCPS -->|7. Validate T3| AUTH
+    USER -->|Task| UA
+    UAS -->|Get token T1| AUTH
+    AG -->|Exchange T1→T2| AUTH
+    AGS -->|LLM call with T2| LLM
+    AGS -->|Exchange T1→T3| AUTH
+    AGS -->|MCP call with T3| MCPS
+    MCPS -->|Validate T3| AUTH
 
     CILIUM -.->|Enforces| UAS
     CILIUM -.->|Enforces| AGS
