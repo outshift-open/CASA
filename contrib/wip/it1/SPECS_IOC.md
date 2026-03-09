@@ -122,18 +122,17 @@ graph TB
             CE_COMPLY[⚖️ Compliance CE]
             CE_TBAC[🎯 TBAC CE]
             CE_MEMORY[🧠 Memory CE]
-            CE_ADAPT[🔄 L8↔L9 Adaptor]
         end
 
         subgraph "Agent Workspace Namespace"
             subgraph "Agent Pod"
                 AGENT[🤖 Agent]
-                SIDECAR_A[🛡️ Sidecar<br/>L7→L8→L9]
+                SIDECAR_A[🛡️ Sidecar<br/>L7→L8→L9<br/>🔄 L8↔L9 Adaptor]
             end
 
             subgraph "Tool Pod"
                 TOOL[🔧 MCP Server]
-                SIDECAR_T[🛡️ Sidecar<br/>L7→L8→L9]
+                SIDECAR_T[🛡️ Sidecar<br/>L7→L8→L9<br/>🔄 L8↔L9 Adaptor]
             end
         end
 
