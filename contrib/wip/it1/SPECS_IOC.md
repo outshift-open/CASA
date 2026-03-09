@@ -129,7 +129,6 @@ graph TB
             subgraph "Agent Pod"
                 AGENT[🤖 Agent]
                 SIDECAR_A[🛡️ Sidecar<br/>L7→L8→L9]
-                CE_LOCAL[⚡ Local CE<br/>50ms checks]
             end
 
             subgraph "Tool Pod"
