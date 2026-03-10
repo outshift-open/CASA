@@ -1,6 +1,9 @@
 name: Build and push the k8s demo to docker registry
 
 on:
+  push:
+    branches:
+      - feature/PYRA-622-k8s-demo
   workflow_dispatch:
     inputs:
       environment:
