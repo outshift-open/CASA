@@ -23,12 +23,12 @@ spec:
             type: object
             required:
             - name
-            - authorizationServer
+            - authorizationServer # TODO: to remove
             properties:
-              name:
+              name: # TODO: should it be unique?
                 type: string
                 description: "Human-readable name for the Multi-Agent System"
-              authorizationServer:
+              authorizationServer: # TODO: to remove
                 type: string
                 description: "Keycloak realm name for this MAS"
               enabledToolChecks:
@@ -86,7 +86,7 @@ spec:
     - name: Apps Ready
       type: integer
       jsonPath: .status.appsReady
-    - name: Realm
+    - name: Realm # TODO: to remove
       type: string
       jsonPath: .spec.authorizationServer
     - name: Age

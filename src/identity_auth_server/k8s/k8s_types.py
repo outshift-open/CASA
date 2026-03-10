@@ -3,7 +3,6 @@
 from datetime import datetime
 from enum import Enum
 from typing import List, Literal, Optional
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -47,9 +46,7 @@ class MultiAgentSystemSpec(BaseModel):
     """Specification for MultiAgentSystem CRD."""
 
     name: str = Field(description="Display name of the Multi-Agent System")
-    authorization_server: str = Field(
-        description="Keycloak realm name for this MAS", alias="authorizationServer"
-    )
+    authorization_server: str = Field(description="Keycloak realm name for this MAS", alias="authorizationServer")
     enabled_tool_checks: List[ToolCheckType] = Field(
         default_factory=lambda: [
             ToolCheckType.DETERMINISTIC_TOOL_SELECTED,
@@ -154,68 +151,6 @@ class LLMEndpoint(BaseModel):
         populate_by_name = True
 
 
-class ZTAPolicySpec(BaseModel):
-    """Specification for ZTAPolicy CRD."""
-
-    target_ref: TargetRef = Field(description="Target workload for this policy", alias="targetRef")
-    allowed_protocols: List[ProtocolType] = Field(
-        default_factory=list, description="List of allowed protocols", alias="allowedProtocols"
-    )
-    allowed_endpoints: List[AllowedEndpoint] = Field(
-        default_factory=list, description="List of allowed internal endpoints", alias="allowedEndpoints"
-    )
-    llm_endpoint: Optional[LLMEndpoint] = Field(
-        default=None, description="Optional external LLM endpoint", alias="llmEndpoint"
-    )
-
-    class Config:
-        populate_by_name = True
-
-
-class ZTAPolicyStatus(BaseModel):
-    """Status of ZTAPolicy CRD."""
-
-    phase: MASPhase = Field(default=MASPhase.PENDING, description="Current phase of the policy")
-    network_policy_applied: bool = Field(
-        default=False, description="Whether CiliumNetworkPolicy was created", alias="networkPolicyApplied"
-    )
-    last_sync_time: Optional[datetime] = Field(
-        default=None, description="Last time the policy was reconciled", alias="lastSyncTime"
-    )
-    message: Optional[str] = Field(default=None, description="Human-readable status message")
-
-    class Config:
-        populate_by_name = True
-
-
-class ZTAPolicyMetadata(BaseModel):
-    """Metadata for ZTAPolicy CRD."""
-
-    name: str = Field(description="Resource name")
-    namespace: str = Field(description="Kubernetes namespace")
-    uid: Optional[str] = Field(default=None, description="Kubernetes UID")
-    resource_version: Optional[str] = Field(default=None, description="Resource version", alias="resourceVersion")
-    generation: Optional[int] = Field(default=None, description="Generation number")
-    labels: Optional[dict] = Field(default=None, description="Resource labels")
-    annotations: Optional[dict] = Field(default=None, description="Resource annotations")
-
-    class Config:
-        populate_by_name = True
-
-
-class ZTAPolicyCRD(BaseModel):
-    """Complete ZTAPolicy Custom Resource Definition."""
-
-    api_version: str = Field(default="zta.io/v1alpha1", description="API version", alias="apiVersion")
-    kind: Literal["ZTAPolicy"] = Field(default="ZTAPolicy", description="Resource kind")
-    metadata: ZTAPolicyMetadata
-    spec: ZTAPolicySpec
-    status: Optional[ZTAPolicyStatus] = Field(default=None, description="Resource status")
-
-    class Config:
-        populate_by_name = True
-
-
 class MASCreateRequest(BaseModel):
     """Request model for creating a MultiAgentSystem via API."""
 
@@ -235,42 +170,12 @@ class MASStatusUpdateRequest(BaseModel):
     status: MultiAgentSystemStatus
 
 
-class PolicyCreateRequest(BaseModel):
-    """Request model for creating a ZTAPolicy via API."""
-
-    metadata: ZTAPolicyMetadata
-    spec: ZTAPolicySpec
-
-
-class PolicyUpdateRequest(BaseModel):
-    """Request model for updating a ZTAPolicy via API."""
-
-    spec: ZTAPolicySpec
-
-
-class PolicyStatusUpdateRequest(BaseModel):
-    """Request model for updating policy status (used by operator)."""
-
-    status: ZTAPolicyStatus
-
-
 class MASListResponse(BaseModel):
     """Response model for listing MultiAgentSystems."""
 
     api_version: str = Field(default="zta.io/v1alpha1", alias="apiVersion")
     kind: Literal["MultiAgentSystemList"] = Field(default="MultiAgentSystemList")
     items: List[MultiAgentSystemCRD]
-
-    class Config:
-        populate_by_name = True
-
-
-class PolicyListResponse(BaseModel):
-    """Response model for listing ZTAPolicies."""
-
-    api_version: str = Field(default="zta.io/v1alpha1", alias="apiVersion")
-    kind: Literal["ZTAPolicyList"] = Field(default="ZTAPolicyList")
-    items: List[ZTAPolicyCRD]
 
     class Config:
         populate_by_name = True
