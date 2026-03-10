@@ -6,7 +6,7 @@ on:
       environment:
         description: 'Environment to run against'
         required: false
-        default: 'main'
+        default: 'feature/PYRA-622-k8s-demo'
 
 jobs:
   checkout:
