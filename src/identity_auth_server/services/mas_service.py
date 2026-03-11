@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -8,7 +8,7 @@ from identity_auth_server.core.idp.idp_client import IdpClient
 from identity_auth_server.core.repositories.app import AppRepository
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerRepository
 from identity_auth_server.core.repositories.multi_agent_system import MultiAgentSystemRepository
-from identity_auth_server.core.types import AuthorizationServer, MultiAgentSystem
+from identity_auth_server.core.types import AuthorizationServer, MultiAgentSystem, ToolCheckFlags
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -18,12 +18,15 @@ class MultiAgentSystemCreateRequest(BaseModel):
     """Request model for MAS creation."""
 
     name: str
+    enabled_tool_checks: Optional[ToolCheckFlags] = None
+    namespace: Optional[str] = None
 
 
 class MultiAgentSystemUpdateRequest(BaseModel):
     """Request model for updating an existing MAS instance."""
 
     name: str
+    enabled_tool_checks: Optional[ToolCheckFlags] = None
 
 
 class MultiAgentSystemAppsBindingRequest(BaseModel):
@@ -49,7 +52,10 @@ class MultiAgentSystemService:
 
     def create_mas(self, request: MultiAgentSystemCreateRequest) -> MultiAgentSystem:
         """Create a new Multi Agent System."""
-        mas = MultiAgentSystem(id=uuid4(), name=request.name)
+        mas = MultiAgentSystem(id=uuid4(), name=request.name, namespace=request.namespace)
+
+        if request.enabled_tool_checks is not None:
+            mas.enabled_tool_checks = request.enabled_tool_checks
 
         logger.debug(f"Creating authorization server for Multi Agent System {mas.id}")
 
@@ -83,6 +89,9 @@ class MultiAgentSystemService:
             raise ValueError(f"MAS with id {id} not found")
 
         mas.name = request.name
+
+        if request.enabled_tool_checks is not None:
+            mas.enabled_tool_checks = request.enabled_tool_checks
 
         return self._mas_repository.update(mas)
 

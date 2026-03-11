@@ -1,0 +1,68 @@
+---
+# Example 1: Production Multi-Agent System with all tool checks enabled
+apiVersion: zta.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: production-mas
+  namespace: production-mas
+spec:
+  name: "Production Multi-Agent System"
+  authorizationServer: "production-realm"
+  enabledToolChecks:
+  - DETERMINISTIC_TOOL_SELECTED
+  - DETERMINISTIC_LLM_SELECTED_TOOLS
+  - AI_POWERED_TOOL_MATCH
+  apps:
+  - name: user-app
+    type: client
+    baseUrl: "http://user-app.production-mas.svc.cluster.local:8000"
+  - name: orchestrator-agent
+    type: agent
+    baseUrl: "http://orchestrator-agent.production-mas.svc.cluster.local:8000"
+  - name: filesystem-mcp
+    type: mcp_server
+    baseUrl: "http://filesystem-mcp.production-mas.svc.cluster.local:8080"
+  - name: database-mcp
+    type: mcp_server
+    baseUrl: "http://database-mcp.production-mas.svc.cluster.local:8080"
+
+---
+# Example 2: Development Multi-Agent System with minimal tool checks
+apiVersion: zta.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: dev-mas
+  namespace: dev-mas
+spec:
+  name: "Development Multi-Agent System"
+  authorizationServer: "dev-realm"
+  enabledToolChecks:
+  - DETERMINISTIC_TOOL_SELECTED
+  apps:
+  - name: dev-client
+    type: client
+    baseUrl: "http://dev-client.dev-mas.svc.cluster.local:8000"
+  - name: test-agent
+    type: agent
+    baseUrl: "http://test-agent.dev-mas.svc.cluster.local:8000"
+  - name: test-mcp
+    type: mcp_server
+    baseUrl: "http://test-mcp.dev-mas.svc.cluster.local:8080"
+
+---
+# Example 3: Minimal Multi-Agent System
+apiVersion: zta.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: simple-mas
+  namespace: default
+spec:
+  name: "Simple Multi-Agent System"
+  authorizationServer: "simple-realm"
+  apps:
+  - name: simple-client
+    type: client
+    baseUrl: "http://simple-client:8000"
+  - name: simple-mcp
+    type: mcp_server
+    baseUrl: "http://simple-mcp:8080"

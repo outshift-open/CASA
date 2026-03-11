@@ -102,6 +102,7 @@ class MultiAgentSystem(SQLModel, table=True):
     )
     authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="multi_agent_systems")
+    namespace: Optional[str]
     created_at: datetime = datetime.now(timezone.utc)
 
 
