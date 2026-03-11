@@ -8,6 +8,7 @@ from datetime import datetime
 import uvicorn
 from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 
 # In-memory banking data storage for a single customer
@@ -185,7 +186,12 @@ class BankingDataStore:
 banking_data = BankingDataStore()
 
 # Create FastMCP instance as a Resource Server
-mcp = FastMCP("SecureBank Digital Banking Service")
+mcp = FastMCP(
+    "SecureBank Digital Banking Service",
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False  # safe when behind a trusted reverse proxy
+    )
+)
 
 
 @mcp.tool()
