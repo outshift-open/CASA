@@ -1,0 +1,16 @@
+apiVersion: v2
+name: zta-control-plane
+description: ZTA Control Plane — auth-service, UI explorer, Keycloak, PostgreSQL
+type: application
+version: 0.1.0
+appVersion: "0.0.11"
+keywords:
+  - zero-trust
+  - multi-agent
+  - identity
+  - auth
+home: https://github.com/cisco-eti/identity-auth-server
+sources:
+  - https://github.com/cisco-eti/identity-auth-server
+maintainers:
+  - name: cisco-eti

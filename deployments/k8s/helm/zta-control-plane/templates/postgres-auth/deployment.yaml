@@ -1,0 +1,68 @@
+{{- $component := "postgres-auth" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-postgres-auth
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zta-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgresAuth.image.repository }}:{{ .Values.postgresAuth.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresAuth.image.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresAuth.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresAuth.username | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgres-auth-secret
+                  key: postgres-password
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.postgresAuth.username | quote }}
+                - -d
+                - {{ .Values.postgresAuth.database | quote }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.postgresAuth.username | quote }}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.postgresAuth.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.postgresAuth.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-postgres-auth-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

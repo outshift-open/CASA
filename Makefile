@@ -7,6 +7,11 @@ endif
 # Parameters
 PYTHON_VERSION = 3.12
 
+# Helm parameters (override with make helm-install HELM_RELEASE=my-release HELM_NAMESPACE=my-ns)
+HELM_CHART     = deployments/k8s/helm/zta-control-plane
+HELM_RELEASE  ?= zta-poc
+HELM_NAMESPACE ?= zta-dev
+
 # Strict and safe set of defaults for Makefile
 # see: https://tech.davis-hansson.com/p/make/
 SHELL := bash
@@ -214,3 +219,36 @@ demo-data-reset: # Clear all existing data and create fresh demo data.
 > $(VENV_ACTIVATE)
 > python scripts/create_demo_data.py --clear --verbose && python scripts/create_demo_data.py --verbose
 .PHONY: demo-data-reset
+
+helm-lint: # Lint the ZTA control-plane Helm chart.
+> @printf "$(YELLOW)Linting Helm chart: $(HELM_CHART)$(NOCOLOR)\n"
+> helm lint $(HELM_CHART)
+.PHONY: helm-lint
+
+helm-template: # Render Helm templates to stdout (dry-run).
+> @printf "$(YELLOW)Rendering Helm templates (release=$(HELM_RELEASE), namespace=$(HELM_NAMESPACE))$(NOCOLOR)\n"
+> helm template $(HELM_RELEASE) $(HELM_CHART) --namespace $(HELM_NAMESPACE)
+.PHONY: helm-template
+
+helm-install: # Install the ZTA control-plane chart (creates namespace if missing).
+> @printf "$(YELLOW)Installing Helm release $(HELM_RELEASE) in namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
+> helm install $(HELM_RELEASE) $(HELM_CHART) \
+    --namespace $(HELM_NAMESPACE) \
+    --create-namespace
+.PHONY: helm-install
+
+helm-upgrade: # Upgrade (or install) the ZTA control-plane chart.
+> @printf "$(YELLOW)Upgrading Helm release $(HELM_RELEASE) in namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
+> helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) \
+    --namespace $(HELM_NAMESPACE) \
+    --create-namespace
+.PHONY: helm-upgrade
+
+helm-uninstall: # Uninstall the ZTA control-plane Helm release.
+> @printf "$(RED)Uninstalling Helm release $(HELM_RELEASE) from namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
+> helm uninstall $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
+.PHONY: helm-uninstall
+
+helm-status: # Show status of the ZTA control-plane Helm release.
+> helm status $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
+.PHONY: helm-status
