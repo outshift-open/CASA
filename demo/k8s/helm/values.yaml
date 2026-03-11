@@ -1,0 +1,28 @@
+namespace: zta-sidecar
+
+agent:
+  replicas: 1
+  serviceName: zta-demo-agent
+  servicePort: 8082
+  docker:
+    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    image: outshift-zta/k8s-demo-agent
+    suffix: ''
+  tagversion: latest
+
+  mcp_server_url: http://zta-demo-mcp:3000
+
+  # We can move them later to an external vault when we needed
+  secret:
+    openai_api_base:
+    openai_api_key:
+
+mcp:
+  replicas: 1
+  serviceName: zta-demo-mcp
+  servicePort: 3000
+  docker:
+    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    image: outshift-zta/k8s-demo-mcp
+    suffix: ''
+  tagversion: latest
