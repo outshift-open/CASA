@@ -251,8 +251,14 @@ class MultiAgentSystemWrong:
         base_url = os.getenv("OPENAI_API_BASE_URL")
         model_name = "azure/gpt-4o"
 
-        self.user_llm = ChatOpenAI(model=model_name, temperature=0.7, api_key=api_key, base_url=base_url)
-        self.simulator_llm = ChatOpenAI(model=model_name, temperature=0.5, api_key=api_key, base_url=base_url)
+        user_temp, simulator_temp, assistant_temp = 0.7, 0.5, 0.3
+        if model_name == "azure/gpt-5.2":
+            user_temp = simulator_temp = assistant_temp = 1
+
+        self.user_llm = ChatOpenAI(model=model_name, temperature=user_temp, api_key=api_key, base_url=base_url)
+        self.simulator_llm = ChatOpenAI(
+            model=model_name, temperature=simulator_temp, api_key=api_key, base_url=base_url
+        )
 
         # Build tools list with ask_user tool
         tools_with_ask_user = [
@@ -285,7 +291,7 @@ class MultiAgentSystemWrong:
         )
 
         self.assistant_llm = ChatOpenAI(
-            model=model_name, temperature=0.3, api_key=api_key, base_url=base_url
+            model=model_name, temperature=assistant_temp, api_key=api_key, base_url=base_url
         ).bind_tools(tools_with_ask_user)
 
         self.graph = self._build_graph()
@@ -759,6 +765,26 @@ def main():
     random.shuffle(samples)
     print(f"Randomized order of {len(samples)} samples")
 
+    results: List[Dict[str, Any]] = []
+    resume_count = 0
+    if os.path.exists(args.output_file):
+        with open(args.output_file, "r") as f:
+            existing_results = json.load(f)
+        if not isinstance(existing_results, list):
+            raise ValueError(
+                f"Output file {args.output_file} is not a JSON list; cannot resume safely. "
+                "Please fix or remove the file."
+            )
+        results = existing_results
+        resume_count = len(results)
+        print(f"Resuming from existing output: {resume_count} sample(s) already present in {args.output_file}")
+
+    if resume_count > len(samples):
+        raise ValueError(
+            f"Output file contains {resume_count} sample(s), but only {len(samples)} sample(s) are available "
+            "after current filtering/limits. Cannot resume safely."
+        )
+
     timing_data = {
         "total_samples": len(samples),
         "match_tags": {"correct": 0, "wrong": 0, "null": 0, "relevant": 0},
@@ -769,11 +795,10 @@ def main():
             "relevant": {"count": 0, "total_seconds": 0.0, "avg_seconds": 0.0},
         },
     }
-    results = []
     overall_start_time = time.time()
     base_name, _ = os.path.splitext(args.output_file)
 
-    for sample_idx, sample in enumerate(samples, 1):
+    for sample_idx, sample in enumerate(samples[resume_count:], resume_count + 1):
         match_tag = sample.get("match_tag", "correct")
         input_data = sample.get("input", {})
         groundtruth = sample.get("groundtruth", {})
@@ -916,7 +941,7 @@ def main():
         json.dump(timing_data, f, indent=2)
 
     print(f"\n{'=' * 60}")
-    print(f"COMPLETED: {len(results)} samples processed")
+    print(f"COMPLETED: {len(results)} total samples in output ({len(results) - resume_count} newly processed this run)")
     print(f"Results saved to: {args.output_file}")
     print(f"Timing saved to: {timing_file}")
     print(f"Total time: {timing_data['total_time_seconds']:.2f}s")
