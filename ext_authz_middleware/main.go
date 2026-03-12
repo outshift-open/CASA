@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -10,20 +11,76 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+
+	authv2 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
+	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 )
+
+type (
+	extAuthzServerV2 struct{}
+	extAuthzServerV3 struct{}
+)
+
+func (s *extAuthzServerV2) Check(_ context.Context, request *authv2.CheckRequest) (*authv2.CheckResponse, error) {
+	attrs := request.GetAttributes()
+
+	httpReq := attrs.GetRequest().GetHttp()
+
+	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, httpReq.GetHeaders(), returnIfNotTooLong(string(httpReq.Body)))
+	log.Printf("[HTTP][allowed]: %s", l)
+	return s.allow(), nil
+}
+
+func (s *extAuthzServerV2) allow() *authv2.CheckResponse {
+	return &authv2.CheckResponse{
+		HttpResponse: &authv2.CheckResponse_OkResponse{
+			OkResponse: &authv2.OkHttpResponse{},
+		},
+		Status: &status.Status{Code: int32(codes.OK)},
+	}
+}
+
+func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest) (*authv3.CheckResponse, error) {
+	attrs := request.GetAttributes()
+
+	httpReq := attrs.GetRequest().GetHttp()
+
+	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, httpReq.GetHeaders(), returnIfNotTooLong(string(httpReq.Body)))
+	log.Printf("[HTTP][allowed]: %s", l)
+	return s.allow(), nil
+}
+
+func (s *extAuthzServerV3) allow() *authv3.CheckResponse {
+	return &authv3.CheckResponse{
+		HttpResponse: &authv3.CheckResponse_OkResponse{
+			OkResponse: &authv3.OkHttpResponse{},
+		},
+		Status: &status.Status{Code: int32(codes.OK)},
+	}
+}
 
 type ExtAuthzMiddleware struct {
 	httpServer *http.Server
+	grpcServer *grpc.Server
+	grpcV2     *extAuthzServerV2
+	grpcV3     *extAuthzServerV3
 }
 
 func NewExtAuthzMiddleware() *ExtAuthzMiddleware {
-	return &ExtAuthzMiddleware{}
+	return &ExtAuthzMiddleware{
+		grpcV2: &extAuthzServerV2{},
+		grpcV3: &extAuthzServerV3{},
+	}
 }
 
-func (m *ExtAuthzMiddleware) Run(httpAddr string) {
+func (m *ExtAuthzMiddleware) Run(httpAddr, grpcAddr string) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go m.startHTTP(httpAddr, &wg)
+	go m.startGrpc(grpcAddr, &wg)
 	wg.Wait()
 }
 
@@ -43,6 +100,26 @@ func (m *ExtAuthzMiddleware) startHTTP(addr string, wg *sync.WaitGroup) {
 	log.Printf("Starting HTTP server at %s", listener.Addr())
 	if err := m.httpServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to start HTTP server: %v", err)
+	}
+}
+
+func (m *ExtAuthzMiddleware) startGrpc(addr string, wg *sync.WaitGroup) {
+	defer func() {
+		wg.Done()
+		log.Printf("Stopped HTTP server")
+	}()
+
+	listen, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	m.grpcServer = grpc.NewServer()
+	authv2.RegisterAuthorizationServer(m.grpcServer, m.grpcV2)
+	authv3.RegisterAuthorizationServer(m.grpcServer, m.grpcV3)
+
+	log.Printf("server listening at %v", listen.Addr())
+	if err := m.grpcServer.Serve(listen); err != nil {
+		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
@@ -68,7 +145,7 @@ func returnIfNotTooLong(body string) string {
 
 func main() {
 	middleware := NewExtAuthzMiddleware()
-	go middleware.Run(fmt.Sprintf(":%s", "4000"))
+	go middleware.Run(fmt.Sprintf(":%s", "4000"), ":4001")
 
 	// Wait for the process to be shutdown.
 	sigs := make(chan os.Signal, 1)
