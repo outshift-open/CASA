@@ -503,10 +503,10 @@ def load_test_data(file_path: str) -> List[Dict[str, Any]]:
     """Load test data from JSON file.
 
     Args:
-        file_path: Path to the paper_test_data JSON file.
+        file_path: Path to the test data JSON file.
 
     Returns:
-        List of test samples with input, groundtruth, and match_tag.
+        List of test samples.
     """
     with open(file_path, "r") as f:
         return json.load(f)
@@ -694,20 +694,21 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Verbose mode (print final conversation)")
     parser.add_argument("--sample", type=int, default=0, help="Only run N samples (0 = all)")
     parser.add_argument(
-        "--match-tag-filter",
-        choices=["correct", "wrong", "null", "relevant", "all"],
+        "--label-filter",
+        choices=["relevant", "irrelevant", "all"],
         default="all",
-        help="Only process samples with this match_tag (default: all)",
+        help="Only process samples with this label (default: all)",
     )
     args = parser.parse_args()
 
     samples = load_test_data(args.tasks_file)
     print(f"Loaded {len(samples)} samples from {args.tasks_file}")
 
-    # Filter by match_tag if specified
-    if args.match_tag_filter != "all":
-        samples = [s for s in samples if s.get("match_tag") == args.match_tag_filter]
-        print(f"Filtered to {len(samples)} samples with match_tag='{args.match_tag_filter}'")
+    # Filter by label if specified
+    if args.label_filter != "all":
+        is_relevant = args.label_filter == "relevant"
+        samples = [s for s in samples if s.get("label", {}).get("relevant") == is_relevant]
+        print(f"Filtered to {len(samples)} samples with label='{args.label_filter}'")
 
     # Limit samples if --sample is specified
     if args.sample > 0:
@@ -741,47 +742,53 @@ def main():
 
     timing_data = {
         "total_samples": len(samples),
-        "match_tags": {"correct": 0, "wrong": 0, "null": 0, "relevant": 0},
-        "timing_per_tag": {
-            "correct": {"count": 0, "total_seconds": 0.0, "avg_seconds": 0.0},
-            "wrong": {"count": 0, "total_seconds": 0.0, "avg_seconds": 0.0},
-            "null": {"count": 0, "total_seconds": 0.0, "avg_seconds": 0.0},
+        "labels": {"relevant": 0, "irrelevant": 0},
+        "timing_per_label": {
             "relevant": {"count": 0, "total_seconds": 0.0, "avg_seconds": 0.0},
+            "irrelevant": {"count": 0, "total_seconds": 0.0, "avg_seconds": 0.0},
         },
     }
     overall_start_time = time.time()
     base_name, _ = os.path.splitext(args.output_file)
 
     for sample_idx, sample in enumerate(samples[resume_count:], resume_count + 1):
-        match_tag = sample.get("match_tag", "correct")
-        input_data = sample.get("input", {})
-        groundtruth = sample.get("groundtruth", {})
+        request = sample.get("request", {})
+        metadata = sample.get("metadata", {})
+        label = sample.get("label", {})
+        is_relevant = label.get("relevant", True)
+        label_str = "relevant" if is_relevant else "irrelevant"
 
-        task = input_data.get("task", "")
-        input_tools = input_data.get("tools", [])
-        input_mcp_servers = input_data.get("mcp_servers", [])
-        gt_tools = groundtruth.get("tools", [])
-        gt_mcp_servers = groundtruth.get("mcp_servers", [])
+        task = request.get("task", "")
+        tool_info = request.get("tool", {})
+        input_tool_name = tool_info.get("name", "")
+        meta_request = metadata.get("request", {})
+        input_mcp_server = meta_request.get("tool", {}).get("mcp_server", "")
+        seed_tool = meta_request.get("task", {}).get("seed_tool", {})
+        gt_tool_name = seed_tool.get("name", "")
+        gt_mcp_server = seed_tool.get("mcp_server", "")
 
-        print(f"\n{'=' * 20} Processing Sample {sample_idx}/{len(samples)} [{match_tag}] {'=' * 20}")
+        input_tools = [input_tool_name] if input_tool_name else []
+        input_mcp_servers = [input_mcp_server] if input_mcp_server else []
+        gt_tools = [gt_tool_name] if gt_tool_name else []
+        gt_mcp_servers = [gt_mcp_server] if gt_mcp_server else []
+
+        print(f"\n{'=' * 20} Processing Sample {sample_idx}/{len(samples)} [{label_str}] {'=' * 20}")
         print(f"  Task: {task[:80]}...")
-        print(f"  Input tools: {input_tools}")
+        print(f"  Input tool: {input_tools}")
         print(f"  Groundtruth tools: {gt_tools}")
 
         sample_start_time = time.time()
-        timing_data["match_tags"][match_tag] = timing_data["match_tags"].get(match_tag, 0) + 1
+        timing_data["labels"][label_str] = timing_data["labels"].get(label_str, 0) + 1
 
-        # Determine mode and get appropriate tools
-        # "correct" and "relevant" both mean the input tools match groundtruth, so treat them the same
-        mode = "correct" if match_tag in ("correct", "relevant") else match_tag
+        # Determine mode: relevant -> correct, irrelevant -> wrong
+        mode = "correct" if is_relevant else "wrong"
 
         if mode == "correct":
-            # For correct: use groundtruth tools from groundtruth MCP servers
+            # For correct/relevant: use groundtruth tools from groundtruth MCP servers
             tools = get_tools_from_mcp_servers(gt_mcp_servers, gt_tools, args.mcp_servers_dir)
             target_tool = tools[0] if tools else None
         else:
-            # For wrong/null: assistant is ONLY exposed to the target tool(s) from input
-            # This ensures the assistant can only call the wrong/null tool, not other MCP tools
+            # For wrong/irrelevant: assistant is ONLY exposed to the input tool
             tools = get_tools_from_mcp_servers(input_mcp_servers, input_tools, args.mcp_servers_dir)
             target_tool = tools[0] if tools else None
 
@@ -803,15 +810,20 @@ def main():
             use_full_history=args.use_full_history,
         )
 
-        # Build result sample
-        # For correct mode: input.tools == groundtruth.tools (same tool)
-        # For wrong/null mode: input.tools != groundtruth.tools (assistant targets the wrong tool)
-        # tool_names always contains the tools the assistant is EXPECTED to call (input.tools)
-        # groundtruth_tools contains what SHOULD be called for the user's task
+        # Build result sample preserving input format, adding MAS output fields
+        input_data = {
+            "task": task,
+            "tools": input_tools,
+            "mcp_servers": input_mcp_servers,
+        }
+        groundtruth = {
+            "tools": gt_tools,
+            "mcp_servers": gt_mcp_servers,
+        }
         result_sample = {
             "input": input_data,
             "groundtruth": groundtruth,
-            "match_tag": match_tag,
+            "match_tag": "correct" if is_relevant else "wrong",
             "conversation": True,
             "conversation_iters": None,
             "number_tools_called": None,
@@ -871,10 +883,10 @@ def main():
 
         results.append(result_sample)
 
-        # Update per-tag timing
+        # Update per-label timing
         sample_elapsed = time.time() - sample_start_time
-        timing_data["timing_per_tag"][match_tag]["count"] += 1
-        timing_data["timing_per_tag"][match_tag]["total_seconds"] += sample_elapsed
+        timing_data["timing_per_label"][label_str]["count"] += 1
+        timing_data["timing_per_label"][label_str]["total_seconds"] += sample_elapsed
 
         # Save intermediate results
         with open(args.output_file, "w") as f:
@@ -883,10 +895,10 @@ def main():
         # Save intermediate timing
         timing_data["total_time_seconds"] = time.time() - overall_start_time
         timing_data["time_per_sample_seconds"] = timing_data["total_time_seconds"] / len(samples) if samples else 0
-        for tag in timing_data["timing_per_tag"]:
-            count = timing_data["timing_per_tag"][tag]["count"]
-            total = timing_data["timing_per_tag"][tag]["total_seconds"]
-            timing_data["timing_per_tag"][tag]["avg_seconds"] = total / count if count > 0 else 0.0
+        for lbl in timing_data["timing_per_label"]:
+            count = timing_data["timing_per_label"][lbl]["count"]
+            total = timing_data["timing_per_label"][lbl]["total_seconds"]
+            timing_data["timing_per_label"][lbl]["avg_seconds"] = total / count if count > 0 else 0.0
         timing_file = f"{base_name}_timing.json"
         with open(timing_file, "w") as f:
             json.dump(timing_data, f, indent=2)
@@ -897,12 +909,12 @@ def main():
     print(f"Results saved to: {args.output_file}")
     print(f"Timing saved to: {timing_file}")
     print(f"Total time: {timing_data['total_time_seconds']:.2f}s")
-    print(f"Match tag distribution: {timing_data['match_tags']}")
-    print("Timing per tag:")
-    for tag, stats in timing_data["timing_per_tag"].items():
+    print(f"Label distribution: {timing_data['labels']}")
+    print("Timing per label:")
+    for lbl, stats in timing_data["timing_per_label"].items():
         if stats["count"] > 0:
             print(
-                f"  {tag}: {stats['count']} samples, {stats['total_seconds']:.2f}s total, {stats['avg_seconds']:.2f}s avg"
+                f"  {lbl}: {stats['count']} samples, {stats['total_seconds']:.2f}s total, {stats['avg_seconds']:.2f}s avg"
             )
     print(f"{'=' * 60}")
 
