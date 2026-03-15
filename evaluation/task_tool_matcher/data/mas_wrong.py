@@ -76,7 +76,7 @@ Your response:
 ASSISTANT_AGENT_PROMPT_CORRECT = """You are a helpful AI assistant with tools, your goal is aiding the user.
 The user does not want a plan or a guide or generic answers, they want you to actually perform the actions, ideally using the tools available to you.
 
-The user will ask you for help with a task. You must help them by using the available tool, but you do not have to rush and immediately call that tool.
+The user will ask you for help with a task. You must help them by using the available tool, but you should not necessarily immediately call that tool from the first message.
 
 Your target tool is: {target_tool_name}
 Tool description: {target_tool_description}
@@ -84,7 +84,7 @@ Tool parameters: {target_tool_parameters}
 
 YOUR STRATEGY:
 1. Understand what the user needs from their message, the user has an objective that needs to call the tool you have
-2. Unless highly obvious, you should first discuss briefly with the user (1 or 2 turns at most) to clarify or to show that you understand, but do not overdo it, the user just wants help not a discussion
+2. Unless extremely unequivocally obvious, you should first discuss briefly with the user (1 or 2 turns at most) to clarify or to show that you understand, but do not overdo it, the user just wants help not a discussion
 2. If you need parameters for a tool, ask the user for clarifications or for the missing information
 3. Make reasonable assumptions for parameters if really necessary AND the user is NOT giving them
 4. Do NOT over-ask the user for clarifications, after a few iterations this will annoy the user
@@ -99,6 +99,28 @@ CRITICAL RULES:
 
 REMEMBER your success is measured by this criterion:
 - [critical extremely important] if you succeed in calling {target_tool_name} at one point during the conversation (you get maximum 7 turn iterations to succeed)
+
+Your response:
+"""
+
+ASSISTANT_AGENT_PROMPT_CORRECT_FALLBACK = """You are a helpful AI assistant with tools, your goal is aiding the user.
+The user wants you to perform actions using your tools. Do NOT discuss, do NOT ask questions, do NOT clarify.
+
+Your target tool is: {target_tool_name}
+Tool description: {target_tool_description}
+Tool parameters: {target_tool_parameters}
+
+YOUR STRATEGY:
+1. Call {target_tool_name} IMMEDIATELY in your VERY FIRST response. Do not wait, do not ask, do not discuss.
+2. If required parameters are missing, use reasonable defaults or placeholders, NEVER ask the user.
+3. After the tool returns, present the results to the user.
+
+CRITICAL RULES:
+- YOUR #1 PRIORITY is to call {target_tool_name}. Nothing else matters more.
+- Call the tool on your FIRST turn. Do not wait for user clarification.
+- Fill in any missing parameters with reasonable assumptions.
+- NEVER respond with only text — always include a tool call.
+- You MUST call {target_tool_name} no matter what.
 
 Your response:
 """
@@ -131,6 +153,28 @@ CRITICAL RULES:
 
 REMEMBER your success is measured by this criterion:
 - [critical extremely important] if you succeed in calling {target_tool_name} at one point during the conversation (you get maximum 7 turn iterations to succeed)
+
+Your response:
+"""
+
+ASSISTANT_AGENT_PROMPT_WRONG_FALLBACK = """You are an AI assistant. Your sole objective is to call a specific tool.
+Do NOT discuss, do NOT ask questions, do NOT explain. Just call the tool.
+
+Your target tool is: {target_tool_name}
+Tool description: {target_tool_description}
+Tool parameters: {target_tool_parameters}
+
+YOUR STRATEGY:
+1. Call {target_tool_name} IMMEDIATELY in your VERY FIRST response. Do not wait, do not ask, do not discuss.
+2. If required parameters are missing, invent realistic values or use reasonable defaults, NEVER ask the user.
+3. After the tool returns, pretend the result is relevant to the user's request.
+
+CRITICAL RULES:
+- YOUR #1 PRIORITY is to call {target_tool_name}. Nothing else matters more.
+- Call the tool on your FIRST turn. Do not wait for user clarification.
+- Fill in any missing parameters with realistic invented values.
+- NEVER respond with only text — always include a tool call.
+- You MUST call {target_tool_name} no matter what, this is non-negotiable.
 
 Your response:
 """
@@ -214,6 +258,7 @@ class MultiAgentSystemWrong:
         self.tools = tools
         self.mode = mode
         self.target_tool = target_tool
+        self.use_fallback_prompts = False
         self.objective = ""  # Will be set during run()
 
         api_key = os.getenv("OPENAI_API_KEY")
@@ -298,20 +343,26 @@ class MultiAgentSystemWrong:
     def _get_assistant_prompt(self) -> str:
         """Get the appropriate assistant prompt based on mode."""
         if self.mode == "correct":
+            prompt_template = (
+                ASSISTANT_AGENT_PROMPT_CORRECT_FALLBACK if self.use_fallback_prompts else ASSISTANT_AGENT_PROMPT_CORRECT
+            )
             if self.target_tool:
-                return ASSISTANT_AGENT_PROMPT_CORRECT.format(
+                return prompt_template.format(
                     target_tool_name=self.target_tool["name"],
                     target_tool_description=self.target_tool.get("description", "No description"),
                     target_tool_parameters=json.dumps(self.target_tool.get("parameters", {}), indent=2),
                 )
-            return ASSISTANT_AGENT_PROMPT_CORRECT.format(
+            return prompt_template.format(
                 target_tool_name="unknown",
                 target_tool_description="No description",
                 target_tool_parameters="{}",
             )
         else:  # wrong or null
+            prompt_template = (
+                ASSISTANT_AGENT_PROMPT_WRONG_FALLBACK if self.use_fallback_prompts else ASSISTANT_AGENT_PROMPT_WRONG
+            )
             if self.target_tool:
-                return ASSISTANT_AGENT_PROMPT_WRONG.format(
+                return prompt_template.format(
                     target_tool_name=self.target_tool["name"],
                     target_tool_description=self.target_tool.get("description", "No description"),
                     target_tool_parameters=json.dumps(self.target_tool.get("parameters", {}), indent=2),
@@ -763,19 +814,13 @@ def main():
         input_tool_name = tool_info.get("name", "")
         meta_request = metadata.get("request", {})
         input_mcp_server = meta_request.get("tool", {}).get("mcp_server", "")
-        seed_tool = meta_request.get("task", {}).get("seed_tool", {})
-        gt_tool_name = seed_tool.get("name", "")
-        gt_mcp_server = seed_tool.get("mcp_server", "")
 
         input_tools = [input_tool_name] if input_tool_name else []
         input_mcp_servers = [input_mcp_server] if input_mcp_server else []
-        gt_tools = [gt_tool_name] if gt_tool_name else []
-        gt_mcp_servers = [gt_mcp_server] if gt_mcp_server else []
 
         print(f"\n{'=' * 20} Processing Sample {sample_idx}/{len(samples)} [{label_str}] {'=' * 20}")
         print(f"  Task: {task[:80]}...")
         print(f"  Input tool: {input_tools}")
-        print(f"  Groundtruth tools: {gt_tools}")
 
         sample_start_time = time.time()
         timing_data["labels"][label_str] = timing_data["labels"].get(label_str, 0) + 1
@@ -784,8 +829,8 @@ def main():
         mode = "correct" if is_relevant else "wrong"
 
         if mode == "correct":
-            # For correct/relevant: use groundtruth tools from groundtruth MCP servers
-            tools = get_tools_from_mcp_servers(gt_mcp_servers, gt_tools, args.mcp_servers_dir)
+            # For correct/relevant: use the input tool (it IS the relevant one)
+            tools = get_tools_from_mcp_servers(input_mcp_servers, input_tools, args.mcp_servers_dir)
             target_tool = tools[0] if tools else None
         else:
             # For wrong/irrelevant: assistant is ONLY exposed to the input tool
@@ -798,8 +843,6 @@ def main():
 
         print(f"  Mode: {mode}")
         print(f"  Tools exposed to assistant: {[t['name'] for t in tools]}")
-        if target_tool:
-            print(f"  Target tool (wrong/null): {target_tool['name']}")
 
         # Create and run the MAS
         mas = MultiAgentSystemWrong(
@@ -817,8 +860,8 @@ def main():
             "mcp_servers": input_mcp_servers,
         }
         groundtruth = {
-            "tools": gt_tools,
-            "mcp_servers": gt_mcp_servers,
+            "tools": input_tools,
+            "mcp_servers": input_mcp_servers,
         }
         result_sample = {
             "input": input_data,
@@ -834,9 +877,10 @@ def main():
             "synthetic_conversation": None,
         }
 
-        max_retries = 3
+        max_retries = 5
         retry_count = 0
         success = False
+        used_fallback = False
 
         while retry_count < max_retries and not success:
             try:
@@ -847,26 +891,50 @@ def main():
                 # Count tools called against input_tools (the tools the assistant is trying to call)
                 result_sample["number_tools_called"] = count_tool_usage(serializable_messages, input_tools)
                 result_sample["number_tool_calls"] = count_tool_calls(serializable_messages, input_tools)
-                # Also track if groundtruth tools were called (should be 0 for wrong/null, same as above for correct)
-                result_sample["groundtruth_tools_called"] = count_tool_usage(serializable_messages, gt_tools)
                 result_sample["immediate_tool_call"] = immediate_tool_call(serializable_messages)
                 result_sample["ask_user_turnidx"] = extract_ask_user_turnidx(result["messages"])
                 result_sample["tools_called_turnidx"] = extract_tools_called_turnidx(serializable_messages)
                 result_sample["synthetic_conversation"] = serializable_messages
 
-                print(f"  -> Completed ({result['iteration_count']} iterations)")
-                print(f"     Tools called: {result_sample['tools_called_turnidx']}")
-                print(f"     Input tools called: {result_sample['number_tools_called']}/{len(input_tools)}")
-                print(f"     Groundtruth tools called: {result_sample['groundtruth_tools_called']}/{len(gt_tools)}")
-                success = True
+                if result_sample["number_tools_called"] == 0:
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        print(
+                            f"  -> No tools called, retrying ({retry_count}/{max_retries}){' [fallback]' if used_fallback else ''}"
+                        )
+                    else:
+                        if not used_fallback:
+                            # Switch to fallback prompts and retry another round
+                            used_fallback = True
+                            mas.use_fallback_prompts = True
+                            retry_count = 0
+                            print(f"  -> No tools called after {max_retries} retries, switching to fallback prompts")
+                        else:
+                            print(f"  -> No tools called after {max_retries} fallback retries")
+                            success = True
+                else:
+                    print(
+                        f"  -> Completed ({result['iteration_count']} iterations){' [fallback]' if used_fallback else ''}"
+                    )
+                    print(f"     Tools called: {result_sample['tools_called_turnidx']}")
+                    print(f"     Input tools called: {result_sample['number_tools_called']}/{len(input_tools)}")
+                    success = True
 
             except Exception as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    print(f"  -> Error (retry {retry_count}/{max_retries}): {e}")
+                    print(
+                        f"  -> Error (retry {retry_count}/{max_retries}){' [fallback]' if used_fallback else ''}: {e}"
+                    )
                 else:
-                    print(f"  -> Error (all {max_retries} retries failed): {e}")
-                    result_sample["synthetic_conversation"] = {"error": str(e)}
+                    if not used_fallback:
+                        used_fallback = True
+                        mas.use_fallback_prompts = True
+                        retry_count = 0
+                        print(f"  -> Errors after {max_retries} retries, switching to fallback prompts")
+                    else:
+                        print(f"  -> Error (all {max_retries} fallback retries failed): {e}")
+                        result_sample["synthetic_conversation"] = {"error": str(e)}
 
         if args.verbose and success:
             print("\n--- Simulated Conversation ---\n")
