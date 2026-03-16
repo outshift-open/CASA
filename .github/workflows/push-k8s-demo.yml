@@ -3,7 +3,7 @@ name: Build and push the k8s demo to docker registry
 on:
   push:
     branches:
-      - main
+      - feature/PYRA-625-istio-ext-authz
 
 jobs:
   checkout:
