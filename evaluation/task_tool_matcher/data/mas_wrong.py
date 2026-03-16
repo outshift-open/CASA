@@ -859,15 +859,10 @@ def main():
             "tools": input_tools,
             "mcp_servers": input_mcp_servers,
         }
-        groundtruth = {
-            "tools": input_tools,
-            "mcp_servers": input_mcp_servers,
-        }
         result_sample = {
+            "id": sample.get("id"),
             "input": input_data,
-            "groundtruth": groundtruth,
             "match_tag": "correct" if is_relevant else "wrong",
-            "conversation": True,
             "conversation_iters": None,
             "number_tools_called": None,
             "number_tool_calls": None,
