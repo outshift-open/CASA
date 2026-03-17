@@ -185,8 +185,8 @@ jobs:
   #################################################################################
 
   # ZTA Control Plane Deployment
-  call-trigger-cd-zta-control-plane:
-    name: Trigger CD ZTA Control Plane
+  call-trigger-cd-auth-service:
+    name: Trigger CD Auth Service
     needs: [
       call-docker-build-push-auth-service,
       call-docker-build-push-ui-explorer,
@@ -196,7 +196,47 @@ jobs:
     uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
     with:
       deployment-repo: "cisco-eti/identity-auth-server-deployment"
-      client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "property-path": "image.tag", "deployment-stage": "dev", "default-deployment": true, "value": ""}'
+      client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "property-path": "authService.image.tag", "deployment-stage": "dev", "default-deployment": true, "value": ""}'
+    secrets:
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+
+  call-trigger-cd-ui-explorer:
+    name: Trigger CD UI Explorer
+    needs: [
+      call-docker-build-push-auth-service,
+      call-docker-build-push-ui-explorer,
+      call-docker-build-push-keycloak,
+      call-helm-publish-zta-control-plane
+    ]
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
+    with:
+      deployment-repo: "cisco-eti/identity-auth-server-deployment"
+      client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "property-path": "uiExplorer.image.tag", "deployment-stage": "dev", "default-deployment": true, "value": ""}'
+    secrets:
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+
+  call-trigger-cd-keycloak:
+    name: Trigger CD Keycloak
+    needs: [
+      call-docker-build-push-auth-service,
+      call-docker-build-push-ui-explorer,
+      call-docker-build-push-keycloak,
+      call-helm-publish-zta-control-plane
+    ]
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
+    with:
+      deployment-repo: "cisco-eti/identity-auth-server-deployment"
+      client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "property-path": "keycloak.image.tag", "deployment-stage": "dev", "default-deployment": true, "value": ""}'
     secrets:
       ghcr-username: ${{ secrets.GHCR_USERNAME }}
       ghcr-token: ${{ secrets.GHCR_TOKEN }}
