@@ -46,7 +46,7 @@ spec:
                   key: db-password
             # ── Hostname ─────────────────────────────────────────────────────
             - name: KC_HOSTNAME
-              value: {{ .Values.keycloak.hostname | quote }}
+              value: {{ include "zta-control-plane.keycloakEffectiveHostname" . | quote }}
             - name: KC_HOSTNAME_PORT
               value: {{ .Values.keycloak.hostnamePort | quote }}
             - name: KC_HOSTNAME_STRICT
