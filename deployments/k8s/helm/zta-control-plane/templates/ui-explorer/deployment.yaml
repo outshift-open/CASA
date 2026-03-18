@@ -20,7 +20,7 @@ spec:
         # Force pod restart when nginx config changes
         checksum/nginx-config: {{ include (print $.Template.BasePath "/ui-explorer/configmap.yaml") . | sha256sum }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.uiExplorer.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}

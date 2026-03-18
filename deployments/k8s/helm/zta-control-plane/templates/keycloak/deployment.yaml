@@ -17,7 +17,7 @@ spec:
       labels:
         {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.keycloak.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
