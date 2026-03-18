@@ -202,6 +202,7 @@ jobs:
       - name: Compute tag
         id: tag
         run: |
+          git config --global --add safe.directory '*'
           DATE=$(date +'%Y-%m-%d')
           SHA=$(git rev-parse --short HEAD)
           echo "tag=$DATE-$SHA" >> $GITHUB_OUTPUT
