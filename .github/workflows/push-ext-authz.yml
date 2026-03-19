@@ -1,4 +1,4 @@
-name: Build and push the k8s demo to docker registry
+name: Build and push the envoy ext-auth filter to docker registry
 
 on:
   push:

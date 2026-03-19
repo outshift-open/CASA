@@ -93,7 +93,7 @@ func NewExtAuthzMiddleware() *ExtAuthzMiddleware {
 
 func (m *ExtAuthzMiddleware) Run(httpAddr, grpcAddr string) {
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 	go m.startHTTP(httpAddr, &wg)
 	go m.startGrpc(grpcAddr, &wg)
 	wg.Wait()
