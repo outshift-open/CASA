@@ -14,7 +14,9 @@ import (
 	"sync"
 	"syscall"
 
+	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -31,10 +33,24 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 	attrs := request.GetAttributes()
 
 	httpReq := attrs.GetRequest().GetHttp()
+	headers := httpReq.GetHeaders()
+	headersToRet := []*corev3.HeaderValueOption{}
 
 	// Temp
+	if _, ok := headers["traceparent"]; !ok {
+		spanID := uuid.New()
+		traceparent := fmt.Sprintf("00-%s-%s-01", strings.ReplaceAll(uuid.NewString(), "-", ""), fmt.Sprintf("%x", spanID[:8]))
+		headersToRet = append(headersToRet, &corev3.HeaderValueOption{
+			Header: &corev3.HeaderValue{
+				Key:   "traceparent",
+				Value: traceparent,
+			},
+		})
+		headers["traceparent"] = traceparent
+	}
+
 	if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
-		for hn, hv := range httpReq.GetHeaders() {
+		for hn, hv := range headers {
 			if hn == "traceparent" {
 				traceID := strings.Split(hv, "-")[1]
 				count := 0
@@ -47,15 +63,17 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 		}
 	}
 
-	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, httpReq.GetHeaders(), returnIfNotTooLong(string(httpReq.Body)))
+	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, headers, returnIfNotTooLong(string(httpReq.Body)))
 	log.Printf("[HTTP][allowed]: %s", l)
-	return s.allow(), nil
+	return s.allow(headersToRet), nil
 }
 
-func (s *extAuthzServerV3) allow() *authv3.CheckResponse {
+func (s *extAuthzServerV3) allow(headers []*corev3.HeaderValueOption) *authv3.CheckResponse {
 	return &authv3.CheckResponse{
 		HttpResponse: &authv3.CheckResponse_OkResponse{
-			OkResponse: &authv3.OkHttpResponse{},
+			OkResponse: &authv3.OkHttpResponse{
+				Headers: headers,
+			},
 		},
 		Status: &status.Status{Code: int32(codes.OK)},
 	}
@@ -145,7 +163,6 @@ func returnIfNotTooLong(body string) string {
 }
 
 func main() {
-	reqCache["yo"] = 123
 	middleware := NewExtAuthzMiddleware()
 	go middleware.Run(":4000", ":4001")
 
