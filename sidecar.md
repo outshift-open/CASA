@@ -51,6 +51,15 @@ $ cd ext_authz_middleware/helm/obi
 $ helm install obi open-telemetry/opentelemetry-ebpf-instrumentation -f values.yaml --namespace YOUR_NAMESPACE_HERE
 ```
 
+## A way to test this
+
+```sh
+$ kubectl -n zta-sidecar exec -it $(kubectl -n zta-sidecar get pods -o custom-columns=NAME:.metadata.name --no-headers | grep ext-authz-middleware) -- wget -qO- \
+  --header 'content-type: application/json' \
+  --post-data '{"content": "Get the account summary and scheduled payments"}' \
+  http://zta-demo-agent:8082/chat
+```
+
 # TODO:
 
 We can first create two custom Go middlewares instead of one to handle INBOUND HTTP requests and OUTBOUND HTTP requests, one middleware for each filter (for now I only have one as you can see here `ext_authz_middleware/helm/ext-authz-middleware/crds/extauth_filter.yaml`).
