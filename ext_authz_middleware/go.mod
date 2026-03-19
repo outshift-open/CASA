@@ -4,6 +4,7 @@ go 1.25.4
 
 require (
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0
+	github.com/google/uuid v1.6.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217
 	google.golang.org/grpc v1.79.2
 )
