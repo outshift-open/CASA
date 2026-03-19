@@ -1,0 +1,45 @@
+podLabels:
+  sidecar.istio.io/inject: "false"
+
+serviceAccount:
+  name: "obi"
+
+privileged: true
+
+extraCapabilities:
+  - NET_ADMIN
+  - SYS_RESOURCE
+  - SYS_ADMIN
+
+volumeMounts:
+  - mountPath: /sys/kernel/security
+    name: kernel-security
+    readOnly: true
+  - name: cgroup
+    mountPath: /sys/fs/cgroup
+
+volumes:
+  - name: kernel-security
+    hostPath:
+      path: /sys/kernel/security
+      type: Directory
+  - name: cgroup
+    hostPath:
+      path: /sys/fs/cgroup
+
+config:
+  data:
+    # Contents of the actual OBI configuration file
+    open_port: 8082
+    discovery:
+      instrument:
+        - k8s_pod_name: "zta-demo-*"
+    routes:
+      unmatched: heuristic
+    ebpf:
+      track_request_headers: true
+env:
+  OTEL_EBPF_BPF_CONTEXT_PROPAGATION: "all"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-opentelemetry-collector:4318"
+  # OTEL_EBPF_BPF_TRACK_REQUEST_HEADERS: "true"
+  OTEL_EBPF_LOG_LEVEL: debug

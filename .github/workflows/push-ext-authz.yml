@@ -3,7 +3,7 @@ name: Build and push the envoy ext-auth filter to docker registry
 on:
   push:
     branches:
-      - feature/PYRA-625-istio-ext-authz
+      - main
 
 jobs:
   checkout:

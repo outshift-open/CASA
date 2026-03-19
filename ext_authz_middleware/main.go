@@ -14,7 +14,6 @@ import (
 	"sync"
 	"syscall"
 
-	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
@@ -33,21 +32,8 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 
 	httpReq := attrs.GetRequest().GetHttp()
 	headers := httpReq.GetHeaders()
-	headersToRet := []*corev3.HeaderValueOption{}
 
-	// Temp
-	// if _, ok := headers["traceparent"]; !ok {
-	// 	spanID := uuid.New()
-	// 	traceparent := fmt.Sprintf("00-%s-%s-01", strings.ReplaceAll(uuid.NewString(), "-", ""), fmt.Sprintf("%x", spanID[:8]))
-	// 	headersToRet = append(headersToRet, &corev3.HeaderValueOption{
-	// 		Header: &corev3.HeaderValue{
-	// 			Key:   "traceparent",
-	// 			Value: traceparent,
-	// 		},
-	// 	})
-	// 	headers["traceparent"] = traceparent
-	// }
-
+	// Temp to debug distributed parallel tracing
 	if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
 		for hn, hv := range headers {
 			if hn == "traceparent" {
@@ -64,15 +50,13 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, headers, returnIfNotTooLong(string(httpReq.Body)))
 	log.Printf("[HTTP][allowed]: %s", l)
-	return s.allow(headersToRet), nil
+	return s.allow(), nil
 }
 
-func (s *extAuthzServerV3) allow(headers []*corev3.HeaderValueOption) *authv3.CheckResponse {
+func (s *extAuthzServerV3) allow() *authv3.CheckResponse {
 	return &authv3.CheckResponse{
 		HttpResponse: &authv3.CheckResponse_OkResponse{
-			OkResponse: &authv3.OkHttpResponse{
-				// Headers: headers,
-			},
+			OkResponse: &authv3.OkHttpResponse{},
 		},
 		Status: &status.Status{Code: int32(codes.OK)},
 	}

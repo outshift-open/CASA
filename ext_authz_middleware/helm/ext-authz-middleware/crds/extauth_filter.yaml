@@ -1,0 +1,82 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: zta-ext-auth-filter
+spec:
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.ext_authz
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+            grpc_service:
+              envoy_grpc:
+                cluster_name: ext-authz
+              timeout: 0.5s
+            transport_api_version: V3
+            failure_mode_allow: false
+            include_peer_certificate: true
+            with_request_body:
+              max_request_bytes: 60000
+              allow_partial_message: true
+            metadata_context_namespaces:
+              - envoy.filters.http.jwt_authn
+
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_OUTBOUND
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.ext_authz
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+            grpc_service:
+              envoy_grpc:
+                cluster_name: ext-authz
+              timeout: 0.5s
+            transport_api_version: V3
+            failure_mode_allow: false
+            include_peer_certificate: true
+            with_request_body:
+              max_request_bytes: 60000
+              allow_partial_message: true
+            metadata_context_namespaces:
+              - envoy.filters.http.jwt_authn
+
+    - applyTo: CLUSTER
+      match:
+        context: SIDECAR_INBOUND
+      patch:
+        operation: ADD
+        value:
+          name: ext-authz
+          type: STRICT_DNS
+          connect_timeout: 1s
+          lb_policy: ROUND_ROBIN
+          http2_protocol_options: {}
+          load_assignment:
+            cluster_name: ext-authz
+            endpoints:
+              - lb_endpoints:
+                - endpoint:
+                    address:
+                      socket_address:
+                        address: ext-authz-middleware.zta-sidecar.svc.cluster.local # CHANGE zta-sidecar with YOUR-NAMESPACE
+                        port_value: 4001

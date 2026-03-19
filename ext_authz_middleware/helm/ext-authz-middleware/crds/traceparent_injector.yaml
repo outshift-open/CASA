@@ -1,0 +1,42 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: inject-traceparent
+spec:
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.lua
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+            inlineCode: |
+              function random_hex(len)
+                  local s = ""
+                  for i = 1, len do
+                      s = s .. string.format("%x", math.random(0, 15))
+                  end
+                  return s
+              end
+
+              function envoy_on_request(request_handle)
+                  -- generate or retrieve traceparent from OBI / header
+                  local traceparent = request_handle:headers():get("traceparent")
+                  if traceparent == nil then
+                      local version = "00"
+                      local trace_id = random_hex(32)
+                      local span_id = random_hex(16)
+                      local trace_flags = "01"
+                      traceparent = string.format("%s-%s-%s-%s", version, trace_id, span_id, trace_flags)
+
+                      request_handle:headers():add("traceparent", traceparent)
+                  end
+              end
+
