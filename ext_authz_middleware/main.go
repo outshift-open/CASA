@@ -16,7 +16,6 @@ import (
 
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
-	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -37,17 +36,17 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 	headersToRet := []*corev3.HeaderValueOption{}
 
 	// Temp
-	if _, ok := headers["traceparent"]; !ok {
-		spanID := uuid.New()
-		traceparent := fmt.Sprintf("00-%s-%s-01", strings.ReplaceAll(uuid.NewString(), "-", ""), fmt.Sprintf("%x", spanID[:8]))
-		headersToRet = append(headersToRet, &corev3.HeaderValueOption{
-			Header: &corev3.HeaderValue{
-				Key:   "traceparent",
-				Value: traceparent,
-			},
-		})
-		headers["traceparent"] = traceparent
-	}
+	// if _, ok := headers["traceparent"]; !ok {
+	// 	spanID := uuid.New()
+	// 	traceparent := fmt.Sprintf("00-%s-%s-01", strings.ReplaceAll(uuid.NewString(), "-", ""), fmt.Sprintf("%x", spanID[:8]))
+	// 	headersToRet = append(headersToRet, &corev3.HeaderValueOption{
+	// 		Header: &corev3.HeaderValue{
+	// 			Key:   "traceparent",
+	// 			Value: traceparent,
+	// 		},
+	// 	})
+	// 	headers["traceparent"] = traceparent
+	// }
 
 	if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
 		for hn, hv := range headers {
@@ -72,7 +71,7 @@ func (s *extAuthzServerV3) allow(headers []*corev3.HeaderValueOption) *authv3.Ch
 	return &authv3.CheckResponse{
 		HttpResponse: &authv3.CheckResponse_OkResponse{
 			OkResponse: &authv3.OkHttpResponse{
-				Headers: headers,
+				// Headers: headers,
 			},
 		},
 		Status: &status.Status{Code: int32(codes.OK)},
