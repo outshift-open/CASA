@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -22,10 +24,28 @@ type (
 	extAuthzServerV3 struct{}
 )
 
+// Temp
+var reqCache map[string]int = make(map[string]int)
+
 func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest) (*authv3.CheckResponse, error) {
 	attrs := request.GetAttributes()
 
 	httpReq := attrs.GetRequest().GetHttp()
+
+	// Temp
+	if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
+		for hn, hv := range httpReq.GetHeaders() {
+			if hn == "traceparent" {
+				traceID := strings.Split(hv, "-")[1]
+				count := 0
+				if c, ok := reqCache[traceID]; ok {
+					count = c
+				}
+
+				reqCache[traceID] = count + 1
+			}
+		}
+	}
 
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, httpReq.GetHeaders(), returnIfNotTooLong(string(httpReq.Body)))
 	log.Printf("[HTTP][allowed]: %s", l)
@@ -105,9 +125,14 @@ func (m *ExtAuthzMiddleware) ServeHTTP(resp http.ResponseWriter, req *http.Reque
 		log.Printf("[HTTP] read body failed: %v", err)
 	}
 
+	data, _ := json.MarshalIndent(reqCache, "", "  ")
+
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", req.Method, req.Host, req.URL, req.Header, returnIfNotTooLong(string(body)))
 	log.Printf("[HTTP][allowed]: %s", l)
+	resp.Header().Set("Content-Type", "application/json")
 	resp.WriteHeader(http.StatusOK)
+	resp.Write(data)
+
 }
 
 func returnIfNotTooLong(body string) string {
@@ -120,8 +145,9 @@ func returnIfNotTooLong(body string) string {
 }
 
 func main() {
+	reqCache["yo"] = 123
 	middleware := NewExtAuthzMiddleware()
-	go middleware.Run(fmt.Sprintf(":%s", "4000"), ":4001")
+	go middleware.Run(":4000", ":4001")
 
 	// Wait for the process to be shutdown.
 	sigs := make(chan os.Signal, 1)
