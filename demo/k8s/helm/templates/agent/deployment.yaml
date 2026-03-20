@@ -15,6 +15,8 @@ spec:
     spec:
       imagePullSecrets:
         - name: regcred
+      shareProcessNamespace: true
+      serviceAccount: beyla
       containers:
       - name: {{ .Values.agent.serviceName }}
         image: {{ .Values.agent.docker.registry }}/{{ .Values.agent.docker.image }}:{{ .Values.agent.tagversion }}
@@ -39,3 +41,19 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-secret
                   key: OPENAI_API_KEY
+      # Sidecar container with Beyla - the eBPF auto-instrumentation tool
+      - name: beyla
+        image: grafana/beyla:latest
+        securityContext: # Privileges are required to install the eBPF probes
+          privileged: true
+        env:
+          # The internal port of the application container
+          - name: BEYLA_OPEN_PORT
+            value: "8082"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: "http://otel-collector-opentelemetry-collector:4318"
+          - name: BEYLA_BPF_CONTEXT_PROPAGATION
+            value: all
+            # required if you want kubernetes metadata decoration
+          - name: BEYLA_KUBE_METADATA_ENABLE
+            value: "true"

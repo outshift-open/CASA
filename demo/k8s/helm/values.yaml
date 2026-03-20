@@ -8,14 +8,14 @@ agent:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/k8s-demo-agent
     suffix: ''
-  tagversion: 2026-03-11-adc488d
+  tagversion: 2026-03-16-a0d1194
 
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
   # We can move them later to an external vault when we needed
   secret:
-    openai_api_base:
-    openai_api_key:
+    openai_api_base: https://litellm.prod.outshift.ai
+    openai_api_key: SECRET_HERE
 
 mcp:
   replicas: 1
@@ -25,4 +25,4 @@ mcp:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
-  tagversion: 2026-03-11-adc488d
+  tagversion: 2026-03-16-a0d1194

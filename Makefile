@@ -252,3 +252,15 @@ helm-uninstall: # Uninstall the ZTA control-plane Helm release.
 helm-status: # Show status of the ZTA control-plane Helm release.
 > helm status $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
 .PHONY: helm-status
+
+mas-helm-install:
+> helm install zta-mas -f demo/k8s/helm/values.yaml ./demo/k8s/helm/ --namespace zta-sidecar
+.PHONY: mas-helm-install
+
+mas-helm-upgrade:
+> helm upgrade zta-mas -f demo/k8s/helm/values.yaml ./demo/k8s/helm/ --namespace zta-sidecar
+.PHONY: mas-helm-upgrade
+
+mas-helm-uninstall:
+> helm uninstall zta-mas  --namespace zta-sidecar
+.PHONY: mas-helm-uninstall

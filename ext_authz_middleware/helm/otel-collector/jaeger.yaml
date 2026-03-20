@@ -1,0 +1,56 @@
+# values.yaml
+# Jaeger Helm Chart Values
+# https://github.com/jaegertracing/helm-charts
+
+jaeger:
+  podLabels:
+    sidecar.istio.io/inject: "false"
+
+collector:
+  # Enable the Jaeger collector
+  enabled: true
+  service:
+    type: ClusterIP
+    ports:
+      - name: jaeger-collector
+        port: 14268
+        targetPort: 14268
+  podLabels:
+    sidecar.istio.io/inject: "false"
+
+query:
+  # Enable the Jaeger UI (query service)
+  enabled: true
+  service:
+    type: ClusterIP
+    ports:
+      - name: ui
+        port: 16686
+        targetPort: 16686
+  ingress:
+    enabled: false       # Set to true if you want an Ingress resource
+    # If using ingress, configure host, annotations, TLS, etc.
+    # hosts:
+    #   - host: jaeger.example.com
+    #     paths: ["/"]
+  podLabels:
+    sidecar.istio.io/inject: "false"
+
+agent:
+  enabled: true
+  service:
+    type: ClusterIP
+  podLabels:
+    sidecar.istio.io/inject: "false"
+
+allInOne:
+  enabled: false  # We are using collector + query separately
+
+storage:
+  type: memory      # Use memory for testing; for production, consider Elasticsearch, Cassandra, or Kafka
+
+ingester:
+  enabled: false
+
+ingress:
+  enabled: false     # Use ingress under `query.ingress` if needed
