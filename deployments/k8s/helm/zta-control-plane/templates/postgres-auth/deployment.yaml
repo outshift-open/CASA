@@ -17,6 +17,10 @@ spec:
       labels:
         {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
     spec:
+      {{- with .Values.postgresAuth.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: postgres
           image: "{{ .Values.postgresAuth.image.repository }}:{{ .Values.postgresAuth.image.tag }}"
@@ -26,6 +30,8 @@ spec:
               containerPort: 5432
               protocol: TCP
           env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
             - name: POSTGRES_DB
               value: {{ .Values.postgresAuth.database | quote }}
             - name: POSTGRES_USER

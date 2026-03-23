@@ -5,7 +5,7 @@ Implements liveness and readiness probes for Kubernetes deployment.
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
@@ -17,7 +17,7 @@ class HealthStatus(BaseModel):
 
     status: str  # "healthy" or "unhealthy"
     timestamp: datetime
-    checks: Dict[str, Dict[str, any]]
+    checks: Dict[str, Dict[str, Any]]
     version: str = "0.3.0"
 
 

@@ -17,6 +17,10 @@ spec:
       labels:
         {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
     spec:
+      {{- with .Values.keycloak.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: keycloak
           image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
@@ -26,6 +30,9 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+              protocol: TCP
+            - name: management
+              containerPort: 9000
               protocol: TCP
           env:
             # ── Database ──────────────────────────────────────────────────────
@@ -42,12 +49,8 @@ spec:
                   key: db-password
             # ── Hostname ─────────────────────────────────────────────────────
             - name: KC_HOSTNAME
-              value: {{ .Values.keycloak.hostname | quote }}
-            - name: KC_HOSTNAME_PORT
-              value: {{ .Values.keycloak.hostnamePort | quote }}
+              value: {{ include "zta-control-plane.keycloakEffectiveHostname" . | quote }}
             - name: KC_HOSTNAME_STRICT
-              value: "false"
-            - name: KC_HOSTNAME_STRICT_HTTPS
               value: "false"
             # ── Admin credentials ─────────────────────────────────────────────
             - name: KEYCLOAK_ADMIN
@@ -67,14 +70,14 @@ spec:
           readinessProbe:
             httpGet:
               path: /health/ready
-              port: 8080
+              port: 9000
             initialDelaySeconds: 30
             periodSeconds: 15
             failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /health/live
-              port: 8080
+              port: 9000
             initialDelaySeconds: 60
             periodSeconds: 20
             failureThreshold: 6

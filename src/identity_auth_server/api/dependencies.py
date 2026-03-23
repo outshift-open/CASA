@@ -26,13 +26,6 @@ from identity_auth_server.core.repositories.multi_agent_system import (
 from identity_auth_server.core.repositories.scope import ScopePostgresRepository, ScopeRepository
 from identity_auth_server.core.repositories.user_input import UserInputPostgresRepository
 from identity_auth_server.database.postgres.postgres import PostgresDB
-from identity_auth_server.k8s.k8s_crd_service import K8sCRDService
-from identity_auth_server.k8s.repositories.k8s_crd import (
-    K8sMultiAgentSystemCRDPostgresRepository,
-    K8sMultiAgentSystemCRDRepository,
-    K8sZTAPolicyCRDPostgresRepository,
-    K8sZTAPolicyCRDRepository,
-)
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher, TaskToolMatcherFactory
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
 from identity_auth_server.services.app_service import AppService
@@ -172,14 +165,6 @@ class Container:
         return MultiAgentSystemPostgresRepository(session=session)
 
     @staticmethod
-    def get_k8s_mas_crd_repository(session: Annotated[Session, Depends(get_session)]):
-        return K8sMultiAgentSystemCRDPostgresRepository(session=session)
-
-    @staticmethod
-    def get_k8s_policy_crd_repository(session: Annotated[Session, Depends(get_session)]):
-        return K8sZTAPolicyCRDPostgresRepository(session=session)
-
-    @staticmethod
     def get_idp_client():
         return KeycloakClient(
             server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
@@ -258,21 +243,3 @@ class Container:
         idp_client: Annotated[IdpClient, Depends(get_idp_client)],
     ):
         return MultiAgentSystemService(mas_repository, app_repository, authorization_server_repository, idp_client)
-
-    @staticmethod
-    def get_k8s_crd_service(
-        mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
-        app_repository: Annotated[AppRepository, Depends(get_app_repository)],
-        authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
-        k8s_mas_crd_repository: Annotated[K8sMultiAgentSystemCRDRepository, Depends(get_k8s_mas_crd_repository)],
-        k8s_policy_crd_repository: Annotated[K8sZTAPolicyCRDRepository, Depends(get_k8s_policy_crd_repository)],
-        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
-    ):
-        return K8sCRDService(
-            mas_repository,
-            app_repository,
-            authorization_server_repository,
-            k8s_mas_crd_repository,
-            k8s_policy_crd_repository,
-            idp_client,
-        )

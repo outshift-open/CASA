@@ -5,9 +5,6 @@ scratchbook.ipynb
 
 # Keep uv.toml local. This could e.g. include links to platform-dependant python indexs.
 uv.toml
-# Keep the lock file local. You might want to remove this line if you are publishing the package.
-# Not that the lock file is not required for the package to work.
-uv.lock
 
 # Settings below this line are generated automatically using gitignore.io. Plead do not edit manually!
 

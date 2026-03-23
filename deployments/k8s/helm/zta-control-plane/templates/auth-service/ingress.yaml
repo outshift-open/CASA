@@ -1,0 +1,33 @@
+{{- if .Values.authService.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-auth-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zta-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: auth-service
+  {{- if .Values.authService.ingress.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.authService.ingress.annotations }}
+    {{ $key }}: {{ tpl $value $ | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.authService.ingress.className }}
+  tls:
+  - hosts:
+    - "{{ .Values.authService.ingress.domainPrefix }}.{{ .Values.authService.ingress.apiDomainName }}"
+    secretName: "{{ .Release.Name }}-auth-service-tls"
+  rules:
+  - host: "{{ .Values.authService.ingress.domainPrefix }}.{{ .Values.authService.ingress.apiDomainName }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ .Release.Name }}-auth-service
+            port:
+              number: {{ .Values.authService.service.port }}
+        path: /
+        pathType: Prefix
+{{- end }}

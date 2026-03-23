@@ -18,6 +18,12 @@ authService:
     limits:
       memory: "512Mi"
       cpu: "500m"
+  ingress:
+    enabled: false
+    className: ""
+    apiDomainName: ""
+    domainPrefix: "auth"
+    annotations: {}
   env:
     # When empty, defaults to the in-cluster auth-service URL via _helpers.tpl
     authServerUrl: ""
@@ -53,6 +59,12 @@ uiExplorer:
     limits:
       memory: "128Mi"
       cpu: "100m"
+  ingress:
+    enabled: false
+    className: ""
+    apiDomainName: ""
+    domainPrefix: "zta"
+    annotations: {}
   nginx:
     # When true, nginx proxies /api/ → auth-service (port 8000).
     # Build the UI image with VITE_API_BASE_URL=/api when this is enabled.
@@ -126,6 +138,14 @@ keycloak:
     username: admin
     # Override in production
     password: admin
-  # KC_HOSTNAME — set to your actual hostname when deploying behind an ingress
+  ingress:
+    enabled: false
+    className: ""
+    apiDomainName: ""
+    domainPrefix: "keycloak"
+    annotations: {}
+  # KC_HOSTNAME — set to your actual hostname when deploying behind an ingress.
+  # When keycloak.ingress.enabled is true this is auto-derived from
+  # "<keycloak.ingress.domainPrefix>.<keycloak.ingress.apiDomainName>".
   hostname: localhost
   hostnamePort: 8080

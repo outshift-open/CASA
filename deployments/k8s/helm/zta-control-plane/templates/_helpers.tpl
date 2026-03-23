@@ -54,3 +54,16 @@ Internal auth-service URL (used by auth-service as AUTH_SERVER_URL and by the UI
 {{- define "zta-control-plane.authServiceUrl" -}}
 {{- printf "http://%s-auth-service:%d" .Release.Name (.Values.authService.service.port | int) }}
 {{- end }}
+
+{{/*
+Effective Keycloak hostname for KC_HOSTNAME.
+When keycloak.ingress.enabled is true, derived from "<domainPrefix>.<apiDomainName>".
+Falls back to keycloak.hostname otherwise.
+*/}}
+{{- define "zta-control-plane.keycloakEffectiveHostname" -}}
+{{- if and .Values.keycloak.ingress.enabled .Values.keycloak.ingress.apiDomainName }}
+{{- printf "%s.%s" .Values.keycloak.ingress.domainPrefix .Values.keycloak.ingress.apiDomainName }}
+{{- else }}
+{{- .Values.keycloak.hostname }}
+{{- end }}
+{{- end }}

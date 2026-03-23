@@ -1,0 +1,33 @@
+{{- if .Values.uiExplorer.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ui-explorer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zta-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ui-explorer
+  {{- if .Values.uiExplorer.ingress.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.uiExplorer.ingress.annotations }}
+    {{ $key }}: {{ tpl $value $ | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.uiExplorer.ingress.className }}
+  tls:
+  - hosts:
+    - "{{ .Values.uiExplorer.ingress.domainPrefix }}.{{ .Values.uiExplorer.ingress.apiDomainName }}"
+    secretName: "{{ .Release.Name }}-ui-explorer-tls"
+  rules:
+  - host: "{{ .Values.uiExplorer.ingress.domainPrefix }}.{{ .Values.uiExplorer.ingress.apiDomainName }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ .Release.Name }}-ui-explorer
+            port:
+              number: {{ .Values.uiExplorer.service.port }}
+        path: /
+        pathType: Prefix
+{{- end }}
