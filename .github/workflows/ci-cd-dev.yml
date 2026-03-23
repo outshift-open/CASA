@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - "main"
-      - "PYRA-597-create-ci-cd-auto-deployment-gh-actions-identity-auth-server"
   workflow_dispatch:
   workflow_call:
 

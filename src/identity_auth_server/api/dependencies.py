@@ -26,7 +26,6 @@ from identity_auth_server.core.repositories.multi_agent_system import (
 from identity_auth_server.core.repositories.scope import ScopePostgresRepository, ScopeRepository
 from identity_auth_server.core.repositories.user_input import UserInputPostgresRepository
 from identity_auth_server.database.postgres.postgres import PostgresDB
-
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher, TaskToolMatcherFactory
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
 from identity_auth_server.services.app_service import AppService
@@ -244,5 +243,3 @@ class Container:
         idp_client: Annotated[IdpClient, Depends(get_idp_client)],
     ):
         return MultiAgentSystemService(mas_repository, app_repository, authorization_server_repository, idp_client)
-
-
