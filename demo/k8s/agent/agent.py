@@ -20,6 +20,9 @@ class Agent:
             model="azure/gpt-4o",
             openai_api_base=self.openai_api_base,
             openai_api_key=self.openai_api_key,
+            default_headers={
+                "x-test-id": "some-test-id"
+            }
         )
 
         client = MultiServerMCPClient(
