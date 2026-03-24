@@ -2,6 +2,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: zta-ext-auth-filter
+  namespace: {{ .Release.Namespace }}
 spec:
   configPatches:
     - applyTo: HTTP_FILTER
@@ -78,5 +79,5 @@ spec:
                 - endpoint:
                     address:
                       socket_address:
-                        address: ext-authz-middleware.zta-sidecar.svc.cluster.local # CHANGE zta-sidecar with YOUR-NAMESPACE
+                        address: {{ include "ext-authz-middleware.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
                         port_value: 4001
