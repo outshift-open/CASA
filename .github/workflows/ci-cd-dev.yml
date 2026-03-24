@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - "main"
+      - "PYRA-626-deploy-istio-sidecar-architecture-and-integrate-it-to-current-ci-cd"
   workflow_dispatch:
   workflow_call:
 
