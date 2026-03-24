@@ -318,7 +318,7 @@ jobs:
     uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
     with:
       deployment-repo: "cisco-eti/identity-auth-server-deployment"
-      client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-demo", "property-path": "image.tag", "deployment-stage": "dev", "default-deployment": true, "value": "${{ needs.utils.outputs.image-tag }}"}'
+      client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-authz-middleware", "property-path": "image.tag", "deployment-stage": "dev", "default-deployment": true, "value": "${{ needs.utils.outputs.image-tag }}"}'
     secrets:
       ghcr-username: ${{ secrets.GHCR_USERNAME }}
       ghcr-token: ${{ secrets.GHCR_TOKEN }}
