@@ -185,6 +185,9 @@ obi:
         unmatched: heuristic
       ebpf:
         track_request_headers: true
+      discovery:
+        instrument:
+          - k8s_namespace: zta-control-plane-dev
       otel_traces_export:
         endpoint: "http://otel-collector-opentelemetry-collector:4317"
       otel_metrics_export:

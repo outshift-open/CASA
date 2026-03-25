@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,10 +16,46 @@ import (
 	"syscall"
 
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
+
+var tracer trace.Tracer
+
+func initTracer(ctx context.Context) func() {
+	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "otel-collector-opentelemetry-collector:4317"
+	}
+
+	exp, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithEndpoint(endpoint),
+		otlptracegrpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Printf("Failed to create OTel exporter: %v", err)
+		tracer = otel.Tracer("ext-authz-middleware")
+		return func() {}
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exp),
+		sdktrace.WithResource(resource.NewWithAttributes(
+			"https://opentelemetry.io/schemas/1.26.0",
+			attribute.String("service.name", "ext-authz-middleware"),
+		)),
+	)
+	otel.SetTracerProvider(tp)
+	tracer = otel.Tracer("ext-authz-middleware")
+	return func() { tp.Shutdown(ctx) }
+}
 
 type (
 	extAuthzServerV3 struct{}
@@ -33,20 +70,44 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 	httpReq := attrs.GetRequest().GetHttp()
 	headers := httpReq.GetHeaders()
 
-	// Temp to debug distributed parallel tracing
-	if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
-		for hn, hv := range headers {
-			if hn == "traceparent" {
-				traceID := strings.Split(hv, "-")[1]
-				count := 0
-				if c, ok := reqCache[traceID]; ok {
-					count = c
-				}
+	ctx := context.Background()
 
-				reqCache[traceID] = count + 1
+	if tp, ok := headers["traceparent"]; ok {
+		parts := strings.Split(tp, "-")
+		if len(parts) == 4 {
+			traceIDBytes, err1 := hex.DecodeString(parts[1])
+			spanIDBytes, err2 := hex.DecodeString(parts[2])
+			if err1 == nil && err2 == nil && len(traceIDBytes) == 16 && len(spanIDBytes) == 8 {
+				var traceID trace.TraceID
+				var spanID trace.SpanID
+				copy(traceID[:], traceIDBytes)
+				copy(spanID[:], spanIDBytes)
+				remoteCtx := trace.ContextWithRemoteSpanContext(ctx, trace.NewSpanContext(trace.SpanContextConfig{
+					TraceID:    traceID,
+					SpanID:     spanID,
+					TraceFlags: trace.FlagsSampled,
+					Remote:     true,
+				}))
+				ctx = remoteCtx
+
+				// Temp to debug distributed parallel tracing
+				if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
+					count := reqCache[parts[1]]
+					reqCache[parts[1]] = count + 1
+				}
 			}
 		}
 	}
+
+	_, span := tracer.Start(ctx, "Check",
+		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(
+			attribute.String("http.method", httpReq.GetMethod()),
+			attribute.String("http.path", httpReq.GetPath()),
+			attribute.String("http.host", httpReq.GetHost()),
+		),
+	)
+	defer span.End()
 
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, headers, returnIfNotTooLong(string(httpReq.Body)))
 	log.Printf("[HTTP][allowed]: %s", l)
@@ -146,6 +207,10 @@ func returnIfNotTooLong(body string) string {
 }
 
 func main() {
+	ctx := context.Background()
+	shutdown := initTracer(ctx)
+	defer shutdown()
+
 	middleware := NewExtAuthzMiddleware()
 	go middleware.Run(":4000", ":4001")
 
