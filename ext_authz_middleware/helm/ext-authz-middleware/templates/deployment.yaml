@@ -40,8 +40,11 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: grpc
-              containerPort: 4001
+            - name: grpc-inbound
+              containerPort: 4003
+              protocol: TCP
+            - name: grpc-outbound
+              containerPort: 4005
               protocol: TCP
             - name: http
               containerPort: 4000

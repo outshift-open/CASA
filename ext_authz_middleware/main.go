@@ -57,9 +57,9 @@ func initTracer(ctx context.Context) func() {
 	return func() { tp.Shutdown(ctx) }
 }
 
-type (
-	extAuthzServerV3 struct{}
-)
+type extAuthzServerV3 struct {
+	direction string
+}
 
 // Temp
 var (
@@ -109,12 +109,13 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 			attribute.String("http.method", httpReq.GetMethod()),
 			attribute.String("http.path", httpReq.GetPath()),
 			attribute.String("http.host", httpReq.GetHost()),
+			attribute.String("direction", s.direction),
 		),
 	)
 	defer span.End()
 
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, headers, returnIfNotTooLong(string(httpReq.Body)))
-	log.Printf("[HTTP][allowed]: %s", l)
+	log.Printf("[%s][allowed]: %s", s.direction, l)
 	return s.allow(), nil
 }
 
@@ -128,22 +129,24 @@ func (s *extAuthzServerV3) allow() *authv3.CheckResponse {
 }
 
 type ExtAuthzMiddleware struct {
-	httpServer *http.Server
-	grpcServer *grpc.Server
-	grpcV3     *extAuthzServerV3
+	httpServer   *http.Server
+	grpcInbound  *extAuthzServerV3
+	grpcOutbound *extAuthzServerV3
 }
 
 func NewExtAuthzMiddleware() *ExtAuthzMiddleware {
 	return &ExtAuthzMiddleware{
-		grpcV3: &extAuthzServerV3{},
+		grpcInbound:  &extAuthzServerV3{direction: "INBOUND"},
+		grpcOutbound: &extAuthzServerV3{direction: "OUTBOUND"},
 	}
 }
 
-func (m *ExtAuthzMiddleware) Run(httpAddr, grpcAddr string) {
+func (m *ExtAuthzMiddleware) Run(httpAddr, grpcInboundAddr, grpcOutboundAddr string) {
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go m.startHTTP(httpAddr, &wg)
-	go m.startGrpc(grpcAddr, &wg)
+	go m.startGrpc(grpcInboundAddr, m.grpcInbound, &wg)
+	go m.startGrpc(grpcOutboundAddr, m.grpcOutbound, &wg)
 	wg.Wait()
 }
 
@@ -166,21 +169,21 @@ func (m *ExtAuthzMiddleware) startHTTP(addr string, wg *sync.WaitGroup) {
 	}
 }
 
-func (m *ExtAuthzMiddleware) startGrpc(addr string, wg *sync.WaitGroup) {
+func (m *ExtAuthzMiddleware) startGrpc(addr string, server *extAuthzServerV3, wg *sync.WaitGroup) {
 	defer func() {
 		wg.Done()
-		log.Printf("Stopped HTTP server")
+		log.Printf("Stopped gRPC server [%s]", server.direction)
 	}()
 
 	listen, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	m.grpcServer = grpc.NewServer()
-	authv3.RegisterAuthorizationServer(m.grpcServer, m.grpcV3)
+	grpcSrv := grpc.NewServer()
+	authv3.RegisterAuthorizationServer(grpcSrv, server)
 
-	log.Printf("server listening at %v", listen.Addr())
-	if err := m.grpcServer.Serve(listen); err != nil {
+	log.Printf("[%s] gRPC server listening at %v", server.direction, listen.Addr())
+	if err := grpcSrv.Serve(listen); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
@@ -218,7 +221,7 @@ func main() {
 	defer shutdown()
 
 	middleware := NewExtAuthzMiddleware()
-	go middleware.Run(":4000", ":4001")
+	go middleware.Run(":4000", ":4003", ":4005")
 
 	// Wait for the process to be shutdown.
 	sigs := make(chan os.Signal, 1)

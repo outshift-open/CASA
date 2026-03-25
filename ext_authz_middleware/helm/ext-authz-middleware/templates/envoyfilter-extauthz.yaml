@@ -22,7 +22,7 @@ spec:
             "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
             grpc_service:
               envoy_grpc:
-                cluster_name: ext-authz
+                cluster_name: ext-authz-inbound
               timeout: 0.5s
             transport_api_version: V3
             failure_mode_allow: false
@@ -50,7 +50,7 @@ spec:
             "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
             grpc_service:
               envoy_grpc:
-                cluster_name: ext-authz
+                cluster_name: ext-authz-outbound
               timeout: 0.5s
             transport_api_version: V3
             failure_mode_allow: false
@@ -67,17 +67,38 @@ spec:
       patch:
         operation: ADD
         value:
-          name: ext-authz
+          name: ext-authz-inbound
           type: STRICT_DNS
           connect_timeout: 1s
           lb_policy: ROUND_ROBIN
           http2_protocol_options: {}
           load_assignment:
-            cluster_name: ext-authz
+            cluster_name: ext-authz-inbound
             endpoints:
               - lb_endpoints:
                 - endpoint:
                     address:
                       socket_address:
                         address: {{ include "ext-authz-middleware.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
-                        port_value: 4001
+                        port_value: 4003
+
+    - applyTo: CLUSTER
+      match:
+        context: SIDECAR_OUTBOUND
+      patch:
+        operation: ADD
+        value:
+          name: ext-authz-outbound
+          type: STRICT_DNS
+          connect_timeout: 1s
+          lb_policy: ROUND_ROBIN
+          http2_protocol_options: {}
+          load_assignment:
+            cluster_name: ext-authz-outbound
+            endpoints:
+              - lb_endpoints:
+                - endpoint:
+                    address:
+                      socket_address:
+                        address: {{ include "ext-authz-middleware.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+                        port_value: 4005
