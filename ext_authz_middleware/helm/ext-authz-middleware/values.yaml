@@ -70,6 +70,88 @@ tolerations: []
 
 affinity: {}
 
+# ── OpenTelemetry Collector subchart ──────────────────────────────────────────
+otelcollector:
+  fullnameOverride: otel-collector-opentelemetry-collector
+  mode: deployment
+  podLabels:
+    sidecar.istio.io/inject: "false"
+  image:
+    repository: "otel/opentelemetry-collector-k8s"
+  config:
+    exporters:
+      otlp:
+        endpoint: jaeger:4317
+        tls:
+          insecure: true
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    receivers:
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:14250
+          thrift_http:
+            endpoint: ${env:MY_POD_IP}:14268
+          thrift_compact:
+            endpoint: ${env:MY_POD_IP}:6831
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        traces:
+          exporters:
+            - otlp
+          processors:
+            - batch
+          receivers:
+            - otlp
+            - jaeger
+
+# ── Jaeger subchart ────────────────────────────────────────────────────────────
+jaeger:
+  fullnameOverride: jaeger
+  jaeger:
+    podLabels:
+      sidecar.istio.io/inject: "false"
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      hosts:
+        - zta-jaeger.dev.outshift.ai
+      pathType: Prefix
+      tls:
+        - hosts:
+            - zta-jaeger.dev.outshift.ai
+          secretName: jaeger-tls
+  collector:
+    enabled: true
+    podLabels:
+      sidecar.istio.io/inject: "false"
+  query:
+    enabled: true
+    podLabels:
+      sidecar.istio.io/inject: "false"
+  agent:
+    enabled: true
+    podLabels:
+      sidecar.istio.io/inject: "false"
+  allInOne:
+    enabled: false
+  storage:
+    type: memory
+  ingester:
+    enabled: false
+
 # ── OBI (OpenTelemetry eBPF Instrumentation) subchart ─────────────────────────
 obi:
   enabled: true

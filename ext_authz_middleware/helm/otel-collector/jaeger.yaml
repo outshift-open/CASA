@@ -5,6 +5,18 @@
 jaeger:
   podLabels:
     sidecar.istio.io/inject: "false"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+    hosts:
+      - zta-jaeger.dev.outshift.ai
+    pathType: Prefix
+    tls:
+      - hosts:
+          - zta-jaeger.dev.outshift.ai
+        secretName: jaeger-tls
 
 collector:
   # Enable the Jaeger collector
