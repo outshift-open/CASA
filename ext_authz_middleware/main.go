@@ -62,7 +62,10 @@ type (
 )
 
 // Temp
-var reqCache map[string]int = make(map[string]int)
+var (
+	reqCache   map[string]int = make(map[string]int)
+	reqCacheMu sync.Mutex
+)
 
 func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest) (*authv3.CheckResponse, error) {
 	attrs := request.GetAttributes()
@@ -92,8 +95,9 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 
 				// Temp to debug distributed parallel tracing
 				if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
-					count := reqCache[parts[1]]
-					reqCache[parts[1]] = count + 1
+					reqCacheMu.Lock()
+					reqCache[parts[1]]++
+					reqCacheMu.Unlock()
 				}
 			}
 		}
@@ -187,7 +191,9 @@ func (m *ExtAuthzMiddleware) ServeHTTP(resp http.ResponseWriter, req *http.Reque
 		log.Printf("[HTTP] read body failed: %v", err)
 	}
 
+	reqCacheMu.Lock()
 	data, _ := json.MarshalIndent(reqCache, "", "  ")
+	reqCacheMu.Unlock()
 
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", req.Method, req.Host, req.URL, req.Header, returnIfNotTooLong(string(body)))
 	log.Printf("[HTTP][allowed]: %s", l)
