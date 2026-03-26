@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,17 +16,56 @@ import (
 	"syscall"
 
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
 
-type (
-	extAuthzServerV3 struct{}
-)
+var tracer trace.Tracer
+
+func initTracer(ctx context.Context) func() {
+	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "otel-collector-opentelemetry-collector:4317"
+	}
+
+	exp, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithEndpoint(endpoint),
+		otlptracegrpc.WithInsecure(),
+	)
+	if err != nil {
+		log.Printf("Failed to create OTel exporter: %v", err)
+		tracer = otel.Tracer("ext-authz-middleware")
+		return func() {}
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exp),
+		sdktrace.WithResource(resource.NewWithAttributes(
+			"https://opentelemetry.io/schemas/1.26.0",
+			attribute.String("service.name", "ext-authz-middleware"),
+		)),
+	)
+	otel.SetTracerProvider(tp)
+	tracer = otel.Tracer("ext-authz-middleware")
+	return func() { tp.Shutdown(ctx) }
+}
+
+type extAuthzServerV3 struct {
+	direction string
+}
 
 // Temp
-var reqCache map[string]int = make(map[string]int)
+var (
+	reqCache   map[string]int = make(map[string]int)
+	reqCacheMu sync.Mutex
+)
 
 func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest) (*authv3.CheckResponse, error) {
 	attrs := request.GetAttributes()
@@ -33,23 +73,49 @@ func (s *extAuthzServerV3) Check(_ context.Context, request *authv3.CheckRequest
 	httpReq := attrs.GetRequest().GetHttp()
 	headers := httpReq.GetHeaders()
 
-	// Temp to debug distributed parallel tracing
-	if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
-		for hn, hv := range headers {
-			if hn == "traceparent" {
-				traceID := strings.Split(hv, "-")[1]
-				count := 0
-				if c, ok := reqCache[traceID]; ok {
-					count = c
-				}
+	ctx := context.Background()
 
-				reqCache[traceID] = count + 1
+	if tp, ok := headers["traceparent"]; ok {
+		parts := strings.Split(tp, "-")
+		if len(parts) == 4 {
+			traceIDBytes, err1 := hex.DecodeString(parts[1])
+			spanIDBytes, err2 := hex.DecodeString(parts[2])
+			if err1 == nil && err2 == nil && len(traceIDBytes) == 16 && len(spanIDBytes) == 8 {
+				var traceID trace.TraceID
+				var spanID trace.SpanID
+				copy(traceID[:], traceIDBytes)
+				copy(spanID[:], spanIDBytes)
+				remoteCtx := trace.ContextWithRemoteSpanContext(ctx, trace.NewSpanContext(trace.SpanContextConfig{
+					TraceID:    traceID,
+					SpanID:     spanID,
+					TraceFlags: trace.FlagsSampled,
+					Remote:     true,
+				}))
+				ctx = remoteCtx
+
+				// Temp to debug distributed parallel tracing
+				if !strings.HasPrefix(httpReq.GetHost(), "otel-collector") {
+					reqCacheMu.Lock()
+					reqCache[parts[1]]++
+					reqCacheMu.Unlock()
+				}
 			}
 		}
 	}
 
+	_, span := tracer.Start(ctx, "Check",
+		trace.WithSpanKind(trace.SpanKindServer),
+		trace.WithAttributes(
+			attribute.String("http.method", httpReq.GetMethod()),
+			attribute.String("http.path", httpReq.GetPath()),
+			attribute.String("http.host", httpReq.GetHost()),
+			attribute.String("direction", s.direction),
+		),
+	)
+	defer span.End()
+
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", httpReq.Method, httpReq.Host, httpReq.Path, headers, returnIfNotTooLong(string(httpReq.Body)))
-	log.Printf("[HTTP][allowed]: %s", l)
+	log.Printf("[%s][allowed]: %s", s.direction, l)
 	return s.allow(), nil
 }
 
@@ -63,22 +129,24 @@ func (s *extAuthzServerV3) allow() *authv3.CheckResponse {
 }
 
 type ExtAuthzMiddleware struct {
-	httpServer *http.Server
-	grpcServer *grpc.Server
-	grpcV3     *extAuthzServerV3
+	httpServer   *http.Server
+	grpcInbound  *extAuthzServerV3
+	grpcOutbound *extAuthzServerV3
 }
 
 func NewExtAuthzMiddleware() *ExtAuthzMiddleware {
 	return &ExtAuthzMiddleware{
-		grpcV3: &extAuthzServerV3{},
+		grpcInbound:  &extAuthzServerV3{direction: "INBOUND"},
+		grpcOutbound: &extAuthzServerV3{direction: "OUTBOUND"},
 	}
 }
 
-func (m *ExtAuthzMiddleware) Run(httpAddr, grpcAddr string) {
+func (m *ExtAuthzMiddleware) Run(httpAddr, grpcInboundAddr, grpcOutboundAddr string) {
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go m.startHTTP(httpAddr, &wg)
-	go m.startGrpc(grpcAddr, &wg)
+	go m.startGrpc(grpcInboundAddr, m.grpcInbound, &wg)
+	go m.startGrpc(grpcOutboundAddr, m.grpcOutbound, &wg)
 	wg.Wait()
 }
 
@@ -101,21 +169,21 @@ func (m *ExtAuthzMiddleware) startHTTP(addr string, wg *sync.WaitGroup) {
 	}
 }
 
-func (m *ExtAuthzMiddleware) startGrpc(addr string, wg *sync.WaitGroup) {
+func (m *ExtAuthzMiddleware) startGrpc(addr string, server *extAuthzServerV3, wg *sync.WaitGroup) {
 	defer func() {
 		wg.Done()
-		log.Printf("Stopped HTTP server")
+		log.Printf("Stopped gRPC server [%s]", server.direction)
 	}()
 
 	listen, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	m.grpcServer = grpc.NewServer()
-	authv3.RegisterAuthorizationServer(m.grpcServer, m.grpcV3)
+	grpcSrv := grpc.NewServer()
+	authv3.RegisterAuthorizationServer(grpcSrv, server)
 
-	log.Printf("server listening at %v", listen.Addr())
-	if err := m.grpcServer.Serve(listen); err != nil {
+	log.Printf("[%s] gRPC server listening at %v", server.direction, listen.Addr())
+	if err := grpcSrv.Serve(listen); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
@@ -126,7 +194,9 @@ func (m *ExtAuthzMiddleware) ServeHTTP(resp http.ResponseWriter, req *http.Reque
 		log.Printf("[HTTP] read body failed: %v", err)
 	}
 
+	reqCacheMu.Lock()
 	data, _ := json.MarshalIndent(reqCache, "", "  ")
+	reqCacheMu.Unlock()
 
 	l := fmt.Sprintf("%s %s%s, headers: %v, body: [%s]\n", req.Method, req.Host, req.URL, req.Header, returnIfNotTooLong(string(body)))
 	log.Printf("[HTTP][allowed]: %s", l)
@@ -146,8 +216,12 @@ func returnIfNotTooLong(body string) string {
 }
 
 func main() {
+	ctx := context.Background()
+	shutdown := initTracer(ctx)
+	defer shutdown()
+
 	middleware := NewExtAuthzMiddleware()
-	go middleware.Run(":4000", ":4001")
+	go middleware.Run(":4000", ":4003", ":4005")
 
 	// Wait for the process to be shutdown.
 	sigs := make(chan os.Signal, 1)

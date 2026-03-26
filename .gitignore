@@ -286,3 +286,6 @@ demo/test_jean.py
 demo/test_simple.py
 demo/test.py
 demo/workshop/llm/config.yaml
+
+# Helm downloaded dependencies
+**/charts/*.tgz

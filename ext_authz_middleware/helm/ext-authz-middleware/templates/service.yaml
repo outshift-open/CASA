@@ -7,10 +7,14 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: 4003
+      targetPort: grpc-inbound
       protocol: TCP
-      name: grpc
+      name: grpc-inbound
+    - port: 4005
+      targetPort: grpc-outbound
+      protocol: TCP
+      name: grpc-outbound
     - port: 4000
       targetPort: http
       protocol: TCP

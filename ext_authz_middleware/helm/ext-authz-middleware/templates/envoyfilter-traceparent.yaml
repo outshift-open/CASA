@@ -2,6 +2,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: inject-traceparent
+  namespace: {{ .Release.Namespace }}
 spec:
   configPatches:
     - applyTo: HTTP_FILTER
@@ -39,4 +40,3 @@ spec:
                       request_handle:headers():add("traceparent", traceparent)
                   end
               end
-
