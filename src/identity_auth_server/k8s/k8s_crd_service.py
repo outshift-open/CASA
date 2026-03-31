@@ -203,6 +203,12 @@ class K8sCRDService:
 
         return existing_crd
 
-    def delete_mas_crd(self, namespace: str, mas_id: str) -> None:
-        """Delete a MultiAgentSystem CRD."""
-        self._mas_service.delete_mas(mas_id)
+    def delete_mas_crd(self, namespace: str, name: str) -> None:
+        """Delete a MultiAgentSystem CRD by namespace and name."""
+        # Look up the MAS by namespace and name to get its UUID
+        mas_crd = self.get_mas_crd(namespace, name)
+        if not mas_crd or not mas_crd.metadata.uid:
+            raise ValueError(f"MultiAgentSystem {namespace}/{name} not found")
+
+        # Extract UUID from metadata.uid and delete by UUID
+        self._mas_service.delete_mas(mas_crd.metadata.uid)
