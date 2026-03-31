@@ -122,7 +122,7 @@ class K8sCRDService:
                     AppRequest(
                         name=app_spec.name,
                         base_url=app_spec.base_url,
-                        mas_id=mas.id,
+                        mas_id=str(mas.id),
                         type=self._convert_app_type(app_spec.type),
                     )
                 )
@@ -181,7 +181,7 @@ class K8sCRDService:
                     AppRequest(
                         name=app_spec.name,
                         base_url=app_spec.base_url,
-                        mas_id=mas.id,
+                        mas_id=str(mas.id),
                         type=self._convert_app_type(app_spec.type),
                     )
                 )
