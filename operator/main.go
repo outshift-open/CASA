@@ -256,6 +256,7 @@ func main() {
 	}
 
 	scheme := runtime.NewScheme()
+	_ = metav1.AddMetaToScheme(scheme)
 	scheme.AddKnownTypeWithName(masGVK, &MultiAgentSystem{})
 	scheme.AddKnownTypeWithName(
 		schema.GroupVersionKind{Group: "zta.io", Version: "v1alpha1", Kind: "MultiAgentSystemList"},
