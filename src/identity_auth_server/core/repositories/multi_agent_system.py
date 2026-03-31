@@ -1,3 +1,5 @@
+"""Repository layer for Multi-Agent System persistence."""
+
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -29,8 +31,14 @@ class MultiAgentSystemRepository(ABC):
     def get_all(self) -> List[MultiAgentSystem]:
         """Fetch all the mutli agent systems stored in the database."""
 
+    @abstractmethod
+    def get_by_name_and_namespace(self, name: str, namespace: str) -> MultiAgentSystem:
+        """Fetch a multi agent system by name and namespace from the database."""
+
 
 class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
+    """PostgreSQL implementation of the MultiAgentSystemRepository interface."""
+
     def __init__(self, session: Session):
         """Initialize a new MultiAgentSystemPostgresRepository instance."""
         self._session = session
@@ -62,7 +70,20 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
     def get_all(self) -> List[MultiAgentSystem]:
         """Fetch all the mutli agent systems stored in the database."""
         try:
-            masList = self._session.exec(select(MultiAgentSystem)).all()
-            return list(masList)
+            mas_list = self._session.exec(select(MultiAgentSystem)).all()
+            return list(mas_list)
         except Exception as e:
             raise Exception(f"Error retrieving MAS list: {e}") from e
+
+    def get_by_name_and_namespace(self, name: str, namespace: str) -> MultiAgentSystem:
+        """Fetch a multi agent system by name and namespace from the database."""
+        try:
+            statement = select(MultiAgentSystem).where(
+                MultiAgentSystem.name == name, MultiAgentSystem.namespace == namespace
+            )
+            mas = self._session.exec(statement).first()
+            if not mas:
+                raise ValueError(f"MultiAgentSystem with name '{name}' in namespace '{namespace}' not found")
+            return mas
+        except Exception as e:
+            raise Exception(f"Error retrieving MAS by name and namespace: {e}") from e

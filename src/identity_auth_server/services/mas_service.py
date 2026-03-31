@@ -1,3 +1,5 @@
+"""Service layer for Multi-Agent System business logic."""
+
 import logging
 from typing import List, Optional
 from uuid import uuid4
@@ -45,6 +47,7 @@ class MultiAgentSystemService:
         auth_srv_repository: AuthorizationServerRepository,
         idp_client: IdpClient,
     ):
+        """Initialize the MultiAgentSystemService with its dependencies."""
         self._mas_repository = mas_repository
         self._app_repository = app_repository
         self._auth_srv_repository = auth_srv_repository
@@ -121,3 +124,8 @@ class MultiAgentSystemService:
     def get_mas_by_id(self, id: str) -> MultiAgentSystem:
         """Get a Multi Agent System by ID."""
         return self._mas_repository.get_by_id(id)
+
+    def get_id_by_name(self, name: str, namespace: str) -> str:
+        """Get MAS ID by name and namespace."""
+        mas = self._mas_repository.get_by_name_and_namespace(name, namespace)
+        return str(mas.id)

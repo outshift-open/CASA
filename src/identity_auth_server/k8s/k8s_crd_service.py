@@ -162,8 +162,11 @@ class K8sCRDService:
 
         return crds
 
-    def update_mas_crd(self, namespace: str, mas_id: str, request: MASUpdateRequest) -> MultiAgentSystemCRD:
+    def update_mas_crd(self, namespace: str, name: str, request: MASUpdateRequest) -> MultiAgentSystemCRD:
         """Update a MultiAgentSystem CRD spec."""
+        # Convert name to UUID
+        mas_id = self._mas_service.get_id_by_name(name, namespace)
+
         mas = self._mas_service.update_mas(mas_id, MultiAgentSystemUpdateRequest(name=request.spec.name))
 
         # # Update realm if changed
@@ -205,10 +208,13 @@ class K8sCRDService:
 
     def delete_mas_crd(self, namespace: str, name: str) -> None:
         """Delete a MultiAgentSystem CRD by namespace and name."""
-        # Look up the MAS by namespace and name to get its UUID
-        mas_crd = self.get_mas_crd(namespace, name)
+        # Convert name to UUID
+        mas_id = self._mas_service.get_id_by_name(name, namespace)
+
+        # Look up the MAS CRD
+        mas_crd = self.get_mas_crd(namespace, mas_id)
         if not mas_crd or not mas_crd.metadata.uid:
             raise ValueError(f"MultiAgentSystem {namespace}/{name} not found")
 
-        # Extract UUID from metadata.uid and delete by UUID
+        # Delete by UUID
         self._mas_service.delete_mas(mas_crd.metadata.uid)
