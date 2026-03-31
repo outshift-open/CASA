@@ -14,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -85,6 +86,7 @@ var (
 		Version:  "v1alpha1",
 		Resource: "multiagentsystems",
 	}
+	schemeGroupVersion = schema.GroupVersion{Group: "zta.io", Version: "v1alpha1"}
 )
 
 // ── Auth-service request payload ─────────────────────────────────────────────
@@ -256,12 +258,11 @@ func main() {
 	}
 
 	scheme := runtime.NewScheme()
-	_ = metav1.AddMetaToScheme(scheme)
-	scheme.AddKnownTypeWithName(masGVK, &MultiAgentSystem{})
-	scheme.AddKnownTypeWithName(
-		schema.GroupVersionKind{Group: "zta.io", Version: "v1alpha1", Kind: "MultiAgentSystemList"},
-		&MultiAgentSystemList{},
-	)
+	_ = clientgoscheme.AddToScheme(scheme)
+
+	// Register zta.io/v1alpha1 GroupVersion
+	scheme.AddKnownTypes(schemeGroupVersion, &MultiAgentSystem{}, &MultiAgentSystemList{})
+	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
