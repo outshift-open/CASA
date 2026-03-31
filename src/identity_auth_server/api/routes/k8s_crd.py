@@ -23,7 +23,7 @@ router = APIRouter(tags=["Kubernetes CRDs"], prefix="/k8s")
 # MultiAgentSystem CRD endpoints
 
 
-@router.post("/k8s/namespaces/{namespace}/mas", response_model=MultiAgentSystemCRD)
+@router.post("/namespaces/{namespace}/mas", response_model=MultiAgentSystemCRD)
 def create_mas_crd(
     namespace: str,
     request: MASCreateRequest,
@@ -42,7 +42,7 @@ def create_mas_crd(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.get("/k8s/namespaces/{namespace}/mas/{mas_id}", response_model=MultiAgentSystemCRD)
+@router.get("/namespaces/{namespace}/mas/{mas_id}", response_model=MultiAgentSystemCRD)
 def get_mas_crd(
     namespace: str,
     mas_id: str,
@@ -55,7 +55,7 @@ def get_mas_crd(
     return crd
 
 
-@router.get("/k8s/namespaces/{namespace}/mas", response_model=MASListResponse)
+@router.get("/namespaces/{namespace}/mas", response_model=MASListResponse)
 def list_mas_crds_in_namespace(
     namespace: str,
     crd_service: Annotated[K8sCRDService, Depends(Container.get_k8s_crd_service)],
@@ -65,7 +65,7 @@ def list_mas_crds_in_namespace(
     return MASListResponse(api_version="zta.io/v1alpha1", kind="MultiAgentSystemList", items=items)
 
 
-@router.get("/k8s/mas", response_model=MASListResponse)
+@router.get("/mas", response_model=MASListResponse)
 def list_all_mas_crds(
     crd_service: Annotated[K8sCRDService, Depends(Container.get_k8s_crd_service)],
     namespace: Optional[str] = Query(None, description="Filter by namespace"),
@@ -75,7 +75,7 @@ def list_all_mas_crds(
     return MASListResponse(api_version="zta.io/v1alpha1", kind="MultiAgentSystemList", items=items)
 
 
-@router.put("/k8s/namespaces/{namespace}/mas/{name}", response_model=MultiAgentSystemCRD)
+@router.put("/namespaces/{namespace}/mas/{name}", response_model=MultiAgentSystemCRD)
 def update_mas_crd(
     namespace: str,
     name: str,
@@ -91,7 +91,7 @@ def update_mas_crd(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.patch("/k8s/namespaces/{namespace}/mas/{name}/status", response_model=MultiAgentSystemCRD)
+@router.patch("/namespaces/{namespace}/mas/{name}/status", response_model=MultiAgentSystemCRD)
 def update_mas_status(
     namespace: str,
     name: str,
@@ -107,7 +107,7 @@ def update_mas_status(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.delete("/k8s/namespaces/{namespace}/mas/{name}", status_code=204)
+@router.delete("/namespaces/{namespace}/mas/{name}", status_code=204)
 def delete_mas_crd(
     namespace: str,
     name: str,
@@ -125,7 +125,7 @@ def delete_mas_crd(
 # Watch endpoints for real-time updates
 
 
-@router.get("/k8s/watch/namespaces/{namespace}/multiagentsystems")
+@router.get("/watch/namespaces/{namespace}/multiagentsystems")
 async def watch_mas_in_namespace(
     namespace: str,
     resource_version: Optional[str] = Query(None, description="Start watching from this version"),
@@ -155,7 +155,7 @@ async def watch_mas_in_namespace(
     )
 
 
-@router.get("/k8s/watch/multiagentsystems")
+@router.get("/watch/multiagentsystems")
 async def watch_all_mas(
     resource_version: Optional[str] = Query(None, description="Start watching from this version"),
 ):
@@ -180,7 +180,7 @@ async def watch_all_mas(
     )
 
 
-@router.get("/k8s/watch/namespaces/{namespace}/ztapolicies")
+@router.get("/watch/namespaces/{namespace}/ztapolicies")
 async def watch_policies_in_namespace(
     namespace: str,
     resource_version: Optional[str] = Query(None, description="Start watching from this version"),
@@ -209,7 +209,7 @@ async def watch_policies_in_namespace(
 # Health check endpoints
 
 
-@router.get("/k8s/healthz")
+@router.get("/healthz")
 async def liveness_probe():
     """Liveness probe endpoint.
 
@@ -225,7 +225,7 @@ async def liveness_probe():
     return health_status
 
 
-@router.get("/k8s/readyz")
+@router.get("/readyz")
 async def readiness_probe():
     """Readiness probe endpoint.
 
