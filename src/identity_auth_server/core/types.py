@@ -92,6 +92,7 @@ class MultiAgentSystem(SQLModel, table=True):
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     name: str
+    k8s_name: Optional[str] = None  # Kubernetes metadata.name (lowercase with dashes)
     apps: List["App"] = Relationship(back_populates="mas")
     scopes: List["Scope"] = Relationship(back_populates="mas")
     enabled_tool_checks: Optional[ToolCheckFlags] = Field(

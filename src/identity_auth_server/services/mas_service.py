@@ -22,6 +22,7 @@ class MultiAgentSystemCreateRequest(BaseModel):
     name: str
     enabled_tool_checks: Optional[ToolCheckFlags] = None
     namespace: Optional[str] = None
+    k8s_name: Optional[str] = None
 
 
 class MultiAgentSystemUpdateRequest(BaseModel):
@@ -55,7 +56,12 @@ class MultiAgentSystemService:
 
     def create_mas(self, request: MultiAgentSystemCreateRequest) -> MultiAgentSystem:
         """Create a new Multi Agent System."""
-        mas = MultiAgentSystem(id=uuid4(), name=request.name, namespace=request.namespace)
+        mas = MultiAgentSystem(
+            id=uuid4(),
+            name=request.name,
+            namespace=request.namespace,
+            k8s_name=request.k8s_name,
+        )
 
         if request.enabled_tool_checks is not None:
             mas.enabled_tool_checks = request.enabled_tool_checks

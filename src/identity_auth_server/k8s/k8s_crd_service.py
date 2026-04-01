@@ -111,6 +111,7 @@ class K8sCRDService:
                 name=request.spec.name,
                 namespace=request.metadata.namespace,
                 enabled_tool_checks=self._convert_tool_checks_to_flags(request.spec.enabled_tool_checks),
+                k8s_name=request.metadata.name,
             )
         )
 

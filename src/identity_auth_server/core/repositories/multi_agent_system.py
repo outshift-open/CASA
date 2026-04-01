@@ -76,10 +76,13 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
             raise Exception(f"Error retrieving MAS list: {e}") from e
 
     def get_by_name_and_namespace(self, name: str, namespace: str) -> MultiAgentSystem:
-        """Fetch a multi agent system by name and namespace from the database."""
+        """Fetch a multi agent system by k8s_name and namespace from the database."""
         try:
+            # Search by k8s_name first (for CRD-created MAS), fallback to name
             statement = select(MultiAgentSystem).where(
-                MultiAgentSystem.name == name, MultiAgentSystem.namespace == namespace
+                MultiAgentSystem.namespace == namespace
+            ).where(
+                (MultiAgentSystem.k8s_name == name) | (MultiAgentSystem.name == name)
             )
             mas = self._session.exec(statement).first()
             if not mas:
