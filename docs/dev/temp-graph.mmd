@@ -1,0 +1,53 @@
+flowchart TD
+    Start([START])
+
+    Start --> SM1["SystemMessage:<br/>USER_AGENT_PROMPT + hidden root intent"]
+    SM1 --> UA1["User Agent<br/>(Initiates conversation with a root intent)"]
+    UA1 --> HM_Out[Output: HumanMessage]
+    HM_Out --> SM2["SystemMessage:<br/>ASSISTANT_AGENT_PROMPT + conversation<br/>Does NOT see root intent"]
+    SM2 --> AA[Assistant Agent]
+    AA --> Decision1{Tools Needed?}
+
+    Decision1 -->|No| NoTools[Output: AIMessage<br/>text response]
+    Decision1 -->|Yes| Tools[Output: AIMessage<br/>with tool_calls]
+
+    NoTools --> HistoryCheck{Use Full History?}
+
+    HistoryCheck -->|False| Brief["SystemMessage:<br/>USER_EVALUATION_PROMPT<br/>+ root intent + last_assistant_msg"]
+    HistoryCheck -->|True| Full["SystemMessage:<br/>USER_EVALUATION_PROMPT_FULL_HISTORY<br/>+ root intent + full_conversation"]
+
+    Brief --> UA2["User Agent<br/>(Evaluation >> Conversation Response)"]
+    Full --> UA2
+
+    UA2 --> HM1[Output: HumanMessage]
+
+    HM1 --> Complete{Root Intent<br/>Objective Complete?}
+
+    Complete -->|Yes| End([END])
+    Complete -->|No, needs more| SM2
+
+    Tools --> SM3["SystemMessage:<br/>SIMULATOR_AGENT_PROMPT<br/>+ tool_name + tool_args"]
+    SM3 --> SA[Simulator Agent]
+    SA --> TM[Output: ToolMessage]
+
+    TM --> |Back to Assistant<br/>to process results| AA
+
+    style Start fill:#90EE20
+    style End fill:#FF0000
+    style UA1 fill:#87CEEB
+    style UA2 fill:#87CEEB
+    style AA fill:#DDA0DD
+    style SA fill:#FFA500
+    style Decision1 fill:#FFE4B5
+    style Complete fill:#FFE4B5
+    style HistoryCheck fill:#FFE4B5
+    style NoTools fill:#E6E6FA
+    style Tools fill:#E6E6FA
+    style HM1 fill:#E6E6FA
+    style TM fill:#E6E6FA
+    style HM_Out fill:#E6E6FA
+    style Brief fill:#F5F5DC
+    style Full fill:#F5F5DC
+    style SM1 fill:#F5F5DC
+    style SM2 fill:#F5F5DC
+    style SM3 fill:#F5F5DC
