@@ -6,7 +6,7 @@ name: ZTA Control Plane CI/CD
 on:
   push:
     branches:
-      - "main"
+      - "feature/PYRA-629-inject-traceparent"
   workflow_dispatch:
   workflow_call:
 
@@ -173,6 +173,25 @@ jobs:
       image-name: "outshift-zta/ext-authz-middleware"
       context: .
       dockerfile: deployments/docker/Dockerfile.extauthz
+      ecr-enabled: true
+      artifactory-devhub-enabled: false
+      ghcr-enabled: false
+
+  call-docker-build-push-wasm:
+    name: Call Docker Build traceparent injector WASM plugin
+    needs: [checkout]
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    secrets:
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    with:
+      runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+      image-name: "outshift-zta/traceparent_injector_plugin"
+      context: sidecar/traceparent_injector
+      dockerfile: sidecar/traceparent_injector/Dockerfile
       ecr-enabled: true
       artifactory-devhub-enabled: false
       ghcr-enabled: false
