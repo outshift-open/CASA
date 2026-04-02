@@ -8,7 +8,7 @@ const config = {
   favicon: 'img/favicon.ico',
 
   url: 'https://cisco-eti.github.io',
-  baseUrl: '/identity-auth-server/',
+  baseUrl: '/',
 
   organizationName: 'cisco-eti',
   projectName: 'identity-auth-server',
