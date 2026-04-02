@@ -1,305 +1,225 @@
 [![pytest](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml) [![pre-commit](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml)
 
-# Identity Auth Server
+# ZTA — Zero Trust for Multi-Agent Systems
 
-## Prerequisites
+A cloud-native Kubernetes platform that enforces Zero Trust authorization for Multi-Agent Systems (MAS) — with no code changes required in the agents themselves.
 
-- Python 3.12 or higher
-- [uv](https://docs.astral.sh/uv/) package manager
+---
+
+## Why ZTA
+
+Modern AI applications are increasingly composed of agents, MCP servers, and orchestration layers that collaborate autonomously. Standard identity solutions were not built for this: they assume human users, static roles, and predictable access patterns. An agent that has been granted access to a tool can use that tool for anything — regardless of what the user actually asked for.
+
+ZTA addresses this by introducing **intent-scoped authorization**: every tool call made by an agent must be validated against the original user intent. If an agent tries to invoke a filesystem write tool when the user only asked for a balance summary, ZTA blocks it — at the network level, before the tool executes.
+
+Enforcement happens through sidecars injected into each MAS pod and an eBPF-based network layer, both orchestrated by the ZTA control plane. MAS applications are configured through Kubernetes CRDs and require no SDK integration or code modifications.
+
+---
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph "Kubernetes Cluster"
+        subgraph "zta-control-plane"
+            AUTH["Auth Service\n(Token Issuance & Exchange)"]
+            KC["Keycloak IdP"]
+            PG[("PostgreSQL")]
+            UI["ZTA Explorer UI"]
+            AUTH --> KC
+            AUTH --> PG
+            UI --> AUTH
+        end
+
+        subgraph "mas-namespace"
+            subgraph "Client Pod"
+                CL["Client App"]
+                CLS["ZTA Sidecar"]
+                CL -.->|intercepted| CLS
+            end
+            subgraph "Agent Pod"
+                AG["Agent"]
+                AGS["ZTA Sidecar"]
+                AG -.->|intercepted| AGS
+            end
+            subgraph "MCP Server Pod"
+                MCP["MCP Server"]
+                MCPS["ZTA Sidecar"]
+                MCP -.->|intercepted| MCPS
+            end
+            CLS -->|"MCP/A2A"| AGS
+            AGS -->|"MCP"| MCPS
+        end
+
+        EBPF["Cilium eBPF\n(L3/L4 enforcement\nJWT extraction)"]
+        EBPF -.->|enforces| CLS
+        EBPF -.->|enforces| AGS
+        EBPF -.->|enforces| MCPS
+    end
+
+    CLS & AGS & MCPS -->|"Token ops"| AUTH
+    AGS -->|"LLM calls"| LLM["External LLM\n(OpenAI-compatible)"]
+
+    style AUTH fill:#4ecdc4
+    style EBPF fill:#ff6b6b
+    style LLM fill:#ffe66d
+```
+
+**Components:**
+
+| Component | Description |
+|---|---|
+| **Auth Service** | Issues and exchanges OAuth2 tokens; runs tool authorization checks |
+| **ZTA Sidecar** | Envoy-based proxy injected into every MAS pod; intercepts all traffic |
+| **eBPF layer** | Cilium enforces deny-by-default network policies and extracts JWTs for observability |
+| **Keycloak** | Identity provider backing token cryptography |
+| **ZTA Explorer UI** | Admin dashboard for managing MAS registrations and viewing telemetry |
+
+---
+
+## Core Concepts
+
+**Control Plane** — The ZTA control plane (`zta-control-plane` namespace) handles token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.
+
+**Multi-Agent System (MAS)** — A named group of applications (agents, MCP servers, and clients) that interact with each other inside a Kubernetes namespace. Each MAS is described by a `MultiAgentSystem` CRD.
+
+**ZTA Sidecar** — An Envoy-based proxy automatically injected into every pod in a ZTA-enabled namespace. It intercepts inbound and outbound HTTP traffic, injects tokens on egress, and validates tokens on ingress — without any changes to the application.
+
+**MultiAgentSystem CRD** — Declares the applications in a MAS and which tool authorization checks are enabled for the system.
+
+**Deterministic Checks** — Rule-based validations that verify whether a requested tool was: (1) present in the token's allowed tool list, and (2) among the tools the LLM actually selected. Fast, no AI required.
+
+**Semantic Checks** — AI-powered validation that matches the requested tool against the original user intent using embeddings or an LLM verifier. Catches cases where an agent requests a tool that is technically allowed but does not match what the user asked for.
+
+---
 
 ## Quick Start
 
-### Option 1: Local Development
+### Prerequisites
 
-#### 1. Environment Setup
+- Kubernetes cluster (kind, EKS, GKE, or AKS)
+- `kubectl` and `helm` installed
+- One of: Istio (v1.17+) or Cilium (v1.14+) installed in your cluster
 
-After cloning the repo, initialize the development environment:
+### 1. Install the ZTA Control Plane
 
-```shell
-make init
+```bash
+helm install zta deployments/k8s/helm/zta-control-plane \
+  --namespace zta-control-plane \
+  --create-namespace
 ```
 
-This will:
+Wait for all pods to be ready:
 
-- Create a Python virtual environment
-- Install all dependencies (including dev dependencies)
-- Set up pre-commit hooks
-
-#### Setup .env
-
-Create a `.env` file by copying the provided sample and updating it with your configuration:
-
-```shell
-cp .env.sample .env
+```bash
+kubectl -n zta-control-plane wait --for=condition=ready pod --all --timeout=300s
 ```
 
-### Database Setup
+### 2. Register Your MAS
 
-Ensure you have a PostgreSQL database running and accessible. Update the `.env` file with your database connection details.
+Apply a `MultiAgentSystem` CRD to declare your application topology:
 
-### Keycloak Setup
-
-You can run a local Keycloak instance using Docker Compose:
-
-```shell
-make keycloak-run
+```yaml
+apiVersion: zta.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: my-mas
+  namespace: my-mas
+spec:
+  name: "My Multi-Agent System"
+  authorizationServer: "my-mas-realm"
+  enabledToolChecks:
+  - DETERMINISTIC_TOOL_SELECTED
+  - DETERMINISTIC_LLM_SELECTED_TOOLS
+  apps:
+  - name: my-agent
+    type: agent
+    baseUrl: "http://my-agent.my-mas.svc.cluster.local:8000"
+  - name: my-mcp-server
+    type: mcp_server
+    baseUrl: "http://my-mcp-server.my-mas.svc.cluster.local:8080"
 ```
 
-Update the `.env` file with the Keycloak admin username and password.
-Keycloak will be accessible at `http://localhost:8080/`.
+### 3. Install the Demo MAS (optional)
 
-#### 3. Run the Server
+To explore ZTA with a working demo:
 
-```shell
-make auth-server-run
+```bash
+# Edit demo/k8s/helm/values.yaml to add your OpenAI-compatible API key
+helm install zta-mas demo/k8s/helm/ \
+  --namespace zta-sidecar \
+  --create-namespace
 ```
 
-Or manually:
+### 4. Enable Sidecar Injection
 
-```shell
-source .venv/bin/activate
+**Istio mode:**
 
-# Development server with auto-reload
-uvicorn identity_auth_server.api.app:app --reload
-
-# Or using FastAPI's built-in development server
-fastapi dev src/identity_auth_server/api/app.py
+```bash
+kubectl label namespace my-mas istio-injection=enabled
 ```
 
-The first time you run the server, it will automatically apply database migrations.
+**Cilium mode:**
 
-### Accessing the API
-
-The server will be available at `http://localhost:8000` with interactive API documentation at `http://localhost:8000/docs`.
-
-### Option 2: ZTA Explorer UI
-
-For a graphical interface to manage applications and explore the ZTA system, you can run the ZTA Explorer UI:
-
-#### Prerequisites
-
-Ensure you have the UI environment configured:
-
-```shell
-cp zta-explorer-ui/.env.sample zta-explorer-ui/.env
+```bash
+kubectl label namespace my-mas zta.io/injection=enabled
 ```
 
-Update `zta-explorer-ui/.env` with your API server URL (default: `http://localhost:8000`).
+### 5. Verify
 
-#### Run with Docker Compose
+```bash
+# Check control plane health
+kubectl -n zta-control-plane get pods
 
-```shell
-make ui-run
+# Test token issuance
+kubectl -n zta-control-plane port-forward svc/zta-auth-service 8000:8000 &
+curl http://localhost:8000/health
 ```
 
-The UI will be available at `http://localhost:1234`.
+For a complete walkthrough including demo output, see the [Demo Walkthrough](docs/ui/docs/demo/walkthrough.md).
 
-To stop the UI:
+---
 
-```shell
-make ui-stop
-```
+## Repository Structure
 
-For more information about the UI, see the [ZTA Explorer UI README](zta-explorer-ui/README.md).
+| Path | Description |
+|---|---|
+| `deployments/k8s/helm/zta-control-plane/` | ZTA control plane Helm chart |
+| `deployments/k8s/crds/` | CRD examples and API reference |
+| `demo/k8s/helm/` | Demo MAS Helm chart (agent + MCP server) |
+| `demo/k8s/agent/` | Demo agent source code |
+| `demo/k8s/mcp/` | Demo MCP server source code |
+| `ext_authz_middleware/` | Istio ext-authz middleware (Go) |
+| `src/identity_auth_server/` | Auth service Python source |
+| `zta-explorer-ui/` | Admin UI source (React) |
+| `sdk/` | Python SDK for ZTA integration |
+| `docs/ui/` | Docusaurus documentation portal |
+| `contrib/wip/it1/` | Architecture specs and design documents |
 
-### Option 3: Run the Demo Setup
+---
 
-To run everything on docker, simply run:
+## Project Status
 
-```shell
-make demo-run
-```
+**Alpha / PoC** — ZTA is under active development. The current Helm chart (`v0.1.5`) deploys a monolithic auth service suitable for development and proof-of-concept use. The production architecture (microservices decomposition, HA, Redis caching, AI pipeline service) is defined in `contrib/wip/it1/SPECS.md` and is on the roadmap.
 
-and to stop
+The CRD API version is `v1alpha1` and field-level changes are possible before a stable release.
 
-```shell
-make demo-stop
-```
+---
 
-To test the setup run the `curl` command described in this [section](#test-the-demo-setup).
+## Contributing
 
-If you want to do things manually, the sections below will show you how.
+Contributions are welcome. Please read the [Contributing Guide](docs/ui/docs/contributing/contributing.md) before opening a pull request.
 
-#### Frontend Auth Explorer
+For local development setup, see [Developer Notes](docs/dev/Developer_notes.md).
 
-In a new terminal, navigate to `demo/demo-ui` and run:
+---
 
-```shell
-yarn install
-yarn run dev
-```
+## License
 
-The frontend will be available at `http://localhost:5173`.
+Apache 2.0. See [LICENSE](LICENSE).
 
-#### Deploy LiteLLM proxy
+---
 
-In a new terminal, navigate to `demo/workshop/llm` and run:
+## Security
 
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
-pip install uv
-uv pip install -r ../requirements.txt
-uv pip install ../../../
-```
-
-Copy the .env sample to .env and set the master and salt keys
-
-```shell
-cp .env.sample .env
-```
-
-Copy the .config.yaml sample to config.yaml and set the LLM configuration (the Base URL and the Api Key)
-
-```shell
-cp ../llm/config.yaml.sample ../llm/config.yaml
-```
-
-Run LiteLLM
-
-```shellcd llm
-litellm --config config.yaml
-```
-
-LiteLLM will be available at `http://localhost:4000`.
-
-#### Deploy MCP Server
-
-In a new terminal, navigate to `demo/workshop/mcp` and run:
-
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
-pip install uv
-uv pip install -r ../requirements.txt
-uv pip install ../../../
-```
-
-Run MCP server
-
-```shellcd mcp
-python main.py
-```
-
-The MCP server will be available at `http://localhost:3000`.
-
-#### Deploy Agent
-
-In a new terminal, navigate to `demo/workshop/app` and run:
-
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
-pip install uv
-uv pip install -r ../requirements.txt
-uv pip install ../../../
-uv pip install ./v2
-```
-
-Run the Agent
-
-```shell
-python main.py
-```
-
-The Agent will connect to both the LiteLLM proxy and the MCP server, and should be available at `http://localhost:8082`.
-
-#### Deploy Trusted Client (previously called Source)
-
-In a new terminal, navigate to `demo/workshop/source` and run:
-
-```shell
-python3 -m venv .venv
-source .venv/bin/activate
-pip install uv
-uv pip install -r ../requirements.txt
-uv pip install ../../../
-```
-
-Run the Trusted Client
-
-```shell
-python main.py
-```
-
-The Trusted Client will be available at `http://localhost:3999`.
-
-### Test the demo setup
-
-You can use curl to send a request to the Trusted Client, which will forward it to the Agent.
-
-```shell
-curl -X POST http://localhost:3999/process \
-  -H "Content-Type: application/json" \
-  -d '{"content": "Get the account summary and scheduled payments"}' | jq
-```
-
-If everything is set up correctly, you should see a JSON response with the Agent's response.
-The ZTA Auth explorer should also show the blocked and approved MCP tool calls in the UI running at `http://localhost:5173`.
-
-## Development
-
-### Available Commands
-
-- `make help` - Show all available commands
-- `make init` - Initialize development environment
-- `make update` - Update dependencies after changes to pyproject.toml
-- `make clean` - Clean up and recreate the virtual environment
-- `make test` - Run unit tests (excludes integration tests)
-- `make test-integration` - Run only integration tests
-- `make check` - Run code quality checks (linting, formatting)
-- `make build` - Build the package for distribution
-
-### Testing
-
-The test suite is organized into unit tests and integration tests:
-
-- **Unit tests** - Fast, isolated tests that don't require database or running services
-- **Integration tests** - End-to-end tests that require database and running FastAPI application
-
-By default, `pytest` and `make test` run only unit tests (integration tests are skipped). This is useful for:
-
-- Fast local development
-- CI/CD pipelines without database setup
-- Quick validation of changes
-
-To run different test suites:
-
-```shell
-# Run only unit tests (default)
-pytest
-# or
-make test
-
-# Run only integration tests
-make test-integration
-
-# Run all tests (unit + integration) by specifying the directory
-pytest test/integration/ && pytest
-```
-
-**Note:** Integration tests require:
-
-- PostgreSQL database running
-- Proper environment configuration (.env file)
-- Database migrations applied
-
-#### Docker Commands
-
-- `make docker-build` - Build the Docker image
-- `make docker-run` - Run the application using Docker Compose
-- `make docker-stop` - Stop Docker Compose services
-- `make ui-run` - Run the ZTA Explorer UI
-- `make ui-stop` - Stop the ZTA Explorer UI
-
-### Code Quality
-
-This project uses modern Python development tools:
-
-- **uv** - Ultra-fast Python package manager
-- **Ruff** - Lightning-fast linting and formatting
-- **mypy** - Static type checking
-- **pytest** - Testing framework
-- **pre-commit** - Git hooks for code quality
-
-Code quality checks run automatically on commit via pre-commit hooks.
+If you discover a security vulnerability, please do not open a public issue. Contact the maintainers directly via the repository security advisory process.
