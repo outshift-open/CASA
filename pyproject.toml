@@ -2,12 +2,16 @@
 name = "identity_auth_server"
 description = "identity-auth-server"
 authors = [
-  { name="Chiara Troiani", email="chtroian@cisco.com" },
-  { name="Majed El Helou", email="melhelou@cisco.com" },
-  { name="Ben Ryder", email="beryder@cisco.com" }
+    { name = "Ben Ryder", email = "beryder@cisco.com" },
+    { name = "Chiara Troiani", email = "chtroian@cisco.com" },
+    { name = "Corentin Passeron", email = "cpassero@cisco.com" },
+    { name = "Jean Diaconu", email = "jdiaconu@cisco.com" },
+    { name = "Majed El Helou", email = "melhelou@cisco.com" },
+    { name = "Mohamed Kedjourm", email = "mkedjour@cisco.com" },
+    { name = "Rafael Silva", email = "rafaelsi@cisco.com" },
 ]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 requires-python = ">=3.12,<3.14"
 classifiers = [
     "License :: Other/Proprietary License",
@@ -23,50 +27,50 @@ version = "0.0.11"
 #         Instead, use the template with multi-platform PyTorch support.
 # Notice: Install order of keycloak-client and python-keycloak matters.
 dependencies = [
-  "fastapi[standard]>=0.116.1",
-  "mcp>=1.13.1",
-  "numpy>=2.3.2",
-  "openai>=2.9.0",
-  "httpx>=0.27.2",
-  "identity-service-sdk>=0.0.2",
-  "PyJWT>=2.10.1",
-  "sqlalchemy>=2.0.43",
-  "python-keycloak>=5.8.1",
-  "requests>=2.32.5",
-  "python-multipart>=0.0.20",
-  "psycopg2-binary>=2.9.11",
-  "python-dotenv==1.2.1",
-  "sqlmodel>=0.0.27",
-  "identity-auth-sdk",
+    "fastapi[standard]>=0.116.1",
+    "mcp>=1.13.1",
+    "numpy>=2.3.2",
+    "openai>=2.9.0",
+    "httpx>=0.27.2",
+    "identity-service-sdk>=0.0.2",
+    "PyJWT>=2.10.1",
+    "sqlalchemy>=2.0.43",
+    "python-keycloak>=5.8.1",
+    "requests>=2.32.5",
+    "python-multipart>=0.0.20",
+    "psycopg2-binary>=2.9.11",
+    "python-dotenv==1.2.1",
+    "sqlmodel>=0.0.27",
+    "identity-auth-sdk",
 ]
 
 [project.optional-dependencies]
 # These dependencies are only installed in the dev environment. They will NOT be part of the
 # package requirements when the package is built.
 dev = [
-  "pre-commit~=v4.2.0",
-  "ruff~=0.12.7",
-  "mypy~=1.17.1",
-  "shellcheck-py~=0.10.0.1",
-  "jupyterlab>=4.3",
-  "ipywidgets>=8.1",
-  "pytest>=8.3",
-  "pytest-cov>=6.0",
-  "hatch>=1.14",
-  "build>=1.2",
-  "tqdm>=4.66.4",
-  "pandas>=2.3.2",
-  "plotly>=6.3.0",
-  "scikit-learn>=1.7.1",
-  "streamlit>=1.49.1",
-  "matplotlib>=3.10.5",
-  "seaborn>=0.13.2",
-  "datasets~=4.1.1",
-  "openai-agents~=0.6.1",
-  "langchain>=0.1.0",
-  "langchain-openai>=0.0.5",
-  "langchain-core>=0.1.0",
-  "langgraph>=0.0.20",
+    "pre-commit~=v4.2.0",
+    "ruff~=0.12.7",
+    "mypy~=1.17.1",
+    "shellcheck-py~=0.10.0.1",
+    "jupyterlab>=4.3",
+    "ipywidgets>=8.1",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hatch>=1.14",
+    "build>=1.2",
+    "tqdm>=4.66.4",
+    "pandas>=2.3.2",
+    "plotly>=6.3.0",
+    "scikit-learn>=1.7.1",
+    "streamlit>=1.49.1",
+    "matplotlib>=3.10.5",
+    "seaborn>=0.13.2",
+    "datasets~=4.1.1",
+    "openai-agents~=0.6.1",
+    "langchain>=0.1.0",
+    "langchain-openai>=0.0.5",
+    "langchain-core>=0.1.0",
+    "langgraph>=0.0.20",
 ]
 
 [project.urls]
@@ -83,28 +87,28 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.sdist]
 exclude = [
-  "/test",
-  "/.github",
-  "/.vscode",
-  ".gitignore",
-  ".editorconfig",
-  ".pre-commit-config.yaml",
-  "Makefile",
-  "Developer_notes.md"
+    "/test",
+    "/.github",
+    "/.vscode",
+    ".gitignore",
+    ".editorconfig",
+    ".pre-commit-config.yaml",
+    "Makefile",
+    "Developer_notes.md",
 ]
 
 [tool.pytest.ini_options]
 minversion = "8.3"
-testpaths = [ "test" ]
+testpaths = ["test"]
 markers = [
-  "integration: mark tests that exercise live service and database flows"
+    "integration: mark tests that exercise live service and database flows",
 ]
 addopts = "-m 'not integration' --ignore=test/integration"
 
 [tool.mypy]
 ignore_missing_imports = true
 scripts_are_modules = true
-exclude = [ 'wandb/' ]
+exclude = ['wandb/']
 
 [tool.ruff]
 line-length = 120
@@ -122,9 +126,7 @@ select = ["D", "I", "F", "N", "NPY", "RUF"]
 convention = "google"
 
 [tool.uv.workspace]
-members = [
-    "sdk",
-]
+members = ["sdk"]
 
 [tool.uv.sources]
 identity-auth-sdk = { workspace = true }
