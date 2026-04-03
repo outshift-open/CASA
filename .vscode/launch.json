@@ -21,6 +21,17 @@
             "request": "launch",
             "envFile": "${workspaceFolder}/.env",
             "program": "${workspaceFolder}/demo/workshop/app/main.py"
+        },
+        {
+            "name": "Go Debugger: sidecar ext_auth",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/sidecar/ext_auth",
+            "env": {
+                "GRPC_GO_LOG_SEVERITY_LEVEL": "info",
+                "GRPC_GO_LOG_VERBOSITY_LEVEL": "99"
+            }
         }
     ]
 }
