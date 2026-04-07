@@ -79,10 +79,10 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
         """Fetch a multi agent system by k8s_name and namespace from the database."""
         try:
             # Search by k8s_name first (for CRD-created MAS), fallback to name
-            statement = select(MultiAgentSystem).where(
-                MultiAgentSystem.namespace == namespace
-            ).where(
-                (MultiAgentSystem.k8s_name == name) | (MultiAgentSystem.name == name)
+            statement = (
+                select(MultiAgentSystem)
+                .where(MultiAgentSystem.namespace == namespace)
+                .where((MultiAgentSystem.k8s_name == name) | (MultiAgentSystem.name == name))
             )
             mas = self._session.exec(statement).first()
             if not mas:

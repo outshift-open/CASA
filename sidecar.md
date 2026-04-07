@@ -25,31 +25,23 @@ $ helm install zta-mas -f values.yaml . --namespace YOUR_NAMESPACE_HERE
 
 ## 3. Deploy Our Custom Ext-Auth Filter
 
-Before deploying, go to `ext_authz_middleware/helm/ext-authz-middleware/crds/extauth_filter.yaml` and fix `ext-authz-middleware.zta-sidecar.svc.cluster.local` at the end of the file with what the comment says.
-
-After that, you can deploy the middleware:
+The namespace is now templated automatically — no manual edits needed before deploying.
 
 ```sh
 $ cd ext_authz_middleware/helm/ext-authz-middleware/
 $ helm install ext-authz-middleware -f values.yaml . --namespace YOUR_NAMESPACE_HERE
 ```
 
-## 4. Deploy Otel Collector & Jaeger
+## 4. Observability stack (OTel Collector + Jaeger + OBI)
 
-```sh
-$ cd ext_authz_middleware/helm/otel-collector
-$ helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
-$ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-$ helm install jaeger jaegertracing/jaeger -f jaeger.yaml --namespace YOUR_NAMESPACE_HERE
-$ helm install otel-collector open-telemetry/opentelemetry-collector -f otel.yaml --namespace YOUR_NAMESPACE_HERE --set image.repository="otel/opentelemetry-collector-k8s"
-```
+All three are bundled as subcharts of `ext-authz-middleware` and deployed automatically in step 3. No separate install needed.
 
-## 5. Use OBI instead of Grafana Beyla (IGNORE THIS STEP, THE CONFIG IS STILL NOT FINISHED)
+To disable any of them, set the relevant flag in `ext_authz_middleware/helm/ext-authz-middleware/values.yaml`:
+- `otelcollector.enabled: false`
+- `jaeger.jaeger.enabled: false`
+- `obi.enabled: false`
 
-```sh
-$ cd ext_authz_middleware/helm/obi
-$ helm install obi open-telemetry/opentelemetry-ebpf-instrumentation -f values.yaml --namespace YOUR_NAMESPACE_HERE
-```
+Jaeger UI is available at `https://zta-jaeger.dev.outshift.ai` (requires DNS entry pointing to the nginx ingress ELB).
 
 ## A way to test this
 
