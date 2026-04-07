@@ -51,13 +51,13 @@ func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRe
 			return nil, err
 		}
 
-		pods, err := clientset.CoreV1().Pods("zta-sidecar").List(context.Background(), metav1.ListOptions{})
+		_, err = clientset.CoreV1().Pods("zta-sidecar").List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			slog.Error("Error getting PODs", "err", err)
 			return nil, err
 		}
 
-		slog.Info("Fetched PODs", "pods", pods)
+		// slog.Info("Fetched PODs", "pods", pods)
 
 		dynClient, err := dynamic.NewForConfig(config)
 		if err != nil {
@@ -77,8 +77,8 @@ func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRe
 			return nil, err
 		}
 
-		for item := range obj.Items {
-			slog.Info("MAS CRD", "crd", item)
+		for _, item := range obj.Items {
+			slog.Info("MAS CRD", "name", item.GetName(), "crd", item)
 		}
 
 		// what do i need?
