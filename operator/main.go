@@ -276,7 +276,7 @@ func main() {
 		Client:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
 		AuthServiceURL: authServiceURL,
-		HTTPClient:     &http.Client{Timeout: 30 * time.Second},
+		HTTPClient:     &http.Client{Timeout: 120 * time.Second},
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller")
 		os.Exit(1)
