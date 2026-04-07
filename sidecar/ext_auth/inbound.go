@@ -8,6 +8,11 @@ import (
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -25,34 +30,62 @@ func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRe
 	if tpv, ok := headers[traceParentHeader]; ok {
 		tp, err := ParseTraceParent(tpv)
 		if err != nil {
-			// TODO: log err
+			slog.Error("Error create K8S InCluster config", "err", err)
+			return nil, err
 		}
 
 		traceID := hex.EncodeToString(tp.TraceID[:])
+		slog.Info("", "traceID", traceID)
+
+		// host := httpReq.Host
+
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			slog.Error("Error create K8S InCluster config", "err", err)
+			return nil, err
+		}
+
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			slog.Error("Error create K8S client", "err", err)
+			return nil, err
+		}
+
+		pods, err := clientset.CoreV1().Pods("zta-sidecar").List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			slog.Error("Error getting PODs", "err", err)
+			return nil, err
+		}
+
+		slog.Info("Fetched PODs", "pods", pods)
+
+		dynClient, err := dynamic.NewForConfig(config)
+		if err != nil {
+			slog.Error("Error create K8S dynamic client", "err", err)
+			return nil, err
+		}
+
+		gvr := schema.GroupVersionResource{
+			Group:    "zta.io",
+			Version:  "v1",
+			Resource: "multiagentsystems",
+		}
+
+		obj, err := dynClient.Resource(gvr).Namespace("zta-sidecar").List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			slog.Error("Error listing MAS CRDs", "err", err)
+			return nil, err
+		}
+
+		for item := range obj.Items {
+			slog.Info("MAS CRD", "crd", item)
+		}
+
 		// what do i need?
 		// - traceID
 		// - in service
 		// - out service
 		// - if client service then input schema to parse the prompt
-
-		md := attrs.GetMetadataContext()
-		rmd := attrs.GetRouteMetadataContext()
-		src := attrs.GetSource()
-		dst := attrs.GetDestination()
-		slog.Info(
-			"[IN]",
-			"method", httpReq.Method,
-			"host", httpReq.Host,
-			"path", httpReq.Path,
-			"metadata", md.String(),
-			"route_metadata", rmd.String(),
-			"src_service", src.Service,
-			"src_labels", src.Labels,
-			"dst_service", dst.Service,
-			"dst_labels", dst.Labels,
-			"trace_id", traceID,
-			"headers", headers,
-		)
 	}
 
 	return &authv3.CheckResponse{

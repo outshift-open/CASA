@@ -40,34 +40,6 @@ impl HttpContext for HttpHeaders {
             }
         }
 
-        // Get workload info
-        if let Some(bytes1) = self.get_property(vec![
-            "filter_state",
-            "istio.peer_metadata"
-        ]) {
-            log::warn!("peer metadata raw: {:?}", bytes1);
-        } else {
-            log::warn!("no peer metadata found");
-        }
-
-        if let Some(bytes2) = self.get_property(vec![
-            "filter_state",
-            "downstream_peer"
-        ]) {
-            log::warn!("downstream_peer raw: {:?}", bytes2);
-        } else {
-            log::warn!("no downstream_peer found");
-        }
-
-        if let Some(bytes3) = self.get_property(vec![
-            "filter_state",
-            "upstream_peer"
-        ]) {
-            log::warn!("upstream_peer raw: {:?}", bytes3);
-        } else {
-            log::warn!("no upstream_peer found");
-        }
-
         Action::Continue
     }
 
