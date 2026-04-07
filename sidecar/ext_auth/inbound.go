@@ -22,8 +22,6 @@ func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRe
 	httpReq := attrs.GetRequest().GetHttp()
 	headers := httpReq.GetHeaders()
 
-	slog.Info("Received a new HTTP INBOUND request")
-
 	if tpv, ok := headers[traceParentHeader]; ok {
 		tp, err := ParseTraceParent(tpv)
 		if err != nil {

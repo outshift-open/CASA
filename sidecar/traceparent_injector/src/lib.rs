@@ -40,6 +40,16 @@ impl HttpContext for HttpHeaders {
             }
         }
 
+        // Get workload info
+        if let Some(bytes) = self.get_property(vec![
+            "filter_state",
+            "istio.peer_metadata"
+        ]) {
+            log::warn!("peer metadata raw: {:?}", bytes);
+        } else {
+            log::warn!("no peer metadata found");
+        }
+
         Action::Continue
     }
 
