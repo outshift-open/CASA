@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - "main"
-      - "PYRA-627-zta-kubernetes-operator-crds-for-mas"
   workflow_dispatch:
   workflow_call:
 
