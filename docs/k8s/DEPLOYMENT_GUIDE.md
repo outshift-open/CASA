@@ -14,7 +14,7 @@ This guide walks through deploying a Multi-Agent System (MAS) from scratch, assu
 
 ### What You Need to Deploy
 - [ ] Enable Istio sidecar injection for your MAS namespace
-- [ ] Deploy ext-authz middleware in your MAS namespace (see [sidecar.md](../../sidecar.md) for setup)
+- [ ] Deploy ext-authz middleware in your MAS namespace (see [sidecar.md](../dev/sidecar.md) for setup)
 - [ ] Your agent application(s)
 - [ ] Your MCP server(s) (optional)
 - [ ] MultiAgentSystem CRD
@@ -165,7 +165,7 @@ spec:
 
 **Prerequisites for this step:**
 - ✅ Namespace created with Istio injection enabled
-- ✅ Ext-authz middleware deployed in your namespace (see [sidecar.md](../../sidecar.md))
+- ✅ Ext-authz middleware deployed in your namespace (see [sidecar.md](../dev/sidecar.md))
 
 ```bash
 # Create secrets (LLM keys, database credentials, etc.)

@@ -289,3 +289,5 @@ demo/workshop/llm/config.yaml
 
 # Helm downloaded dependencies
 **/charts/*.tgz
+
+**/out

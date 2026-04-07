@@ -1,0 +1,100 @@
+---
+id: sidecar
+sidebar_position: 3
+title: ZTA Sidecar
+---
+
+# ZTA Sidecar
+
+The ZTA sidecar is an Envoy-based proxy that is automatically injected into every pod in a ZTA-managed namespace. It is the primary enforcement point for token validation and protocol restriction at L7.
+
+## Injection
+
+Sidecars are injected either by:
+
+- **Istio mode**: namespace label `istio-injection=enabled` triggers Istio's built-in sidecar injector. The `ext_authz_middleware` service (deployed separately) acts as the ext-authz filter backend.
+- **Cilium mode**: namespace label `zta.io/injection=enabled` triggers a ZTA mutating webhook that injects the custom Envoy-based sidecar.
+
+An init container runs first to configure iptables rules that redirect all inbound and outbound TCP traffic through the sidecar ports.
+
+## Traffic Interception
+
+```mermaid
+flowchart TB
+    subgraph Pod
+        IN["Port 15001 (inbound proxy)"]
+        EXT["ext_authz filter\n(token introspection)"]
+        APP["Application (:8000)"]
+        OUT["Port 15002 (outbound proxy)"]
+        LUA["Lua filter\n(token injection)"]
+        IN --> EXT --> APP
+        OUT --> LUA
+    end
+
+    Inbound["Inbound traffic"] -->|intercepted| IN
+    Outbound["Outbound traffic"] -->|intercepted| OUT
+```
+
+**Inbound path (port 15001):**
+1. All incoming requests are intercepted
+2. The `ext_authz` filter calls the control plane to introspect the token in the `Authorization` header
+3. If the token is valid and scoped correctly: forward to the application
+4. If invalid or absent: return 403, fail closed
+
+**Outbound path (port 15002):**
+1. All outgoing requests are intercepted
+2. The Lua filter checks if a valid cached token exists
+3. If not, it requests a token exchange from the control plane
+4. Injects the token as `Authorization: Bearer <token>`
+5. Enforces protocol restrictions (only MCP/A2A paths are allowed)
+
+## Token Caching
+
+Introspection results are cached locally for 30 seconds. This means:
+- Reduced load on the control plane during normal operation
+- If the control plane becomes unreachable, cached results continue to work for up to 30 seconds
+- After cache expiry, the sidecar **fails closed** — all requests are denied until the control plane recovers
+
+## Protocol Enforcement
+
+The sidecar enforces that agents only use allowed protocols:
+
+| App type | Allowed outbound protocols |
+|---|---|
+| `agent` | MCP, A2A |
+| `mcp_server` | (inbound MCP only) |
+| `client` | MCP, A2A |
+
+Requests to paths that do not match allowed protocol patterns are rejected with a 403 before the control plane is consulted.
+
+## Sidecar Configuration
+
+The sidecar is configured via environment variables and a mounted ConfigMap:
+
+```yaml
+config.yaml: |
+  app_id: "my-agent-abc123"
+  control_plane_url: "https://zta-auth-service.zta-control-plane.svc.cluster.local:8443"
+  allowed_protocols:
+    - mcp
+    - a2a
+  token_cache_ttl: 30s
+  fail_mode: closed
+  log_level: info
+```
+
+Pod labels used by the injector:
+- `zta.io/app-type: agent` / `mcp_server` / `client` — determines allowed protocols
+- `zta.io/app-id: <id>` — identifies the application in the control plane
+
+## Istio ext-authz Middleware
+
+In Istio mode, the external authorization check is handled by the `ext_authz_middleware` service (`ext_authz_middleware/` in the repo). This is a Go gRPC service that:
+
+1. Receives authorization check requests from Envoy's ext_authz filter
+2. Extracts the trace ID from the `traceparent` header (W3C trace context)
+3. On the first request in a trace: generates a new user input token by calling the auth service
+4. On subsequent requests: performs token-based access control (TBAC) verification
+5. Returns ALLOW or DENY to Envoy
+
+The middleware also integrates with OpenTelemetry for distributed tracing (Jaeger).
