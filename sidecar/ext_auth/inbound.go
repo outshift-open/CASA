@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log/slog"
+	"net/url"
+	"strings"
 
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -96,10 +99,22 @@ func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRe
 		masDef := resource.Items[0]
 
 		apps, _, _ := unstructured.NestedSlice(masDef.Object, "spec", "apps")
-		for _, app := range apps {
-			m, ok := app.(map[string]any)
+		for _, payload := range apps {
+			appMap, ok := payload.(map[string]any)
 			if ok {
-				slog.Info("Got app", "baseUrl", m["baseUrl"], "name", m["name"], "type", m["type"])
+				app, err := NewAppFromMap(appMap)
+				if err != nil {
+					return nil, fmt.Errorf("unable to create App: %w", err)
+				}
+
+				baseURL, err := url.Parse(app.BaseURL)
+				if err != nil {
+					return nil, fmt.Errorf("unable to parse App base URL: %w", err)
+				}
+
+				if strings.EqualFold(host, baseURL.Host) {
+					slog.Info("Found App config", "app", appMap)
+				}
 			}
 		}
 	}
