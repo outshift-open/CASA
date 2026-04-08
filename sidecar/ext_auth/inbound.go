@@ -88,6 +88,7 @@ func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRe
 		}
 
 		if len(resource.Items) == 0 {
+			slog.Error("no MultiAgentSystem resource found")
 			return nil, errors.New("no MultiAgentSystem resource found")
 		}
 
