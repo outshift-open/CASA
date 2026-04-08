@@ -153,7 +153,15 @@ export function ScopesTable({data, total, isLoading, onRefresh}: ScopesTableProp
                             ))}
                         </div>
                     ) : (
-                        <div className="py-12 text-center text-sm text-muted-foreground">No scopes found</div>
+                        <div className="flex flex-col items-center justify-center py-12 gap-3">
+                            <Tags className="h-10 w-10 text-muted-foreground opacity-40" />
+                            <div className="text-center">
+                                <p className="text-sm font-medium">No scopes found</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Create scopes to control MAS authorization
+                                </p>
+                            </div>
+                        </div>
                     )
                 ) : (
                     <ScopesDataTable

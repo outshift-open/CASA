@@ -1,7 +1,11 @@
+import {useState} from 'react';
 import {useMASScopes} from '@/hooks/use-scopes';
 import {Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
-import {Tags} from 'lucide-react';
+import {Input} from '@/components/ui/input';
+import {Skeleton} from '@/components/ui/skeleton';
+import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
+import {Tags, Search, List, LayoutGrid} from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
 import type {MAS} from '@/types/mas.types';
 
@@ -12,6 +16,18 @@ interface MASScopesTabProps {
 export function MASScopesTab({mas}: MASScopesTabProps) {
     const navigate = useNavigate();
     const {data: scopes, isLoading: scopesLoading, error: scopesError} = useMASScopes(mas.id);
+    const [search, setSearch] = useState('');
+    const [view, setView] = useState<'table' | 'grid'>('table');
+
+    const filteredScopes = search
+        ? (scopes ?? []).filter(
+              (s) =>
+                  s.name.toLowerCase().includes(search.toLowerCase()) ||
+                  s.id.toLowerCase().includes(search.toLowerCase())
+          )
+        : (scopes ?? []);
+
+    const hasData = scopes && scopes.length > 0;
 
     return (
         <div className="space-y-4">
@@ -24,49 +40,98 @@ export function MASScopesTab({mas}: MASScopesTabProps) {
                 </div>
             </div>
 
+            {hasData && (
+                <div className="flex items-center justify-between gap-2">
+                    <div className="relative w-1/2">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search scopes..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-9"
+                        />
+                    </div>
+                    <ToggleGroup
+                        type="single"
+                        value={view}
+                        onValueChange={(v) => v && setView(v as 'table' | 'grid')}
+                        variant="outline"
+                    >
+                        <ToggleGroupItem value="table" aria-label="Table view">
+                            <List className="h-4 w-4" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="grid" aria-label="Grid view">
+                            <LayoutGrid className="h-4 w-4" />
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+                </div>
+            )}
+
             {scopesLoading ? (
-                <Card>
-                    <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground text-center py-8">Loading scopes...</p>
-                    </CardContent>
-                </Card>
+                <div className="space-y-3">
+                    {Array.from({length: 3}).map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                </div>
             ) : scopesError ? (
                 <Card>
                     <CardContent className="pt-6">
                         <p className="text-sm text-destructive text-center py-8">Error loading scopes</p>
                     </CardContent>
                 </Card>
-            ) : scopes && scopes.length > 0 ? (
-                <Card className="py-0">
-                    <CardContent className="p-0">
-                        <div className="divide-y">
-                            {scopes.map((scope) => (
-                                <div
-                                    key={scope.id}
-                                    className="flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                            <Tags className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold">{scope.name}</p>
-                                            <p className="text-xs text-muted-foreground font-mono">{scope.id}</p>
-                                        </div>
+            ) : hasData ? (
+                view === 'grid' ? (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {filteredScopes.map((scope) => (
+                            <Card
+                                key={scope.id}
+                                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                                onClick={() => navigate(`/scopes/${scope.id}`)}
+                            >
+                                <div className="flex items-center gap-3 p-3">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                                        <Tags className="h-4 w-4 text-primary" />
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => navigate(`/scopes/${scope.id}`)}
-                                        className="cursor-pointer"
-                                    >
-                                        View
-                                    </Button>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-semibold truncate">{scope.name}</p>
+                                        <p className="text-xs text-muted-foreground font-mono truncate">{scope.id}</p>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                            </Card>
+                        ))}
+                    </div>
+                ) : (
+                    <Card className="py-0">
+                        <CardContent className="p-0">
+                            <div className="divide-y">
+                                {filteredScopes.map((scope) => (
+                                    <div
+                                        key={scope.id}
+                                        className="flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                                <Tags className="h-5 w-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold">{scope.name}</p>
+                                                <p className="text-xs text-muted-foreground font-mono">{scope.id}</p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => navigate(`/scopes/${scope.id}`)}
+                                            className="cursor-pointer"
+                                        >
+                                            View
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )
             ) : (
                 <Card>
                     <CardContent className="pt-6">

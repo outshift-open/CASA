@@ -2,6 +2,7 @@ import {useMASApps} from '@/hooks/use-mas';
 import {MASAppsTable, MASGraphView} from '@/components/mas';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Card, CardContent} from '@/components/ui/card';
+import {Skeleton} from '@/components/ui/skeleton';
 import {Table, Network, AppWindow} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
 
@@ -22,11 +23,11 @@ export function MASAppsTab({mas}: MASAppsTabProps) {
             </div>
 
             {appsLoading ? (
-                <Card>
-                    <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground text-center py-8">Loading applications...</p>
-                    </CardContent>
-                </Card>
+                <div className="space-y-3">
+                    {Array.from({length: 3}).map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                </div>
             ) : appsError ? (
                 <Card>
                     <CardContent className="pt-6">

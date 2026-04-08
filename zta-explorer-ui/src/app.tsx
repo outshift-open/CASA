@@ -12,6 +12,7 @@ import {ScopeDetailPage} from '@/pages/scopes/scope-detail-page';
 import {SettingsPage} from '@/pages/settings-page';
 import {NotFoundPage} from '@/pages/not-found-page';
 import {Toaster} from '@/components/ui/sonner';
+import {KeyboardShortcutsDialog} from '@/components/keyboard-shortcuts-dialog';
 
 function App() {
     return (
@@ -44,6 +45,7 @@ function App() {
                 </SidebarInset>
             </SidebarProvider>
             <Toaster />
+            <KeyboardShortcutsDialog />
         </BrowserRouter>
     );
 }

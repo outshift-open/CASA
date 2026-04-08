@@ -2,10 +2,11 @@ import {useParams, useNavigate} from 'react-router-dom';
 import {useAppById} from '@/hooks/use-apps';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {Network, Copy, Download, Wrench, ExternalLink, Info} from 'lucide-react';
+import {Network, Copy, Download, Wrench, ExternalLink, Info, Search} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 import type {AppType, Tool} from '@/types/app.types';
@@ -35,6 +36,7 @@ export function AppDetailPage() {
     const {data: app, isLoading, error, refetch} = useAppById(id || '');
     const [activeTab, setActiveTab] = useState('info');
     const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+    const [toolSearch, setToolSearch] = useState('');
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -228,64 +230,89 @@ export function AppDetailPage() {
                                     )}
 
                                     {activeTab === 'tools' && app.type === 'mcp_server' && (
-                                        <div>
+                                        <div className="space-y-3">
                                             {!hasTools ? (
-                                                <div className="text-center py-8">
-                                                    <p className="text-sm text-muted-foreground">
+                                                <div className="flex flex-col items-center justify-center py-8 gap-3">
+                                                    <Wrench className="h-10 w-10 text-muted-foreground opacity-40" />
+                                                    <p className="text-sm font-medium text-muted-foreground">
                                                         No tools defined for this MCP server
                                                     </p>
                                                 </div>
                                             ) : (
-                                                <div className="space-y-3">
-                                                    {app.tools!.map((tool) => (
-                                                        <div
-                                                            key={tool.id}
-                                                            className="group p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-                                                            onClick={() => setSelectedTool(tool)}
-                                                        >
-                                                            <div className="flex items-start gap-4">
-                                                                <div className="flex items-start gap-3 flex-1 min-w-0">
-                                                                    <div className="mt-0.5 p-2 rounded-md bg-primary/10 flex-shrink-0">
-                                                                        <Wrench className="h-4 w-4 text-primary" />
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="font-semibold text-foreground">
-                                                                            {tool.name}
-                                                                        </p>
-                                                                        <p className="text-sm text-muted-foreground mt-1">
-                                                                            {tool.description}
-                                                                        </p>
-                                                                        <p className="text-xs text-muted-foreground mt-2">
-                                                                            Click to view schemas
-                                                                        </p>
+                                                <>
+                                                    <div className="relative w-1/2">
+                                                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                                        <Input
+                                                            placeholder="Search tools..."
+                                                            value={toolSearch}
+                                                            onChange={(e) => setToolSearch(e.target.value)}
+                                                            className="pl-9"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {app
+                                                            .tools!.filter(
+                                                                (t) =>
+                                                                    !toolSearch ||
+                                                                    t.name
+                                                                        .toLowerCase()
+                                                                        .includes(toolSearch.toLowerCase()) ||
+                                                                    (t.description ?? '')
+                                                                        .toLowerCase()
+                                                                        .includes(toolSearch.toLowerCase())
+                                                            )
+                                                            .map((tool) => (
+                                                                <div
+                                                                    key={tool.id}
+                                                                    className="group p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                                                                    onClick={() => setSelectedTool(tool)}
+                                                                >
+                                                                    <div className="flex items-start gap-4">
+                                                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                                                            <div className="mt-0.5 p-2 rounded-md bg-primary/10 flex-shrink-0">
+                                                                                <Wrench className="h-4 w-4 text-primary" />
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="font-semibold text-foreground">
+                                                                                    {tool.name}
+                                                                                </p>
+                                                                                <p className="text-sm text-muted-foreground mt-1">
+                                                                                    {tool.description}
+                                                                                </p>
+                                                                                <p className="text-xs text-muted-foreground mt-2">
+                                                                                    Click to view schemas
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                        {tool.scopes && tool.scopes.length > 0 && (
+                                                                            <div className="flex-shrink-0 space-y-2">
+                                                                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">
+                                                                                    Required Scopes
+                                                                                </p>
+                                                                                <div className="flex flex-wrap gap-2 justify-end">
+                                                                                    {tool.scopes.map((scope) => (
+                                                                                        <button
+                                                                                            key={scope.id}
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                navigate(
+                                                                                                    `/scopes/${scope.id}`
+                                                                                                );
+                                                                                            }}
+                                                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-medium cursor-pointer transition-all hover:scale-105"
+                                                                                        >
+                                                                                            <span>{scope.name}</span>
+                                                                                            <ExternalLink className="h-3 w-3 opacity-70" />
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                                {tool.scopes && tool.scopes.length > 0 && (
-                                                                    <div className="flex-shrink-0 space-y-2">
-                                                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider text-right">
-                                                                            Required Scopes
-                                                                        </p>
-                                                                        <div className="flex flex-wrap gap-2 justify-end">
-                                                                            {tool.scopes.map((scope) => (
-                                                                                <button
-                                                                                    key={scope.id}
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        navigate(`/scopes/${scope.id}`);
-                                                                                    }}
-                                                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-medium cursor-pointer transition-all hover:scale-105"
-                                                                                >
-                                                                                    <span>{scope.name}</span>
-                                                                                    <ExternalLink className="h-3 w-3 opacity-70" />
-                                                                                </button>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                                            ))}
+                                                    </div>
+                                                </>
                                             )}
                                         </div>
                                     )}

@@ -1,5 +1,6 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Shield, Lock, Loader2, AppWindow, Network, Tags, RefreshCw} from 'lucide-react';
+import {Skeleton} from '@/components/ui/skeleton';
+import {Shield, Lock, AppWindow, Network, Tags, RefreshCw} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
 import {useScopes} from '@/hooks/use-scopes';
@@ -52,7 +53,7 @@ export function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             {masLoading ? (
-                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                <Skeleton className="h-8 w-16" />
                             ) : masError ? (
                                 <div className="text-sm text-destructive">Error</div>
                             ) : (
@@ -71,7 +72,7 @@ export function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             {isLoading ? (
-                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                <Skeleton className="h-8 w-16" />
                             ) : error ? (
                                 <div className="text-sm text-destructive">Error</div>
                             ) : (
@@ -90,7 +91,7 @@ export function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             {scopesLoading ? (
-                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                <Skeleton className="h-8 w-16" />
                             ) : scopesError ? (
                                 <div className="text-sm text-destructive">Error</div>
                             ) : (

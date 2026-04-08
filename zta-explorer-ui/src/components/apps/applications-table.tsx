@@ -166,7 +166,15 @@ export function ApplicationsTable({data, total, isLoading, onRefresh}: Applicati
                             })}
                         </div>
                     ) : (
-                        <div className="py-12 text-center text-sm text-muted-foreground">No applications found</div>
+                        <div className="flex flex-col items-center justify-center py-12 gap-3">
+                            <AppWindow className="h-10 w-10 text-muted-foreground opacity-40" />
+                            <div className="text-center">
+                                <p className="text-sm font-medium">No applications found</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Add agents, clients or MCP servers to a MAS
+                                </p>
+                            </div>
+                        </div>
                     )
                 ) : (
                     <ApplicationsDataTable

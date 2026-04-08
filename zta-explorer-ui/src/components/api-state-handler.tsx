@@ -1,7 +1,8 @@
 import {ReactNode} from 'react';
-import {AlertCircle, Loader2, RefreshCw} from 'lucide-react';
+import {AlertCircle, RefreshCw} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
+import {Skeleton} from '@/components/ui/skeleton';
 
 interface ApiStateHandlerProps {
     isLoading?: boolean;
@@ -21,24 +22,17 @@ export function ApiStateHandler({
     isError = false,
     error = null,
     isEmpty = false,
-    loadingMessage = 'Loading...',
     errorMessage,
     emptyMessage = 'No data available',
     onRetry,
-    children,
-    fullHeight = true
+    children
 }: ApiStateHandlerProps) {
-    const loadingClass = fullHeight
-        ? 'flex items-center justify-center min-h-[400px]'
-        : 'flex items-center justify-center py-8';
-
     if (isLoading) {
         return (
-            <div className={loadingClass}>
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">{loadingMessage}</p>
-                </div>
+            <div className="space-y-3 p-4">
+                {Array.from({length: 5}).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                ))}
             </div>
         );
     }

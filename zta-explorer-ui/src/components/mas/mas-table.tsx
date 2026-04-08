@@ -177,8 +177,12 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
                             })}
                         </div>
                     ) : (
-                        <div className="py-12 text-center text-sm text-muted-foreground">
-                            No Multi-Agent Systems found
+                        <div className="flex flex-col items-center justify-center py-12 gap-3">
+                            <Network className="h-10 w-10 text-muted-foreground opacity-40" />
+                            <div className="text-center">
+                                <p className="text-sm font-medium">No Multi-Agent Systems</p>
+                                <p className="text-xs text-muted-foreground mt-1">Register a MAS to get started</p>
+                            </div>
                         </div>
                     )
                 ) : (
