@@ -6,18 +6,21 @@ interface MASDataTableProps<TData, TValue> {
     data: TData[];
     searchPlaceholder?: string;
     hideSearch?: boolean;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
 }
 
 export function MASDataTable<TData, TValue>({
     columns,
     data,
     searchPlaceholder = 'Search...',
-    hideSearch = false
+    hideSearch = false,
+    searchValue,
+    onSearchChange
 }: MASDataTableProps<TData, TValue>) {
     const emptyState = (
         <div className="flex flex-col items-center justify-center text-muted-foreground">
             <p>No Multi-Agent Systems yet.</p>
-            <p className="text-sm">Create your first MAS to get started.</p>
         </div>
     );
 
@@ -28,6 +31,8 @@ export function MASDataTable<TData, TValue>({
             searchPlaceholder={searchPlaceholder}
             hideSearch={hideSearch}
             emptyState={emptyState}
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
         />
     );
 }

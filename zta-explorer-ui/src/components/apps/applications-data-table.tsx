@@ -9,6 +9,8 @@ interface ApplicationsDataTableProps<TData, TValue> {
     hideSearch?: boolean;
     typeFilter?: string;
     onTypeFilterChange?: (value: string) => void;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
 }
 
 export function ApplicationsDataTable<TData, TValue>({
@@ -17,7 +19,9 @@ export function ApplicationsDataTable<TData, TValue>({
     searchPlaceholder = 'Search...',
     hideSearch = false,
     typeFilter = 'all',
-    onTypeFilterChange
+    onTypeFilterChange,
+    searchValue,
+    onSearchChange
 }: ApplicationsDataTableProps<TData, TValue>) {
     const emptyState = (
         <div className="flex flex-col items-center justify-center gap-2">
@@ -48,6 +52,8 @@ export function ApplicationsDataTable<TData, TValue>({
             hideSearch={hideSearch}
             emptyState={emptyState}
             filterSlot={filterSlot}
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
         />
     );
 }

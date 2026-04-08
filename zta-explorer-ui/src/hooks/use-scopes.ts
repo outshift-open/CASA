@@ -1,6 +1,5 @@
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import {scopeService} from '@/services/scope.service';
-import type {ScopeCreateRequest, ScopeUpdateRequest} from '@/types/scope.types';
 
 export function useScopes() {
     return useQuery({
@@ -22,45 +21,5 @@ export function useScopeById(id: string) {
         queryKey: ['scopes', id],
         queryFn: () => scopeService.getScopeById(id),
         enabled: !!id
-    });
-}
-
-export function useCreateScope() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (request: ScopeCreateRequest) => scopeService.createScope(request),
-        onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({queryKey: ['scopes']});
-            queryClient.invalidateQueries({queryKey: ['scopes', 'mas', variables.mas_id]});
-        }
-    });
-}
-
-export function useUpdateScope() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({id, request}: {id: string; request: ScopeUpdateRequest}) => scopeService.updateScope(id, request),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({queryKey: ['scopes']});
-            queryClient.invalidateQueries({queryKey: ['scopes', data.id]});
-            queryClient.invalidateQueries({queryKey: ['scopes', 'mas', data.mas_id]});
-        }
-    });
-}
-
-export function useDeleteScope() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (id: string) => scopeService.deleteScope(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['scopes']});
-            // Invalidate all MAS-specific scope caches since we don't know which MAS this scope belonged to
-            queryClient.invalidateQueries({
-                predicate: (query) => query.queryKey[0] === 'scopes' && query.queryKey[1] === 'mas'
-            });
-        }
     });
 }

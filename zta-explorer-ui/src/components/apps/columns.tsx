@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye, Network} from 'lucide-react';
+import {MoreHorizontal, ArrowUpDown, Eye, Network} from 'lucide-react';
 import type {App, AppType} from '@/types/app.types';
 
 const APP_TYPE_LABELS: Record<AppType, string> = {
@@ -25,7 +25,7 @@ const APP_TYPE_VARIANTS: Record<AppType, 'default' | 'secondary' | 'destructive'
     mcp_server: 'outline'
 };
 
-export const createColumns = (onDelete: (id: string) => void, navigate: (path: string) => void): ColumnDef<App>[] => [
+export const createColumns = (navigate: (path: string) => void): ColumnDef<App>[] => [
     {
         accessorKey: 'name',
         header: ({column}) => {
@@ -177,20 +177,6 @@ export const createColumns = (onDelete: (id: string) => void, navigate: (path: s
                             <DropdownMenuItem onClick={() => navigate(`/apps/${app.id}`)} className="cursor-pointer">
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/apps/${app.id}/edit`)}
-                                className="cursor-pointer"
-                            >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="text-destructive cursor-pointer"
-                                onClick={() => app.id && onDelete(app.id)}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

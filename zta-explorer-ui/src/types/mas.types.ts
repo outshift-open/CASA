@@ -11,15 +11,3 @@ export interface MASListResponse {
     items: MAS[];
     total: number;
 }
-
-export interface CreateMASRequest {
-    name: string;
-}
-
-export interface UpdateMASRequest {
-    name: string;
-}
-
-export interface BindAppsRequest {
-    app_ids: string[];
-}

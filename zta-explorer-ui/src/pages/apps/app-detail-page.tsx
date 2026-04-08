@@ -1,12 +1,11 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useAppById, useDeleteApp} from '@/hooks/use-apps';
+import {useAppById} from '@/hooks/use-apps';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {ApplicationDeleteDialog} from '@/components/apps';
-import {Pencil, Trash2, Network, Copy, Download, Wrench, ExternalLink, Info} from 'lucide-react';
+import {Network, Copy, Download, Wrench, ExternalLink, Info} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 import type {AppType, Tool} from '@/types/app.types';
@@ -34,23 +33,8 @@ export function AppDetailPage() {
     const {id} = useParams<{id: string}>();
     const navigate = useNavigate();
     const {data: app, isLoading, error, refetch} = useAppById(id || '');
-    const deleteApp = useDeleteApp();
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('info');
     const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
-
-    const handleDelete = async () => {
-        if (!id) return;
-
-        try {
-            await deleteApp.mutateAsync(id);
-            toast.success('Application deleted successfully');
-            navigate('/applications');
-        } catch (error) {
-            console.error('Failed to delete app:', error);
-            toast.error('Failed to delete application');
-        }
-    };
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -94,30 +78,10 @@ export function AppDetailPage() {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pb-4">
                     <div>
                         <h1 className="text-2xl font-bold">Application Details</h1>
                         <p className="text-muted-foreground">View and manage application information</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate(`/apps/${id}/edit`)}
-                            className="cursor-pointer"
-                            disabled={isLoading || !!error || !app}
-                        >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => setIsDeleteDialogOpen(true)}
-                            className="cursor-pointer"
-                            disabled={isLoading || !!error || !app}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                        </Button>
                     </div>
                 </div>
 
@@ -331,14 +295,6 @@ export function AppDetailPage() {
                     )}
                 </ApiStateHandler>
             </div>
-
-            <ApplicationDeleteDialog
-                open={isDeleteDialogOpen}
-                isPending={deleteApp.isPending}
-                appName={app?.name || ''}
-                onClose={() => setIsDeleteDialogOpen(false)}
-                onConfirm={handleDelete}
-            />
 
             <Dialog open={!!selectedTool} onOpenChange={(open) => !open && setSelectedTool(null)}>
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">

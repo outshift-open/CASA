@@ -1,5 +1,5 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Shield, Lock, Loader2, AppWindow, Network, Tags} from 'lucide-react';
+import {Shield, Lock, Loader2, AppWindow, Network, Tags, RefreshCw} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
 import {useScopes} from '@/hooks/use-scopes';
@@ -8,21 +8,39 @@ import {useNavigate} from 'react-router-dom';
 
 export function DashboardPage() {
     const navigate = useNavigate();
-    const {data: appsData, isLoading, error} = useApps();
-    const {data: masData, isLoading: masLoading, error: masError} = useMAS();
-    const {data: scopesData, isLoading: scopesLoading, error: scopesError} = useScopes();
+    const {data: appsData, isLoading, error, dataUpdatedAt: appsUpdatedAt} = useApps();
+    const {data: masData, isLoading: masLoading, error: masError, dataUpdatedAt: masUpdatedAt} = useMAS();
+    const {
+        data: scopesData,
+        isLoading: scopesLoading,
+        error: scopesError,
+        dataUpdatedAt: scopesUpdatedAt
+    } = useScopes();
     const totalApps = appsData?.total ?? 0;
     const totalMAS = masData?.length ?? 0;
     const totalScopes = Array.isArray(scopesData) ? scopesData.length : 0;
+
+    const lastUpdated = Math.max(appsUpdatedAt, masUpdatedAt, scopesUpdatedAt);
+    const lastUpdatedLabel = lastUpdated
+        ? new Date(lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'})
+        : null;
 
     // Generate random stats (these would come from real endpoints in production)
     const [authRequests] = useState(() => Math.floor(Math.random() * 500) + 100);
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-                <p className="text-muted-foreground">Overview of your Zero Trust Architecture</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold">Dashboard</h1>
+                    <p className="text-muted-foreground">Overview of your Zero Trust Architecture</p>
+                </div>
+                {lastUpdatedLabel && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <RefreshCw className="h-3 w-3" />
+                        <span>Updated {lastUpdatedLabel}</span>
+                    </div>
+                )}
             </div>
 
             <div>

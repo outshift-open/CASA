@@ -1,44 +1,10 @@
-import {useMAS, useDeleteMAS} from '@/hooks/use-mas';
-import {useState, useCallback} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useMAS} from '@/hooks/use-mas';
 import {toast} from 'sonner';
-import {Button} from '@/components/ui/button';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {MASTable, MASDeleteDialog} from '@/components/mas';
-import {Plus} from 'lucide-react';
+import {MASTable} from '@/components/mas';
 
 export function MASPage() {
-    const navigate = useNavigate();
     const {data, isLoading, error, refetch} = useMAS();
-    const deleteMAS = useDeleteMAS();
-
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [deletingMASId, setDeletingMASId] = useState<string | null>(null);
-    const [deletingMASName, setDeletingMASName] = useState<string>('');
-    const [deletingMASAppCount, setDeletingMASAppCount] = useState<number>(0);
-
-    const handleDelete = useCallback((id: string, name: string, appCount: number) => {
-        setDeletingMASId(id);
-        setDeletingMASName(name);
-        setDeletingMASAppCount(appCount);
-        setIsDeleteDialogOpen(true);
-    }, []);
-
-    const confirmDelete = async () => {
-        if (!deletingMASId) {
-            return;
-        }
-
-        try {
-            await deleteMAS.mutateAsync(deletingMASId);
-            toast.success('MAS deleted successfully');
-            setIsDeleteDialogOpen(false);
-            setDeletingMASId(null);
-        } catch (error) {
-            console.error('Failed to delete MAS:', error);
-            toast.error('Failed to delete MAS');
-        }
-    };
 
     const handleRefresh = async () => {
         try {
@@ -51,16 +17,12 @@ export function MASPage() {
     };
 
     return (
-        <>
-            <div className="flex items-center justify-between">
+        <div>
+            <div className="flex items-center justify-between pb-4">
                 <div>
                     <h1 className="text-2xl font-bold">Multi-Agent Systems</h1>
-                    <p className="text-muted-foreground">Manage Multi-Agent Systems</p>
+                    <p className="text-muted-foreground">Multi-Agent Systems</p>
                 </div>
-                <Button onClick={() => navigate('/mas/create')}>
-                    <Plus className="mr-0.5 h-4 w-4" />
-                    Create MAS
-                </Button>
             </div>
 
             <div>
@@ -76,23 +38,10 @@ export function MASPage() {
                         data={data || []}
                         total={data?.length || 0}
                         isLoading={isLoading}
-                        onDelete={(id: string, appCount: number) => {
-                            const mas = data?.find((m) => m.id === id);
-                            handleDelete(id, mas?.name || '', appCount);
-                        }}
                         onRefresh={handleRefresh}
                     />
                 </ApiStateHandler>
             </div>
-
-            <MASDeleteDialog
-                open={isDeleteDialogOpen}
-                isPending={deleteMAS.isPending}
-                masName={deletingMASName}
-                appCount={deletingMASAppCount}
-                onClose={() => setIsDeleteDialogOpen(false)}
-                onConfirm={confirmDelete}
-            />
-        </>
+        </div>
     );
 }

@@ -21,14 +21,6 @@ export interface Tool {
     scopes?: ScopeMinimal[];
 }
 
-export interface ToolRequest {
-    name: string;
-    description: string;
-    input_schema: string;
-    output_schema: string;
-    scopes?: string[];
-}
-
 export interface App {
     id?: string;
     type: AppType;
@@ -43,20 +35,4 @@ export interface App {
 export interface AppListResponse {
     items: App[];
     total: number;
-}
-
-export interface CreateAppRequest {
-    type: AppType;
-    name: string;
-    base_url: string;
-    mas_id: string;
-    tools: ToolRequest[];
-}
-
-// Note: Backend does not support updating mas_id or type after creation
-// as apps are tied to MAS authorization server and client credentials
-export interface UpdateAppRequest {
-    name: string;
-    base_url: string;
-    tools: ToolRequest[];
 }

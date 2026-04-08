@@ -1,5 +1,5 @@
 import {apiClient} from '@/lib/api';
-import type {App, AppListResponse, CreateAppRequest, UpdateAppRequest} from '@/types/app.types';
+import type {App, AppListResponse} from '@/types/app.types';
 
 export const appService = {
     getApps: async (): Promise<AppListResponse> => {
@@ -13,19 +13,5 @@ export const appService = {
     getAppById: async (id: string): Promise<App> => {
         const {data} = await apiClient.get(`/apps/${id}`);
         return data;
-    },
-
-    createApp: async (app: CreateAppRequest): Promise<App> => {
-        const {data} = await apiClient.post('/apps', app);
-        return data;
-    },
-
-    updateApp: async (id: string, app: UpdateAppRequest): Promise<App> => {
-        const {data} = await apiClient.put(`/apps/${id}`, app);
-        return data;
-    },
-
-    deleteApp: async (id: string): Promise<void> => {
-        await apiClient.delete(`/apps/${id}`);
     }
 };

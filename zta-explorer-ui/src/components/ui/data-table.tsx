@@ -25,6 +25,8 @@ interface DataTableProps<TData, TValue> {
     hideSearch?: boolean;
     emptyState?: ReactNode;
     filterSlot?: ReactNode;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -33,12 +35,25 @@ export function DataTable<TData, TValue>({
     searchPlaceholder = 'Search...',
     hideSearch = false,
     emptyState,
-    filterSlot
+    filterSlot,
+    searchValue,
+    onSearchChange
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [globalFilter, setGlobalFilter] = useState('');
+    const [internalFilter, setInternalFilter] = useState('');
+    const isControlled = searchValue !== undefined && onSearchChange !== undefined;
+    const globalFilter = isControlled ? searchValue : internalFilter;
+
+    const handleGlobalFilterChange = (updater: string | ((old: string) => string)) => {
+        const next = typeof updater === 'function' ? updater(globalFilter) : updater;
+        if (isControlled) {
+            onSearchChange!(next);
+        } else {
+            setInternalFilter(next);
+        }
+    };
 
     const table = useReactTable({
         data,
@@ -50,7 +65,7 @@ export function DataTable<TData, TValue>({
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
-        onGlobalFilterChange: setGlobalFilter,
+        onGlobalFilterChange: handleGlobalFilterChange,
         globalFilterFn: 'includesString',
         state: {
             sorting,
@@ -76,7 +91,7 @@ export function DataTable<TData, TValue>({
                         <Input
                             placeholder={searchPlaceholder}
                             value={globalFilter ?? ''}
-                            onChange={(event) => setGlobalFilter(String(event.target.value))}
+                            onChange={(event) => handleGlobalFilterChange(String(event.target.value))}
                             className="pl-9"
                         />
                     </div>

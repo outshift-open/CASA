@@ -1,13 +1,12 @@
 import {useParams, useNavigate} from 'react-router-dom';
-import {useScopeById, useDeleteScope} from '@/hooks/use-scopes';
+import {useScopeById} from '@/hooks/use-scopes';
 import {useMASById} from '@/hooks/use-mas';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {ScopeDeleteDialog} from '@/components/scopes';
-import {Pencil, Trash2, Network, Copy, Wrench, ExternalLink, Info} from 'lucide-react';
+import {Network, Copy, Wrench, ExternalLink, Info} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState, useMemo} from 'react';
 import type {Tool} from '@/types/app.types';
@@ -17,23 +16,8 @@ export function ScopeDetailPage() {
     const navigate = useNavigate();
     const {data: scope, isLoading, error, refetch} = useScopeById(id || '');
     const {data: mas} = useMASById(scope?.mas_id || '');
-    const deleteScope = useDeleteScope();
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('info');
     const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
-
-    const handleDelete = async () => {
-        if (!id) return;
-
-        try {
-            await deleteScope.mutateAsync(id);
-            toast.success('Scope deleted successfully');
-            navigate('/scopes');
-        } catch (error) {
-            console.error('Failed to delete scope:', error);
-            toast.error('Failed to delete scope');
-        }
-    };
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -50,30 +34,10 @@ export function ScopeDetailPage() {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pb-4">
                     <div>
                         <h1 className="text-2xl font-bold">Scope Details</h1>
                         <p className="text-muted-foreground">View and manage scope information</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate(`/scopes/${id}/edit`)}
-                            className="cursor-pointer"
-                            disabled={isLoading || !!error || !scope}
-                        >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => setIsDeleteDialogOpen(true)}
-                            className="cursor-pointer"
-                            disabled={isLoading || !!error || !scope}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                        </Button>
                     </div>
                 </div>
 
@@ -241,14 +205,6 @@ export function ScopeDetailPage() {
                     )}
                 </ApiStateHandler>
             </div>
-
-            <ScopeDeleteDialog
-                open={isDeleteDialogOpen}
-                isPending={deleteScope.isPending}
-                scopeName={scope?.name || ''}
-                onClose={() => setIsDeleteDialogOpen(false)}
-                onConfirm={handleDelete}
-            />
 
             <Dialog open={!!selectedTool} onOpenChange={(open) => !open && setSelectedTool(null)}>
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">

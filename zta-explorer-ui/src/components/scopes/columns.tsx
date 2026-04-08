@@ -9,10 +9,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye, Network} from 'lucide-react';
+import {MoreHorizontal, ArrowUpDown, Eye, Network} from 'lucide-react';
 import type {Scope} from '@/types/scope.types';
 
-export const createColumns = (onDelete: (id: string) => void, navigate: (path: string) => void): ColumnDef<Scope>[] => [
+export const createColumns = (navigate: (path: string) => void): ColumnDef<Scope>[] => [
     {
         accessorKey: 'name',
         header: ({column}) => {
@@ -142,20 +142,6 @@ export const createColumns = (onDelete: (id: string) => void, navigate: (path: s
                             >
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/scopes/${scope.id}/edit`)}
-                                className="cursor-pointer"
-                            >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="text-destructive cursor-pointer"
-                                onClick={() => scope.id && onDelete(scope.id)}
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

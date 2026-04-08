@@ -6,13 +6,17 @@ interface ScopesDataTableProps<TData, TValue> {
     data: TData[];
     searchPlaceholder?: string;
     hideSearch?: boolean;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
 }
 
 export function ScopesDataTable<TData, TValue>({
     columns,
     data,
     searchPlaceholder = 'Search...',
-    hideSearch = false
+    hideSearch = false,
+    searchValue,
+    onSearchChange
 }: ScopesDataTableProps<TData, TValue>) {
     const emptyState = (
         <div className="flex flex-col items-center justify-center gap-2">
@@ -28,6 +32,8 @@ export function ScopesDataTable<TData, TValue>({
             searchPlaceholder={searchPlaceholder}
             hideSearch={hideSearch}
             emptyState={emptyState}
+            searchValue={searchValue}
+            onSearchChange={onSearchChange}
         />
     );
 }
