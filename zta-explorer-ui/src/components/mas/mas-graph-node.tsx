@@ -71,31 +71,34 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                         </div>
                     </div>
                 </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-xs">
+                <TooltipContent
+                    side="right"
+                    className="max-w-xs bg-[#22252b] text-[#ccccdc] border-[rgba(204,204,220,0.2)]"
+                >
                     <div className="space-y-2">
-                        <div className="font-semibold">{data.name}</div>
-                        <div className="text-xs text-muted-foreground">{APP_TYPE_LABELS[data.type]}</div>
+                        <div className="font-semibold text-[#ccccdc]">{data.name}</div>
+                        <div className="text-xs text-[#9b9db0]">{APP_TYPE_LABELS[data.type]}</div>
                         {data.tools && data.tools.length > 0 ? (
                             <div className="mt-2">
-                                <div className="text-xs font-medium mb-1">Tools:</div>
+                                <div className="text-xs font-medium mb-1 text-[#ccccdc]">Tools:</div>
                                 <ul className="text-xs space-y-1">
                                     {data.tools.slice(0, 5).map((tool, idx) => (
-                                        <li key={idx} className="truncate">
+                                        <li key={idx} className="truncate text-[#ccccdc]">
                                             • {tool.name}
                                             {tool.scopes && tool.scopes.length > 0 && (
-                                                <span className="text-muted-foreground ml-1">
+                                                <span className="text-[#9b9db0] ml-1">
                                                     ({tool.scopes.map((s) => s.name).join(', ')})
                                                 </span>
                                             )}
                                         </li>
                                     ))}
                                     {data.tools.length > 5 && (
-                                        <li className="text-muted-foreground">...and {data.tools.length - 5} more</li>
+                                        <li className="text-[#9b9db0]">...and {data.tools.length - 5} more</li>
                                     )}
                                 </ul>
                             </div>
                         ) : (
-                            <div className="text-xs text-muted-foreground">No tools configured</div>
+                            <div className="text-xs text-[#9b9db0]">No tools configured</div>
                         )}
                     </div>
                 </TooltipContent>

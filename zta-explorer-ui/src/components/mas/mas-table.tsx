@@ -7,6 +7,7 @@ import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
 import {MASDataTable} from './mas-data-table';
 import {createMASColumns} from './mas-columns';
 import {RefreshCw, LayoutGrid, List, Network, AppWindow, Tags, AlertCircle, Loader2, Search} from 'lucide-react';
+import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import type {MAS} from '@/types/mas.types';
 import type {App} from '@/types/app.types';
 import type {Scope} from '@/types/scope.types';
@@ -96,9 +97,22 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
                         </CardDescription>
                     </div>
                     {!isLoading && (
-                        <Button variant="outline" size="icon" onClick={onRefresh} className="cursor-pointer">
-                            <RefreshCw className="h-4 w-4" />
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={onRefresh}
+                                    className="cursor-pointer"
+                                    aria-label="Refresh MAS"
+                                >
+                                    <RefreshCw className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Refresh MAS</p>
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
                 {hasData && (
