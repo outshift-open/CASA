@@ -16,7 +16,8 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/c
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {ChevronLeft, ChevronRight, Search} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Search, Inbox} from 'lucide-react';
+import {cn} from '@/lib/utils';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -25,6 +26,9 @@ interface DataTableProps<TData, TValue> {
     hideSearch?: boolean;
     emptyState?: ReactNode;
     filterSlot?: ReactNode;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
+    onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -33,12 +37,26 @@ export function DataTable<TData, TValue>({
     searchPlaceholder = 'Search...',
     hideSearch = false,
     emptyState,
-    filterSlot
+    filterSlot,
+    searchValue,
+    onSearchChange,
+    onRowClick
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [globalFilter, setGlobalFilter] = useState('');
+    const [internalFilter, setInternalFilter] = useState('');
+    const isControlled = searchValue !== undefined && onSearchChange !== undefined;
+    const globalFilter = isControlled ? searchValue : internalFilter;
+
+    const handleGlobalFilterChange = (updater: string | ((old: string) => string)) => {
+        const next = typeof updater === 'function' ? updater(globalFilter) : updater;
+        if (isControlled) {
+            onSearchChange!(next);
+        } else {
+            setInternalFilter(next);
+        }
+    };
 
     const table = useReactTable({
         data,
@@ -50,7 +68,7 @@ export function DataTable<TData, TValue>({
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
-        onGlobalFilterChange: setGlobalFilter,
+        onGlobalFilterChange: handleGlobalFilterChange,
         globalFilterFn: 'includesString',
         state: {
             sorting,
@@ -61,9 +79,12 @@ export function DataTable<TData, TValue>({
     });
 
     const defaultEmptyState = (
-        <div className="flex flex-col items-center justify-center text-muted-foreground">
-            <p>No results found.</p>
-            {globalFilter && <p className="text-sm">Try adjusting your search</p>}
+        <div className="flex flex-col items-center justify-center py-8 gap-3 text-muted-foreground">
+            <Inbox className="h-8 w-8 opacity-40" />
+            <div className="text-center">
+                <p className="text-sm font-medium">No results found</p>
+                {globalFilter && <p className="text-xs mt-1">Try adjusting your search</p>}
+            </div>
         </div>
     );
 
@@ -76,7 +97,7 @@ export function DataTable<TData, TValue>({
                         <Input
                             placeholder={searchPlaceholder}
                             value={globalFilter ?? ''}
-                            onChange={(event) => setGlobalFilter(String(event.target.value))}
+                            onChange={(event) => handleGlobalFilterChange(String(event.target.value))}
                             className="pl-9"
                         />
                     </div>
@@ -106,7 +127,11 @@ export function DataTable<TData, TValue>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && 'selected'}
-                                    className="transition-colors hover:bg-muted/50"
+                                    className={cn(
+                                        'transition-colors hover:bg-muted/50',
+                                        onRowClick && 'cursor-pointer'
+                                    )}
+                                    onClick={() => onRowClick?.(row.original)}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>

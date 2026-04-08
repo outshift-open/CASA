@@ -1,12 +1,13 @@
-import {useMASScopes, useDeleteScope} from '@/hooks/use-scopes';
+import {useState} from 'react';
+import {useMASScopes} from '@/hooks/use-scopes';
 import {Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
-import {Tags, Plus, Pencil, Trash2} from 'lucide-react';
+import {Input} from '@/components/ui/input';
+import {Skeleton} from '@/components/ui/skeleton';
+import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
+import {Tags, Search, List, LayoutGrid} from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
-import {toast} from 'sonner';
-import {useState} from 'react';
 import type {MAS} from '@/types/mas.types';
-import {ScopeDeleteDialog} from '@/components/scopes';
 
 interface MASScopesTabProps {
     mas: MAS;
@@ -15,61 +16,95 @@ interface MASScopesTabProps {
 export function MASScopesTab({mas}: MASScopesTabProps) {
     const navigate = useNavigate();
     const {data: scopes, isLoading: scopesLoading, error: scopesError} = useMASScopes(mas.id);
-    const deleteScope = useDeleteScope();
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [deletingScopeId, setDeletingScopeId] = useState<string | null>(null);
-    const [deletingScopeName, setDeletingScopeName] = useState<string>('');
+    const [search, setSearch] = useState('');
+    const [view, setView] = useState<'table' | 'grid'>('table');
 
-    const handleDelete = async () => {
-        if (!deletingScopeId) return;
-        try {
-            await deleteScope.mutateAsync(deletingScopeId);
-            toast.success('Scope deleted successfully');
-            setIsDeleteDialogOpen(false);
-            setDeletingScopeId(null);
-        } catch (error) {
-            console.error('Failed to delete scope:', error);
-            toast.error('Failed to delete scope');
-        }
-    };
+    const filteredScopes = search
+        ? (scopes ?? []).filter(
+              (s) =>
+                  s.name.toLowerCase().includes(search.toLowerCase()) ||
+                  s.id.toLowerCase().includes(search.toLowerCase())
+          )
+        : (scopes ?? []);
+
+    const hasData = scopes && scopes.length > 0;
 
     return (
-        <>
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-lg font-semibold">Scopes</p>
-                        <p className="text-sm text-muted-foreground">
-                            {scopes?.length || 0} scope{scopes?.length !== 1 ? 's' : ''} configured
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => navigate(`/scopes/create?mas_id=${mas.id}`)}
-                        size="sm"
-                        className="cursor-pointer"
-                    >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Scope
-                    </Button>
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-lg font-semibold">Scopes</p>
+                    <p className="text-sm text-muted-foreground">
+                        {scopes?.length || 0} scope{scopes?.length !== 1 ? 's' : ''} configured
+                    </p>
                 </div>
+            </div>
 
-                {scopesLoading ? (
-                    <Card>
-                        <CardContent className="pt-6">
-                            <p className="text-sm text-muted-foreground text-center py-8">Loading scopes...</p>
-                        </CardContent>
-                    </Card>
-                ) : scopesError ? (
-                    <Card>
-                        <CardContent className="pt-6">
-                            <p className="text-sm text-destructive text-center py-8">Error loading scopes</p>
-                        </CardContent>
-                    </Card>
-                ) : scopes && scopes.length > 0 ? (
+            {hasData && (
+                <div className="flex items-center justify-between gap-2">
+                    <div className="relative w-1/2">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search scopes..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-9"
+                        />
+                    </div>
+                    <ToggleGroup
+                        type="single"
+                        value={view}
+                        onValueChange={(v) => v && setView(v as 'table' | 'grid')}
+                        variant="outline"
+                    >
+                        <ToggleGroupItem value="table" aria-label="Table view">
+                            <List className="h-4 w-4" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="grid" aria-label="Grid view">
+                            <LayoutGrid className="h-4 w-4" />
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+                </div>
+            )}
+
+            {scopesLoading ? (
+                <div className="space-y-3">
+                    {Array.from({length: 3}).map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                </div>
+            ) : scopesError ? (
+                <Card>
+                    <CardContent className="pt-6">
+                        <p className="text-sm text-destructive text-center py-8">Error loading scopes</p>
+                    </CardContent>
+                </Card>
+            ) : hasData ? (
+                view === 'grid' ? (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {filteredScopes.map((scope) => (
+                            <Card
+                                key={scope.id}
+                                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                                onClick={() => navigate(`/scopes/${scope.id}`)}
+                            >
+                                <div className="flex items-center gap-3 p-3">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                                        <Tags className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-semibold truncate">{scope.name}</p>
+                                        <p className="text-xs text-muted-foreground font-mono truncate">{scope.id}</p>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                ) : (
                     <Card className="py-0">
                         <CardContent className="p-0">
                             <div className="divide-y">
-                                {scopes.map((scope) => (
+                                {filteredScopes.map((scope) => (
                                     <div
                                         key={scope.id}
                                         className="flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors"
@@ -83,70 +118,35 @@ export function MASScopesTab({mas}: MASScopesTabProps) {
                                                 <p className="text-xs text-muted-foreground font-mono">{scope.id}</p>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => navigate(`/scopes/${scope.id}`)}
-                                                className="cursor-pointer"
-                                            >
-                                                View
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => navigate(`/scopes/${scope.id}/edit`)}
-                                                className="cursor-pointer"
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setDeletingScopeId(scope.id);
-                                                    setDeletingScopeName(scope.name);
-                                                    setIsDeleteDialogOpen(true);
-                                                }}
-                                                className="cursor-pointer text-destructive hover:text-destructive"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => navigate(`/scopes/${scope.id}`)}
+                                            className="cursor-pointer"
+                                        >
+                                            View
+                                        </Button>
                                     </div>
                                 ))}
                             </div>
                         </CardContent>
                     </Card>
-                ) : (
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex flex-col items-center justify-center py-8 text-center">
-                                <div className="rounded-full bg-muted p-3 mb-4">
-                                    <Tags className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                                <h3 className="text-lg font-semibold mb-2">No Scopes Yet</h3>
-                                <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                                    This Multi-Agent System doesn't have any scopes yet. Create your first scope to get
-                                    started.
-                                </p>
-                                <Button onClick={() => navigate(`/scopes/create?mas_id=${mas.id}`)}>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Create Scope
-                                </Button>
+                )
+            ) : (
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                            <div className="rounded-full bg-muted p-3 mb-4">
+                                <Tags className="h-6 w-6 text-muted-foreground" />
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
-
-            <ScopeDeleteDialog
-                open={isDeleteDialogOpen}
-                isPending={deleteScope.isPending}
-                scopeName={deletingScopeName}
-                onClose={() => setIsDeleteDialogOpen(false)}
-                onConfirm={handleDelete}
-            />
-        </>
+                            <h3 className="text-lg font-semibold mb-2">No Scopes</h3>
+                            <p className="text-sm text-muted-foreground max-w-sm">
+                                This Multi-Agent System doesn't have any scopes configured.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
     );
 }

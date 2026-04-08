@@ -1,5 +1,5 @@
 import {apiClient} from '@/lib/api';
-import type {MAS, CreateMASRequest, UpdateMASRequest, BindAppsRequest} from '@/types/mas.types';
+import type {MAS} from '@/types/mas.types';
 import type {App} from '@/types/app.types';
 
 export const masService = {
@@ -16,23 +16,5 @@ export const masService = {
     getMASApps: async (masId: string): Promise<App[]> => {
         const {data} = await apiClient.get(`/mas/${masId}/apps`);
         return Array.isArray(data) ? data : [];
-    },
-
-    createMAS: async (mas: CreateMASRequest): Promise<MAS> => {
-        const {data} = await apiClient.put('/mas', mas);
-        return data;
-    },
-
-    bindApps: async (masId: string, request: BindAppsRequest): Promise<void> => {
-        await apiClient.post(`/mas/${masId}/bind_apps`, request);
-    },
-
-    updateMAS: async (masId: string, mas: UpdateMASRequest): Promise<MAS> => {
-        const {data} = await apiClient.post(`/mas/${masId}`, mas);
-        return data;
-    },
-
-    deleteMAS: async (masId: string): Promise<void> => {
-        await apiClient.delete(`/mas/${masId}`);
     }
 };

@@ -8,12 +8,3 @@ export interface Scope {
     mas?: MAS;
     tools?: Tool[];
 }
-
-export interface ScopeCreateRequest {
-    name: string;
-    mas_id: string;
-}
-
-export interface ScopeUpdateRequest {
-    name: string;
-}

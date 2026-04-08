@@ -11,14 +11,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {MoreHorizontal, Pencil, Trash2, ArrowUpDown, Eye, Loader2, AlertCircle} from 'lucide-react';
+import {MoreHorizontal, ArrowUpDown, Eye, Loader2, AlertCircle} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
 import type {App} from '@/types/app.types';
 import type {Scope} from '@/types/scope.types';
 import {DateHover} from '@/components/ui/date-hover';
 
 export const createMASColumns = (
-    onDelete: (id: string, appCount: number) => void,
     navigate: (path: string) => void,
     masApps: Record<string, App[]> = {},
     masScopes: Record<string, Scope[]> = {},
@@ -243,20 +242,6 @@ export const createMASColumns = (
                             <DropdownMenuItem onClick={() => navigate(`/mas/${mas.id}`)} className="cursor-pointer">
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => navigate(`/mas/${mas.id}/edit`)}
-                                className="cursor-pointer"
-                            >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => onDelete(mas.id, masApps[mas.id]?.length ?? 0)}
-                                className="text-destructive cursor-pointer"
-                            >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

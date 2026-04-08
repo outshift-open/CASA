@@ -103,7 +103,16 @@ export function SiteHeader() {
                     </div>
                 ))}
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-1">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
+                    onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', {key: '?', bubbles: true}))}
+                    title="Keyboard shortcuts"
+                >
+                    <kbd className="text-xs font-mono font-semibold">?</kbd>
+                </Button>
                 <ThemeToggle />
             </div>
         </header>

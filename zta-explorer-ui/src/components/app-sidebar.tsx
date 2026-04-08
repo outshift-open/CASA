@@ -200,7 +200,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                 onClick={toggleSidebar}
                 variant="ghost"
                 size="icon"
-                className="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 rounded-full border bg-background shadow-md hover:bg-accent"
+                className="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 cursor-pointer rounded-full border bg-background shadow-md hover:bg-accent"
             >
                 {state === 'collapsed' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>
