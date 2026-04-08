@@ -37,7 +37,7 @@ func NewInboundExtAuthService(
 	}
 }
 
-func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRequest) (*authv3.CheckResponse, error) {
+func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.CheckRequest) (*authv3.CheckResponse, error) {
 	/*
 		Flow:
 			- get trace id
@@ -53,7 +53,6 @@ func (s *InboundExtAuthService) Check(_ context.Context, request *authv3.CheckRe
 				- call /token and store the token
 	*/
 
-	ctx := context.Background()
 	attrs := request.GetAttributes()
 
 	httpReq := attrs.GetRequest().GetHttp()
