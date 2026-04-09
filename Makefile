@@ -219,6 +219,12 @@ demo-data-test-flow: # Run end-to-end token flow test to verify mas_id in traces
 > python scripts/create_demo_data.py --test-flow --verbose
 .PHONY: demo-data-test-flow
 
+demo-data-mock-tools: # Insert mock MCPCallStartedEvent traces into the DB for dashboard testing.
+> @printf "$(YELLOW)Inserting mock tool call traces$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --mock-tools --verbose
+.PHONY: demo-data-mock-tools
+
 demo-data-reset: # Clear all existing data and create fresh demo data.
 > @printf "$(YELLOW)Resetting data: clearing and recreating$(NOCOLOR)\n"
 > @printf "$(RED)WARNING: This will delete ALL existing data!$(NOCOLOR)\n"

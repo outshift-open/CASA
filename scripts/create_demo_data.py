@@ -18,6 +18,8 @@ import argparse
 import json
 import os
 import sys
+import uuid
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 try:
@@ -25,6 +27,11 @@ try:
 except ImportError:
     print("Error: 'requests' library not found. Install it with: pip install requests")
     sys.exit(1)
+
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None  # type: ignore[assignment]
 
 try:
     from colorama import Fore, Style
@@ -892,6 +899,131 @@ def test_flow(config: Config):
         return False
 
 
+def mock_tools(config: Config) -> bool:
+    """Insert mock MCPCallStartedEvent traces directly into the DB for dashboard testing.
+
+    Fetches existing user_input_ids from the trace table and inserts a realistic
+    mix of approved and blocked MCP tool call events against them.
+    """
+    if psycopg2 is None:
+        log_error("psycopg2 is required for --mock-tools. Install it with: pip install psycopg2-binary")
+        return False
+
+    print(f"\n{Fore.BLUE}{Style.BRIGHT}=== Inserting Mock MCP Tool Call Traces ==={Style.RESET_ALL}\n")
+
+    db_host = os.getenv("DB_HOST", "localhost")
+    db_port = os.getenv("DB_PORT", "5432")
+    db_user = os.getenv("DB_USERNAME", "postgres")
+    db_pass = os.getenv("DB_PASSWORD", "postgres")
+    db_name = os.getenv("DB_NAME", "identity-platform")
+
+    try:
+        conn = psycopg2.connect(host=db_host, port=db_port, user=db_user, password=db_pass, dbname=db_name)
+        conn.autocommit = True
+        cur = conn.cursor()
+    except Exception as e:
+        log_error(f"Failed to connect to database: {e}")
+        return False
+
+    # Fetch existing user_input_ids and their mas_ids from TokenIssuedEvent traces
+    cur.execute(
+        """
+        SELECT user_input_id, event->>'mas_id', event->>'app_id'
+        FROM trace
+        WHERE event_type = 'TokenIssuedEvent'
+        ORDER BY created_at DESC
+        LIMIT 20
+        """
+    )
+    rows = cur.fetchall()
+
+    if not rows:
+        log_error("No existing TokenIssuedEvent traces found. Run --test-flow first to create some.")
+        cur.close()
+        conn.close()
+        return False
+
+    log_success(f"Found {len(rows)} existing token request(s) to attach mock tool calls to")
+
+    # Mock tool calls: mix of approved and blocked with varied reasons
+    mock_scenarios = [
+        {"tool": "get_account_balance", "blocked": False, "blocking_type": None, "blocking_reason": None},
+        {"tool": "search_products", "blocked": False, "blocking_type": None, "blocking_reason": None},
+        {"tool": "get_user_profile", "blocked": False, "blocking_type": None, "blocking_reason": None},
+        {
+            "tool": "process_payment",
+            "blocked": True,
+            "blocking_type": "DETERMINISTIC",
+            "blocking_reason": "tool_not_selected_by_llm",
+        },
+        {
+            "tool": "query_database",
+            "blocked": True,
+            "blocking_type": "DETERMINISTIC",
+            "blocking_reason": "tool_not_selected_by_llm",
+        },
+        {
+            "tool": "send_email",
+            "blocked": True,
+            "blocking_type": "DETERMINISTIC",
+            "blocking_reason": "tool_intent_mismatch",
+        },
+        {
+            "tool": "create_ticket",
+            "blocked": True,
+            "blocking_type": "AI_POWERED",
+            "blocking_reason": "tool_intent_mismatch",
+        },
+        {"tool": "analyze_sentiment", "blocked": False, "blocking_type": None, "blocking_reason": None},
+        {
+            "tool": "process_payment",
+            "blocked": True,
+            "blocking_type": "DETERMINISTIC",
+            "blocking_reason": "no_llm_calls_made_by_app",
+        },
+        {"tool": "get_inventory", "blocked": False, "blocking_type": None, "blocking_reason": None},
+    ]
+
+    inserted = 0
+    now = datetime.now(timezone.utc)
+
+    for i, (user_input_id, mas_id, app_id) in enumerate(rows):
+        # Assign 2-4 scenarios per user_input in rotation
+        scenarios = mock_scenarios[i % len(mock_scenarios) : i % len(mock_scenarios) + 3] or mock_scenarios[:3]
+        for scenario in scenarios:
+            event_id = str(uuid.uuid4())
+            event = {
+                "id": event_id,
+                "user_input_id": str(user_input_id),
+                "created_at": now.isoformat(),
+                "mas_id": mas_id,
+                "app_id": app_id,
+                "token": "",
+                "caller_app_id": str(app_id) if app_id else "",
+                "callee_app_id": str(app_id) if app_id else "",
+                "tool": scenario["tool"],
+                "blocked": scenario["blocked"],
+                "blocking_type": scenario["blocking_type"],
+                "blocking_reason": scenario["blocking_reason"],
+            }
+            cur.execute(
+                """
+                INSERT INTO trace (id, user_input_id, created_at, event_type, event)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (event_id, str(user_input_id), now, "MCPCallStartedEvent", json.dumps(event)),
+            )
+            status = f"{'blocked' if scenario['blocked'] else 'approved'}"
+            log_info(f"  {scenario['tool']} → {status} ({scenario.get('blocking_reason') or 'ok'})", config)
+            inserted += 1
+
+    cur.close()
+    conn.close()
+
+    log_success(f"Inserted {inserted} mock MCPCallStartedEvent traces")
+    return True
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -903,6 +1035,7 @@ Examples:
   python create_demo_data.py --dry-run
   python create_demo_data.py --clear --verbose
   python create_demo_data.py --test-flow
+  python create_demo_data.py --mock-tools --verbose
   python create_demo_data.py --backend-url http://localhost:8000
 
 Environment Variables:
@@ -919,6 +1052,11 @@ Environment Variables:
     parser.add_argument(
         "--test-flow", action="store_true", help="Run end-to-end token flow test to verify mas_id in traces"
     )
+    parser.add_argument(
+        "--mock-tools",
+        action="store_true",
+        help="Insert mock MCPCallStartedEvent traces into the DB for dashboard testing",
+    )
 
     args = parser.parse_args()
 
@@ -932,6 +1070,8 @@ Environment Variables:
     try:
         if args.test_flow:
             success = test_flow(config)
+        elif args.mock_tools:
+            success = mock_tools(config)
         else:
             success = generate_demo_data(config)
         sys.exit(0 if success else 1)
