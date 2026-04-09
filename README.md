@@ -18,6 +18,8 @@ Enforcement happens through sidecars injected into each MAS pod and an eBPF-base
 
 ## Architecture
 
+### Global
+
 ```mermaid
 graph TB
     subgraph "Kubernetes Cluster"
@@ -60,12 +62,21 @@ graph TB
     CLS & AGS & MCPS -->|"Token ops"| AUTH
     AGS -->|"LLM calls"| LLM["External LLM\n(OpenAI-compatible)"]
 
-    style AUTH fill:#4ecdc4
-    style EBPF fill:#ff6b6b
-    style LLM fill:#ffe66d
+    style AUTH fill:#134e4a,stroke:#4ecdc4,color:#f1f5f9
+    style KC   fill:#451a03,stroke:#fbbf24,color:#f1f5f9
+    style PG   fill:#1e3a5f,stroke:#60a5fa,color:#f1f5f9
+    style UI   fill:#064e3b,stroke:#34d399,color:#f1f5f9
+    style CL   fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style CLS  fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style AG   fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style AGS  fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style MCP  fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style MCPS fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style EBPF fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
+    style LLM  fill:#422006,stroke:#ffe66d,color:#f1f5f9
 ```
 
-**Components:**
+### Components
 
 ![ZTA Components](docs/diagrams/components.png)
 
