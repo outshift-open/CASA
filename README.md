@@ -53,7 +53,7 @@ graph TB
             AGS -->|"MCP"| MCPS
         end
 
-        EBPF["Cilium eBPF\n(L4/L7 enforcement\nJWT extraction)"]
+        EBPF["eBPF\n(L4/L7 enforcement\nJWT extraction)"]
         EBPF -.->|enforces| CLS
         EBPF -.->|enforces| AGS
         EBPF -.->|enforces| MCPS
@@ -84,7 +84,7 @@ graph TB
 | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Auth Service**    | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
 | **ZTA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
-| **eBPF layer**      | Cilium enforces deny-by-default network policies and extracts JWTs for observability                             |
+| **eBPF layer**      | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
 | **Keycloak**        | Identity provider backing token cryptography                                                                     |
 | **ZTA Explorer UI** | Admin dashboard for managing MAS registrations and viewing telemetry                                             |
 

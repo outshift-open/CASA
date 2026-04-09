@@ -21,11 +21,13 @@ Before installing ZTA, ensure the following are in place.
 | `kubectl` | 1.26+ | Apply manifests and interact with the cluster |
 | `helm` | 3.10+ | Install ZTA charts |
 
-## Dataplane: Istio or Cilium
+## Dataplane
 
 ZTA requires one of the following dataplanes to be installed and operational in your cluster.
 
 ### Istio (for Istio deployment mode)
+
+This is the **currently supported** dataplane.
 
 Install Istio using the Istio CLI:
 
@@ -37,6 +39,8 @@ istioctl verify-install
 Minimum version: Istio 1.17
 
 ### Cilium (for Cilium deployment mode)
+
+> **Note: Cilium support is coming soon.** The instructions below document the planned setup. Cilium deployment mode is not yet available; use Istio for the current release.
 
 Install Cilium using the Helm chart:
 
@@ -65,7 +69,7 @@ The ZTA control plane images are published to GitHub Container Registry (GHCR):
 
 These images are public. No registry authentication is required.
 
-> **Note:** The demo MAS chart (`zta-mas`) uses private ECR images by default. To use the demo chart, you must either build your own images from `demo/k8s/agent/` and `demo/k8s/mcp/`, or use the images from a registry you control. Update `demo/k8s/helm/values.yaml` with your registry and image paths.
+> **Note:** The demo MAS chart (`zta-mas`) uses private ECR images by default. To use the demo chart, you must either build your own images from `demo/src/agent/`, `demo/src/mcp/`, and `demo/src/client/`, or use the images from a registry you control. Update `demo/k8s/helm/values.yaml` with your registry and image paths.
 
 ## Storage
 

@@ -10,16 +10,20 @@ This walkthrough shows the complete ZTA enforcement flow using the demo MAS, fro
 
 ## What the Demo Does
 
+The demo has three components: a **Client UI** (chat interface), a **Demo Agent** (LLM-powered), and a **Demo MCP Server** (tool provider). The user interacts entirely through the Client UI — no curl or API calls needed.
+
 The demo scenario:
 
-1. A user sends a chat message: *"Get the account summary and scheduled payments"*
-2. The demo agent receives the request, calls an LLM to determine which tools to use
-3. The LLM selects `get_account_summary` and `get_scheduled_payments` tools
-4. The agent requests a tool token from ZTA for each tool
-5. ZTA validates that each tool matches the user's intent (deterministic checks)
-6. The agent calls the MCP server with the validated tokens
-7. The MCP server executes the tools and returns results
-8. ZTA enforces and logs all token operations
+1. A user types a message in the Client UI: *"Get the account summary and scheduled payments"*
+2. The client forwards the conversation to the agent via its A2A endpoint
+3. The agent calls an LLM to determine which tools to use
+4. The LLM selects `get_account_summary` and `get_scheduled_payments` tools
+5. The agent requests a tool token from ZTA for each tool
+6. ZTA validates that each tool matches the user's intent (deterministic checks)
+7. The agent calls the MCP server with the validated tokens
+8. The MCP server executes the tools and returns results
+9. The agent response appears in the Client UI
+10. ZTA enforces and logs all token operations
 
 ## Prerequisites
 
@@ -29,52 +33,38 @@ The demo scenario:
 
 ## Run the Demo
 
-### 1. Send a legitimate request
+### 1. Open the Client UI
+
+Port-forward the client service and open it in your browser:
 
 ```bash
-kubectl -n zta-sidecar port-forward svc/zta-demo-agent 8082:8082 &
-
-curl -X POST http://localhost:8082/chat \
-  -H "Content-Type: application/json" \
-  -d '{"content": "Get the account summary and scheduled payments"}'
+kubectl -n zta-sidecar port-forward svc/zta-demo-client 3001:3001
+# Open http://localhost:3001
 ```
 
-**Expected response:**
+Type a message such as *"Get the account summary and scheduled payments"* and send it. The client forwards the conversation to the agent, which calls the LLM, requests tool tokens from ZTA, and invokes the MCP server. The agent response appears directly in the chat.
 
-```json
-{
-  "response": "Here is your account summary...",
-  "tools_used": ["get_account_summary", "get_scheduled_payments"]
-}
-```
-
-### 2. Observe ZTA events in the UI
+### 2. Observe ZTA events in the Explorer UI
 
 ```bash
-kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80 &
+kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80
 # Open http://localhost:8080
 ```
 
-In the UI, you should see:
-- A user input event for your prompt
+In the ZTA Explorer UI, you should see:
+- A user input event correlated with your prompt
 - Token exchange events for T1 → T2 (LLM) and T1 → T3 (each tool)
 - ALLOW decisions for `get_account_summary` and `get_scheduled_payments`
 
 ### 3. Test a semantic mismatch (when AI checks are enabled)
 
-If `AI_POWERED_TOOL_MATCH` is enabled in the MAS configuration, try a prompt where the tool would not match the intent:
+If `AI_POWERED_TOOL_MATCH` is enabled in the MAS configuration, send a narrower prompt from the Client UI:
 
-```bash
-curl -X POST http://localhost:8082/chat \
-  -H "Content-Type: application/json" \
-  -d '{"content": "Get the account summary"}'
-```
+> *"Get the account summary"*
 
-If the agent tries to also call a write tool, ZTA blocks it:
+If the agent attempts to also call a write tool, ZTA blocks it.
 
-**Expected behavior:** The write tool call is rejected with 403. The agent returns a partial result using only the approved tools.
-
-In the UI, you should see:
+**Expected behavior:** The write tool call is rejected with 403. The agent returns a partial result using only the approved tools. In the ZTA Explorer UI, you should see:
 - A DENY event for the write tool
 - The check that failed: `AI_POWERED_TOOL_MATCH` — "filesystem:write does not match user intent: get account summary"
 
@@ -82,7 +72,7 @@ In the UI, you should see:
 
 During the above request, ZTA:
 
-1. **Receives token request** from the client sidecar (T1 issuance)
+1. **Receives token request** from the client UI sidecar (T1 issuance)
    - Stores the user's prompt correlated with the token
 2. **Validates LLM token exchange** (T1 → T2)
    - Checks the agent's identity and scope
@@ -103,11 +93,20 @@ View auth service logs during the request:
 kubectl -n zta-control-plane logs -f deploy/zta-auth-service | grep -E "token|tool|check"
 ```
 
-View sidecar logs:
+View sidecar logs (pick the relevant pod):
 
 ```bash
+# Client sidecar
+kubectl -n zta-sidecar logs -f deploy/zta-demo-client -c istio-proxy 2>/dev/null || \
+kubectl -n zta-sidecar logs -f deploy/zta-demo-client -c zta-sidecar
+
+# Agent sidecar
 kubectl -n zta-sidecar logs -f deploy/zta-demo-agent -c istio-proxy 2>/dev/null || \
 kubectl -n zta-sidecar logs -f deploy/zta-demo-agent -c zta-sidecar
+
+# MCP sidecar
+kubectl -n zta-sidecar logs -f deploy/zta-demo-mcp -c istio-proxy 2>/dev/null || \
+kubectl -n zta-sidecar logs -f deploy/zta-demo-mcp -c zta-sidecar
 ```
 
 ## Cleanup

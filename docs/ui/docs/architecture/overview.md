@@ -13,7 +13,7 @@ ZTA has two main layers: a **control plane** that manages identity and policy, a
 ```mermaid
 graph TB
     subgraph "Kubernetes Cluster"
-        subgraph "zta-control-plane namespace"
+        subgraph "zta-control-plane"
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]
@@ -23,39 +23,52 @@ graph TB
             UI --> AUTH
         end
 
-        subgraph "mas-namespace (your application)"
+        subgraph "mas-namespace"
             subgraph "Client Pod"
                 CL["Client App"]
                 CLS["ZTA Sidecar"]
-                CL -.->|"traffic intercepted"| CLS
+                CL -.->|intercepted| CLS
             end
             subgraph "Agent Pod"
                 AG["Agent"]
                 AGS["ZTA Sidecar"]
-                AG -.->|"traffic intercepted"| AGS
+                AG -.->|intercepted| AGS
             end
             subgraph "MCP Server Pod"
                 MCP["MCP Server"]
                 MCPS["ZTA Sidecar"]
-                MCP -.->|"traffic intercepted"| MCPS
+                MCP -.->|intercepted| MCPS
             end
-            CLS -->|"MCP / A2A"| AGS
+            CLS -->|"MCP/A2A"| AGS
             AGS -->|"MCP"| MCPS
         end
 
-        EBPF["Cilium eBPF\n(L3/L4 network enforcement\nJWT extraction & observability)"]
-        EBPF -.->|"enforces"| CLS
-        EBPF -.->|"enforces"| AGS
-        EBPF -.->|"enforces"| MCPS
+        EBPF["eBPF\n(L4/L7 enforcement\nJWT extraction)"]
+        EBPF -.->|enforces| CLS
+        EBPF -.->|enforces| AGS
+        EBPF -.->|enforces| MCPS
     end
 
-    CLS & AGS & MCPS -->|"Token ops (token request, exchange, introspection)"| AUTH
-    AGS -->|"LLM calls (token-gated)"| LLM["External LLM\n(OpenAI-compatible)"]
+    CLS & AGS & MCPS -->|"Token ops"| AUTH
+    AGS -->|"LLM calls"| LLM["External LLM\n(OpenAI-compatible)"]
 
-    style AUTH fill:#4ecdc4,color:#000
-    style EBPF fill:#ff6b6b,color:#fff
-    style LLM fill:#ffe66d,color:#000
+    style AUTH fill:#134e4a,stroke:#4ecdc4,color:#f1f5f9
+    style KC   fill:#451a03,stroke:#fbbf24,color:#f1f5f9
+    style PG   fill:#1e3a5f,stroke:#60a5fa,color:#f1f5f9
+    style UI   fill:#064e3b,stroke:#34d399,color:#f1f5f9
+    style CL   fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style CLS  fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style AG   fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style AGS  fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style MCP  fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style MCPS fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style EBPF fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
+    style LLM  fill:#422006,stroke:#ffe66d,color:#f1f5f9
 ```
+
+### Components
+
+![ZTA Components](/img/components.png)
 
 ## Component Summary
 
@@ -85,12 +98,14 @@ See [ZTA Sidecar](sidecar.md) for full details.
 
 ### eBPF Enforcement Layer
 
-Cilium provides L3/L4 network enforcement using identity-based (not IP-based) policies. At this layer:
+The eBPF enforcement layer operates at the kernel level on eBPF-enabled Kubernetes nodes (kernel 5.8+), independently of the CNI. It provides:
 
-- **Deny-by-default** — all traffic is dropped unless explicitly allowed by a `CiliumNetworkPolicy`
+- **Deny-by-default** — traffic enforcement via eBPF programs or network policy
 - **LLM endpoint restriction** — agents can only reach a single approved external FQDN
-- **JWT extraction** — custom eBPF programs extract and hash JWTs from HTTP headers for observability
-- **Flow logging** — Hubble provides real-time flow logs correlated with token metadata
+- **JWT extraction** — eBPF programs extract and hash JWTs from HTTP headers for observability
+- **Flow logging** — real-time flow logs correlated with token metadata
+
+In Istio mode, eBPF enforcement uses the node kernel and is available when nodes have eBPF enabled. The [Cilium deployment mode](/deployment-modes/cilium) (roadmap) provides a fully integrated eBPF + sidecar solution via the Cilium daemonset.
 
 See [eBPF Enforcement](ebpf.md) for full details.
 
@@ -98,10 +113,10 @@ See [eBPF Enforcement](ebpf.md) for full details.
 
 ZTA supports two dataplane options:
 
-| Mode | Sidecar Injection | L7 Enforcement | L3/L4 Enforcement | Status |
+| Mode | Sidecar Injection | L7 Enforcement | L4/L7 + eBPF | Status |
 |---|---|---|---|---|
-| **Istio** | Istio automatic injection | `ext_authz_middleware` (Go) | Istio NetworkPolicy | Current deployments |
-| **Cilium** | Custom mutating webhook | ZTA sidecar (Envoy + Lua) | CiliumNetworkPolicy | Recommended for production |
+| **Istio** | Istio automatic injection | `ext_authz_middleware` (Go) | eBPF (node kernel) | Current |
+| **Cilium** | Node-level daemonset | ZTA sidecar (Envoy + Lua) | ZTAPolicy + eBPF (integrated) | Coming soon (Roadmap) |
 
 See [Deployment Modes](/deployment-modes/istio) for setup guides.
 
@@ -109,7 +124,7 @@ See [Deployment Modes](/deployment-modes/istio) for setup guides.
 
 ZTA operates on a layered trust model:
 
-1. **eBPF / L3-L4** — deny by default; only known endpoints may communicate
+1. **eBPF / L4-L7** — deny by default; only known endpoints may communicate
 2. **Sidecar / L7** — every request must carry a valid, non-expired token with correct scope
 3. **Control plane** — token exchange validates that the requested tool matches the original user intent
 

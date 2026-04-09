@@ -28,6 +28,12 @@ graph LR
     agent -->|MCP| mcp_server_1
     agent -->|MCP| mcp_server_2
     agent -->|A2A| other_agent
+
+    style client       fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style agent        fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style other_agent  fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style mcp_server_1 fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style mcp_server_2 fill:#1e293b,stroke:#475569,color:#cbd5e1
 ```
 
 All inter-application communication is intercepted by ZTA sidecars, which:

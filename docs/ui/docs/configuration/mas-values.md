@@ -8,38 +8,44 @@ title: Demo MAS Values
 
 Reference for `demo/k8s/helm/values.yaml`.
 
-The demo MAS chart deploys one agent and one MCP server into a specified namespace.
+The demo MAS chart deploys a client UI, an agent, and an MCP server into a specified namespace.
 
 ## Full Values Reference
 
 ```yaml
 namespace: zta-sidecar        # Target namespace
 
+client:
+  replicas: 1
+  serviceName: zta-demo-client
+  servicePort: 3001
+  docker:
+    registry: YOUR_REGISTRY_HERE      # e.g. ghcr.io/your-org
+    image: zta-demo-client
+    tagversion: latest
+  agent_a2a_url: http://zta-demo-agent:8082   # agent A2A endpoint
+
 agent:
   replicas: 1
   serviceName: zta-demo-agent
   servicePort: 8082
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com  # private ECR — replace with yours
-    image: outshift-zta/k8s-demo-agent
-    suffix: ''
-  tagversion: 2026-03-16-a0d1194
-
+    registry: YOUR_REGISTRY_HERE
+    image: zta-demo-agent
+    tagversion: latest
   mcp_server_url: http://zta-demo-mcp:3000/mcp
-
   secret:
-    openai_api_base: https://litellm.prod.outshift.ai  # replace with your LLM endpoint
-    openai_api_key: SECRET_HERE                         # replace with your API key
+    openai_api_base: https://api.openai.com   # replace with your LLM endpoint
+    openai_api_key: YOUR_OPENAI_KEY_HERE      # replace with your API key
 
 mcp:
   replicas: 1
   serviceName: zta-demo-mcp
   servicePort: 3000
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com  # private ECR — replace with yours
-    image: outshift-zta/k8s-demo-mcp
-    suffix: ''
-  tagversion: 2026-03-16-a0d1194
+    registry: YOUR_REGISTRY_HERE
+    image: zta-demo-mcp
+    tagversion: latest
 ```
 
 ## Field Reference
@@ -47,6 +53,12 @@ mcp:
 | Field | Description |
 |---|---|
 | `namespace` | Kubernetes namespace to deploy into. Must exist and have sidecar injection enabled. |
+| `client.serviceName` | Kubernetes Service name for the client UI. Used by in-cluster DNS. |
+| `client.servicePort` | Port the client UI listens on. |
+| `client.docker.registry` | Container registry hostname. |
+| `client.docker.image` | Image name within the registry. |
+| `client.tagversion` | Image tag. |
+| `client.agent_a2a_url` | A2A endpoint of the agent. This is the only config the client UI needs. |
 | `agent.serviceName` | Kubernetes Service name for the agent. Used by in-cluster DNS. |
 | `agent.servicePort` | Port the agent listens on. |
 | `agent.docker.registry` | Container registry hostname. |
@@ -63,18 +75,28 @@ mcp:
 If you cannot access the default registry, build and push your own images:
 
 ```bash
+# Build demo client UI
+docker build -t your-registry/zta-demo-client:latest demo/src/client/
+docker push your-registry/zta-demo-client:latest
+
 # Build demo agent
-docker build -t your-registry/zta-demo-agent:latest demo/k8s/agent/
+docker build -t your-registry/zta-demo-agent:latest demo/src/agent/
 docker push your-registry/zta-demo-agent:latest
 
 # Build demo MCP server
-docker build -t your-registry/zta-demo-mcp:latest demo/k8s/mcp/
+docker build -t your-registry/zta-demo-mcp:latest demo/src/mcp/
 docker push your-registry/zta-demo-mcp:latest
 ```
 
 Then update `values.yaml`:
 
 ```yaml
+client:
+  docker:
+    registry: your-registry
+    image: zta-demo-client
+  tagversion: latest
+
 agent:
   docker:
     registry: your-registry
