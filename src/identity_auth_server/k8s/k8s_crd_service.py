@@ -7,6 +7,7 @@ from typing import List, Optional
 from identity_auth_server.core.idp.idp_client import IdpClient
 from identity_auth_server.core.types import MultiAgentSystem, ToolCheckFlags
 from identity_auth_server.k8s.k8s_types import (
+    AppCredentials,
     AppSpec,
     AppTypeK8s,
     MASCreateRequest,
@@ -115,8 +116,9 @@ class K8sCRDService:
             )
         )
 
-        # Create apps
+        # Create apps and collect credentials
         created_apps = []
+        credentials = []
         for app_spec in request.spec.apps:
             try:
                 app = self._app_service.create_app(
@@ -129,6 +131,17 @@ class K8sCRDService:
                 )
 
                 created_apps.append(app)
+
+                # Collect credentials for operator to create K8s secrets
+                if app.client_credentials:
+                    credentials.append(
+                        AppCredentials(
+                            app_name=app.name,
+                            client_id=app.client_credentials.client_id,
+                            client_secret=app.client_credentials.client_secret or "",
+                            secret_name=f"{app.name}-oauth2-credentials",
+                        )
+                    )
             except Exception as e:
                 logger.error(f"Failed to create app {app_spec.name}: {e}")
 
@@ -140,6 +153,7 @@ class K8sCRDService:
             apps_ready=len(created_apps),
             last_sync_time=datetime.now(timezone.utc),
             message=f"Created {len(created_apps)}/{len(request.spec.apps)} apps successfully",
+            credentials=credentials if credentials else None,
         )
 
         return crd

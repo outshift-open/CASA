@@ -10,11 +10,14 @@ import (
 	"os"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -41,10 +44,11 @@ type MASSpec struct {
 }
 
 type MASStatus struct {
-	Phase       string `json:"phase,omitempty"`
-	AppsReady   int    `json:"appsReady,omitempty"`
-	LastSyncTime string `json:"lastSyncTime,omitempty"`
-	Message     string `json:"message,omitempty"`
+	Phase        string            `json:"phase,omitempty"`
+	AppsReady    int               `json:"appsReady,omitempty"`
+	LastSyncTime string            `json:"lastSyncTime,omitempty"`
+	Message      string            `json:"message,omitempty"`
+	Credentials  []AppCredentials  `json:"credentials,omitempty"`
 }
 
 type MultiAgentSystem struct {
@@ -103,6 +107,13 @@ type MASMetadata struct {
 	Namespace string `json:"namespace"`
 }
 
+type AppCredentials struct {
+	AppName      string `json:"appName"`
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+	SecretName   string `json:"secretName"`
+}
+
 // ── Reconciler ───────────────────────────────────────────────────────────────
 
 type MultiAgentSystemReconciler struct {
@@ -110,6 +121,7 @@ type MultiAgentSystemReconciler struct {
 	Scheme         *runtime.Scheme
 	AuthServiceURL string
 	HTTPClient     *http.Client
+	K8sClient      *kubernetes.Clientset
 }
 
 func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -126,6 +138,13 @@ func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	// Handle deletion via finalizer
 	if !mas.DeletionTimestamp.IsZero() {
 		if controllerutil.ContainsFinalizer(mas, finalizer) {
+			// Delete secrets first
+			if err := r.deleteSecrets(ctx, mas); err != nil {
+				log.Error(err, "failed to delete secrets")
+				// Continue anyway - secrets might already be gone
+			}
+
+			// Then delete from auth-service
 			if err := r.deleteFromAuthService(ctx, mas); err != nil {
 				log.Error(err, "failed to delete MAS from auth-service")
 				return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
@@ -148,10 +167,19 @@ func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	// Register / update with auth-service
-	appsReady, err := r.syncToAuthService(ctx, mas)
+	appsReady, credentials, err := r.syncToAuthService(ctx, mas)
 	if err != nil {
 		log.Error(err, "failed to sync MAS with auth-service")
 		if patchErr := r.patchStatus(ctx, mas, "Failed", 0, err.Error()); patchErr != nil {
+			log.Error(patchErr, "failed to patch status to Failed")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	// Create K8s secrets for app credentials
+	if err := r.createSecrets(ctx, mas, credentials); err != nil {
+		log.Error(err, "failed to create secrets for app credentials")
+		if patchErr := r.patchStatus(ctx, mas, "Failed", 0, fmt.Sprintf("Failed to create secrets: %v", err)); patchErr != nil {
 			log.Error(patchErr, "failed to patch status to Failed")
 		}
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
@@ -166,7 +194,7 @@ func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func (r *MultiAgentSystemReconciler) syncToAuthService(ctx context.Context, mas *MultiAgentSystem) (int, error) {
+func (r *MultiAgentSystemReconciler) syncToAuthService(ctx context.Context, mas *MultiAgentSystem) (int, []AppCredentials, error) {
 	payload := MASCreateRequest{
 		APIVersion: "zta.io/v1alpha1",
 		Kind:       "MultiAgentSystem",
@@ -179,36 +207,98 @@ func (r *MultiAgentSystemReconciler) syncToAuthService(ctx context.Context, mas 
 
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return 0, fmt.Errorf("marshal: %w", err)
+		return 0, nil, fmt.Errorf("marshal: %w", err)
 	}
 
 	url := fmt.Sprintf("%s/k8s/namespaces/%s/mas", r.AuthServiceURL, mas.Namespace)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
-		return 0, fmt.Errorf("create request: %w", err)
+		return 0, nil, fmt.Errorf("create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := r.HTTPClient.Do(req)
 	if err != nil {
-		return 0, fmt.Errorf("call auth-service: %w", err)
+		return 0, nil, fmt.Errorf("call auth-service: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return 0, fmt.Errorf("auth-service returned %d: %s", resp.StatusCode, string(respBody))
+		return 0, nil, fmt.Errorf("auth-service returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
 		Status struct {
-			AppsReady int `json:"appsReady"`
+			AppsReady   int              `json:"appsReady"`
+			Credentials []AppCredentials `json:"credentials"`
 		} `json:"status"`
 	}
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return len(mas.Spec.Apps), nil // fallback: assume all apps registered
+		return len(mas.Spec.Apps), nil, nil // fallback: assume all apps registered
 	}
-	return result.Status.AppsReady, nil
+	return result.Status.AppsReady, result.Status.Credentials, nil
+}
+
+func (r *MultiAgentSystemReconciler) createSecrets(ctx context.Context, mas *MultiAgentSystem, credentials []AppCredentials) error {
+	if len(credentials) == 0 {
+		return nil
+	}
+
+	for _, cred := range credentials {
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      cred.SecretName,
+				Namespace: mas.Namespace,
+				Labels: map[string]string{
+					"app.kubernetes.io/managed-by": "zta-operator",
+					"zta.io/mas-name":              mas.Name,
+				},
+			},
+			Type: corev1.SecretTypeOpaque,
+			StringData: map[string]string{
+				"client_id":     cred.ClientID,
+				"client_secret": cred.ClientSecret,
+			},
+		}
+
+		// Try to create the secret
+		_, err := r.K8sClient.CoreV1().Secrets(mas.Namespace).Create(ctx, secret, metav1.CreateOptions{})
+		if err != nil {
+			// If secret exists, update it
+			if errors.IsAlreadyExists(err) {
+				_, err = r.K8sClient.CoreV1().Secrets(mas.Namespace).Update(ctx, secret, metav1.UpdateOptions{})
+				if err != nil {
+					return fmt.Errorf("failed to update secret %s: %w", cred.SecretName, err)
+				}
+			} else {
+				return fmt.Errorf("failed to create secret %s: %w", cred.SecretName, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (r *MultiAgentSystemReconciler) deleteSecrets(ctx context.Context, mas *MultiAgentSystem) error {
+	// Delete all secrets managed by this MAS
+	listOptions := metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("zta.io/mas-name=%s", mas.Name),
+	}
+
+	secrets, err := r.K8sClient.CoreV1().Secrets(mas.Namespace).List(ctx, listOptions)
+	if err != nil {
+		return fmt.Errorf("failed to list secrets: %w", err)
+	}
+
+	for _, secret := range secrets.Items {
+		err := r.K8sClient.CoreV1().Secrets(mas.Namespace).Delete(ctx, secret.Name, metav1.DeleteOptions{})
+		if err != nil && !errors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete secret %s: %w", secret.Name, err)
+		}
+	}
+
+	return nil
 }
 
 func (r *MultiAgentSystemReconciler) deleteFromAuthService(ctx context.Context, mas *MultiAgentSystem) error {
@@ -264,7 +354,21 @@ func main() {
 	scheme.AddKnownTypes(schemeGroupVersion, &MultiAgentSystem{}, &MultiAgentSystemList{})
 	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	// Get in-cluster config
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		ctrl.Log.Error(err, "unable to get in-cluster config")
+		os.Exit(1)
+	}
+
+	// Create K8s clientset for secret management
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		ctrl.Log.Error(err, "unable to create K8s clientset")
+		os.Exit(1)
+	}
+
+	mgr, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme: scheme,
 	})
 	if err != nil {
@@ -277,6 +381,7 @@ func main() {
 		Scheme:         mgr.GetScheme(),
 		AuthServiceURL: authServiceURL,
 		HTTPClient:     &http.Client{Timeout: 120 * time.Second},
+		K8sClient:      clientset,
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller")
 		os.Exit(1)
