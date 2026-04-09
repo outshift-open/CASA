@@ -11,6 +11,7 @@ ZTA has two main layers: a **control plane** that manages identity and policy, a
 ## Global Architecture
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'background': '#0f172a', 'edgeLabelBackground': '#0f172a'}}}%%
 graph TB
     subgraph "Kubernetes Cluster"
         subgraph "zta-control-plane"
