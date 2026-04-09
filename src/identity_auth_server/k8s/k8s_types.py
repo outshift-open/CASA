@@ -65,6 +65,7 @@ class AppCredentials(BaseModel):
     """OAuth2 credentials for an application."""
 
     app_name: str = Field(description="Name of the application", alias="appName")
+    app_id: str = Field(description="Application UUID", alias="appId")
     client_id: str = Field(description="OAuth2 client ID", alias="clientId")
     client_secret: str = Field(description="OAuth2 client secret", alias="clientSecret")
     secret_name: str = Field(description="Name of the K8s secret to create", alias="secretName")

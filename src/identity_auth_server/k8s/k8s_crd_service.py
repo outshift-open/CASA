@@ -133,9 +133,10 @@ class K8sCRDService:
                     credentials.append(
                         AppCredentials(
                             app_name=app.name,
+                            app_id=str(app.id),
                             client_id=app.client_credentials.client_id,
                             client_secret=app.client_credentials.client_secret or "",
-                            secret_name=f"{app.name}-oauth2-credentials",
+                            secret_name=f"{app.id}-oauth2-credentials",
                         )
                     )
             except Exception as e:
