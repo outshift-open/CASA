@@ -17,6 +17,7 @@ This is the **planned production architecture**, architecturally equivalent to I
 ## How It Works
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph LR
     Application --> Sidecar["ZTA Sidecar\n(Cilium node daemonset)"]
     Sidecar --> ZTA["ZTA Control Plane"]

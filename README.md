@@ -21,6 +21,7 @@ Enforcement happens through sidecars injected into each MAS pod and an eBPF-base
 ### Global
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph TB
     subgraph "Kubernetes Cluster"
         subgraph "zta-control-plane"

@@ -20,6 +20,7 @@ An init container runs first to configure iptables rules that redirect all inbou
 ## Traffic Interception
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 flowchart TB
     subgraph Pod
         IN["Port 15001 (inbound proxy)"]
@@ -74,26 +75,6 @@ The sidecar enforces that agents only use allowed protocols:
 | `client` | MCP, A2A |
 
 Requests to paths that do not match allowed protocol patterns are rejected with a 403 before the control plane is consulted.
-
-## Sidecar Configuration
-
-The sidecar is configured via environment variables and a mounted ConfigMap:
-
-```yaml
-config.yaml: |
-  app_id: "my-agent-abc123"
-  control_plane_url: "https://zta-auth-service.zta-control-plane.svc.cluster.local:8443"
-  allowed_protocols:
-    - mcp
-    - a2a
-  token_cache_ttl: 30s
-  fail_mode: closed
-  log_level: info
-```
-
-Pod labels used by the injector:
-- `zta.io/app-type: agent` / `mcp_server` / `client` — determines allowed protocols
-- `zta.io/app-id: <id>` — identifies the application in the control plane
 
 ## Istio ext-authz Middleware
 

@@ -23,6 +23,7 @@ Every application in a MAS has one of three types:
 A typical MAS looks like this:
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph LR
     client -->|MCP/A2A| agent
     agent -->|MCP| mcp_server_1
