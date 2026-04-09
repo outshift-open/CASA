@@ -102,7 +102,50 @@ class K8sCRDService:
         )
 
     def create_mas_from_crd(self, request: MASCreateRequest) -> MultiAgentSystemCRD:
-        """Create a new MultiAgentSystem from CRD request."""
+        """Create a new MultiAgentSystem from CRD request (idempotent)."""
+        # Check if MAS already exists (by k8s_name and namespace)
+        try:
+            existing_mas = self._mas_service._mas_repository.get_by_name_and_namespace(
+                request.metadata.name, request.metadata.namespace
+            )
+            logger.info(f"MAS {request.metadata.name} already exists in namespace {request.metadata.namespace}")
+            mas = existing_mas
+
+            # Get existing apps
+            existing_apps = self._app_service.get_mas_apps(str(mas.id))
+            credentials = []
+
+            # Return credentials for existing apps
+            for app in existing_apps:
+                if app.client_credentials:
+                    credentials.append(
+                        AppCredentials(
+                            app_name=app.name,
+                            app_id=str(app.id),
+                            client_id=app.client_credentials.client_id,
+                            client_secret=app.client_credentials.client_secret or "",
+                            secret_name=f"{app.id}-oauth2-credentials",
+                        )
+                    )
+
+            # Build CRD response with existing data
+            crd = self._mas_to_crd(mas, namespace=request.metadata.namespace)
+            crd.metadata.uid = str(mas.id)
+            crd.status = MultiAgentSystemStatus(
+                phase=MASPhase.ACTIVE,
+                apps_ready=len(existing_apps),
+                last_sync_time=datetime.now(timezone.utc),
+                message=f"MAS already exists with {len(existing_apps)} apps",
+                credentials=credentials if credentials else None,
+            )
+            return crd
+
+        except ValueError:
+            # MAS doesn't exist, create it
+            logger.info(f"Creating new MAS {request.metadata.name} in namespace {request.metadata.namespace}")
+            pass
+
+        # Create new MAS
         mas = self._mas_service.create_mas(
             MultiAgentSystemCreateRequest(
                 name=request.spec.name,
