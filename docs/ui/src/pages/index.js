@@ -21,7 +21,7 @@ function HomepageHeader() {
           <Link
             className="button button--outline button--lg"
             style={{ marginLeft: '1rem', color: 'white', borderColor: 'white' }}
-            to="/architecture/architecture-overview">
+            to="/architecture/overview">
             Architecture
           </Link>
         </div>

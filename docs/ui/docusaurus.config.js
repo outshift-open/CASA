@@ -75,9 +75,9 @@ const config = {
           {
             title: 'Docs',
             items: [
-              { label: 'Overview', to: '/' },
+              { label: 'Overview', to: '/overview' },
               { label: 'Quick Start', to: '/installation/prerequisites' },
-              { label: 'Architecture', to: '/architecture/architecture-overview' },
+              { label: 'Architecture', to: '/architecture/overview' },
             ],
           },
           {
@@ -89,7 +89,7 @@ const config = {
               },
               {
                 label: 'Contributing',
-                to: '/contributing/contributing',
+                to: '/contributing',
               },
             ],
           },
