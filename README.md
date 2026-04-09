@@ -53,7 +53,7 @@ graph TB
             AGS -->|"MCP"| MCPS
         end
 
-        EBPF["Cilium eBPF\n(L4/L7 enforcement\nJWT extraction)"]
+        EBPF["eBPF\n(L4/L7 enforcement\nJWT extraction)"]
         EBPF -.->|enforces| CLS
         EBPF -.->|enforces| AGS
         EBPF -.->|enforces| MCPS

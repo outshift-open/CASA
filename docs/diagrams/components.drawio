@@ -180,8 +180,8 @@
       <mxGeometry x="1015" y="490" width="200" height="148" as="geometry" />
     </mxCell>
 
-    <!-- ── Cilium eBPF bar -->
-    <mxCell id="ebpf_bar" value="&lt;b&gt;Cilium eBPF&lt;/b&gt;&lt;br/&gt;&lt;font color='#ff6b6b' style='font-size: 11px;'&gt;L4/L7 Enforcement · JWT Extraction&lt;/font&gt;" style="rounded=1;arcSize=6;strokeColor=#ff6b6b;strokeWidth=3;fillColor=#450a0a;fontColor=#f1f5f9;fontSize=15;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;shadow=1;" vertex="1" parent="1">
+    <!-- ── eBPF bar -->
+    <mxCell id="ebpf_bar" value="&lt;b&gt;eBPF&lt;/b&gt;&lt;br/&gt;&lt;font color='#ff6b6b' style='font-size: 11px;'&gt;L4/L7 Enforcement · JWT Extraction&lt;/font&gt;" style="rounded=1;arcSize=6;strokeColor=#ff6b6b;strokeWidth=3;fillColor=#450a0a;fontColor=#f1f5f9;fontSize=15;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;shadow=1;" vertex="1" parent="1">
       <mxGeometry x="455" y="690" width="810" height="100" as="geometry" />
     </mxCell>
 
