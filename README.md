@@ -51,7 +51,7 @@ graph TB
             AGS -->|"MCP"| MCPS
         end
 
-        EBPF["Cilium eBPF\n(L3/L4 enforcement\nJWT extraction)"]
+        EBPF["Cilium eBPF\n(L4/L7 enforcement\nJWT extraction)"]
         EBPF -.->|enforces| CLS
         EBPF -.->|enforces| AGS
         EBPF -.->|enforces| MCPS
@@ -67,19 +67,19 @@ graph TB
 
 **Components:**
 
-| Component | Description |
-|---|---|
-| **Auth Service** | Issues and exchanges OAuth2 tokens; runs tool authorization checks |
-| **ZTA Sidecar** | Envoy-based proxy injected into every MAS pod; intercepts all traffic |
-| **eBPF layer** | Cilium enforces deny-by-default network policies and extracts JWTs for observability |
-| **Keycloak** | Identity provider backing token cryptography |
-| **ZTA Explorer UI** | Admin dashboard for managing MAS registrations and viewing telemetry |
+| Component           | Description                                                                                                      |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Auth Service**    | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
+| **ZTA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
+| **eBPF layer**      | Cilium enforces deny-by-default network policies and extracts JWTs for observability                             |
+| **Keycloak**        | Identity provider backing token cryptography                                                                     |
+| **ZTA Explorer UI** | Admin dashboard for managing MAS registrations and viewing telemetry                                             |
 
 ---
 
 ## Core Concepts
 
-**Control Plane** — The ZTA control plane (`zta-control-plane` namespace) handles token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.
+**Control Plane** — The ZTA control plane (`zta-control-plane` namespace) handles agent identity (CIMD - Client Id Metadata), token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.
 
 **Multi-Agent System (MAS)** — A named group of applications (agents, MCP servers, and clients) that interact with each other inside a Kubernetes namespace. Each MAS is described by a `MultiAgentSystem` CRD.
 
@@ -101,6 +101,8 @@ graph TB
 - `kubectl` and `helm` installed
 - One of: Istio (v1.17+) or Cilium (v1.14+) installed in your cluster
 
+> Note: Currently only Istio is supported. Cilium support is on the roadmap.
+
 ### 1. Install the ZTA Control Plane
 
 ```bash
@@ -115,34 +117,32 @@ Wait for all pods to be ready:
 kubectl -n zta-control-plane wait --for=condition=ready pod --all --timeout=300s
 ```
 
-### 2. Register Your MAS
+### 2. Install the Demo MAS
 
-Apply a `MultiAgentSystem` CRD to declare your application topology:
+The demo MAS uses the following `MultiAgentSystem` CRD spec:
 
 ```yaml
 apiVersion: zta.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
-  name: my-mas
-  namespace: my-mas
+    name: my-mas
+    namespace: my-mas
 spec:
-  name: "My Multi-Agent System"
-  authorizationServer: "my-mas-realm"
-  enabledToolChecks:
-  - DETERMINISTIC_TOOL_SELECTED
-  - DETERMINISTIC_LLM_SELECTED_TOOLS
-  apps:
-  - name: my-agent
-    type: agent
-    baseUrl: "http://my-agent.my-mas.svc.cluster.local:8000"
-  - name: my-mcp-server
-    type: mcp_server
-    baseUrl: "http://my-mcp-server.my-mas.svc.cluster.local:8080"
+    name: "My Multi-Agent System"
+    authorizationServer: "my-mas-realm"
+    enabledToolChecks:
+        - DETERMINISTIC_TOOL_SELECTED
+        - DETERMINISTIC_LLM_SELECTED_TOOLS
+    apps:
+        - name: my-agent
+          type: agent
+          baseUrl: "http://my-agent.my-mas.svc.cluster.local:8000"
+        - name: my-mcp-server
+          type: mcp_server
+          baseUrl: "http://my-mcp-server.my-mas.svc.cluster.local:8080"
 ```
 
-### 3. Install the Demo MAS (optional)
-
-To explore ZTA with a working demo:
+To explore ZTA with the demo MAS, install it with Helm:
 
 ```bash
 # Edit demo/k8s/helm/values.yaml to add your OpenAI-compatible API key
@@ -159,7 +159,7 @@ helm install zta-mas demo/k8s/helm/ \
 kubectl label namespace my-mas istio-injection=enabled
 ```
 
-**Cilium mode:**
+**Cilium mode:** (Not yet supported, coming soon)
 
 ```bash
 kubectl label namespace my-mas zta.io/injection=enabled
@@ -182,19 +182,18 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 
 ## Repository Structure
 
-| Path | Description |
-|---|---|
-| `deployments/k8s/helm/zta-control-plane/` | ZTA control plane Helm chart |
-| `deployments/k8s/crds/` | CRD examples and API reference |
-| `demo/k8s/helm/` | Demo MAS Helm chart (agent + MCP server) |
-| `demo/k8s/agent/` | Demo agent source code |
-| `demo/k8s/mcp/` | Demo MCP server source code |
-| `ext_authz_middleware/` | Istio ext-authz middleware (Go) |
-| `src/identity_auth_server/` | Auth service Python source |
-| `zta-explorer-ui/` | Admin UI source (React) |
-| `sdk/` | Python SDK for ZTA integration |
-| `docs/ui/` | Docusaurus documentation portal |
-| `contrib/wip/it1/` | Architecture specs and design documents |
+| Path                                      | Description                              |
+| ----------------------------------------- | ---------------------------------------- |
+| `deployments/k8s/helm/zta-control-plane/` | ZTA control plane Helm chart             |
+| `deployments/k8s/crds/`                   | CRD examples and API reference           |
+| `demo/k8s/helm/`                          | Demo MAS Helm chart (agent + MCP server) |
+| `demo/src/agent/`                         | Demo agent source code                   |
+| `demo/src/mcp/`                           | Demo MCP server source code              |
+| `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)          |
+| `src/identity_auth_server/`               | Auth service Python source               |
+| `zta-explorer-ui/`                        | Admin UI source (React)                  |
+| `docs/ui/`                                | Docusaurus documentation portal          |
+| `contrib/wip/it1/`                        | Architecture specs and design documents  |
 
 ---
 
