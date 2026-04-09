@@ -13,7 +13,7 @@ This is the **currently deployed mode** for existing ZTA cluster environments.
 ## How It Works
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'background': '#0f172a', 'edgeLabelBackground': '#0f172a'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph LR
     Application --> Envoy["Envoy (Istio sidecar)"]
     Envoy --> ext_authz["ext_authz_middleware (Go gRPC)"]

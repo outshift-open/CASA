@@ -20,7 +20,7 @@ An init container runs first to configure iptables rules that redirect all inbou
 ## Traffic Interception
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': {'background': '#0f172a', 'edgeLabelBackground': '#0f172a'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 flowchart TB
     subgraph Pod
         IN["Port 15001 (inbound proxy)"]
