@@ -2,6 +2,7 @@
 id: contributing
 sidebar_position: 1
 title: Contributing
+slug: /contributing
 ---
 
 # Contributing to ZTA
