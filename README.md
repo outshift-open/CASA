@@ -67,6 +67,8 @@ graph TB
 
 **Components:**
 
+![ZTA Components](docs/diagrams/components.png)
+
 | Component           | Description                                                                                                      |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Auth Service**    | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
@@ -151,7 +153,7 @@ helm install zta-mas demo/k8s/helm/ \
   --create-namespace
 ```
 
-### 4. Enable Sidecar Injection
+### 3. Enable Sidecar Injection
 
 **Istio mode:**
 
@@ -165,7 +167,7 @@ kubectl label namespace my-mas istio-injection=enabled
 kubectl label namespace my-mas zta.io/injection=enabled
 ```
 
-### 5. Verify
+### 4. Verify
 
 ```bash
 # Check control plane health
