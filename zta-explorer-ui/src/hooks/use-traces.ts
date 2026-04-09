@@ -1,9 +1,9 @@
 import {useQuery} from '@tanstack/react-query';
 import {traceService} from '@/services/trace.service';
 
-export const useTraces = () => {
+export const useTraces = (masId?: string, page = 1, pageSize = 100) => {
     return useQuery({
-        queryKey: ['traces'],
-        queryFn: () => traceService.getTraces()
+        queryKey: ['traces', masId, page, pageSize],
+        queryFn: () => traceService.getTraces(page, pageSize, masId)
     });
 };

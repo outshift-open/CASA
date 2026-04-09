@@ -66,7 +66,7 @@ export function MASDetailPage() {
                                     {activeTab === 'info' && <MASInfoTab mas={mas} />}
                                     {activeTab === 'apps' && <MASAppsTab mas={mas} />}
                                     {activeTab === 'scopes' && <MASScopesTab mas={mas} />}
-                                    {activeTab === 'traces' && <MASTracesTab />}
+                                    {activeTab === 'traces' && <MASTracesTab masId={id || ''} />}
                                 </CardContent>
                             </Card>
                         </div>

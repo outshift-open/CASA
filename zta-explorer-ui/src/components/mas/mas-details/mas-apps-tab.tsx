@@ -56,14 +56,14 @@ export function MASAppsTab({mas}: MASAppsTabProps) {
             ) : (
                 <Card>
                     <CardContent className="pt-6">
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                            <div className="rounded-full bg-muted p-3 mb-4">
-                                <AppWindow className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+                            <AppWindow className="h-10 w-10 opacity-40" />
+                            <div className="text-center">
+                                <p className="text-sm font-medium">No applications</p>
+                                <p className="text-xs mt-1">
+                                    This MAS doesn't have any applications associated with it
+                                </p>
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">No Applications</h3>
-                            <p className="text-sm text-muted-foreground max-w-sm">
-                                This Multi-Agent System doesn't have any applications associated with it.
-                            </p>
                         </div>
                     </CardContent>
                 </Card>

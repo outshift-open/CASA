@@ -1,7 +1,6 @@
 import {useState} from 'react';
 import {useMASScopes} from '@/hooks/use-scopes';
 import {Card, CardContent} from '@/components/ui/card';
-import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Skeleton} from '@/components/ui/skeleton';
 import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
@@ -107,25 +106,16 @@ export function MASScopesTab({mas}: MASScopesTabProps) {
                                 {filteredScopes.map((scope) => (
                                     <div
                                         key={scope.id}
-                                        className="flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors"
+                                        className="flex items-center gap-3 px-4 py-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                                        onClick={() => navigate(`/scopes/${scope.id}`)}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                                <Tags className="h-5 w-5 text-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold">{scope.name}</p>
-                                                <p className="text-xs text-muted-foreground font-mono">{scope.id}</p>
-                                            </div>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                                            <Tags className="h-5 w-5 text-primary" />
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => navigate(`/scopes/${scope.id}`)}
-                                            className="cursor-pointer"
-                                        >
-                                            View
-                                        </Button>
+                                        <div>
+                                            <p className="font-semibold">{scope.name}</p>
+                                            <p className="text-xs text-muted-foreground font-mono">{scope.id}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -135,14 +125,12 @@ export function MASScopesTab({mas}: MASScopesTabProps) {
             ) : (
                 <Card>
                     <CardContent className="pt-6">
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                            <div className="rounded-full bg-muted p-3 mb-4">
-                                <Tags className="h-6 w-6 text-muted-foreground" />
+                        <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+                            <Tags className="h-10 w-10 opacity-40" />
+                            <div className="text-center">
+                                <p className="text-sm font-medium">No scopes</p>
+                                <p className="text-xs mt-1">This MAS doesn't have any scopes configured</p>
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">No Scopes</h3>
-                            <p className="text-sm text-muted-foreground max-w-sm">
-                                This Multi-Agent System doesn't have any scopes configured.
-                            </p>
                         </div>
                     </CardContent>
                 </Card>

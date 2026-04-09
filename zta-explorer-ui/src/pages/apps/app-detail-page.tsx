@@ -2,11 +2,12 @@ import {useParams, useNavigate} from 'react-router-dom';
 import {useAppById} from '@/hooks/use-apps';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {Network, Copy, Download, Wrench, ExternalLink, Info, Search} from 'lucide-react';
+import {Network, Copy, Download, Wrench, ExternalLink, Info, Search, Bot, AppWindow, Server} from 'lucide-react';
 import {toast} from 'sonner';
 import {useState} from 'react';
 import type {AppType, Tool} from '@/types/app.types';
@@ -17,11 +18,11 @@ function formatRelativeTime(dateString: string): string {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) return 'just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-    if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
-    return `${Math.floor(diffInSeconds / 31536000)} years ago`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+    return `${Math.floor(diffInSeconds / 31536000)}y ago`;
 }
 
 const APP_TYPE_LABELS: Record<AppType, string> = {
@@ -29,6 +30,27 @@ const APP_TYPE_LABELS: Record<AppType, string> = {
     client: 'Client',
     mcp_server: 'MCP Server'
 };
+
+const APP_TYPE_ICONS: Record<AppType, React.ComponentType<{className?: string}>> = {
+    agent: Bot,
+    client: AppWindow,
+    mcp_server: Server
+};
+
+const APP_TYPE_COLORS: Record<AppType, string> = {
+    agent: 'text-blue-500',
+    client: 'text-green-500',
+    mcp_server: 'text-purple-500'
+};
+
+function safeJsonPretty(raw: string | undefined | null): string {
+    if (!raw) return '{}';
+    try {
+        return JSON.stringify(JSON.parse(raw), null, 2);
+    } catch {
+        return raw;
+    }
+}
 
 export function AppDetailPage() {
     const {id} = useParams<{id: string}>();
@@ -45,25 +67,11 @@ export function AppDetailPage() {
 
     const exportConfig = () => {
         if (!app) return;
-
         const config = {
-            app: {
-                id: app.id,
-                name: app.name,
-                type: app.type,
-                base_url: app.base_url,
-                mas_id: app.mas_id,
-                created_at: app.created_at
-            },
-            mas: app.mas
-                ? {
-                      id: app.mas.id,
-                      name: app.mas.name
-                  }
-                : null,
+            app: {id: app.id, name: app.name, type: app.type, base_url: app.base_url, mas_id: app.mas_id},
+            mas: app.mas ? {id: app.mas.id, name: app.mas.name} : null,
             tools: app.tools
         };
-
         const blob = new Blob([JSON.stringify(config, null, 2)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -71,10 +79,9 @@ export function AppDetailPage() {
         link.download = `${app.name}-config.json`;
         link.click();
         URL.revokeObjectURL(url);
-        toast.success('Configuration exported successfully');
+        toast.success('Configuration exported');
     };
 
-    // Check if this app has tools (only MCP servers have tools)
     const hasTools = app?.type === 'mcp_server' && (app?.tools?.length ?? 0) > 0;
 
     return (
@@ -118,125 +125,142 @@ export function AppDetailPage() {
                                         </TabsList>
                                     </Tabs>
                                 </CardHeader>
+
                                 <CardContent>
                                     {activeTab === 'info' && (
-                                        <Card>
-                                            <CardHeader>
-                                                <div className="flex items-start justify-between">
+                                        <div className="space-y-6">
+                                            {/* Metadata row */}
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="grid gap-4 sm:grid-cols-2 flex-1">
+                                                    {/* Type */}
                                                     <div className="space-y-1">
-                                                        <CardTitle>Basic Information</CardTitle>
-                                                        <CardDescription>
-                                                            Core details about this application
-                                                        </CardDescription>
+                                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                                            Type
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            {(() => {
+                                                                const Icon = APP_TYPE_ICONS[app.type];
+                                                                return (
+                                                                    <Icon
+                                                                        className={`h-4 w-4 ${APP_TYPE_COLORS[app.type]}`}
+                                                                    />
+                                                                );
+                                                            })()}
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {APP_TYPE_LABELS[app.type]}
+                                                            </Badge>
+                                                        </div>
                                                     </div>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={exportConfig}
-                                                        className="cursor-pointer"
-                                                    >
-                                                        <Download className="mr-2 h-3 w-3" />
-                                                        Export Config
-                                                    </Button>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="grid gap-6 md:grid-cols-2">
-                                                    <div className="space-y-4">
-                                                        <div className="space-y-2">
-                                                            <p className="text-sm font-medium text-muted-foreground">
-                                                                Name
-                                                            </p>
-                                                            <p className="text-base font-semibold">{app.name}</p>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <p className="text-sm font-medium text-muted-foreground">
-                                                                Type
-                                                            </p>
-                                                            <p className="text-base">{APP_TYPE_LABELS[app.type]}</p>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <p className="text-sm font-medium text-muted-foreground">
-                                                                Base URL
-                                                            </p>
-                                                            <p className="text-base font-mono text-sm">
+
+                                                    {/* Base URL */}
+                                                    <div className="space-y-1">
+                                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                                            Base URL
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[220px]">
                                                                 {app.base_url}
-                                                            </p>
+                                                            </code>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6 cursor-pointer flex-shrink-0"
+                                                                onClick={() =>
+                                                                    copyToClipboard(app.base_url, 'Base URL')
+                                                                }
+                                                            >
+                                                                <Copy className="h-3 w-3" />
+                                                            </Button>
                                                         </div>
                                                     </div>
-                                                    <div className="space-y-4">
-                                                        <div className="space-y-2">
-                                                            <p className="text-sm font-medium text-muted-foreground">
-                                                                Multi-Agent System
-                                                            </p>
-                                                            {app.mas ? (
-                                                                <div
-                                                                    className="flex items-center gap-2 cursor-pointer text-base group"
-                                                                    onClick={() => navigate(`/mas/${app.mas_id}`)}
-                                                                >
-                                                                    <Network className="h-4 w-4 text-muted-foreground" />
-                                                                    <div className="flex flex-col">
-                                                                        <span className="font-semibold underline decoration-dotted group-hover:decoration-solid">
-                                                                            {app.mas.name}
-                                                                        </span>
-                                                                        <span className="font-mono text-xs text-muted-foreground">
-                                                                            {app.mas.id}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-base text-muted-foreground">-</p>
-                                                            )}
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between">
-                                                                <p className="text-sm font-medium text-muted-foreground">
-                                                                    Application ID
-                                                                </p>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() =>
-                                                                        copyToClipboard(app.id || '', 'Application ID')
-                                                                    }
-                                                                    className="cursor-pointer h-6 px-2"
-                                                                >
-                                                                    <Copy className="h-3 w-3" />
-                                                                </Button>
-                                                            </div>
-                                                            <p className="text-xs font-mono bg-muted px-2 py-1 rounded">
+
+                                                    {/* App ID */}
+                                                    <div className="space-y-1">
+                                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                                            App ID
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[220px]">
                                                                 {app.id}
-                                                            </p>
+                                                            </code>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6 cursor-pointer flex-shrink-0"
+                                                                onClick={() => copyToClipboard(app.id || '', 'App ID')}
+                                                            >
+                                                                <Copy className="h-3 w-3" />
+                                                            </Button>
                                                         </div>
-                                                        {app.created_at && (
-                                                            <div className="space-y-2">
-                                                                <p className="text-sm font-medium text-muted-foreground">
-                                                                    Created
+                                                    </div>
+
+                                                    {/* Created */}
+                                                    {app.created_at && (
+                                                        <div className="space-y-1">
+                                                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                                                Created
+                                                            </p>
+                                                            <div>
+                                                                <p className="text-sm font-medium">
+                                                                    {formatRelativeTime(app.created_at)}
                                                                 </p>
-                                                                <div>
-                                                                    <p className="text-base">
-                                                                        {formatRelativeTime(app.created_at)}
-                                                                    </p>
-                                                                    <p className="text-xs text-muted-foreground">
-                                                                        {new Date(app.created_at).toLocaleString()}
-                                                                    </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {new Date(app.created_at).toLocaleString()}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* MAS */}
+                                                    <div className="space-y-1">
+                                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                                            Multi-Agent System
+                                                        </p>
+                                                        {app.mas ? (
+                                                            <div
+                                                                className="flex items-center gap-2 cursor-pointer group w-fit"
+                                                                onClick={() => navigate(`/mas/${app.mas_id}`)}
+                                                            >
+                                                                <Network className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-medium underline decoration-dotted group-hover:decoration-solid">
+                                                                        {app.mas.name}
+                                                                    </span>
+                                                                    <span className="font-mono text-xs text-muted-foreground">
+                                                                        {app.mas.id}
+                                                                    </span>
                                                                 </div>
                                                             </div>
+                                                        ) : (
+                                                            <p className="text-sm text-muted-foreground">—</p>
                                                         )}
                                                     </div>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
+
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={exportConfig}
+                                                    className="cursor-pointer flex-shrink-0"
+                                                >
+                                                    <Download className="mr-2 h-3 w-3" />
+                                                    Export
+                                                </Button>
+                                            </div>
+                                        </div>
                                     )}
 
                                     {activeTab === 'tools' && app.type === 'mcp_server' && (
                                         <div className="space-y-3">
                                             {!hasTools ? (
-                                                <div className="flex flex-col items-center justify-center py-8 gap-3">
-                                                    <Wrench className="h-10 w-10 text-muted-foreground opacity-40" />
-                                                    <p className="text-sm font-medium text-muted-foreground">
-                                                        No tools defined for this MCP server
-                                                    </p>
+                                                <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+                                                    <Wrench className="h-10 w-10 opacity-40" />
+                                                    <div className="text-center">
+                                                        <p className="text-sm font-medium">No tools defined</p>
+                                                        <p className="text-xs mt-1">
+                                                            This MCP server has no tools configured
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <>
@@ -276,12 +300,11 @@ export function AppDetailPage() {
                                                                                 <p className="font-semibold text-foreground">
                                                                                     {tool.name}
                                                                                 </p>
-                                                                                <p className="text-sm text-muted-foreground mt-1">
-                                                                                    {tool.description}
-                                                                                </p>
-                                                                                <p className="text-xs text-muted-foreground mt-2">
-                                                                                    Click to view schemas
-                                                                                </p>
+                                                                                {tool.description && (
+                                                                                    <p className="text-sm text-muted-foreground mt-1">
+                                                                                        {tool.description}
+                                                                                    </p>
+                                                                                )}
                                                                             </div>
                                                                         </div>
                                                                         {tool.scopes && tool.scopes.length > 0 && (
@@ -299,7 +322,7 @@ export function AppDetailPage() {
                                                                                                     `/scopes/${scope.id}`
                                                                                                 );
                                                                                             }}
-                                                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-medium cursor-pointer transition-all hover:scale-105"
+                                                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-medium cursor-pointer transition-colors"
                                                                                         >
                                                                                             <span>{scope.name}</span>
                                                                                             <ExternalLink className="h-3 w-3 opacity-70" />
@@ -334,17 +357,16 @@ export function AppDetailPage() {
                     </DialogHeader>
 
                     <div className="space-y-6 mt-4">
-                        {/* Input Schema */}
                         <div>
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-sm font-semibold text-foreground">Input Schema</h3>
+                                <h3 className="text-sm font-semibold">Input Schema</h3>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
                                         if (selectedTool?.input_schema) {
                                             navigator.clipboard.writeText(selectedTool.input_schema);
-                                            toast.success('Input schema copied to clipboard');
+                                            toast.success('Input schema copied');
                                         }
                                     }}
                                     className="cursor-pointer h-8 px-2"
@@ -353,25 +375,20 @@ export function AppDetailPage() {
                                 </Button>
                             </div>
                             <pre className="p-4 rounded-lg bg-muted text-xs overflow-x-auto">
-                                <code>
-                                    {selectedTool?.input_schema
-                                        ? JSON.stringify(JSON.parse(selectedTool.input_schema), null, 2)
-                                        : '{}'}
-                                </code>
+                                <code>{safeJsonPretty(selectedTool?.input_schema)}</code>
                             </pre>
                         </div>
 
-                        {/* Output Schema */}
                         <div>
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-sm font-semibold text-foreground">Output Schema</h3>
+                                <h3 className="text-sm font-semibold">Output Schema</h3>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
                                         if (selectedTool?.output_schema) {
                                             navigator.clipboard.writeText(selectedTool.output_schema);
-                                            toast.success('Output schema copied to clipboard');
+                                            toast.success('Output schema copied');
                                         }
                                     }}
                                     className="cursor-pointer h-8 px-2"
@@ -380,11 +397,7 @@ export function AppDetailPage() {
                                 </Button>
                             </div>
                             <pre className="p-4 rounded-lg bg-muted text-xs overflow-x-auto">
-                                <code>
-                                    {selectedTool?.output_schema
-                                        ? JSON.stringify(JSON.parse(selectedTool.output_schema), null, 2)
-                                        : '{}'}
-                                </code>
+                                <code>{safeJsonPretty(selectedTool?.output_schema)}</code>
                             </pre>
                         </div>
                     </div>
