@@ -78,9 +78,6 @@ class K8sCRDService:
         # Build app specs
         app_specs = [AppSpec(name=app.name, type=AppTypeK8s(app.type), base_url=app.base_url) for app in apps]
 
-        # Get realm name from authorization server
-        realm = mas.authorization_server.realm if mas.authorization_server else f"mas-{mas.id}"
-
         # Build status
         status = MultiAgentSystemStatus(
             phase=MASPhase.ACTIVE,
@@ -98,7 +95,6 @@ class K8sCRDService:
             ),
             spec=MultiAgentSystemSpec(
                 name=mas.name,
-                authorizationServer=realm,
                 enabled_tool_checks=self._convert_flags_to_tool_checks(mas.enabled_tool_checks or ToolCheckFlags.NONE),
                 apps=app_specs,
             ),

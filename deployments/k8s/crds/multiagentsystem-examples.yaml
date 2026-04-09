@@ -7,7 +7,6 @@ metadata:
   namespace: production-mas
 spec:
   name: "Production Multi-Agent System"
-  authorizationServer: "production-realm"
   enabledToolChecks:
   - DETERMINISTIC_TOOL_SELECTED
   - DETERMINISTIC_LLM_SELECTED_TOOLS
@@ -35,7 +34,6 @@ metadata:
   namespace: dev-mas
 spec:
   name: "Development Multi-Agent System"
-  authorizationServer: "dev-realm"
   enabledToolChecks:
   - DETERMINISTIC_TOOL_SELECTED
   apps:
@@ -58,7 +56,6 @@ metadata:
   namespace: default
 spec:
   name: "Simple Multi-Agent System"
-  authorizationServer: "simple-realm"
   apps:
   - name: simple-client
     type: client

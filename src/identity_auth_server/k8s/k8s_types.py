@@ -46,7 +46,6 @@ class MultiAgentSystemSpec(BaseModel):
     """Specification for MultiAgentSystem CRD."""
 
     name: str = Field(description="Display name of the Multi-Agent System")
-    authorization_server: str = Field(description="Keycloak realm name for this MAS", alias="authorizationServer")
     enabled_tool_checks: List[ToolCheckType] = Field(
         default_factory=lambda: [
             ToolCheckType.DETERMINISTIC_TOOL_SELECTED,
