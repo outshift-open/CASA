@@ -21,6 +21,7 @@ Tokens are short-lived (5-minute TTL) and are single-purpose — a T2 LLM token 
 ## Full Token Exchange Sequence
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1e293b', 'primaryTextColor': '#f1f5f9', 'primaryBorderColor': '#475569', 'lineColor': '#64748b', 'background': '#0a0f1e', 'secondaryColor': '#134e4a', 'tertiaryColor': '#1a2e05', 'noteBkgColor': '#134e4a', 'noteTextColor': '#f1f5f9', 'activationBkgColor': '#1a2e05', 'activationBorderColor': '#84cc16', 'actorBkg': '#1e293b', 'actorBorder': '#475569', 'actorTextColor': '#f1f5f9', 'signalColor': '#84cc16', 'signalTextColor': '#f1f5f9'}}}%%
 sequenceDiagram
     participant User
     participant Client

@@ -97,7 +97,7 @@ Pod labels used by the injector:
 
 ## Istio ext-authz Middleware
 
-In Istio mode, the external authorization check is handled by the `ext_authz_middleware` service (`ext_authz_middleware/` in the repo). This is a Go gRPC service that:
+In Istio mode, the external authorization check is handled by the `ext_authz_middleware` — a Go gRPC service bundled in the `zta-control-plane` Helm chart. It:
 
 1. Receives authorization check requests from Envoy's ext_authz filter
 2. Extracts the trace ID from the `traceparent` header (W3C trace context)
@@ -105,4 +105,4 @@ In Istio mode, the external authorization check is handled by the `ext_authz_mid
 4. On subsequent requests: performs token-based access control (TBAC) verification
 5. Returns ALLOW or DENY to Envoy
 
-The middleware also integrates with OpenTelemetry for distributed tracing (Jaeger).
+Telemetry and traces are visible in the **ZTA Explorer UI**.

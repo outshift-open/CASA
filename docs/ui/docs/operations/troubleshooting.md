@@ -110,13 +110,11 @@ kubectl rollout restart deploy/your-deployment -n your-mas-namespace
 
 ### Traffic being dropped unexpectedly
 
-```bash
-# Check Hubble flow logs for drops
-cilium hubble observe --namespace your-mas-namespace --verdict DROPPED
+Use the **ZTA Explorer UI** to inspect flow verdicts and token denials:
 
-# Check which policy is dropping the traffic
-cilium hubble observe --namespace your-mas-namespace --verdict DROPPED -o json | \
-  jq '.flow.policy_match_reason'
+```bash
+kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80
+# Open http://localhost:8080 → Traces
 ```
 
 ### Policy not created from ZTAPolicy CRD

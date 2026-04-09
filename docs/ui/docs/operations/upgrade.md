@@ -43,14 +43,7 @@ For `v1alpha1` → stable version upgrades:
 
 ## Upgrading Sidecars (Istio mode)
 
-After a control plane upgrade, update the ext-authz middleware:
-
-```bash
-cd ext_authz_middleware/helm/ext-authz-middleware/
-helm upgrade ext-authz-middleware -f values.yaml . --namespace your-mas-namespace
-```
-
-Then trigger a rolling restart of your MAS workloads so Istio re-injects with the latest configuration:
+The ext-authz middleware is bundled in the `zta-control-plane` chart and upgrades automatically with `helm upgrade`. After a control plane upgrade, trigger a rolling restart of your MAS workloads so Istio re-injects with the latest configuration:
 
 ```bash
 kubectl rollout restart deploy/your-agent -n your-mas-namespace

@@ -115,7 +115,7 @@ ZTA supports two dataplane options:
 
 | Mode | Sidecar Injection | L7 Enforcement | L4/L7 + eBPF | Status |
 |---|---|---|---|---|
-| **Istio** | Istio automatic injection | `ext_authz_middleware` (Go) | Istio NetworkPolicy + eBPF (node kernel) | Current |
+| **Istio** | Istio automatic injection | `ext_authz_middleware` (Go) | eBPF (node kernel) | Current |
 | **Cilium** | Node-level daemonset | ZTA sidecar (Envoy + Lua) | ZTAPolicy + eBPF (integrated) | Coming soon (Roadmap) |
 
 See [Deployment Modes](/deployment-modes/istio) for setup guides.

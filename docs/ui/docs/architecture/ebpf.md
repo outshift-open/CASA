@@ -8,7 +8,7 @@ title: eBPF Enforcement
 
 ZTA uses eBPF for L4/L7 network enforcement and JWT observability. eBPF programs run at the kernel level on any Kubernetes node with eBPF enabled (kernel 5.8+), independently of the CNI.
 
-In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs, adding Hubble for flow observability.
+In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs. Observability and tracing are provided by the **ZTA Explorer UI** in both modes.
 
 ## What eBPF Handles
 
@@ -23,7 +23,7 @@ In the current **Istio deployment**, eBPF enforcement uses the node kernel direc
 | Token exchange | — | ✅ | ✅ |
 | Protocol enforcement (MCP/A2A) | — | ✅ | — |
 | L7 request/response logging | — | ✅ | — |
-| Flow logging | ✅ (Hubble) | — | — |
+| Flow logging | ✅ (ZTA Explorer UI) | — | — |
 
 ⚠️ = partial or experimental
 
@@ -126,13 +126,11 @@ Full JWT validation (claims, expiry, scopes) is **not** done in eBPF — the com
 ## Observability Stack
 
 :::info Roadmap
-Hubble-based flow observability is available in the planned Cilium deployment mode. In Istio mode, distributed tracing is provided via OpenTelemetry + Jaeger.
+Deeper eBPF flow observability (token-correlated flow logs) is available in the planned Cilium deployment mode.
 :::
 
-Cilium's Hubble component provides:
-- Real-time flow logs (source/destination pod, protocol, verdict)
-- L7 HTTP visibility (method, path, status code)
-- Network policy verdict tracking (allowed/denied per policy)
-- Service dependency graph
-
-Hubble flows can be exported to the ZTA Telemetry Service for correlation with token events.
+Observability and tracing for both deployment modes are provided by the **ZTA Explorer UI**, which surfaces:
+- Real-time token event logs (issuance, exchange, introspection)
+- Tool check decisions and denial reasons
+- Per-MAS telemetry traces correlated with user prompts
+- Network flow verdicts (ALLOWED / DENIED) correlated with token metadata

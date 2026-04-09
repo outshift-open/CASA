@@ -12,7 +12,7 @@ Cilium deployment mode is **not yet available**. This page describes the planned
 
 In Cilium mode, ZTA uses Cilium's node-level daemonset for both sidecar traffic interception and eBPF enforcement — no per-pod injection webhook is needed.
 
-This is the **planned production architecture**, architecturally equivalent to Istio + eBPF but with tighter integration and Hubble observability.
+This is the **planned production architecture**, architecturally equivalent to Istio + eBPF but with tighter Cilium integration. Observability is provided by the **ZTA Explorer UI** in both modes.
 
 ## How It Works
 
@@ -38,8 +38,7 @@ graph LR
 ## Prerequisites
 
 - Cilium 1.14+ installed in your cluster
-- ZTA control plane installed
-- ZTA mutating webhook deployed (part of the control plane chart — enable via values)
+- ZTA control plane installed via the `zta-control-plane` Helm chart (includes all ZTA components and subcharts)
 
 ## Step 1: Label the Namespace
 
@@ -97,32 +96,23 @@ kubectl describe ztap agent-policy -n your-mas-namespace
 ## Step 4: Verify
 
 ```bash
-# Check Hubble flow logs
-cilium hubble observe --namespace your-mas-namespace
-
 # Verify an agent cannot reach an unlisted endpoint
 kubectl exec -n your-mas-namespace deploy/my-agent -- curl -s https://api.anthropic.com/
 # Expected: connection refused / timeout (blocked by eBPF enforcement)
 ```
 
-## eBPF JWT Observability
+## Observability
 
-To enable JWT extraction and flow logging with custom eBPF programs, refer to `contrib/wip/it1/SPECS.md` Section 5.5 for implementation details. This feature is currently in an experimental state and not yet bundled in the Helm chart.
-
-## Hubble for Flow Visibility
+Token events, tool check decisions, and flow verdicts are visible in the **ZTA Explorer UI**:
 
 ```bash
-# Enable Hubble UI
-cilium hubble enable --ui
-
-# Port-forward and open in browser
-cilium hubble ui
+kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80
+# Open http://localhost:8080
 ```
 
-Hubble provides:
-- Real-time flow logs per pod
-- Policy verdict (ALLOWED / DENIED) per connection
-- L7 HTTP visibility (method, path, status code)
+## eBPF JWT Observability
+
+JWT extraction and flow logging with custom eBPF programs is described in `contrib/wip/it1/SPECS.md` Section 5.5. This feature is currently experimental and will be bundled in a future chart version.
 
 ## Next Steps
 

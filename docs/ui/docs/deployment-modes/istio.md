@@ -29,13 +29,12 @@ graph LR
 1. Istio's sidecar injector automatically adds an Envoy proxy to each pod in labeled namespaces
 2. Envoy's `ext_authz` filter sends every request to the `ext_authz_middleware` service for authorization
 3. The middleware performs token operations (generation, validation) by calling the ZTA auth service
-4. The middleware integrates with OpenTelemetry for distributed tracing
+4. Telemetry and traces are surfaced in the **ZTA Explorer UI**
 
 ## Prerequisites
 
 - Istio 1.17+ installed in your cluster
-- ZTA control plane installed
-- `ext_authz_middleware` deployed (see below)
+- ZTA control plane installed via the `zta-control-plane` Helm chart (includes ext_authz_middleware and all subcharts)
 
 ## Step 1: Label the Namespace
 
@@ -54,57 +53,24 @@ cd demo/k8s/helm
 helm install zta-mas -f values.yaml . --namespace your-mas-namespace
 ```
 
-## Step 3: Deploy the ext-authz Middleware
-
-The ext-authz middleware is located at `ext_authz_middleware/helm/ext-authz-middleware/`.
-
-Before deploying, edit the CRD at `ext_authz_middleware/helm/ext-authz-middleware/crds/extauth_filter.yaml` and update the service hostname to match your namespace:
-
-```yaml
-# Change:
-ext-authz-middleware.zta-sidecar.svc.cluster.local
-# To:
-ext-authz-middleware.your-mas-namespace.svc.cluster.local
-```
-
-Then deploy:
-
-```bash
-cd ext_authz_middleware/helm/ext-authz-middleware/
-helm install ext-authz-middleware -f values.yaml . --namespace your-mas-namespace
-```
-
-## Step 4: Deploy OpenTelemetry + Jaeger (optional)
-
-For distributed tracing:
-
-```bash
-cd ext_authz_middleware/helm/otel-collector
-
-helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
-helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-
-helm install jaeger jaegertracing/jaeger \
-  -f jaeger.yaml \
-  --namespace your-mas-namespace
-
-helm install otel-collector open-telemetry/opentelemetry-collector \
-  -f otel.yaml \
-  --namespace your-mas-namespace \
-  --set image.repository="otel/opentelemetry-collector-k8s"
-```
-
-## Step 5: Verify
+## Step 3: Verify
 
 Test the end-to-end flow:
 
 ```bash
 kubectl -n your-mas-namespace exec -it \
-  $(kubectl -n your-mas-namespace get pods -o custom-columns=NAME:.metadata.name --no-headers | grep ext-authz-middleware) \
+  $(kubectl -n your-mas-namespace get pods -o custom-columns=NAME:.metadata.name --no-headers | grep client) \
   -- wget -qO- \
   --header 'content-type: application/json' \
   --post-data '{"content": "Get the account summary and scheduled payments"}' \
   http://zta-demo-agent:8082/chat
+```
+
+Then open the ZTA Explorer UI to view the resulting token events and tool check decisions:
+
+```bash
+kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80
+# Open http://localhost:8080
 ```
 
 ## How the ext-authz Middleware Works
@@ -127,6 +93,6 @@ The `traceparent` header follows the [W3C Trace Context](https://www.w3.org/TR/t
 | Sidecar | Istio Envoy | Custom ZTA Envoy |
 | Injection | Istio automatic injection | Node-level daemonset |
 | Auth enforcement | ext_authz_middleware (Go) | ZTA sidecar Lua filter |
-| L4/L7 + eBPF | Istio NetworkPolicy + eBPF (node kernel) | ZTAPolicy + eBPF (integrated) |
-| Observability | Jaeger (OTEL) | Hubble |
+| L4/L7 + eBPF | eBPF (node kernel) | ZTAPolicy + eBPF (integrated) |
+| Observability | ZTA Explorer UI | ZTA Explorer UI |
 | Status | Current | Coming soon (Roadmap) |
