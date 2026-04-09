@@ -57,9 +57,9 @@ export function DashboardPage() {
             counts[app.type] = (counts[app.type] ?? 0) + 1;
         });
         return [
-            {name: 'Agent', value: counts.agent, color: '#6e9fff'},
-            {name: 'Client', value: counts.client, color: '#3d71d9'},
-            {name: 'MCP Server', value: counts.mcp_server, color: '#5794f2'}
+            {name: 'Client', value: counts.client, color: '#22c55e'},
+            {name: 'Agent', value: counts.agent, color: '#3b82f6'},
+            {name: 'MCP Server', value: counts.mcp_server, color: '#a855f7'}
         ].filter((d) => d.value > 0);
     }, [appsData]);
 
