@@ -1,26 +1,43 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
+import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {Shield, Lock, AppWindow, Network, Tags, RefreshCw} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
 import {useScopes} from '@/hooks/use-scopes';
 import {useState, useMemo} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useTheme} from 'next-themes';
-import {PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend} from 'recharts';
+import {toast} from 'sonner';
+import {PieChart, Pie, Cell, Tooltip as ChartTooltip, ResponsiveContainer} from 'recharts';
 
 export function DashboardPage() {
     const navigate = useNavigate();
-    const {resolvedTheme} = useTheme();
-    const legendColor = resolvedTheme === 'light' ? '#24292e' : '#ccccdc';
-    const {data: appsData, isLoading, error, dataUpdatedAt: appsUpdatedAt} = useApps();
-    const {data: masData, isLoading: masLoading, error: masError, dataUpdatedAt: masUpdatedAt} = useMAS();
+    const {data: appsData, isLoading, error, dataUpdatedAt: appsUpdatedAt, refetch: refetchApps} = useApps();
+    const {
+        data: masData,
+        isLoading: masLoading,
+        error: masError,
+        dataUpdatedAt: masUpdatedAt,
+        refetch: refetchMAS
+    } = useMAS();
     const {
         data: scopesData,
         isLoading: scopesLoading,
         error: scopesError,
-        dataUpdatedAt: scopesUpdatedAt
+        dataUpdatedAt: scopesUpdatedAt,
+        refetch: refetchScopes
     } = useScopes();
+
+    const isRefreshing = isLoading || masLoading || scopesLoading;
+    const handleRefresh = async () => {
+        try {
+            await Promise.all([refetchApps(), refetchMAS(), refetchScopes()]);
+            toast.success('Dashboard refreshed successfully');
+        } catch {
+            toast.error('Failed to refresh dashboard');
+        }
+    };
     const totalApps = appsData?.total ?? 0;
     const totalMAS = masData?.length ?? 0;
     const totalScopes = Array.isArray(scopesData) ? scopesData.length : 0;
@@ -53,12 +70,31 @@ export function DashboardPage() {
                     <h1 className="text-2xl font-bold">Dashboard</h1>
                     <p className="text-muted-foreground">Overview of your Zero Trust Architecture</p>
                 </div>
-                {lastUpdatedLabel && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <RefreshCw className="h-3 w-3" />
-                        <span>Updated {lastUpdatedLabel}</span>
-                    </div>
-                )}
+                <div className="flex items-center gap-3">
+                    {lastUpdatedLabel && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <RefreshCw className="h-3 w-3" />
+                            <span>Updated {lastUpdatedLabel}</span>
+                        </div>
+                    )}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleRefresh}
+                                disabled={isRefreshing}
+                                className="cursor-pointer"
+                                aria-label="Refresh dashboard"
+                            >
+                                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Refresh</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
             </div>
 
             <div>
@@ -148,41 +184,60 @@ export function DashboardPage() {
                                 <p className="text-sm">No applications registered</p>
                             </div>
                         ) : (
-                            <ResponsiveContainer width="100%" height={200}>
-                                <PieChart>
-                                    <Pie
-                                        data={appTypeData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={55}
-                                        outerRadius={80}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                    >
-                                        {appTypeData.map((entry) => (
-                                            <Cell key={entry.name} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#22252b',
-                                            border: '1px solid rgba(204,204,220,0.2)',
-                                            borderRadius: '6px',
-                                            fontSize: '12px'
-                                        }}
-                                        itemStyle={{color: '#ccccdc'}}
-                                        labelStyle={{color: '#ccccdc'}}
-                                        formatter={(value: number, name: string) => [value, name]}
-                                    />
-                                    <Legend
-                                        iconType="circle"
-                                        iconSize={8}
-                                        formatter={(value) => (
-                                            <span style={{fontSize: '12px', color: legendColor}}>{value}</span>
-                                        )}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <div className="flex items-center justify-center gap-8">
+                                <div className="w-[160px] h-[160px] flex-shrink-0">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={appTypeData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={48}
+                                                outerRadius={72}
+                                                paddingAngle={appTypeData.length > 1 ? 3 : 0}
+                                                dataKey="value"
+                                            >
+                                                {appTypeData.map((entry) => (
+                                                    <Cell key={entry.name} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <ChartTooltip
+                                                contentStyle={{
+                                                    backgroundColor: '#22252b',
+                                                    border: '1px solid rgba(204,204,220,0.2)',
+                                                    borderRadius: '6px',
+                                                    fontSize: '12px'
+                                                }}
+                                                itemStyle={{color: '#ccccdc'}}
+                                                labelStyle={{color: '#ccccdc'}}
+                                                formatter={(value: number, name: string) => [value, name]}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    {appTypeData.map((entry) => {
+                                        const total = appTypeData.reduce((s, d) => s + d.value, 0);
+                                        const pct = Math.round((entry.value / total) * 100);
+                                        return (
+                                            <div key={entry.name} className="flex items-center gap-2.5">
+                                                <span
+                                                    className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                                                    style={{backgroundColor: entry.color}}
+                                                />
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium leading-none">
+                                                        {entry.name}
+                                                    </span>
+                                                    <span className="text-xs text-muted-foreground mt-1">
+                                                        {entry.value} {entry.value === 1 ? 'app' : 'apps'} · {pct}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </CardContent>
                 </Card>

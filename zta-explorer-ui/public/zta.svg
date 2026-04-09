@@ -2,10 +2,10 @@
     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <defs>
         <linearGradient id="shield-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#84cc16;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#65a30d;stop-opacity:1" />
+            <stop offset="0%" style="stop-color:#6e9fff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#3871dc;stop-opacity:1" />
         </linearGradient>
     </defs>
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="url(#shield-gradient)" stroke="none" />
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="#65a30d" stroke-width="1.5" />
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="#3871dc" stroke-width="1.5" />
 </svg>
