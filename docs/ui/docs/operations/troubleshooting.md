@@ -106,7 +106,7 @@ kubectl rollout restart deploy/your-deployment -n your-mas-namespace
 
 ---
 
-## Network Policy Issues (Cilium mode)
+## Network Policy Issues (Cilium mode — coming soon)
 
 ### Traffic being dropped unexpectedly
 

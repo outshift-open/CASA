@@ -4,6 +4,10 @@ sidebar_position: 4
 title: eBPF Enforcement
 ---
 
+:::caution Roadmap
+The eBPF enforcement layer described on this page is part of the planned **Cilium deployment mode**, which is currently in development. The current Istio deployment uses Istio NetworkPolicy for L3/L4 enforcement. See [Deployment Modes](/deployment-modes/istio) for the currently supported setup.
+:::
+
 # eBPF Enforcement
 
 ZTA uses eBPF (via Cilium) for L3/L4 network enforcement and JWT observability. This is the lowest-level enforcement layer and operates at the kernel level, before any userspace process is involved.

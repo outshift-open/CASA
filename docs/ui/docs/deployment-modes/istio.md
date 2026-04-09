@@ -113,7 +113,7 @@ The middleware (`ext_authz_middleware/main.go`) implements the Envoy External Au
 
 The `traceparent` header follows the [W3C Trace Context](https://www.w3.org/TR/trace-context/) format: `{VERSION}-{TRACE_ID}-{SPAN_ID}-{FLAGS}`.
 
-## Differences from Cilium Mode
+## Comparison with Cilium Mode (Roadmap)
 
 | | Istio Mode | Cilium Mode |
 |---|---|---|
@@ -121,4 +121,4 @@ The `traceparent` header follows the [W3C Trace Context](https://www.w3.org/TR/t
 | Auth enforcement | ext_authz_middleware (Go) | ZTA sidecar Lua filter |
 | L3/L4 | Istio NetworkPolicy | CiliumNetworkPolicy (stronger) |
 | Observability | Jaeger (OTEL) | Hubble |
-| Status | Deployed in current environments | Recommended for production |
+| Status | Deployed in current environments | Coming soon (Roadmap) |

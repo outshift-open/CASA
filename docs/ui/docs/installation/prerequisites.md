@@ -21,11 +21,13 @@ Before installing ZTA, ensure the following are in place.
 | `kubectl` | 1.26+ | Apply manifests and interact with the cluster |
 | `helm` | 3.10+ | Install ZTA charts |
 
-## Dataplane: Istio or Cilium
+## Dataplane
 
 ZTA requires one of the following dataplanes to be installed and operational in your cluster.
 
 ### Istio (for Istio deployment mode)
+
+This is the **currently supported** dataplane.
 
 Install Istio using the Istio CLI:
 
@@ -37,6 +39,8 @@ istioctl verify-install
 Minimum version: Istio 1.17
 
 ### Cilium (for Cilium deployment mode)
+
+> **Note: Cilium support is coming soon.** The instructions below document the planned setup. Cilium deployment mode is not yet available; use Istio for the current release.
 
 Install Cilium using the Helm chart:
 

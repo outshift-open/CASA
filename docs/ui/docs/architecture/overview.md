@@ -43,7 +43,7 @@ graph TB
             AGS -->|"MCP"| MCPS
         end
 
-        EBPF["Cilium eBPF\n(L3/L4 network enforcement\nJWT extraction & observability)"]
+        EBPF["eBPF\n(L3/L4 network enforcement\nJWT extraction & observability)"]
         EBPF -.->|"enforces"| CLS
         EBPF -.->|"enforces"| AGS
         EBPF -.->|"enforces"| MCPS
@@ -85,7 +85,9 @@ See [ZTA Sidecar](sidecar.md) for full details.
 
 ### eBPF Enforcement Layer
 
-Cilium provides L3/L4 network enforcement using identity-based (not IP-based) policies. At this layer:
+> **Roadmap:** The eBPF enforcement layer is part of the planned Cilium deployment mode, currently in development. In the current Istio deployment, L3/L4 enforcement uses Istio `NetworkPolicy`.
+
+The planned eBPF layer provides L3/L4 network enforcement using identity-based (not IP-based) policies:
 
 - **Deny-by-default** — all traffic is dropped unless explicitly allowed by a `CiliumNetworkPolicy`
 - **LLM endpoint restriction** — agents can only reach a single approved external FQDN
@@ -101,7 +103,7 @@ ZTA supports two dataplane options:
 | Mode | Sidecar Injection | L7 Enforcement | L3/L4 Enforcement | Status |
 |---|---|---|---|---|
 | **Istio** | Istio automatic injection | `ext_authz_middleware` (Go) | Istio NetworkPolicy | Current deployments |
-| **Cilium** | Custom mutating webhook | ZTA sidecar (Envoy + Lua) | CiliumNetworkPolicy | Recommended for production |
+| **Cilium** | Custom mutating webhook | ZTA sidecar (Envoy + Lua) | CiliumNetworkPolicy | Coming soon (Roadmap) |
 
 See [Deployment Modes](/deployment-modes/istio) for setup guides.
 

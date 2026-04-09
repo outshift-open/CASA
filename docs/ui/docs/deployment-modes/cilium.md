@@ -4,11 +4,15 @@ sidebar_position: 2
 title: Cilium Deployment Mode
 ---
 
+:::caution Coming Soon
+Cilium deployment mode is **not yet available**. This page describes the planned architecture and will be updated when Cilium support ships. For the current supported setup, see [Istio Deployment Mode](istio.md).
+:::
+
 # Cilium Deployment Mode
 
 In Cilium mode, ZTA uses a custom mutating webhook for sidecar injection and Cilium for both L3/L4 network enforcement and eBPF-based observability.
 
-This is the **recommended architecture for production** deployments.
+This is the **planned production architecture** (currently in development).
 
 ## How It Works
 

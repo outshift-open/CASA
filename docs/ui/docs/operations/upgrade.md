@@ -57,7 +57,7 @@ kubectl rollout restart deploy/your-agent -n your-mas-namespace
 kubectl rollout restart deploy/your-mcp-server -n your-mas-namespace
 ```
 
-## Upgrading Sidecars (Cilium mode)
+## Upgrading Sidecars (Cilium mode — coming soon)
 
 Update the mutating webhook by upgrading the control plane chart (the webhook is bundled). Then restart MAS workloads to get the new sidecar version:
 

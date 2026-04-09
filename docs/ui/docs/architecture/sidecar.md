@@ -13,7 +13,7 @@ The ZTA sidecar is an Envoy-based proxy that is automatically injected into ever
 Sidecars are injected either by:
 
 - **Istio mode**: namespace label `istio-injection=enabled` triggers Istio's built-in sidecar injector. The `ext_authz_middleware` service (deployed separately) acts as the ext-authz filter backend.
-- **Cilium mode**: namespace label `zta.io/injection=enabled` triggers a ZTA mutating webhook that injects the custom Envoy-based sidecar.
+- **Cilium mode** *(coming soon)*: namespace label `zta.io/injection=enabled` triggers a ZTA mutating webhook that injects the custom Envoy-based sidecar.
 
 An init container runs first to configure iptables rules that redirect all inbound and outbound TCP traffic through the sidecar ports.
 
