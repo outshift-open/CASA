@@ -1,7 +1,7 @@
 """Unit tests for K8s CRD service layer."""
 
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
@@ -146,7 +146,7 @@ class TestK8sCRDService:
         auth_srv_id = uuid4()
 
         mock_auth_server = AuthorizationServer(id=auth_srv_id, realm="test-realm")
-        mock_mas = MultiAgentSystem(
+        MultiAgentSystem(
             id=mas_id,
             name="Test MAS",
             authorization_server_id=auth_srv_id,
@@ -154,7 +154,7 @@ class TestK8sCRDService:
             enabled_tool_checks=ToolCheckFlags.DETERMINISTIC_TOOL_SELECTED,
         )
 
-        mock_app = App(
+        App(
             id=uuid4(),
             name="test-app",
             type=AppType.CLIENT,

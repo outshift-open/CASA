@@ -1,4 +1,4 @@
-"""Domain events"""
+"""Domain events."""
 
 import uuid
 from abc import ABC
@@ -10,37 +10,51 @@ from pydantic import BaseModel, Field
 
 
 class BaseEvent(BaseModel, ABC):
+    """Base class for all domain events."""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_input_id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class TokenIssuedEvent(BaseEvent):
+    """Event emitted when a new access token is issued to a trusted client."""
+
     token: str
     app_id: str
+    mas_id: Optional[str] = None
     prompt: str
 
 
 class TokenExchangedEvent(BaseEvent):
+    """Event emitted when a token exchange occurs between an agent and an MCP server."""
+
     subject_token: str
     act_token: str
     subject_app_id: str
     act_app_id: str
+    mas_id: Optional[str] = None
     tools: Optional[list[str]]
 
 
 class LLMCallStartedEvent(BaseEvent):
+    """Event emitted when an LLM call begins (recorded by the agent)."""
+
     call_id: str
     token: str
     app_id: str
+    mas_id: Optional[str] = None
     prompt: str
     tools: Optional[str]
 
 
 class LLMCallEndedEvent(BaseEvent):
+    """Event emitted when an LLM call completes (recorded by the agent)."""
+
     call_id: str
     token: str
     app_id: str
+    mas_id: Optional[str] = None
     response: str
     tools: Optional[str]
 
@@ -57,16 +71,19 @@ class MCPToolBlockingReason(StrEnum):
 
 
 class MCPToolBlockingType(StrEnum):
-    """Enumerates the MCP tool blocking type"""
+    """Enumerates the MCP tool blocking type."""
 
     DETERMINISTIC = "DETERMINISTIC"
     AI_POWERED = "AI_POWERED"
 
 
 class MCPCallStartedEvent(BaseEvent):
+    """Event emitted when an MCP tool call is initiated (approved or blocked)."""
+
     token: str = ""
     caller_app_id: str = ""
     callee_app_id: str = ""
+    mas_id: Optional[str] = None
     tool: str
     blocked: bool = False
     blocking_type: Optional[MCPToolBlockingType] = None

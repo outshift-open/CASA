@@ -213,6 +213,12 @@ demo-data-clear: # Clear all existing data (does NOT recreate demo data).
 > python scripts/create_demo_data.py --clear --verbose
 .PHONY: demo-data-clear
 
+demo-data-test-flow: # Run end-to-end token flow test to verify mas_id in traces.
+> @printf "$(YELLOW)Running token flow test$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --test-flow --verbose
+.PHONY: demo-data-test-flow
+
 demo-data-reset: # Clear all existing data and create fresh demo data.
 > @printf "$(YELLOW)Resetting data: clearing and recreating$(NOCOLOR)\n"
 > @printf "$(RED)WARNING: This will delete ALL existing data!$(NOCOLOR)\n"

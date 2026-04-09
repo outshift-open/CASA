@@ -95,7 +95,7 @@ def check_backend_health(config: Config) -> bool:
         return False
 
 
-def create_mas(config: Config, name: str) -> Optional[Dict]:
+def create_mas(config: Config, name: str, enabled_tool_checks: Optional[int] = None) -> Optional[Dict]:
     """Create a Multi-Agent System."""
     log_info(f"Creating MAS: {name}", config)
 
@@ -104,7 +104,10 @@ def create_mas(config: Config, name: str) -> Optional[Dict]:
         return {"id": "dry-run-mas-id", "name": name}
 
     try:
-        response = requests.put(f"{config.backend_url}/mas", json={"name": name}, timeout=30)
+        payload: Dict = {"name": name}
+        if enabled_tool_checks is not None:
+            payload["enabled_tool_checks"] = enabled_tool_checks
+        response = requests.put(f"{config.backend_url}/mas", json=payload, timeout=30)
         response.raise_for_status()
         mas_data = response.json()
         log_success(f"Created MAS: {name} (ID: {mas_data['id']})")
@@ -594,6 +597,301 @@ def generate_demo_data(config: Config):
     return failure_count == 0
 
 
+def _get_client_secret_from_keycloak(client_id: str, realm: str, config: Config) -> Optional[str]:
+    """Fetch client secret from Keycloak admin API."""
+    idp_url = os.getenv("IDP_SERVER_URL", "http://localhost:8081").rstrip("/")
+    idp_user = os.getenv("IDP_ADMIN_USERNAME", "admin")
+    idp_pass = os.getenv("IDP_ADMIN_PASSWORD", "admin")
+
+    try:
+        # Get admin token
+        token_resp = requests.post(
+            f"{idp_url}/realms/master/protocol/openid-connect/token",
+            data={"grant_type": "password", "client_id": "admin-cli", "username": idp_user, "password": idp_pass},
+            timeout=10,
+        )
+        token_resp.raise_for_status()
+        admin_token = token_resp.json()["access_token"]
+
+        # Find client internal ID
+        clients_resp = requests.get(
+            f"{idp_url}/admin/realms/{realm}/clients",
+            params={"clientId": client_id},
+            headers={"Authorization": f"Bearer {admin_token}"},
+            timeout=10,
+        )
+        clients_resp.raise_for_status()
+        clients = clients_resp.json()
+        if not clients:
+            log_error(f"Client '{client_id}' not found in realm '{realm}'")
+            return None
+        internal_id = clients[0]["id"]
+
+        # Get secret
+        secret_resp = requests.get(
+            f"{idp_url}/admin/realms/{realm}/clients/{internal_id}/client-secret",
+            headers={"Authorization": f"Bearer {admin_token}"},
+            timeout=10,
+        )
+        secret_resp.raise_for_status()
+        return secret_resp.json().get("value")
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to get secret from Keycloak: {e}")
+        return None
+
+
+def _get_mas_realm(mas_id: str, config: Config) -> Optional[str]:
+    """Get the Keycloak realm name for a MAS (format: {name}-{id}-auth-server)."""
+    try:
+        resp = requests.get(f"{config.backend_url}/mas/{mas_id}", timeout=10)
+        resp.raise_for_status()
+        mas_data = resp.json()
+        return f"{mas_data['name']}-{mas_id}-auth-server"
+    except requests.exceptions.RequestException:
+        return None
+
+
+def _get_app_credentials(app_id: str, realm: str, config: Config) -> Optional[Dict]:
+    """Get client_id and client_secret for an app."""
+    try:
+        meta_resp = requests.get(f"{config.backend_url}/{app_id}/oauth2/client-metadata.json", timeout=10)
+        meta_resp.raise_for_status()
+        client_id = meta_resp.json()["client_id"]
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to fetch metadata for app {app_id}: {e}")
+        return None
+
+    client_secret = _get_client_secret_from_keycloak(client_id, realm, config)
+    if not client_secret:
+        return None
+
+    return {"client_id": client_id, "client_secret": client_secret}
+
+
+def test_flow(config: Config):
+    """Create a full MAS (client + agent + MCP server) and run the complete token flow."""
+    print(f"\n{Fore.BLUE}{Style.BRIGHT}=== ZTA Full Token Flow Test ==={Style.RESET_ALL}\n")
+
+    tool_schemas = get_sample_tool_schemas()
+
+    # 1. Create MAS with tool checks disabled (no real MCP server available in test)
+    mas = create_mas(config, "Test MAS", enabled_tool_checks=0)
+    if not mas:
+        return False
+    mas_id = mas["id"]
+    realm = _get_mas_realm(mas_id, config)
+    if not realm:
+        log_error("Could not determine Keycloak realm for MAS")
+        return False
+    print(f"  mas_id = {mas_id}")
+    print(f"  realm  = {realm}\n")
+
+    # 2. Create all three app types
+    client_app = create_app(
+        config,
+        mas_id,
+        {
+            "type": "client",
+            "name": "Test Client",
+            "base_url": f"{config.backend_url}/test-client",
+            "tools": [],
+        },
+    )
+    agent_app = create_app(
+        config,
+        mas_id,
+        {
+            "type": "agent",
+            "name": "Test Agent",
+            "base_url": f"{config.backend_url}/test-agent",
+            "tools": [],
+        },
+    )
+    mcp_app = create_app(
+        config,
+        mas_id,
+        {
+            "type": "mcp_server",
+            "name": "Test MCP Server",
+            "base_url": f"{config.backend_url}/test-mcp",
+            "tools": [
+                {
+                    "name": "get_account_balance",
+                    "description": "Get the account balance for a user",
+                    **tool_schemas["get_user_profile"],
+                    "scopes": [],
+                }
+            ],
+        },
+    )
+
+    if not client_app or not agent_app or not mcp_app:
+        return False
+
+    client_app_id = client_app["id"]
+    agent_app_id = agent_app["id"]
+    mcp_app_id = mcp_app["id"]
+
+    # 3. Fetch credentials for client and agent (MCP server needs them for token_exchange)
+    print(f"\n{Fore.CYAN}Fetching credentials from Keycloak...{Style.RESET_ALL}")
+    client_creds = _get_app_credentials(client_app_id, realm, config)
+    agent_creds = _get_app_credentials(agent_app_id, realm, config)
+    mcp_creds = _get_app_credentials(mcp_app_id, realm, config)
+
+    if not client_creds or not agent_creds or not mcp_creds:
+        log_error("Failed to retrieve credentials for one or more apps")
+        return False
+
+    log_success(f"client  {client_app_id}: {client_creds['client_id'][:50]}...")
+    log_success(f"agent   {agent_app_id}: {agent_creds['client_id'][:50]}...")
+    log_success(f"mcp     {mcp_app_id}: {mcp_creds['client_id'][:50]}...")
+
+    # 4. Client gets initial token
+    print(f"\n{Fore.CYAN}Step 1: Client gets initial token...{Style.RESET_ALL}")
+    try:
+        resp = requests.post(
+            f"{config.backend_url}/{client_app_id}/oauth2/token",
+            data={
+                "client_id": client_creds["client_id"],
+                "client_secret": client_creds["client_secret"],
+                "user_input": "Show me my account balance",
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        client_token = resp.json()["access_token"]
+        log_success(f"Client token: {client_token[:50]}...")
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to get client token: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            log_error(f"Response: {e.response.text}")
+        return False
+
+    # 5. Agent reports LLM call started
+    print(f"\n{Fore.CYAN}Step 2: Agent records LLM call_start...{Style.RESET_ALL}")
+    try:
+        resp = requests.post(
+            f"{config.backend_url}/trace/llm/call_start",
+            json={"call_id": "test-call-1", "prompt": "Show me my account balance"},
+            headers={"Authorization": f"Bearer {client_token}"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        log_success(f"LLMCallStartedEvent: mas_id = {resp.json().get('mas_id')}")
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to record LLM call_start: {e}")
+        return False
+
+    # 6. Agent exchanges token
+    print(f"\n{Fore.CYAN}Step 3: Agent exchanges token...{Style.RESET_ALL}")
+    try:
+        resp = requests.post(
+            f"{config.backend_url}/{agent_app_id}/oauth2/token_exchange",
+            data={
+                "client_id": agent_creds["client_id"],
+                "client_secret": agent_creds["client_secret"],
+                "subject_token": client_token,
+                "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        agent_token = resp.json()["access_token"]
+        log_success(f"Agent token: {agent_token[:50]}...")
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to exchange agent token: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            log_error(f"Response: {e.response.text}")
+        return False
+
+    # 7. Agent reports LLM call ended (selected a tool)
+    print(f"\n{Fore.CYAN}Step 4: Agent records LLM call_end...{Style.RESET_ALL}")
+    try:
+        resp = requests.post(
+            f"{config.backend_url}/trace/llm/call_end",
+            json={
+                "call_id": "test-call-1",
+                "response": "I will check your balance",
+                "tools": "[Tool(name='get_account_balance')]",
+            },
+            headers={"Authorization": f"Bearer {agent_token}"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        log_success(f"LLMCallEndedEvent: mas_id = {resp.json().get('mas_id')}")
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to record LLM call_end: {e}")
+        return False
+
+    # 8. MCP server exchanges token (no tool check — no real MCP server running)
+    print(f"\n{Fore.CYAN}Step 5: MCP server exchanges token...{Style.RESET_ALL}")
+    try:
+        resp = requests.post(
+            f"{config.backend_url}/{mcp_app_id}/oauth2/token_exchange",
+            data={
+                "client_id": mcp_creds["client_id"],
+                "client_secret": mcp_creds["client_secret"],
+                "subject_token": agent_token,
+                "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        mcp_token = resp.json()["access_token"]
+        log_success(f"MCP token: {mcp_token[:50]}...")
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to exchange MCP token: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            log_error(f"Response: {e.response.text}")
+        return False
+
+    # 9. Introspect MCP token and verify mas_id
+    print(f"\n{Fore.CYAN}Step 6: Introspecting MCP token...{Style.RESET_ALL}")
+    try:
+        resp = requests.post(
+            f"{config.backend_url}/oauth2/introspect",
+            data={"token": mcp_token, "tools": ["get_account_balance"]},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        introspect = resp.json()
+        log_success(f"Token active: {introspect.get('active')}")
+        print(f"  mas_id = {introspect.get('mas_id')}")
+        print(f"  app_id = {introspect.get('app_id')}")
+        print(f"  tools  = {introspect.get('tools')}")
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to introspect token: {e}")
+        return False
+
+    # 10. Verify all traces have correct mas_id
+    print(f"\n{Fore.CYAN}Step 7: Verifying all traces have mas_id={mas_id}...{Style.RESET_ALL}")
+    try:
+        resp = requests.get(f"{config.backend_url}/trace", params={"mas_id": mas_id}, timeout=10)
+        resp.raise_for_status()
+        traces_data = resp.json()
+        total = traces_data.get("total", 0)
+        items = traces_data.get("items", {})
+        log_success(f"Found {total} trace group(s)")
+
+        all_ok = True
+        for _, events in items.items():
+            for event in events:
+                event_mas_id = event.get("event", {}).get("mas_id")
+                if event_mas_id != mas_id:
+                    log_error(f"  {event.get('event_type')}: mas_id={event_mas_id} ✗")
+                    all_ok = False
+                else:
+                    print(f"  {event.get('event_type')}: mas_id = {event_mas_id} ✓")
+
+        if all_ok:
+            log_success("All trace events have the correct mas_id!")
+        return all_ok
+
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to fetch traces: {e}")
+        return False
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -604,6 +902,7 @@ Examples:
   python create_demo_data.py --verbose
   python create_demo_data.py --dry-run
   python create_demo_data.py --clear --verbose
+  python create_demo_data.py --test-flow
   python create_demo_data.py --backend-url http://localhost:8000
 
 Environment Variables:
@@ -617,6 +916,9 @@ Environment Variables:
         "--dry-run", action="store_true", help="Preview what would be created without actually creating anything"
     )
     parser.add_argument("--clear", action="store_true", help="Delete all existing data before creating new demo data")
+    parser.add_argument(
+        "--test-flow", action="store_true", help="Run end-to-end token flow test to verify mas_id in traces"
+    )
 
     args = parser.parse_args()
 
@@ -628,7 +930,10 @@ Environment Variables:
     config.clear = args.clear
 
     try:
-        success = generate_demo_data(config)
+        if args.test_flow:
+            success = test_flow(config)
+        else:
+            success = generate_demo_data(config)
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
         print(f"\n\n{Fore.YELLOW}Interrupted by user{Style.RESET_ALL}")
