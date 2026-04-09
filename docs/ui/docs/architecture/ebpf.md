@@ -4,13 +4,11 @@ sidebar_position: 4
 title: eBPF Enforcement
 ---
 
-:::caution Roadmap
-The eBPF enforcement layer described on this page is part of the planned **Cilium deployment mode**, which is currently in development. The current Istio deployment uses Istio NetworkPolicy for L3/L4 enforcement. See [Deployment Modes](/deployment-modes/istio) for the currently supported setup.
-:::
-
 # eBPF Enforcement
 
-ZTA uses eBPF (via Cilium) for L3/L4 network enforcement and JWT observability. This is the lowest-level enforcement layer and operates at the kernel level, before any userspace process is involved.
+ZTA uses eBPF for L3/L4 network enforcement and JWT observability. eBPF programs run at the kernel level on any Kubernetes node with eBPF enabled (kernel 5.8+), independently of the CNI.
+
+In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs, adding Hubble for flow observability.
 
 ## What eBPF Handles
 
@@ -105,6 +103,10 @@ Cilium's DNS proxy intercepts DNS queries and only resolves FQDNs in the allow-l
 
 ## ZTAPolicy CRD
 
+:::info Roadmap
+`ZTAPolicy` CRD reconciliation into `CiliumNetworkPolicy` is part of the Cilium deployment mode, currently in development. See [Concepts — CRDs](/concepts/crds) for details.
+:::
+
 The `ZTAPolicy` CRD provides a Kubernetes-native way to declare per-workload network policies. The ZTA operator reconciles these into `CiliumNetworkPolicy` resources automatically:
 
 ```yaml
@@ -143,6 +145,10 @@ Custom eBPF programs can extract JWT tokens from HTTP Authorization headers at t
 Full JWT validation (claims, expiry, scopes) is **not** done in eBPF — the complexity limits and instruction count limits make full validation infeasible. eBPF handles fast-path presence checking only; the sidecar does full validation.
 
 ## Observability Stack
+
+:::info Roadmap
+Hubble-based flow observability is available in the planned Cilium deployment mode. In Istio mode, distributed tracing is provided via OpenTelemetry + Jaeger.
+:::
 
 Cilium's Hubble component provides:
 - Real-time flow logs (source/destination pod, protocol, verdict)

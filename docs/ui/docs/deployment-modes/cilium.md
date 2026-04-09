@@ -10,21 +10,27 @@ Cilium deployment mode is **not yet available**. This page describes the planned
 
 # Cilium Deployment Mode
 
-In Cilium mode, ZTA uses a custom mutating webhook for sidecar injection and Cilium for both L3/L4 network enforcement and eBPF-based observability.
+In Cilium mode, ZTA uses Cilium's node-level daemonset for both sidecar traffic interception and eBPF enforcement — no per-pod injection webhook is needed.
 
-This is the **planned production architecture** (currently in development).
+This is the **planned production architecture**, architecturally equivalent to Istio + eBPF but with tighter integration and Hubble observability.
 
 ## How It Works
 
 ```mermaid
 graph LR
-    Application --> Sidecar["ZTA Sidecar (Envoy + Lua)"]
+    Application --> Sidecar["ZTA Sidecar\n(Cilium node daemonset)"]
     Sidecar --> ZTA["ZTA Control Plane"]
     CNP["CiliumNetworkPolicy\n(L3/L4 deny-by-default)"] --> Sidecar
     eBPF["eBPF programs\n(JWT extraction, flow logging)"] --> Sidecar
+
+    style Application fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style Sidecar fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style ZTA fill:#134e4a,stroke:#4ecdc4,color:#f1f5f9
+    style CNP fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
+    style eBPF fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
 ```
 
-1. The ZTA mutating webhook injects a custom Envoy sidecar into pods in labeled namespaces
+1. The Cilium node-level daemonset intercepts pod traffic cluster-wide — no per-pod sidecar injection required
 2. Cilium enforces L3/L4 policies (deny-by-default; only declared endpoints may communicate)
 3. The ZTA sidecar handles L7 enforcement: token injection, token introspection, protocol enforcement
 4. Custom eBPF programs extract JWTs from HTTP headers for observability
@@ -134,6 +140,10 @@ spec:
 ```
 
 ## Step 3: Apply ZTAPolicy CRDs (Recommended)
+
+:::caution In Development
+`ZTAPolicy` CRD support is currently in development and not yet available. Use `CiliumNetworkPolicy` directly (Steps 1–2) for now.
+:::
 
 Instead of writing `CiliumNetworkPolicy` manually, use `ZTAPolicy` CRDs and let the ZTA operator generate them:
 

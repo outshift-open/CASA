@@ -17,7 +17,14 @@ graph LR
     Application --> Envoy["Envoy (Istio sidecar)"]
     Envoy --> ext_authz["ext_authz_middleware (Go gRPC)"]
     ext_authz --> ZTA["ZTA Control Plane"]
+
+    style Application fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style Envoy fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style ext_authz fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style ZTA fill:#134e4a,stroke:#4ecdc4,color:#f1f5f9
 ```
+
+> **eBPF support:** When Kubernetes nodes have eBPF enabled (kernel 5.8+), eBPF programs can run alongside Istio for JWT extraction and L4 enforcement — no Cilium required. See [eBPF Enforcement](/architecture/ebpf) for details.
 
 1. Istio's sidecar injector automatically adds an Envoy proxy to each pod in labeled namespaces
 2. Envoy's `ext_authz` filter sends every request to the `ext_authz_middleware` service for authorization
@@ -118,7 +125,8 @@ The `traceparent` header follows the [W3C Trace Context](https://www.w3.org/TR/t
 | | Istio Mode | Cilium Mode |
 |---|---|---|
 | Sidecar | Istio Envoy | Custom ZTA Envoy |
+| Injection | Istio automatic injection | Node-level daemonset |
 | Auth enforcement | ext_authz_middleware (Go) | ZTA sidecar Lua filter |
-| L3/L4 | Istio NetworkPolicy | CiliumNetworkPolicy (stronger) |
+| L3/L4 + eBPF | Istio NetworkPolicy + eBPF (node kernel) | CiliumNetworkPolicy + eBPF (integrated) |
 | Observability | Jaeger (OTEL) | Hubble |
-| Status | Deployed in current environments | Coming soon (Roadmap) |
+| Status | Current | Coming soon (Roadmap) |

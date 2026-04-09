@@ -22,7 +22,7 @@ ZTA adds **intent-scoped authorization**: every tool call is validated against t
 - **No code changes required** — enforcement is handled by sidecars and eBPF, not the application
 - **Kubernetes-native** — deploy via Helm, configure via CRDs
 - **Graduated policy checks** — from fast deterministic validation to AI-powered intent matching
-- **Flexible dataplane** — works with Istio (current); Cilium eBPF support is on the roadmap
+- **Flexible dataplane** — works with Istio (current); eBPF enforcement is available on eBPF-enabled nodes; Cilium as a full integrated solution is on the roadmap
 
 ## Where to go next
 

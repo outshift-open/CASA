@@ -8,15 +8,16 @@ title: CRDs
 
 ZTA defines two CRDs in the `zta.io/v1alpha1` API group:
 
-- `MultiAgentSystem` — declares the applications in a MAS and the tool checks to apply
-- `ZTAPolicy` — declares per-workload network and protocol policies (reconciled into CiliumNetworkPolicy)
+- `MultiAgentSystem` — declares the applications in a MAS and the tool checks to apply *(fully supported)*
+- `ZTAPolicy` — declares per-workload protocol and LLM endpoint policies (reconciled into CiliumNetworkPolicy) *(in development)*
 
 Both are installed as part of the `zta-control-plane` Helm chart.
 
 ## MultiAgentSystem
 
 **Short name:** `mas`  
-**API:** `multiagentsystems.zta.io`
+**API:** `multiagentsystems.zta.io`  
+**Status: Fully supported**
 
 ### Purpose
 
@@ -80,11 +81,16 @@ spec:
 ## ZTAPolicy
 
 **Short name:** `ztap`  
-**API:** `ztapolicies.zta.io`
+**API:** `ztapolicies.zta.io`  
+**Status: In Development**
+
+:::caution In Development
+`ZTAPolicy` is currently in development and not yet available. It will control per-workload **allowed protocols** (`mcp`, `a2a`) and **LLM endpoints** (FQDN allow-list), and will reconcile automatically into `CiliumNetworkPolicy` resources in Cilium mode.
+:::
 
 ### Purpose
 
-Declares per-workload network access rules. The ZTA operator reconciles these into `CiliumNetworkPolicy` resources.
+Declares per-workload network access rules — specifically which protocols a workload may use and which external LLM endpoints it may reach. The ZTA operator reconciles these into `CiliumNetworkPolicy` resources.
 
 ### Example
 
