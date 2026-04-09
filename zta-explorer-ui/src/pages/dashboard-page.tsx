@@ -373,7 +373,7 @@ export function DashboardPage() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="h-[200px]">
+                            <div style={{height: `${traceStats.blockReasons.length * 48 + 16}px`}}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
                                         data={traceStats.blockReasons}
@@ -409,6 +409,7 @@ export function DashboardPage() {
                                             name="Blocked calls"
                                             fill="#ef4444"
                                             radius={[0, 4, 4, 0]}
+                                            barSize={14}
                                         />
                                     </BarChart>
                                 </ResponsiveContainer>
