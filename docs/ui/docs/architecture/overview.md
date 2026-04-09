@@ -113,10 +113,10 @@ See [eBPF Enforcement](ebpf.md) for full details.
 
 ZTA supports two dataplane options:
 
-| Mode | Sidecar Injection | L7 Enforcement | L3/L4 + eBPF | Status |
+| Mode | Sidecar Injection | L7 Enforcement | L4/L7 + eBPF | Status |
 |---|---|---|---|---|
 | **Istio** | Istio automatic injection | `ext_authz_middleware` (Go) | Istio NetworkPolicy + eBPF (node kernel) | Current |
-| **Cilium** | Node-level daemonset | ZTA sidecar (Envoy + Lua) | CiliumNetworkPolicy + eBPF (integrated) | Coming soon (Roadmap) |
+| **Cilium** | Node-level daemonset | ZTA sidecar (Envoy + Lua) | ZTAPolicy + eBPF (integrated) | Coming soon (Roadmap) |
 
 See [Deployment Modes](/deployment-modes/istio) for setup guides.
 
@@ -124,7 +124,7 @@ See [Deployment Modes](/deployment-modes/istio) for setup guides.
 
 ZTA operates on a layered trust model:
 
-1. **eBPF / L3-L4** — deny by default; only known endpoints may communicate
+1. **eBPF / L4-L7** — deny by default; only known endpoints may communicate
 2. **Sidecar / L7** — every request must carry a valid, non-expired token with correct scope
 3. **Control plane** — token exchange validates that the requested tool matches the original user intent
 

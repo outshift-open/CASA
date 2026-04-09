@@ -127,6 +127,6 @@ The `traceparent` header follows the [W3C Trace Context](https://www.w3.org/TR/t
 | Sidecar | Istio Envoy | Custom ZTA Envoy |
 | Injection | Istio automatic injection | Node-level daemonset |
 | Auth enforcement | ext_authz_middleware (Go) | ZTA sidecar Lua filter |
-| L3/L4 + eBPF | Istio NetworkPolicy + eBPF (node kernel) | CiliumNetworkPolicy + eBPF (integrated) |
+| L4/L7 + eBPF | Istio NetworkPolicy + eBPF (node kernel) | ZTAPolicy + eBPF (integrated) |
 | Observability | Jaeger (OTEL) | Hubble |
 | Status | Current | Coming soon (Roadmap) |

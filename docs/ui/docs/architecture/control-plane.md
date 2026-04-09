@@ -76,4 +76,4 @@ The control plane namespace (`zta-control-plane`) should have network policies t
 - Deny all other inbound traffic
 - Allow outbound to PostgreSQL and Keycloak only
 
-Example `CiliumNetworkPolicy` is provided in the [Cilium deployment guide](/deployment-modes/cilium).
+Example `ZTAPolicy` configuration is provided in the [Cilium deployment guide](/deployment-modes/cilium).

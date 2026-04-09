@@ -6,7 +6,7 @@ title: eBPF Enforcement
 
 # eBPF Enforcement
 
-ZTA uses eBPF for L3/L4 network enforcement and JWT observability. eBPF programs run at the kernel level on any Kubernetes node with eBPF enabled (kernel 5.8+), independently of the CNI.
+ZTA uses eBPF for L4/L7 network enforcement and JWT observability. eBPF programs run at the kernel level on any Kubernetes node with eBPF enabled (kernel 5.8+), independently of the CNI.
 
 In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs, adding Hubble for flow observability.
 
@@ -29,85 +29,64 @@ In the current **Istio deployment**, eBPF enforcement uses the node kernel direc
 
 ## Network Policies
 
-Cilium enforces network policies based on **pod identity**, not IP addresses. This means policies survive pod restarts and reschedules without requiring IP-based rules.
+ZTA enforces network policies based on **workload identity**, not IP addresses. Policies survive pod restarts and reschedules without requiring IP-based rules.
+
+Network policies are declared using the `ZTAPolicy` CRD. See [ZTAPolicy CRD](#ztapolicy-crd) below.
 
 ### Deny-by-default
 
-All traffic in MAS namespaces is denied by default. Allowed flows must be explicitly declared:
+All traffic in MAS namespaces is denied by default. Allowed flows are declared explicitly in a `ZTAPolicy`:
 
 ```yaml
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
+apiVersion: zta.io/v1alpha1
+kind: ZTAPolicy
 metadata:
-  name: default-deny-all
+  name: agent-policy
   namespace: production-mas
 spec:
-  endpointSelector: {}
-  ingress: []
-  egress: []
-```
-
-### Allow specific flows
-
-```yaml
-# Allow agent → MCP server (MCP protocol paths only)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: agent-to-mcp
-  namespace: production-mas
-spec:
-  endpointSelector:
-    matchLabels:
-      app: agent
-  egress:
-  - toEndpoints:
-    - matchLabels:
-        app: mcp-server
-    toPorts:
-    - ports:
-      - port: "8080"
-        protocol: TCP
-      rules:
-        http:
-        - method: "POST"
-          path: "/mcp/*"
-        - method: "GET"
-          path: "/mcp/*"
+  targetRef:
+    kind: Deployment
+    name: my-agent
+  allowedProtocols:
+  - mcp
+  - a2a
+  allowedEndpoints:
+  - name: my-mcp-server
+    namespace: production-mas
+    port: 8080
+  - name: zta-auth-service
+    namespace: zta-control-plane
+    port: 8443
 ```
 
 ### LLM endpoint restriction
 
-Agents are restricted to a single approved external LLM endpoint using Cilium's FQDN-based policies:
+Agents are restricted to a single approved external LLM FQDN via the `llmEndpoint` field:
 
 ```yaml
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
+apiVersion: zta.io/v1alpha1
+kind: ZTAPolicy
 metadata:
-  name: agent-to-llm
+  name: agent-policy
   namespace: production-mas
 spec:
-  endpointSelector:
-    matchLabels:
-      app: agent
-  egress:
-  - toFQDNs:
-    - matchPattern: "api.openai.com"
-    toPorts:
-    - ports:
-      - port: "443"
-        protocol: TCP
+  targetRef:
+    kind: Deployment
+    name: my-agent
+  llmEndpoint:
+    fqdn: api.openai.com
+    port: 443
 ```
 
-Cilium's DNS proxy intercepts DNS queries and only resolves FQDNs in the allow-list. All other external destinations are dropped.
+Only the declared FQDN is reachable. All other external destinations are dropped.
 
 ## ZTAPolicy CRD
 
-:::info Roadmap
-`ZTAPolicy` CRD reconciliation into `CiliumNetworkPolicy` is part of the Cilium deployment mode, currently in development. See [Concepts — CRDs](/concepts/crds) for details.
+:::caution In Development
+`ZTAPolicy` is currently in development and not yet available in the stable release. See [Concepts — CRDs](/concepts/crds) for full details.
 :::
 
-The `ZTAPolicy` CRD provides a Kubernetes-native way to declare per-workload network policies. The ZTA operator reconciles these into `CiliumNetworkPolicy` resources automatically:
+The `ZTAPolicy` CRD provides a Kubernetes-native way to declare per-workload network policies. The ZTA operator reconciles these into network enforcement policies automatically:
 
 ```yaml
 apiVersion: zta.io/v1alpha1

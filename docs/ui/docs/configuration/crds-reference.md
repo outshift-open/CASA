@@ -109,7 +109,6 @@ spec:
 | Field | Type | Description |
 |---|---|---|
 | `phase` | string | `Pending`, `Active`, or `Failed` |
-| `ciliumPolicyName` | string | Name of the generated `CiliumNetworkPolicy` |
 | `lastSyncTime` | string (datetime) | Timestamp of last successful reconciliation |
 | `message` | string | Human-readable status description |
 

@@ -33,6 +33,14 @@ flowchart TB
 
     Inbound["Inbound traffic"] -->|intercepted| IN
     Outbound["Outbound traffic"] -->|intercepted| OUT
+
+    style IN       fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style EXT      fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style LUA      fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style OUT      fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style APP      fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style Inbound  fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style Outbound fill:#1e293b,stroke:#475569,color:#cbd5e1
 ```
 
 **Inbound path (port 15001):**

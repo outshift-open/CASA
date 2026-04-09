@@ -9,7 +9,7 @@ title: CRDs
 ZTA defines two CRDs in the `zta.io/v1alpha1` API group:
 
 - `MultiAgentSystem` — declares the applications in a MAS and the tool checks to apply *(fully supported)*
-- `ZTAPolicy` — declares per-workload protocol and LLM endpoint policies (reconciled into CiliumNetworkPolicy) *(in development)*
+- `ZTAPolicy` — declares per-workload protocol and LLM endpoint policies, reconciled into network enforcement *(in development)*
 
 Both are installed as part of the `zta-control-plane` Helm chart.
 
@@ -85,12 +85,12 @@ spec:
 **Status: In Development**
 
 :::caution In Development
-`ZTAPolicy` is currently in development and not yet available. It will control per-workload **allowed protocols** (`mcp`, `a2a`) and **LLM endpoints** (FQDN allow-list), and will reconcile automatically into `CiliumNetworkPolicy` resources in Cilium mode.
+`ZTAPolicy` is currently in development and not yet available. It will control per-workload **allowed protocols** (`mcp`, `a2a`) and **LLM endpoints** (FQDN allow-list), and will reconcile automatically into network enforcement policies.
 :::
 
 ### Purpose
 
-Declares per-workload network access rules — specifically which protocols a workload may use and which external LLM endpoints it may reach. The ZTA operator reconciles these into `CiliumNetworkPolicy` resources.
+Declares per-workload network access rules — specifically which protocols a workload may use and which external LLM endpoints it may reach. The ZTA operator reconciles these into network enforcement policies.
 
 ### Example
 
@@ -138,7 +138,6 @@ spec:
 | Field | Description |
 |---|---|
 | `status.phase` | `Pending`, `Active`, or `Failed` |
-| `status.ciliumPolicyName` | Name of the generated `CiliumNetworkPolicy` |
 | `status.lastSyncTime` | Timestamp of last successful reconciliation |
 | `status.message` | Human-readable status description |
 
