@@ -56,10 +56,10 @@ Both can be replaced with externally managed PostgreSQL by setting `postgresAuth
 
 ### ZTA Explorer UI
 
-A React-based admin dashboard for:
+A React-based exploration and debug UI for:
+- Browsing token events and tool call decisions in real time
+- Inspecting token exchange traces correlated with user prompts
 - Viewing registered MAS applications and their status
-- Browsing telemetry traces (token events, tool call decisions)
-- Managing application registrations
 
 The UI connects to the auth service via an Nginx reverse proxy (when `uiExplorer.nginx.apiProxyEnabled: true`).
 
