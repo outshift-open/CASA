@@ -6,7 +6,7 @@ title: ZTA Explorer UI
 
 # ZTA Explorer UI
 
-The ZTA Explorer UI is an admin dashboard for managing Multi-Agent System registrations and viewing authorization telemetry.
+The ZTA Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces. It does not manage or modify any configuration.
 
 ## Dashboard
 

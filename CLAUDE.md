@@ -42,7 +42,7 @@ src/identity_auth_server/   # Main Python package
 test/
   conftest.py               # Shared pytest fixtures
   integration/              # Integration tests (require live DB/Keycloak; marked with @pytest.mark.integration)
-zta-explorer-ui/            # React/TypeScript admin dashboard (yarn)
+zta-explorer-ui/            # React/TypeScript observability UI — read-only (yarn)
 sdk/                        # Generated Python SDK (uv workspace member; don't edit directly)
 deployments/
   docker-compose/           # docker-compose.yml, keycloak, demo, ui variants

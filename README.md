@@ -87,13 +87,13 @@ graph TB
 | **ZTA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
 | **eBPF layer**      | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
 | **Keycloak**        | Identity provider backing token cryptography                                                                     |
-| **ZTA Explorer UI** | Admin dashboard for managing MAS registrations and viewing telemetry                                             |
+| **ZTA Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                    |
 
 ---
 
 ## ZTA Explorer UI
 
-The ZTA Explorer UI is an admin dashboard for managing MAS registrations and viewing authorization telemetry.
+The ZTA Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces.
 
 ### Dashboard
 
@@ -235,7 +235,7 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 | `demo/src/mcp/`                           | Demo MCP server source code              |
 | `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)          |
 | `src/identity_auth_server/`               | Auth service Python source               |
-| `zta-explorer-ui/`                        | Admin UI source (React)                  |
+| `zta-explorer-ui/`                        | ZTA Explorer UI source (React, read-only observability) |
 | `docs/ui/`                                | Docusaurus documentation portal          |
 | `contrib/wip/it1/`                        | Architecture specs and design documents  |
 
