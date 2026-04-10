@@ -140,7 +140,7 @@ class K8sCRDService:
             )
             return crd
 
-        except ValueError:
+        except Exception:
             # MAS doesn't exist, create it
             logger.info(f"Creating new MAS {request.metadata.name} in namespace {request.metadata.namespace}")
             pass
