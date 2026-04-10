@@ -91,6 +91,36 @@ graph TB
 
 ---
 
+## ZTA Explorer UI
+
+The ZTA Explorer UI is an admin dashboard for managing MAS registrations and viewing authorization telemetry.
+
+### Dashboard
+
+Overview of all configured Multi-Agent Systems, application counts, tool call decisions (approved vs. blocked), and block reasons.
+
+![Dashboard](docs/screens/dashboard.png)
+
+### MAS Details — Info
+
+Per-MAS configuration: MAS ID, registered agents/clients/MCP servers, scopes, and enabled authorization checks.
+
+![MAS Details — Info](docs/screens/mas-info.png)
+
+### MAS Details — Applications
+
+Interactive graph view of the applications within a MAS (agents, clients, MCP servers) and their relationships.
+
+![MAS Details — Applications](docs/screens/mas-tree.png)
+
+### MAS Details — Traces
+
+Token-level trace for each user session: token issuance, LLM selection events, and per-tool ALLOW/BLOCK decisions with check details.
+
+![MAS Details — Traces](docs/screens/mas-traces.png)
+
+---
+
 ## Core Concepts
 
 **Control Plane** — The ZTA control plane (`zta-control-plane` namespace) handles agent identity (CIMD - Client Id Metadata), token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.

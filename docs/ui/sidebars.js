@@ -4,6 +4,7 @@
 const sidebars = {
   docs: [
     'overview',
+    'explorer-ui',
     {
       type: 'category',
       label: 'Architecture',
