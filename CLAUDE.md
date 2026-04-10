@@ -70,3 +70,10 @@ scripts/                    # Utility scripts (create_demo_data.py)
 - Copy `.env.example` to `.env` before running locally (if present)
 - Auth server runs on port 8000 by default
 - SDK is generated from `http://localhost:8000/openapi.json` via `make generate-sdk`
+
+## Docs Portal (docs/ui — Docusaurus 3.6)
+
+- URL routing uses **file paths**, not `id` frontmatter — `id` is sidebar-reference only
+- `src/pages/index.js` owns `/`; any doc with `slug: /` is silently overridden — use `slug: /overview` etc.
+- Mermaid diagrams render with a yellow canvas by default; add `%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%` to override
+- Mermaid sequence diagram arrow labels (`signalTextColor`) default to light — set to `#1e293b` for light backgrounds
