@@ -5,6 +5,8 @@ export interface MAS {
     name: string;
     apps: App[];
     created_at: string;
+    enabled_tool_checks?: number;
+    namespace?: string;
 }
 
 export interface MASListResponse {

@@ -64,6 +64,8 @@ class Scope(SQLModel, table=True):
 
 
 class ToolCheckFlags(IntFlag):
+    """Bitmask flags controlling which tool authorization checks are enabled on a MAS."""
+
     NONE = 0
     DETERMINISTIC_TOOL_SELECTED = 1 << 0
     DETERMINISTIC_LLM_SELECTED_TOOLS = 1 << 1
@@ -186,6 +188,7 @@ class TokenIntrospectResponse(BaseModel):
     exp: Optional[int] = None
     user_input_id: Optional[str] = None
     app_id: Optional[str] = None
+    mas_id: Optional[str] = None
     tools: Optional[list[str]] = None
     active: bool
 
