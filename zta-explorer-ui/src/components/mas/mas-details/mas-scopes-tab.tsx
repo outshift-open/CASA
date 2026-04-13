@@ -84,7 +84,7 @@ export function MASScopesTab({mas}: MASScopesTabProps) {
                         {filteredScopes.map((scope) => (
                             <Card
                                 key={scope.id}
-                                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                                className="cursor-pointer hover:bg-accent/50 transition-colors p-0"
                                 onClick={() => navigate(`/scopes/${scope.id}`)}
                             >
                                 <div className="flex items-center gap-3 p-3">

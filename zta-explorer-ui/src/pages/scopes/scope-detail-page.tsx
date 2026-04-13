@@ -37,7 +37,7 @@ export function ScopeDetailPage() {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex items-center justify-between pb-4">
+                <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Scope Details</h1>
                         <p className="text-muted-foreground">View and manage scope information</p>
@@ -56,7 +56,7 @@ export function ScopeDetailPage() {
                         <div className="grid gap-6">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                                    <div>
+                                    <div className="space-y-2">
                                         <CardTitle>{scope.name}</CardTitle>
                                         <CardDescription>Scope information and tools</CardDescription>
                                     </div>

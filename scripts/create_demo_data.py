@@ -34,6 +34,13 @@ except ImportError:
     psycopg2 = None  # type: ignore[assignment]
 
 try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
     from colorama import Fore, Style
     from colorama import init as colorama_init
 
@@ -103,7 +110,7 @@ def check_backend_health(config: Config) -> bool:
 
 
 def create_mas(config: Config, name: str, enabled_tool_checks: Optional[int] = None) -> Optional[Dict]:
-    """Create a Multi-Agent System."""
+    """Create a Multi-Agent System, returning existing one if it already exists."""
     log_info(f"Creating MAS: {name}", config)
 
     if config.dry_run:
@@ -111,6 +118,14 @@ def create_mas(config: Config, name: str, enabled_tool_checks: Optional[int] = N
         return {"id": "dry-run-mas-id", "name": name}
 
     try:
+        # Check if MAS with this name already exists
+        existing_resp = requests.get(f"{config.backend_url}/mas", timeout=10)
+        existing_resp.raise_for_status()
+        existing = next((m for m in existing_resp.json() if m["name"] == name), None)
+        if existing:
+            log_info(f"MAS already exists: {name} (ID: {existing['id']})", config)
+            return existing
+
         payload: Dict = {"name": name}
         if enabled_tool_checks is not None:
             payload["enabled_tool_checks"] = enabled_tool_checks
@@ -163,6 +178,16 @@ def create_scope(config: Config, mas_id: str, name: str) -> Optional[Dict]:
 
     try:
         response = requests.post(f"{config.backend_url}/scopes", json={"name": name, "mas_id": mas_id}, timeout=30)
+        if response.status_code == 409:
+            # Scope name is globally unique — fetch by name only
+            existing = requests.get(f"{config.backend_url}/scopes", timeout=10)
+            existing.raise_for_status()
+            match = next((s for s in existing.json() if s["name"] == name), None)
+            if match:
+                log_info(f"Scope already exists: {name} (ID: {match['id']})", config)
+                return match
+            log_warning(f"Scope '{name}' conflict but could not find existing entry — skipping")
+            return None
         response.raise_for_status()
         scope_data = response.json()
         log_success(f"Created Scope: {name} (ID: {scope_data['id']})")
@@ -367,6 +392,188 @@ def get_sample_tool_schemas() -> Dict[str, Dict]:
                 }
             ),
         },
+        "get_build_status": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "pipeline_id": {"type": "string", "description": "Pipeline identifier"},
+                        "branch": {"type": "string", "description": "Git branch name"},
+                    },
+                    "required": ["pipeline_id"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "string", "enum": ["pending", "running", "success", "failed"]},
+                        "commit_sha": {"type": "string"},
+                        "duration_s": {"type": "integer"},
+                    },
+                }
+            ),
+        },
+        "trigger_deploy": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "service": {"type": "string", "description": "Service name to deploy"},
+                        "version": {"type": "string", "description": "Version tag (e.g. v2.3.1)"},
+                        "environment": {"type": "string", "enum": ["dev", "staging", "prod"]},
+                    },
+                    "required": ["service", "version", "environment"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "deploy_id": {"type": "string"},
+                        "status": {"type": "string"},
+                    },
+                }
+            ),
+        },
+        "rollback_deployment": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "deploy_id": {"type": "string", "description": "Deployment ID to roll back"},
+                        "reason": {"type": "string", "description": "Reason for rollback"},
+                    },
+                    "required": ["deploy_id", "reason"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "rollback_id": {"type": "string"},
+                        "status": {"type": "string"},
+                    },
+                }
+            ),
+        },
+        "create_incident": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string"},
+                        "severity": {"type": "string", "enum": ["P1", "P2", "P3", "P4"]},
+                        "description": {"type": "string"},
+                    },
+                    "required": ["title", "severity", "description"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "incident_id": {"type": "string"},
+                        "status": {"type": "string"},
+                    },
+                }
+            ),
+        },
+        "read_patient_record": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "patient_id": {"type": "string", "description": "Patient identifier"},
+                        "fields": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Optional list of fields to return",
+                        },
+                    },
+                    "required": ["patient_id"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "patient_id": {"type": "string"},
+                        "name": {"type": "string"},
+                        "dob": {"type": "string"},
+                        "diagnoses": {"type": "array", "items": {"type": "string"}},
+                    },
+                }
+            ),
+        },
+        "write_prescription": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "patient_id": {"type": "string"},
+                        "medication": {"type": "string"},
+                        "dosage": {"type": "string"},
+                        "duration_days": {"type": "integer"},
+                    },
+                    "required": ["patient_id", "medication", "dosage", "duration_days"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "prescription_id": {"type": "string"},
+                        "status": {"type": "string"},
+                    },
+                }
+            ),
+        },
+        "schedule_appointment": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "patient_id": {"type": "string"},
+                        "provider_id": {"type": "string"},
+                        "datetime": {"type": "string", "description": "ISO 8601 datetime"},
+                        "type": {"type": "string", "description": "Appointment type (e.g. follow-up, consult)"},
+                    },
+                    "required": ["patient_id", "provider_id", "datetime", "type"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "appointment_id": {"type": "string"},
+                        "confirmed": {"type": "boolean"},
+                    },
+                }
+            ),
+        },
+        "get_lab_results": {
+            "input_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "patient_id": {"type": "string"},
+                        "test_type": {"type": "string", "description": "Type of lab test"},
+                        "since": {"type": "string", "description": "ISO 8601 date — return results after this date"},
+                    },
+                    "required": ["patient_id", "test_type"],
+                }
+            ),
+            "output_schema": json.dumps(
+                {
+                    "type": "object",
+                    "properties": {
+                        "results": {"type": "array", "items": {"type": "object"}},
+                        "count": {"type": "integer"},
+                    },
+                }
+            ),
+        },
     }
 
 
@@ -517,6 +724,116 @@ def get_sample_mas_configs() -> List[Dict]:
                             "description": "Process financial transaction",
                             **tool_schemas["process_payment"],
                             "scopes": ["write:transactions"],
+                        },
+                    ],
+                },
+            ],
+        },
+        {
+            "name": "DevOps CI-CD Platform",
+            "scopes": ["read:builds", "write:deploys", "read:incidents", "write:incidents", "execute:rollback"],
+            "apps": [
+                {
+                    "type": "client",
+                    "name": "CI/CD Dashboard",
+                    "base_url": "https://devops.example.com/dashboard",
+                    "tools": [],
+                },
+                {
+                    "type": "agent",
+                    "name": "Deploy Orchestrator Agent",
+                    "base_url": "https://devops.example.com/agents/deploy",
+                    "tools": [],
+                },
+                {
+                    "type": "agent",
+                    "name": "Incident Response Agent",
+                    "base_url": "https://devops.example.com/agents/incident",
+                    "tools": [],
+                },
+                {
+                    "type": "mcp_server",
+                    "name": "Pipeline MCP",
+                    "base_url": "https://devops.example.com/mcp/pipeline",
+                    "tools": [
+                        {
+                            "name": "get_build_status",
+                            "description": "Get the status of a CI pipeline build",
+                            **tool_schemas["get_build_status"],
+                            "scopes": ["read:builds"],
+                        },
+                        {
+                            "name": "trigger_deploy",
+                            "description": "Trigger a deployment for a service",
+                            **tool_schemas["trigger_deploy"],
+                            "scopes": ["write:deploys"],
+                        },
+                        {
+                            "name": "rollback_deployment",
+                            "description": "Roll back a deployment to the previous version",
+                            **tool_schemas["rollback_deployment"],
+                            "scopes": ["execute:rollback"],
+                        },
+                        {
+                            "name": "create_incident",
+                            "description": "Create an incident in the incident management system",
+                            **tool_schemas["create_incident"],
+                            "scopes": ["write:incidents"],
+                        },
+                    ],
+                },
+            ],
+        },
+        {
+            "name": "Healthcare Records System",
+            "scopes": ["read:patients", "write:prescriptions", "read:labs", "write:appointments", "execute:admin"],
+            "apps": [
+                {
+                    "type": "client",
+                    "name": "Clinical Portal",
+                    "base_url": "https://healthcare.example.com/portal",
+                    "tools": [],
+                },
+                {
+                    "type": "agent",
+                    "name": "Clinical Assistant Agent",
+                    "base_url": "https://healthcare.example.com/agents/clinical",
+                    "tools": [],
+                },
+                {
+                    "type": "agent",
+                    "name": "Pharmacy Agent",
+                    "base_url": "https://healthcare.example.com/agents/pharmacy",
+                    "tools": [],
+                },
+                {
+                    "type": "mcp_server",
+                    "name": "EHR MCP",
+                    "base_url": "https://healthcare.example.com/mcp/ehr",
+                    "tools": [
+                        {
+                            "name": "read_patient_record",
+                            "description": "Read a patient's electronic health record",
+                            **tool_schemas["read_patient_record"],
+                            "scopes": ["read:patients"],
+                        },
+                        {
+                            "name": "write_prescription",
+                            "description": "Write a new prescription for a patient",
+                            **tool_schemas["write_prescription"],
+                            "scopes": ["write:prescriptions"],
+                        },
+                        {
+                            "name": "schedule_appointment",
+                            "description": "Schedule a medical appointment",
+                            **tool_schemas["schedule_appointment"],
+                            "scopes": ["write:appointments"],
+                        },
+                        {
+                            "name": "get_lab_results",
+                            "description": "Retrieve lab test results for a patient",
+                            **tool_schemas["get_lab_results"],
+                            "scopes": ["read:labs"],
                         },
                     ],
                 },
@@ -945,11 +1262,104 @@ def mock_tools(config: Config) -> bool:
 
     log_success(f"Found {len(rows)} existing token request(s) to attach mock tool calls to")
 
-    # Mock tool calls: mix of approved and blocked with varied reasons
-    mock_scenarios = [
-        {"tool": "get_account_balance", "blocked": False, "blocking_type": None, "blocking_reason": None},
-        {"tool": "search_products", "blocked": False, "blocking_type": None, "blocking_reason": None},
+    # Fetch MAS names to build per-MAS scenario sets
+    mas_names: Dict[str, str] = {}  # mas_id -> mas_name
+    try:
+        resp = requests.get(f"{config.backend_url}/mas", timeout=10)
+        if resp.ok:
+            for m in resp.json():
+                mas_names[m["id"]] = m["name"]
+    except Exception:
+        pass  # fallback to generic scenarios if API unavailable
+
+    # Per-MAS scenario sets keyed by name substring
+    mas_scenarios: Dict[str, List[Dict]] = {
+        "E-commerce": [
+            {"tool": "search_products", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {"tool": "get_inventory", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {
+                "tool": "process_payment",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_not_selected_by_llm",
+            },
+            {
+                "tool": "query_database",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_intent_mismatch",
+            },
+        ],
+        "Customer Support": [
+            {"tool": "get_user_profile", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {"tool": "analyze_sentiment", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {
+                "tool": "send_email",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_intent_mismatch",
+            },
+            {
+                "tool": "create_ticket",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "no_llm_calls_made_by_app",
+            },
+        ],
+        "Financial": [
+            {"tool": "get_user_profile", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {"tool": "analyze_sentiment", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {
+                "tool": "process_payment",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "no_llm_calls_made_by_app",
+            },
+            {
+                "tool": "query_database",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_not_selected_by_llm",
+            },
+        ],
+        "DevOps": [
+            {"tool": "get_build_status", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {"tool": "create_incident", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {
+                "tool": "trigger_deploy",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_not_selected_by_llm",
+            },
+            {
+                "tool": "rollback_deployment",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_intent_mismatch",
+            },
+        ],
+        "Healthcare": [
+            {"tool": "read_patient_record", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {"tool": "get_lab_results", "blocked": False, "blocking_type": None, "blocking_reason": None},
+            {
+                "tool": "write_prescription",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_not_selected_by_llm",
+            },
+            {
+                "tool": "schedule_appointment",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "tool_intent_mismatch",
+            },
+        ],
+    }
+
+    # Generic fallback scenarios
+    fallback_scenarios: List[Dict] = [
         {"tool": "get_user_profile", "blocked": False, "blocking_type": None, "blocking_reason": None},
+        {"tool": "analyze_sentiment", "blocked": False, "blocking_type": None, "blocking_reason": None},
         {
             "tool": "process_payment",
             "blocked": True,
@@ -960,37 +1370,23 @@ def mock_tools(config: Config) -> bool:
             "tool": "query_database",
             "blocked": True,
             "blocking_type": "DETERMINISTIC",
-            "blocking_reason": "tool_not_selected_by_llm",
-        },
-        {
-            "tool": "send_email",
-            "blocked": True,
-            "blocking_type": "DETERMINISTIC",
             "blocking_reason": "tool_intent_mismatch",
         },
-        {
-            "tool": "create_ticket",
-            "blocked": True,
-            "blocking_type": "AI_POWERED",
-            "blocking_reason": "tool_intent_mismatch",
-        },
-        {"tool": "analyze_sentiment", "blocked": False, "blocking_type": None, "blocking_reason": None},
-        {
-            "tool": "process_payment",
-            "blocked": True,
-            "blocking_type": "DETERMINISTIC",
-            "blocking_reason": "no_llm_calls_made_by_app",
-        },
-        {"tool": "get_inventory", "blocked": False, "blocking_type": None, "blocking_reason": None},
     ]
+
+    def _pick_scenarios(mas_id: Optional[str]) -> List[Dict]:
+        if mas_id and mas_id in mas_names:
+            name = mas_names[mas_id]
+            for key, scenarios in mas_scenarios.items():
+                if key in name:
+                    return scenarios
+        return fallback_scenarios
 
     inserted = 0
     now = datetime.now(timezone.utc)
 
-    for i, (user_input_id, mas_id, app_id) in enumerate(rows):
-        # Assign 2-4 scenarios per user_input in rotation
-        scenarios = mock_scenarios[i % len(mock_scenarios) : i % len(mock_scenarios) + 3] or mock_scenarios[:3]
-        for scenario in scenarios:
+    for user_input_id, mas_id, app_id in rows:
+        for scenario in _pick_scenarios(mas_id):
             event_id = str(uuid.uuid4())
             event = {
                 "id": event_id,
@@ -1013,7 +1409,7 @@ def mock_tools(config: Config) -> bool:
                 """,
                 (event_id, str(user_input_id), now, "MCPCallStartedEvent", json.dumps(event)),
             )
-            status = f"{'blocked' if scenario['blocked'] else 'approved'}"
+            status = "blocked" if scenario["blocked"] else "approved"
             log_info(f"  {scenario['tool']} → {status} ({scenario.get('blocking_reason') or 'ok'})", config)
             inserted += 1
 
@@ -1021,6 +1417,338 @@ def mock_tools(config: Config) -> bool:
     conn.close()
 
     log_success(f"Inserted {inserted} mock MCPCallStartedEvent traces")
+    return True
+
+
+def mock_scopes(config: Config) -> bool:
+    """Insert mock scope-blocked MCPCallStartedEvent traces into the DB for dashboard testing.
+
+    Fetches existing user_input_ids from the trace table and inserts MCPCallStartedEvent
+    rows blocked due to insufficient_scope, simulating scope enforcement in the UI.
+    """
+    if psycopg2 is None:
+        log_error("psycopg2 is required for --mock-scopes. Install it with: pip install psycopg2-binary")
+        return False
+
+    print(f"\n{Fore.BLUE}{Style.BRIGHT}=== Inserting Mock Scope-Blocked Traces ==={Style.RESET_ALL}\n")
+
+    db_host = os.getenv("DB_HOST", "localhost")
+    db_port = os.getenv("DB_PORT", "5432")
+    db_user = os.getenv("DB_USERNAME", "postgres")
+    db_pass = os.getenv("DB_PASSWORD", "postgres")
+    db_name = os.getenv("DB_NAME", "identity-platform")
+
+    try:
+        conn = psycopg2.connect(host=db_host, port=db_port, user=db_user, password=db_pass, dbname=db_name)
+        conn.autocommit = True
+        cur = conn.cursor()
+    except Exception as e:
+        log_error(f"Failed to connect to database: {e}")
+        return False
+
+    cur.execute(
+        """
+        SELECT user_input_id, event->>'mas_id', event->>'app_id'
+        FROM trace
+        WHERE event_type = 'TokenIssuedEvent'
+        ORDER BY created_at DESC
+        LIMIT 20
+        """
+    )
+    rows = cur.fetchall()
+
+    if not rows:
+        log_error("No existing TokenIssuedEvent traces found. Run --test-flow first to create some.")
+        cur.close()
+        conn.close()
+        return False
+
+    log_success(f"Found {len(rows)} existing token request(s) to attach mock scope traces to")
+
+    # Fetch MAS names to build per-MAS scenario sets
+    mas_names: Dict[str, str] = {}
+    try:
+        resp = requests.get(f"{config.backend_url}/mas", timeout=10)
+        if resp.ok:
+            for m in resp.json():
+                mas_names[m["id"]] = m["name"]
+    except Exception:
+        pass
+
+    def _make_scope_blocked(tool: str) -> Dict:
+        return {
+            "tool": tool,
+            "blocked": True,
+            "blocking_type": "DETERMINISTIC",
+            "blocking_reason": "insufficient_scope",
+        }
+
+    def _make_approved(tool: str) -> Dict:
+        return {"tool": tool, "blocked": False, "blocking_type": None, "blocking_reason": None}
+
+    mas_scenarios: Dict[str, List[Dict]] = {
+        "E-commerce": [
+            _make_approved("search_products"),
+            _make_approved("get_inventory"),
+            _make_scope_blocked("process_payment"),
+            _make_scope_blocked("query_database"),
+        ],
+        "Customer Support": [
+            _make_approved("get_user_profile"),
+            _make_approved("analyze_sentiment"),
+            _make_scope_blocked("send_email"),
+            _make_scope_blocked("create_ticket"),
+        ],
+        "Financial": [
+            _make_approved("get_user_profile"),
+            _make_approved("analyze_sentiment"),
+            _make_scope_blocked("process_payment"),
+            _make_scope_blocked("query_database"),
+        ],
+        "DevOps": [
+            _make_approved("get_build_status"),
+            _make_approved("create_incident"),
+            _make_scope_blocked("trigger_deploy"),
+            _make_scope_blocked("rollback_deployment"),
+        ],
+        "Healthcare": [
+            _make_approved("read_patient_record"),
+            _make_approved("get_lab_results"),
+            _make_scope_blocked("write_prescription"),
+            _make_scope_blocked("schedule_appointment"),
+        ],
+    }
+
+    fallback_scenarios: List[Dict] = [
+        _make_approved("get_user_profile"),
+        _make_approved("analyze_sentiment"),
+        _make_scope_blocked("process_payment"),
+        _make_scope_blocked("query_database"),
+    ]
+
+    def _pick_scenarios(mas_id: Optional[str]) -> List[Dict]:
+        if mas_id and mas_id in mas_names:
+            name = mas_names[mas_id]
+            for key, scenarios in mas_scenarios.items():
+                if key in name:
+                    return scenarios
+        return fallback_scenarios
+
+    inserted = 0
+    now = datetime.now(timezone.utc)
+
+    for user_input_id, mas_id, app_id in rows:
+        for scenario in _pick_scenarios(mas_id):
+            event_id = str(uuid.uuid4())
+            event = {
+                "id": event_id,
+                "user_input_id": str(user_input_id),
+                "created_at": now.isoformat(),
+                "mas_id": mas_id,
+                "app_id": app_id,
+                "token": "",
+                "caller_app_id": str(app_id) if app_id else "",
+                "callee_app_id": str(app_id) if app_id else "",
+                "tool": scenario["tool"],
+                "blocked": scenario["blocked"],
+                "blocking_type": scenario["blocking_type"],
+                "blocking_reason": scenario["blocking_reason"],
+            }
+            cur.execute(
+                """
+                INSERT INTO trace (id, user_input_id, created_at, event_type, event)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (event_id, str(user_input_id), now, "MCPCallStartedEvent", json.dumps(event)),
+            )
+            status = "blocked (insufficient_scope)" if scenario["blocked"] else "approved"
+            log_info(f"  {scenario['tool']} → {status}", config)
+            inserted += 1
+
+    cur.close()
+    conn.close()
+
+    log_success(f"Inserted {inserted} mock scope-blocked MCPCallStartedEvent traces")
+    return True
+
+
+def mock_llm(config: Config) -> bool:
+    """Insert mock LLM call traces via the API for dashboard testing.
+
+    For each MAS, fetches its client and agent apps, obtains tokens, then
+    posts LLMCallStartedEvent and LLMCallEndedEvent traces through the live backend.
+    Requires a running backend and Keycloak (same as --test-flow).
+    """
+    print(f"\n{Fore.BLUE}{Style.BRIGHT}=== Inserting Mock LLM Call Traces ==={Style.RESET_ALL}\n")
+
+    if not check_backend_health(config):
+        log_error("Backend is not accessible. Please ensure the server is running.")
+        return False
+
+    # Per-MAS prompt scenarios: (user_input, call_end_response, tool_name)
+    mas_prompts: Dict[str, List[tuple]] = {
+        "E-commerce": [
+            ("Find me a laptop under $1000", "I will search for laptops under $1000", "search_products"),
+            ("Is the blue shirt in stock?", "I will check the inventory for the blue shirt", "get_inventory"),
+        ],
+        "Customer Support": [
+            (
+                "I need help with my broken order",
+                "I will create a support ticket for your order issue",
+                "create_ticket",
+            ),
+            (
+                "How satisfied is this customer?",
+                "I will analyze the sentiment of the customer message",
+                "analyze_sentiment",
+            ),
+        ],
+        "Financial": [
+            ("Show my last 10 transactions", "I will query your recent transactions", "query_database"),
+            (
+                "Transfer $500 to my savings account",
+                "I will process the transfer to your savings account",
+                "process_payment",
+            ),
+        ],
+        "DevOps": [
+            (
+                "What is the status of the main branch build?",
+                "I will check the build status for the main branch",
+                "get_build_status",
+            ),
+            ("Deploy version 2.3.1 to staging", "I will trigger the deployment of v2.3.1 to staging", "trigger_deploy"),
+        ],
+        "Healthcare": [
+            (
+                "Pull up patient Jane Doe's record",
+                "I will retrieve the patient record for Jane Doe",
+                "read_patient_record",
+            ),
+            (
+                "Schedule a follow-up for next Tuesday",
+                "I will schedule a follow-up appointment",
+                "schedule_appointment",
+            ),
+        ],
+    }
+
+    # Fetch all MAS
+    try:
+        resp = requests.get(f"{config.backend_url}/mas", timeout=10)
+        resp.raise_for_status()
+        all_mas = resp.json()
+    except requests.exceptions.RequestException as e:
+        log_error(f"Failed to fetch MAS list: {e}")
+        return False
+
+    if not all_mas:
+        log_error("No MAS found. Run demo data generation first.")
+        return False
+
+    total_inserted = 0
+
+    for mas in all_mas:
+        mas_id = mas["id"]
+        mas_name = mas["name"]
+
+        # Find matching prompt set
+        prompts = None
+        for key, prompt_list in mas_prompts.items():
+            if key in mas_name:
+                prompts = prompt_list
+                break
+        if not prompts:
+            log_warning(f"No prompt scenarios for MAS '{mas_name}' — skipping")
+            continue
+
+        # Fetch apps for this MAS
+        try:
+            apps_resp = requests.get(f"{config.backend_url}/mas/{mas_id}/apps", timeout=10)
+            apps_resp.raise_for_status()
+            apps = apps_resp.json()
+        except requests.exceptions.RequestException as e:
+            log_warning(f"Failed to fetch apps for MAS '{mas_name}': {e} — skipping")
+            continue
+
+        client_app = next((a for a in apps if a["type"] == "client"), None)
+        agent_app = next((a for a in apps if a["type"] == "agent"), None)
+
+        if not client_app or not agent_app:
+            log_warning(f"MAS '{mas_name}' missing client or agent app — skipping")
+            continue
+
+        client_app_id = client_app["id"]
+
+        realm = _get_mas_realm(mas_id, config)
+        if not realm:
+            log_warning(f"Could not determine Keycloak realm for MAS '{mas_name}' — skipping")
+            continue
+
+        client_creds = _get_app_credentials(client_app_id, realm, config)
+        if not client_creds:
+            log_warning(f"Could not fetch credentials for client app in MAS '{mas_name}' — skipping")
+            continue
+
+        print(f"\n{Fore.CYAN}MAS: {mas_name}{Style.RESET_ALL}")
+
+        for user_input, llm_response, tool_name in prompts:
+            call_id = str(uuid.uuid4())
+
+            # Step 1: Get client token
+            try:
+                token_resp = requests.post(
+                    f"{config.backend_url}/{client_app_id}/oauth2/token",
+                    data={
+                        "client_id": client_creds["client_id"],
+                        "client_secret": client_creds["client_secret"],
+                        "user_input": user_input,
+                    },
+                    timeout=30,
+                )
+                token_resp.raise_for_status()
+                client_token = token_resp.json()["access_token"]
+            except requests.exceptions.RequestException as e:
+                log_warning(f"  Failed to get token for '{user_input[:40]}': {e}")
+                continue
+
+            # Step 2: LLM call started
+            try:
+                requests.post(
+                    f"{config.backend_url}/trace/llm/call_start",
+                    json={"call_id": call_id, "prompt": user_input},
+                    headers={"Authorization": f"Bearer {client_token}"},
+                    timeout=10,
+                ).raise_for_status()
+            except requests.exceptions.RequestException as e:
+                log_warning(f"  Failed to record call_start for '{user_input[:40]}': {e}")
+                continue
+
+            # Step 3: LLM call ended (selected a tool)
+            try:
+                requests.post(
+                    f"{config.backend_url}/trace/llm/call_end",
+                    json={
+                        "call_id": call_id,
+                        "response": llm_response,
+                        "tools": f"[Tool(name='{tool_name}')]",
+                    },
+                    headers={"Authorization": f"Bearer {client_token}"},
+                    timeout=10,
+                ).raise_for_status()
+            except requests.exceptions.RequestException as e:
+                log_warning(f"  Failed to record call_end for '{user_input[:40]}': {e}")
+                continue
+
+            log_info(f"  '{user_input[:50]}' → {tool_name}", config)
+            log_success(f"  Inserted LLM trace pair for: {user_input[:50]}")
+            total_inserted += 1
+
+    if total_inserted == 0:
+        log_error("No LLM traces inserted. Check that MAS and apps exist and credentials are accessible.")
+        return False
+
+    log_success(f"Inserted {total_inserted} LLM call trace pairs")
     return True
 
 
@@ -1036,6 +1764,8 @@ Examples:
   python create_demo_data.py --clear --verbose
   python create_demo_data.py --test-flow
   python create_demo_data.py --mock-tools --verbose
+  python create_demo_data.py --mock-scopes --verbose
+  python create_demo_data.py --mock-llm --verbose
   python create_demo_data.py --backend-url http://localhost:8000
 
 Environment Variables:
@@ -1057,6 +1787,16 @@ Environment Variables:
         action="store_true",
         help="Insert mock MCPCallStartedEvent traces into the DB for dashboard testing",
     )
+    parser.add_argument(
+        "--mock-scopes",
+        action="store_true",
+        help="Insert mock scope-blocked MCPCallStartedEvent traces into the DB for dashboard testing",
+    )
+    parser.add_argument(
+        "--mock-llm",
+        action="store_true",
+        help="Insert mock LLM call traces via the API for dashboard testing (requires live backend + Keycloak)",
+    )
 
     args = parser.parse_args()
 
@@ -1072,6 +1812,10 @@ Environment Variables:
             success = test_flow(config)
         elif args.mock_tools:
             success = mock_tools(config)
+        elif args.mock_scopes:
+            success = mock_scopes(config)
+        elif args.mock_llm:
+            success = mock_llm(config)
         else:
             success = generate_demo_data(config)
         sys.exit(0 if success else 1)

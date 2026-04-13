@@ -225,6 +225,26 @@ demo-data-mock-tools: # Insert mock MCPCallStartedEvent traces into the DB for d
 > python scripts/create_demo_data.py --mock-tools --verbose
 .PHONY: demo-data-mock-tools
 
+demo-data-mock-scopes: # Insert mock scope-blocked MCPCallStartedEvent traces into the DB for dashboard testing.
+> @printf "$(YELLOW)Inserting mock scope-blocked traces$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --mock-scopes --verbose
+.PHONY: demo-data-mock-scopes
+
+demo-data-mock-llm: # Insert mock LLM call traces via API for dashboard testing (requires live backend).
+> @printf "$(YELLOW)Inserting mock LLM call traces$(NOCOLOR)\n"
+> $(VENV_ACTIVATE)
+> python scripts/create_demo_data.py --mock-llm --verbose
+.PHONY: demo-data-mock-llm
+
+demo-data-full: # Run full demo data population sequence (requires live backend + Keycloak + PostgreSQL).
+> @printf "$(YELLOW)Running full demo data population sequence$(NOCOLOR)\n"
+> $(MAKE) demo-data
+> $(MAKE) demo-data-mock-llm
+> $(MAKE) demo-data-mock-tools
+> $(MAKE) demo-data-mock-scopes
+.PHONY: demo-data-full
+
 demo-data-reset: # Clear all existing data and create fresh demo data.
 > @printf "$(YELLOW)Resetting data: clearing and recreating$(NOCOLOR)\n"
 > @printf "$(RED)WARNING: This will delete ALL existing data!$(NOCOLOR)\n"

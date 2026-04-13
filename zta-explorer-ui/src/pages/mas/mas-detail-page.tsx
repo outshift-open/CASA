@@ -16,7 +16,7 @@ export function MASDetailPage() {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex items-center justify-between pb-4">
+                <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">MAS Details</h1>
                         <p className="text-muted-foreground">View Multi-Agent System</p>
@@ -35,7 +35,7 @@ export function MASDetailPage() {
                         <div className="grid gap-6">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                                    <div>
+                                    <div className="space-y-2">
                                         <CardTitle>{mas.name}</CardTitle>
                                         <CardDescription>
                                             Multi-Agent System configuration and applications

@@ -154,7 +154,7 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
                                 return (
                                     <Card
                                         key={mas.id}
-                                        className="cursor-pointer hover:bg-accent/50 transition-colors"
+                                        className="cursor-pointer hover:bg-accent/50 transition-colors p-0"
                                         onClick={() => navigate(`/mas/${mas.id}`)}
                                     >
                                         <div className="flex items-center gap-3 p-3">

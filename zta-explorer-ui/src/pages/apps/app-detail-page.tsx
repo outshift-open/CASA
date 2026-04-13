@@ -87,7 +87,7 @@ export function AppDetailPage() {
     return (
         <>
             <div className="space-y-6">
-                <div className="flex items-center justify-between pb-4">
+                <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Application Details</h1>
                         <p className="text-muted-foreground">View and manage application information</p>
@@ -106,7 +106,7 @@ export function AppDetailPage() {
                         <div className="grid gap-6">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                                    <div>
+                                    <div className="space-y-2">
                                         <CardTitle>{app.name}</CardTitle>
                                         <CardDescription>Application configuration and tools</CardDescription>
                                     </div>
