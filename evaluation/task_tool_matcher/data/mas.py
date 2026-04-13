@@ -461,10 +461,13 @@ def filter_and_convert_tools(mcp_servers: List[str], tool_names: List[str], mcp_
         server_data = load_mcp_server_tools(server_name.replace("-", "_"), mcp_dir)
         for tool in server_data.get("tools", []):
             if tool["name"] in tool_names:
+                params = tool.get("inputSchema", {"type": "object", "properties": {}, "required": []})
+                if params.get("type") == "object" and "properties" not in params:
+                    params["properties"] = {}
                 mas_tool = {
                     "name": tool["name"],
                     "description": tool.get("description", ""),
-                    "parameters": tool.get("inputSchema", {"type": "object", "properties": {}, "required": []}),
+                    "parameters": params,
                 }
                 all_tools.append(mas_tool)
     return all_tools

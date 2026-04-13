@@ -16,7 +16,6 @@ import json
 import os
 import random
 import time
-from collections import defaultdict
 from typing import Annotated, Any, Dict, List, Sequence, TypedDict
 
 from dotenv import load_dotenv
@@ -243,6 +242,7 @@ class MultiAgentSystemWrong:
         target_tool: Dict[str, Any] | None = None,
         debug: bool = False,
         use_full_history: bool = False,
+        model_name: str = "NaN",
     ):
         """Initialize the multi-agent system.
 
@@ -252,6 +252,7 @@ class MultiAgentSystemWrong:
             target_tool: For wrong/null mode, the specific tool the assistant must call.
             debug: Enable detailed input/output logging for each agent.
             use_full_history: Use full conversation history for user evaluation.
+            model_name: LLM model identifier (e.g. "azure/gpt-4o", "azure/gpt-5.2").
         """
         self.debug = debug
         self.use_full_history = use_full_history
@@ -263,7 +264,6 @@ class MultiAgentSystemWrong:
 
         api_key = os.getenv("OPENAI_API_KEY")
         base_url = os.getenv("OPENAI_API_BASE_URL")
-        model_name = "azure/gpt-4o"
 
         user_temp, simulator_temp, assistant_temp = 0.7, 0.5, 0.3
         if model_name == "azure/gpt-5.2":
@@ -625,8 +625,19 @@ def convert_messages_to_serializable(messages: List[BaseMessage]) -> List[Dict[s
                     query = ask_user_calls[0].get("args", {}).get("query", msg.content)
                     serializable_messages.append({"role": "assistant", "content": query})
                 elif other_tool_calls:
+                    openai_tool_calls = [
+                        {
+                            "id": tc["id"],
+                            "type": "function",
+                            "function": {
+                                "name": tc["name"],
+                                "arguments": json.dumps(tc.get("args", {})),
+                            },
+                        }
+                        for tc in other_tool_calls
+                    ]
                     serializable_messages.append(
-                        {"role": "assistant", "content": msg.content, "tool_calls": other_tool_calls}
+                        {"role": "assistant", "content": msg.content, "tool_calls": openai_tool_calls}
                     )
             else:
                 serializable_messages.append({"role": "assistant", "content": msg.content})
@@ -651,28 +662,29 @@ def convert_messages_to_serializable(messages: List[BaseMessage]) -> List[Dict[s
     return serializable_messages
 
 
-def count_tool_usage(messages: list, tool_names: list) -> int:
-    """Count how many unique tools from tool_names were called in the messages."""
+def count_tool_call_messages(messages: list) -> int:
+    """Count how many assistant messages contain tool_calls."""
+    return sum(1 for message in messages if message.get("role") == "assistant" and "tool_calls" in message)
+
+
+def count_unique_tools_all(messages: list) -> int:
+    """Count how many unique tools were called across all assistant tool_calls."""
     used_tools = {
-        tool_call.get("name")
+        tc["function"]["name"]
         for message in messages
         if message.get("role") == "assistant"
-        for tool_call in message.get("tool_calls", [])
-        if tool_call.get("name") in tool_names
+        for tc in message.get("tool_calls", [])
     }
     return len(used_tools)
 
 
-def count_tool_calls(messages: list, tool_names: list) -> int:
-    """Count how many tool calls from tool_names were made in the messages."""
-    called_tools = [
-        tool_call.get("name")
-        for message in messages
-        if message.get("role") == "assistant"
-        for tool_call in message.get("tool_calls", [])
-        if tool_call.get("name") in tool_names
-    ]
-    return len(called_tools)
+def compute_tool_call_locations(messages: list) -> list:
+    """Return sorted 1-indexed positions of assistant messages that contain tool_calls."""
+    locations = []
+    for idx, message in enumerate(messages):
+        if message.get("role") == "assistant" and "tool_calls" in message:
+            locations.append(idx + 1)  # 1-indexed
+    return sorted(locations)
 
 
 def immediate_tool_call(messages: list) -> bool:
@@ -680,58 +692,6 @@ def immediate_tool_call(messages: list) -> bool:
     if len(messages) < 2:
         return False
     return messages[1].get("role") == "assistant" and "tool_calls" in messages[1]
-
-
-def extract_ask_user_turnidx(messages: List[BaseMessage]) -> List[int]:
-    """Extract turn indices where ask_user tool was invoked from raw LangChain messages."""
-    ask_user_turns = []
-    serialized_idx = 0
-
-    i = 0
-    while i < len(messages):
-        msg = messages[i]
-
-        if isinstance(msg, HumanMessage):
-            serialized_idx += 1
-        elif isinstance(msg, AIMessage):
-            if hasattr(msg, "tool_calls") and msg.tool_calls:
-                ask_user_calls = [tc for tc in msg.tool_calls if tc.get("name") == "ask_user"]
-
-                if ask_user_calls:
-                    ask_user_turns.append(serialized_idx)
-
-                serialized_idx += 1
-            else:
-                serialized_idx += 1
-        elif isinstance(msg, ToolMessage):
-            is_ask_user_response = False
-            for j in range(i - 1, -1, -1):
-                prev_msg = messages[j]
-                if isinstance(prev_msg, AIMessage) and hasattr(prev_msg, "tool_calls"):
-                    for tc in prev_msg.tool_calls:
-                        if tc.get("id") == msg.tool_call_id:
-                            if tc.get("name") == "ask_user":
-                                is_ask_user_response = True
-                            break
-                    break
-
-            if not is_ask_user_response:
-                serialized_idx += 1
-
-        i += 1
-
-    return ask_user_turns
-
-
-def extract_tools_called_turnidx(conversation: List[Dict[str, Any]]) -> Dict[str, List[int]]:
-    """Extract which tools were called at which turn indices."""
-    tools_in_conv = defaultdict(list)
-    for turn_idx, message in enumerate(conversation):
-        if message.get("role") == "assistant" and "tool_calls" in message:
-            for tool_call in message.get("tool_calls", []):
-                tool_name = tool_call.get("name", "N/A")
-                tools_in_conv[tool_name].append(turn_idx)
-    return dict(tools_in_conv)
 
 
 def main():
@@ -750,7 +710,16 @@ def main():
         default="all",
         help="Only process samples with this label (default: all)",
     )
+    parser.add_argument(
+        "--model",
+        choices=["4o", "52"],
+        default="NaN",
+        help="LLM model to use: '4o' for GPT-4o, '52' for GPT-5.2 (default: NaN)",
+    )
     args = parser.parse_args()
+
+    model_name_map = {"4o": "azure/gpt-4o", "52": "azure/gpt-5.2"}
+    model_name = model_name_map[args.model]
 
     samples = load_test_data(args.tasks_file)
     print(f"Loaded {len(samples)} samples from {args.tasks_file}")
@@ -851,25 +820,47 @@ def main():
             target_tool=target_tool,
             debug=args.debug,
             use_full_history=args.use_full_history,
+            model_name=model_name,
         )
 
-        # Build result sample preserving input format, adding MAS output fields
-        input_data = {
-            "task": task,
-            "tools": input_tools,
-            "mcp_servers": input_mcp_servers,
-        }
+        # Build result sample in new format
         result_sample = {
             "id": sample.get("id"),
-            "input": input_data,
-            "match_tag": "correct" if is_relevant else "wrong",
-            "conversation_iters": None,
-            "number_tools_called": None,
-            "number_tool_calls": None,
-            "immediate_tool_call": None,
-            "ask_user_turnidx": None,
-            "tools_called_turnidx": None,
-            "synthetic_conversation": None,
+            "label": {"relevant": is_relevant},
+            "request": {
+                "conversation": {"messages": None},
+                "tool": {
+                    "name": input_tool_name,
+                    "description": target_tool.get("description", "") if target_tool else "",
+                },
+            },
+            "metadata": {
+                "label": sample.get("metadata", {}).get("label"),
+                "request": {
+                    "conversation": {
+                        "iterations": None,
+                        "number_of_tool_call_messages": None,
+                        "number_of_unique_tools_called": None,
+                        "tool_call_locations": None,
+                        "immediate_tool_call": None,
+                        "seed_task_request": {
+                            "task_tool_sample_id": "",
+                            "task_tool_request": {
+                                "task": sample.get("request", {}).get("task", ""),
+                                "tool": sample.get("request", {}).get("tool", {}),
+                            },
+                            "task_tool_request_type": sample.get("metadata", {}).get("label", {}).get("type", ""),
+                            "task_seed_tool": sample.get("metadata", {})
+                            .get("request", {})
+                            .get("task", {})
+                            .get("seed_tool", {}),
+                        },
+                    },
+                    "tool": {
+                        "mcp_server": input_mcp_server,
+                    },
+                },
+            },
         }
 
         max_retries = 5
@@ -882,16 +873,15 @@ def main():
                 result = mas.run(task)
 
                 serializable_messages = convert_messages_to_serializable(result["messages"])
-                result_sample["conversation_iters"] = result["iteration_count"]
-                # Count tools called against input_tools (the tools the assistant is trying to call)
-                result_sample["number_tools_called"] = count_tool_usage(serializable_messages, input_tools)
-                result_sample["number_tool_calls"] = count_tool_calls(serializable_messages, input_tools)
-                result_sample["immediate_tool_call"] = immediate_tool_call(serializable_messages)
-                result_sample["ask_user_turnidx"] = extract_ask_user_turnidx(result["messages"])
-                result_sample["tools_called_turnidx"] = extract_tools_called_turnidx(serializable_messages)
-                result_sample["synthetic_conversation"] = serializable_messages
+                conv_meta = result_sample["metadata"]["request"]["conversation"]
+                result_sample["request"]["conversation"]["messages"] = serializable_messages
+                conv_meta["iterations"] = result["iteration_count"]
+                conv_meta["number_of_tool_call_messages"] = count_tool_call_messages(serializable_messages)
+                conv_meta["number_of_unique_tools_called"] = count_unique_tools_all(serializable_messages)
+                conv_meta["tool_call_locations"] = compute_tool_call_locations(serializable_messages)
+                conv_meta["immediate_tool_call"] = immediate_tool_call(serializable_messages)
 
-                if result_sample["number_tools_called"] == 0:
+                if conv_meta["number_of_unique_tools_called"] == 0:
                     retry_count += 1
                     if retry_count < max_retries:
                         print(
@@ -911,8 +901,8 @@ def main():
                     print(
                         f"  -> Completed ({result['iteration_count']} iterations){' [fallback]' if used_fallback else ''}"
                     )
-                    print(f"     Tools called: {result_sample['tools_called_turnidx']}")
-                    print(f"     Input tools called: {result_sample['number_tools_called']}/{len(input_tools)}")
+                    print(f"     Tool call locations: {conv_meta['tool_call_locations']}")
+                    print(f"     Unique tools called: {conv_meta['number_of_unique_tools_called']}")
                     success = True
 
             except Exception as e:
@@ -929,7 +919,7 @@ def main():
                         print(f"  -> Errors after {max_retries} retries, switching to fallback prompts")
                     else:
                         print(f"  -> Error (all {max_retries} fallback retries failed): {e}")
-                        result_sample["synthetic_conversation"] = {"error": str(e)}
+                        result_sample["request"]["conversation"]["messages"] = {"error": str(e)}
 
         if args.verbose and success:
             print("\n--- Simulated Conversation ---\n")
