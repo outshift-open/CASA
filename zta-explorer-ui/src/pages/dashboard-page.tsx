@@ -187,7 +187,20 @@ export function DashboardPage() {
             }))
             .sort((a, b) => b.count - a.count);
 
-        return {tokenRequests, approved, blocked, totalMcpCalls: mcpCalls.length, blockReasons};
+        const deterministicBlocks = mcpCalls.filter(
+            (t) => t.event.blocked && t.event.blocking_type === 'DETERMINISTIC'
+        ).length;
+        const aiBlocks = mcpCalls.filter((t) => t.event.blocked && t.event.blocking_type === 'AI_POWERED').length;
+
+        return {
+            tokenRequests,
+            approved,
+            blocked,
+            totalMcpCalls: mcpCalls.length,
+            blockReasons,
+            deterministicBlocks,
+            aiBlocks
+        };
     }, [allTraces]);
 
     const appTypeData = useMemo(() => {
@@ -208,6 +221,15 @@ export function DashboardPage() {
             [
                 {name: 'Approved', value: traceStats.approved, color: '#22c55e'},
                 {name: 'Blocked', value: traceStats.blocked, color: '#ef4444'}
+            ].filter((d) => d.value > 0),
+        [traceStats]
+    );
+
+    const blockTypeData = useMemo(
+        () =>
+            [
+                {name: 'Deterministic', value: traceStats.deterministicBlocks, color: '#f97316'},
+                {name: 'AI-Powered', value: traceStats.aiBlocks, color: '#a855f7'}
             ].filter((d) => d.value > 0),
         [traceStats]
     );
@@ -324,7 +346,7 @@ export function DashboardPage() {
             </div>
 
             {/* Charts row */}
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader>
                         <CardTitle>Applications by Type</CardTitle>
@@ -353,6 +375,22 @@ export function DashboardPage() {
                             emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
                             emptyText="No tool calls recorded yet"
                             unit="call"
+                        />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Block Type</CardTitle>
+                        <CardDescription>Deterministic vs AI-powered blocks</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <DonutChart
+                            data={blockTypeData}
+                            loading={tracesLoading}
+                            emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
+                            emptyText="No blocked calls recorded yet"
+                            unit="block"
                         />
                     </CardContent>
                 </Card>

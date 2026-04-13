@@ -3,19 +3,26 @@ import {
     Activity,
     ChevronDown,
     ChevronRight,
+    ChevronLeft,
     CheckCircle2,
     XCircle,
     Zap,
     ArrowRightLeft,
     Brain,
     BrainCircuit,
-    ArrowUpDown
+    ArrowUpDown,
+    RefreshCw
 } from 'lucide-react';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Badge} from '@/components/ui/badge';
+import {Button} from '@/components/ui/button';
+import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {toast} from 'sonner';
 import {useTraces} from '@/hooks/use-traces';
 import {useMASApps} from '@/hooks/use-mas';
 import type {Trace, EventType, BlockingReason} from '@/types/trace.types';
+import type {AppType} from '@/types/app.types';
 
 const BLOCKING_REASON_LABELS: Record<BlockingReason, string> = {
     no_llm_calls_made_by_app: 'No LLM calls made',
@@ -50,7 +57,20 @@ function shortId(id: string | undefined): string {
     return id.length > 8 ? `${id.slice(0, 8)}…` : id;
 }
 
-type AppNames = Record<string, string>;
+const APP_TYPE_LABELS: Record<AppType, string> = {
+    client: 'Client',
+    agent: 'Agent',
+    mcp_server: 'MCP'
+};
+
+const APP_TYPE_CLASSES: Record<AppType, string> = {
+    client: 'bg-blue-500/10 text-blue-400',
+    agent: 'bg-purple-500/10 text-purple-400',
+    mcp_server: 'bg-orange-500/10 text-orange-400'
+};
+
+type AppInfo = {name: string; type: AppType};
+type AppNames = Record<string, AppInfo>;
 
 interface Session {
     userInputId: string;
@@ -101,22 +121,41 @@ function ToolChips({tools}: {tools: string[]}) {
 
 function AppIdChip({id, appNames}: {id: string | undefined; appNames: AppNames}) {
     if (!id) return <span className="text-muted-foreground">—</span>;
-    const name = appNames[id];
+    const info = appNames[id];
     return (
-        <code className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono" title={id}>
-            {name ?? shortId(id)}
-        </code>
+        <span className="inline-flex items-center gap-1">
+            {info?.type && (
+                <span
+                    className={`px-1 py-0.5 rounded text-[9px] font-medium uppercase tracking-wide ${APP_TYPE_CLASSES[info.type]}`}
+                >
+                    {APP_TYPE_LABELS[info.type]}
+                </span>
+            )}
+            <code className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono" title={id}>
+                {info?.name ?? shortId(id)}
+            </code>
+        </span>
     );
 }
 
+function EventTimestamp({createdAt}: {createdAt: string}) {
+    if (!createdAt) return null;
+    const time = new Date(createdAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    return <span className="ml-auto pl-3 text-[10px] text-muted-foreground/60 flex-shrink-0 tabular-nums">{time}</span>;
+}
+
 function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNames: AppNames}) {
-    const {event_type, event} = trace;
+    const {event_type, event, created_at} = trace;
 
     if (event_type === 'TokenIssuedEvent') {
         return (
             <div className="flex items-start gap-2 py-1.5 pl-4 border-l-2 border-muted ml-2">
                 <Zap className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1">
+                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                     <span className="font-medium text-foreground">Token issued</span>
                     {event.app_id && (
                         <>
@@ -126,6 +165,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                     )}
                     {event.prompt && <span className="ml-1 text-foreground/70">"{event.prompt}"</span>}
                 </div>
+                <EventTimestamp createdAt={created_at} />
             </div>
         );
     }
@@ -135,7 +175,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         return (
             <div className="flex items-start gap-2 py-1.5 pl-4 border-l-2 border-muted ml-2">
                 <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1">
+                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                     <span className="font-medium text-foreground">Token exchanged</span>
                     {event.subject_app_id && (
                         <>
@@ -150,6 +190,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                         </>
                     )}
                 </div>
+                <EventTimestamp createdAt={created_at} />
             </div>
         );
     }
@@ -159,7 +200,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         return (
             <div className="flex items-start gap-2 py-1.5 pl-4 border-l-2 border-blue-500/30 ml-2">
                 <Brain className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1">
+                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                     <span className="font-medium text-foreground">
                         LLM call {index !== undefined ? `#${index + 1}` : ''}
                     </span>
@@ -176,6 +217,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                         </>
                     )}
                 </div>
+                <EventTimestamp createdAt={created_at} />
             </div>
         );
     }
@@ -185,7 +227,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         return (
             <div className="flex items-start gap-2 py-1.5 pl-4 border-l-2 border-blue-500/30 ml-2">
                 <BrainCircuit className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1">
+                <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                     <span className="font-medium text-foreground">LLM responded</span>
                     {selectedTools.length > 0 ? (
                         <>
@@ -196,6 +238,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                         <span className="ml-1 italic">— no tools selected</span>
                     )}
                 </div>
+                <EventTimestamp createdAt={created_at} />
             </div>
         );
     }
@@ -212,7 +255,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                 ) : (
                     <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 flex-shrink-0" />
                 )}
-                <div className="text-xs flex flex-wrap items-center gap-x-2 gap-y-1">
+                <div className="text-xs flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
                     <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px]">{event.tool ?? '—'}</code>
                     {(event.caller_app_id || event.callee_app_id) && (
                         <span className="text-muted-foreground flex items-center gap-1">
@@ -222,15 +265,26 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                         </span>
                     )}
                     {blocked ? (
-                        <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
-                            Blocked{reason ? ` · ${reason}` : ''}
-                        </Badge>
+                        <>
+                            <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
+                                Blocked{reason ? ` · ${reason}` : ''}
+                            </Badge>
+                            {event.blocking_type && (
+                                <Badge
+                                    variant="outline"
+                                    className={`text-[9px] h-4 px-1.5 font-medium ${event.blocking_type === 'AI_POWERED' ? 'border-purple-500/50 text-purple-400' : 'border-orange-500/50 text-orange-400'}`}
+                                >
+                                    {event.blocking_type === 'AI_POWERED' ? 'AI' : 'DET'}
+                                </Badge>
+                            )}
+                        </>
                     ) : (
                         <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-green-500/50 text-green-500">
                             Approved
                         </Badge>
                     )}
                 </div>
+                <EventTimestamp createdAt={created_at} />
             </div>
         );
     }
@@ -251,7 +305,6 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
         ? new Date(session.createdAt).toLocaleDateString([], {month: 'short', day: 'numeric'})
         : null;
 
-    // Track LLM call index for numbering
     let llmCallIndex = 0;
 
     return (
@@ -307,17 +360,20 @@ interface MASTracesTabProps {
     masId: string;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 export function MASTracesTab({masId}: MASTracesTabProps) {
     const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
     const [sortAsc, setSortAsc] = useState(false);
-    const {data, isLoading} = useTraces(masId, page, PAGE_SIZE);
+    const {data, isLoading, refetch} = useTraces(masId, page, pageSize);
     const {data: appsData} = useMASApps(masId);
 
     const appNames: AppNames = useMemo(() => {
         if (!appsData) return {};
-        return Object.fromEntries(appsData.filter((a) => a.id && a.name).map((a) => [a.id!, a.name]));
+        return Object.fromEntries(
+            appsData.filter((a) => a.id && a.name).map((a) => [a.id!, {name: a.name, type: a.type}])
+        );
     }, [appsData]);
 
     const sessions = useMemo(() => {
@@ -326,7 +382,7 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
         return sortAsc ? [...built].reverse() : built;
     }, [data, sortAsc]);
 
-    const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+    const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
 
     if (isLoading) {
         return (
@@ -352,47 +408,98 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                    {data && data.total > 0
-                        ? `${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, data.total)} of ${data.total} sessions`
-                        : ''}
-                </p>
-                <button
-                    type="button"
-                    onClick={() => setSortAsc((v) => !v)}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                    <ArrowUpDown className="h-3.5 w-3.5" />
-                    {sortAsc ? 'Oldest first' : 'Newest first'}
-                </button>
+            <div className="flex items-center justify-end">
+                <div className="flex items-center gap-4">
+                    <button
+                        type="button"
+                        onClick={() => setSortAsc((v) => !v)}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                        <ArrowUpDown className="h-3.5 w-3.5" />
+                        {sortAsc ? 'Oldest first' : 'Newest first'}
+                    </button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7 cursor-pointer"
+                                aria-label="Refresh traces"
+                                onClick={async () => {
+                                    try {
+                                        await refetch();
+                                        toast.success('Traces refreshed');
+                                    } catch {
+                                        toast.error('Failed to refresh traces');
+                                    }
+                                }}
+                            >
+                                <RefreshCw className="h-3.5 w-3.5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Refresh traces</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
             </div>
 
             {sessions.map((session) => (
                 <SessionRow key={session.userInputId} session={session} appNames={appNames} />
             ))}
 
-            {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 pt-2">
-                    <button
-                        type="button"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                        className="text-xs px-3 py-1.5 rounded border hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    >
-                        Previous
-                    </button>
-                    <span className="text-xs text-muted-foreground">
-                        Page {page} of {totalPages}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={page === totalPages}
-                        className="text-xs px-3 py-1.5 rounded border hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    >
-                        Next
-                    </button>
+            {(totalPages > 1 || data?.total) && (
+                <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Sessions per page</span>
+                        <Select
+                            value={`${pageSize}`}
+                            onValueChange={(v) => {
+                                setPageSize(Number(v));
+                                setPage(1);
+                            }}
+                        >
+                            <SelectTrigger className="h-8 w-[70px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent side="top">
+                                {PAGE_SIZE_OPTIONS.map((s) => (
+                                    <SelectItem key={s} value={`${s}`}>
+                                        {s}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {data && data.total > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                                {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, data.total)} of {data.total}{' '}
+                                session{data.total === 1 ? '' : 's'}
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="p-1.5 rounded border hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            aria-label="Previous page"
+                        >
+                            <ChevronLeft className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="text-xs text-muted-foreground px-1">
+                            {page} / {totalPages}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages}
+                            className="p-1.5 rounded border hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                            aria-label="Next page"
+                        >
+                            <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

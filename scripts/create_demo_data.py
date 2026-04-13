@@ -1262,13 +1262,21 @@ def mock_tools(config: Config) -> bool:
 
     log_success(f"Found {len(rows)} existing token request(s) to attach mock tool calls to")
 
-    # Fetch MAS names to build per-MAS scenario sets
+    # Fetch MAS names and per-MAS agent/mcp_server app IDs
     mas_names: Dict[str, str] = {}  # mas_id -> mas_name
+    mas_app_ids: Dict[str, Dict[str, Optional[str]]] = {}  # mas_id -> {agent_id, mcp_server_id}
     try:
         resp = requests.get(f"{config.backend_url}/mas", timeout=10)
         if resp.ok:
             for m in resp.json():
                 mas_names[m["id"]] = m["name"]
+                apps_resp = requests.get(f"{config.backend_url}/mas/{m['id']}/apps", timeout=10)
+                if apps_resp.ok:
+                    apps = apps_resp.json()
+                    mas_app_ids[m["id"]] = {
+                        "agent_id": next((a["id"] for a in apps if a["type"] == "agent"), None),
+                        "mcp_server_id": next((a["id"] for a in apps if a["type"] == "mcp_server"), None),
+                    }
     except Exception:
         pass  # fallback to generic scenarios if API unavailable
 
@@ -1286,8 +1294,14 @@ def mock_tools(config: Config) -> bool:
             {
                 "tool": "query_database",
                 "blocked": True,
-                "blocking_type": "DETERMINISTIC",
+                "blocking_type": "AI_POWERED",
                 "blocking_reason": "tool_intent_mismatch",
+            },
+            {
+                "tool": "search_products",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "modified_mcp_tool_defs",
             },
         ],
         "Customer Support": [
@@ -1296,7 +1310,7 @@ def mock_tools(config: Config) -> bool:
             {
                 "tool": "send_email",
                 "blocked": True,
-                "blocking_type": "DETERMINISTIC",
+                "blocking_type": "AI_POWERED",
                 "blocking_reason": "tool_intent_mismatch",
             },
             {
@@ -1304,6 +1318,12 @@ def mock_tools(config: Config) -> bool:
                 "blocked": True,
                 "blocking_type": "DETERMINISTIC",
                 "blocking_reason": "no_llm_calls_made_by_app",
+            },
+            {
+                "tool": "get_user_profile",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "modified_mcp_tool_defs",
             },
         ],
         "Financial": [
@@ -1318,8 +1338,14 @@ def mock_tools(config: Config) -> bool:
             {
                 "tool": "query_database",
                 "blocked": True,
+                "blocking_type": "AI_POWERED",
+                "blocking_reason": "tool_parameters_mismatch",
+            },
+            {
+                "tool": "analyze_sentiment",
+                "blocked": True,
                 "blocking_type": "DETERMINISTIC",
-                "blocking_reason": "tool_not_selected_by_llm",
+                "blocking_reason": "modified_mcp_tool_defs",
             },
         ],
         "DevOps": [
@@ -1334,8 +1360,14 @@ def mock_tools(config: Config) -> bool:
             {
                 "tool": "rollback_deployment",
                 "blocked": True,
-                "blocking_type": "DETERMINISTIC",
+                "blocking_type": "AI_POWERED",
                 "blocking_reason": "tool_intent_mismatch",
+            },
+            {
+                "tool": "get_build_status",
+                "blocked": True,
+                "blocking_type": "DETERMINISTIC",
+                "blocking_reason": "modified_mcp_tool_defs",
             },
         ],
         "Healthcare": [
@@ -1350,8 +1382,14 @@ def mock_tools(config: Config) -> bool:
             {
                 "tool": "schedule_appointment",
                 "blocked": True,
+                "blocking_type": "AI_POWERED",
+                "blocking_reason": "tool_parameters_mismatch",
+            },
+            {
+                "tool": "read_patient_record",
+                "blocked": True,
                 "blocking_type": "DETERMINISTIC",
-                "blocking_reason": "tool_intent_mismatch",
+                "blocking_reason": "modified_mcp_tool_defs",
             },
         ],
     }
@@ -1369,8 +1407,14 @@ def mock_tools(config: Config) -> bool:
         {
             "tool": "query_database",
             "blocked": True,
-            "blocking_type": "DETERMINISTIC",
+            "blocking_type": "AI_POWERED",
             "blocking_reason": "tool_intent_mismatch",
+        },
+        {
+            "tool": "get_user_profile",
+            "blocked": True,
+            "blocking_type": "DETERMINISTIC",
+            "blocking_reason": "modified_mcp_tool_defs",
         },
     ]
 
@@ -1386,6 +1430,9 @@ def mock_tools(config: Config) -> bool:
     now = datetime.now(timezone.utc)
 
     for user_input_id, mas_id, app_id in rows:
+        ids = mas_app_ids.get(mas_id, {}) if mas_id else {}
+        caller_id = ids.get("agent_id") or app_id
+        callee_id = ids.get("mcp_server_id") or app_id
         for scenario in _pick_scenarios(mas_id):
             event_id = str(uuid.uuid4())
             event = {
@@ -1395,8 +1442,8 @@ def mock_tools(config: Config) -> bool:
                 "mas_id": mas_id,
                 "app_id": app_id,
                 "token": "",
-                "caller_app_id": str(app_id) if app_id else "",
-                "callee_app_id": str(app_id) if app_id else "",
+                "caller_app_id": str(caller_id) if caller_id else "",
+                "callee_app_id": str(callee_id) if callee_id else "",
                 "tool": scenario["tool"],
                 "blocked": scenario["blocked"],
                 "blocking_type": scenario["blocking_type"],
@@ -1465,13 +1512,21 @@ def mock_scopes(config: Config) -> bool:
 
     log_success(f"Found {len(rows)} existing token request(s) to attach mock scope traces to")
 
-    # Fetch MAS names to build per-MAS scenario sets
+    # Fetch MAS names and per-MAS agent/mcp_server app IDs
     mas_names: Dict[str, str] = {}
+    mas_app_ids: Dict[str, Dict[str, Optional[str]]] = {}
     try:
         resp = requests.get(f"{config.backend_url}/mas", timeout=10)
         if resp.ok:
             for m in resp.json():
                 mas_names[m["id"]] = m["name"]
+                apps_resp = requests.get(f"{config.backend_url}/mas/{m['id']}/apps", timeout=10)
+                if apps_resp.ok:
+                    apps = apps_resp.json()
+                    mas_app_ids[m["id"]] = {
+                        "agent_id": next((a["id"] for a in apps if a["type"] == "agent"), None),
+                        "mcp_server_id": next((a["id"] for a in apps if a["type"] == "mcp_server"), None),
+                    }
     except Exception:
         pass
 
@@ -1538,6 +1593,9 @@ def mock_scopes(config: Config) -> bool:
     now = datetime.now(timezone.utc)
 
     for user_input_id, mas_id, app_id in rows:
+        ids = mas_app_ids.get(mas_id, {}) if mas_id else {}
+        caller_id = ids.get("agent_id") or app_id
+        callee_id = ids.get("mcp_server_id") or app_id
         for scenario in _pick_scenarios(mas_id):
             event_id = str(uuid.uuid4())
             event = {
@@ -1547,8 +1605,8 @@ def mock_scopes(config: Config) -> bool:
                 "mas_id": mas_id,
                 "app_id": app_id,
                 "token": "",
-                "caller_app_id": str(app_id) if app_id else "",
-                "callee_app_id": str(app_id) if app_id else "",
+                "caller_app_id": str(caller_id) if caller_id else "",
+                "callee_app_id": str(callee_id) if callee_id else "",
                 "tool": scenario["tool"],
                 "blocked": scenario["blocked"],
                 "blocking_type": scenario["blocking_type"],
