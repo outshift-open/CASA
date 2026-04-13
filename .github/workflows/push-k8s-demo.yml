@@ -1,3 +1,7 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+# SPDX-License-Identifier: Apache-2.0
+
+---
 name: Build and push the k8s demo to docker registry
 
 on:
@@ -22,7 +26,7 @@ jobs:
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # v3.5.1
         with:
           ref: ${{ github.ref }}
-          path: ''
+          path: ""
           clean: true
 
       - name: Import Vault Secrets for Artifactory
@@ -101,11 +105,7 @@ jobs:
   reusable-workflow-ci-status:
     name: Reusable Workflow CI Status
     # This should be an array of ALL active jobs that are used/run
-    needs: [
-      checkout,
-      docker-build-push-k8s-agent,
-      docker-build-push-k8s-mcp
-    ]
+    needs: [checkout, docker-build-push-k8s-agent, docker-build-push-k8s-mcp]
     if: always()
     runs-on:
       group: arc-runner-set

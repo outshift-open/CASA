@@ -1,6 +1,26 @@
 default_stages: [pre-commit, pre-push]
 exclude: "^demo/"
 repos:
+    - repo: https://github.com/google/addlicense
+      rev: v1.2.0
+      hooks:
+          - id: addlicense # Add license header to files
+            args:
+                - -ignore
+                - "**/node_modules/**"
+                - -ignore
+                - "**/vendor/**"
+                - -c
+                - "Cisco Systems, Inc. and its affiliates"
+                - -l
+                - Apache-2.0
+                - -s=only
+            files: \.(go|ts|tsx|js|jsx|py|sh|yaml|yml|css|scss)$
+            exclude: |
+                (?x)^(
+                |docs/ui/generatedSidebarsProtodocs.js           # generated doc JS file
+                )
+
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v5.0.0
       hooks:
@@ -23,15 +43,15 @@ repos:
             args: [--fix]
             types_or: [python, pyi, jupyter]
             exclude: |
-              (?x)^(
-                sdk/    # generated python sdk
-              )
+                (?x)^(
+                  sdk/    # generated python sdk
+                )
           - id: ruff-format
             types_or: [python, pyi, jupyter]
             exclude: |
-              (?x)^(
-                sdk/    # generated python sdk
-              )
+                (?x)^(
+                  sdk/    # generated python sdk
+                )
 
     - repo: https://github.com/pre-commit/mirrors-mypy
       rev: v1.17.1
@@ -39,15 +59,15 @@ repos:
           - id: mypy
             additional_dependencies: [types-PyYAML, types-requests]
             exclude: |
-              (?x)^(
-                sdk/    # generated python sdk
-              )
+                (?x)^(
+                  sdk/    # generated python sdk
+                )
 
     - repo: https://github.com/shellcheck-py/shellcheck-py
       rev: v0.10.0.1
       hooks:
           - id: shellcheck
             exclude: |
-              (?x)^(
-                sdk/    # generated python sdk
-              )
+                (?x)^(
+                  sdk/    # generated python sdk
+                )
