@@ -52,8 +52,8 @@ const mainNavItems = [
         icon: Network
     },
     {
-        title: 'Applications',
-        url: '/applications',
+        title: 'Agentic Services',
+        url: '/agentic-services',
         icon: AppWindow
     },
     {
@@ -79,8 +79,8 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
         if (url === '/') {
             return location.pathname === '/';
         }
-        if (url === '/applications') {
-            return location.pathname === '/applications' || location.pathname.startsWith('/apps');
+        if (url === '/agentic-services') {
+            return location.pathname === '/agentic-services' || location.pathname.startsWith('/agentic-services/');
         }
         if (url === '/mas') {
             return location.pathname === '/mas' || location.pathname.startsWith('/mas/');

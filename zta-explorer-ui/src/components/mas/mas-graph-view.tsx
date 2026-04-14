@@ -203,8 +203,8 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
             <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
                 <Network className="h-10 w-10 opacity-40" />
                 <div className="text-center">
-                    <p className="text-sm font-medium">No applications to display</p>
-                    <p className="text-xs mt-1">Add applications to this MAS to see the graph</p>
+                    <p className="text-sm font-medium">No agentic services to display</p>
+                    <p className="text-xs mt-1">Add agentic services to this MAS to see the graph</p>
                 </div>
             </div>
         );
@@ -218,7 +218,7 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
                 <div className="relative flex-1 min-w-[200px] max-w-xs">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search applications..."
+                        placeholder="Search agentic services..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-8 pr-8"
@@ -325,7 +325,7 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
                     />
                     <Panel position="bottom-left" className="bg-background/80 backdrop-blur-sm p-2 rounded-lg text-xs">
                         <div className="text-muted-foreground">
-                            Showing {filteredApps.length} of {apps.length} applications
+                            Showing {filteredApps.length} of {apps.length} agentic services
                         </div>
                     </Panel>
                 </ReactFlow>

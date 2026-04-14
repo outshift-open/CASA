@@ -31,8 +31,8 @@ function App() {
                         <div className="flex flex-col gap-4 md:gap-6">
                             <Routes>
                                 <Route path="/" element={<DashboardPage />} />
-                                <Route path="/applications" element={<ApplicationsPage />} />
-                                <Route path="/apps/:id" element={<AppDetailPage />} />
+                                <Route path="/agentic-services" element={<ApplicationsPage />} />
+                                <Route path="/agentic-services/:id" element={<AppDetailPage />} />
                                 <Route path="/mas" element={<MASPage />} />
                                 <Route path="/mas/:id" element={<MASDetailPage />} />
                                 <Route path="/scopes" element={<ScopesPage />} />

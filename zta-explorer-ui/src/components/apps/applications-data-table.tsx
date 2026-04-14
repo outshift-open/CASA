@@ -30,7 +30,7 @@ export function ApplicationsDataTable<TData, TValue extends {id?: string}>({
         <div className="flex flex-col items-center justify-center py-8 gap-3">
             <AppWindow className="h-10 w-10 text-muted-foreground opacity-40" />
             <div className="text-center">
-                <p className="text-sm font-medium">No applications found</p>
+                <p className="text-sm font-medium">No agentic services found</p>
                 <p className="text-xs text-muted-foreground mt-1">Add agents, clients or MCP servers to a MAS</p>
             </div>
         </div>
@@ -62,7 +62,7 @@ export function ApplicationsDataTable<TData, TValue extends {id?: string}>({
             onSearchChange={onSearchChange}
             onRowClick={(row) => {
                 const r = row as {id?: string};
-                if (r.id) navigate(`/apps/${r.id}`);
+                if (r.id) navigate(`/agentic-services/${r.id}`);
             }}
         />
     );

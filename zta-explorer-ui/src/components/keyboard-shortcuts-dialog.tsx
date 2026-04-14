@@ -8,7 +8,7 @@ const SHORTCUTS = [
     {keys: ['⌘B', 'Ctrl+B'], description: 'Toggle sidebar'},
     {keys: ['G', 'D'], description: 'Go to Dashboard'},
     {keys: ['G', 'M'], description: 'Go to Multi-Agent Systems'},
-    {keys: ['G', 'A'], description: 'Go to Applications'},
+    {keys: ['G', 'A'], description: 'Go to Agentic Services'},
     {keys: ['G', 'S'], description: 'Go to Scopes'}
 ];
 
@@ -57,7 +57,7 @@ export function KeyboardShortcutsDialog() {
                     return;
                 }
                 if (e.key === 'a') {
-                    navigate('/applications');
+                    navigate('/agentic-services');
                     return;
                 }
                 if (e.key === 's') {

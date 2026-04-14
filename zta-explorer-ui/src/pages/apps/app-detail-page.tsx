@@ -89,8 +89,8 @@ export function AppDetailPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold">Application Details</h1>
-                        <p className="text-muted-foreground">View and manage application information</p>
+                        <h1 className="text-2xl font-bold">Agentic Service Details</h1>
+                        <p className="text-muted-foreground">View and manage agentic service information</p>
                     </div>
                 </div>
 
@@ -98,8 +98,8 @@ export function AppDetailPage() {
                     isLoading={isLoading}
                     isError={!!error || !app}
                     error={error as Error}
-                    loadingMessage="Loading application..."
-                    errorMessage="Failed to load application. Please try again."
+                    loadingMessage="Loading agentic service..."
+                    errorMessage="Failed to load agentic service. Please try again."
                     onRetry={() => refetch()}
                 >
                     {app && (
@@ -108,7 +108,7 @@ export function AppDetailPage() {
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                                     <div className="space-y-2">
                                         <CardTitle>{app.name}</CardTitle>
-                                        <CardDescription>Application configuration and tools</CardDescription>
+                                        <CardDescription>Agentic service configuration and tools</CardDescription>
                                     </div>
                                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
                                         <TabsList>
@@ -177,7 +177,7 @@ export function AppDetailPage() {
                                                     {/* App ID */}
                                                     <div className="space-y-1">
                                                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                                            App ID
+                                                            Service ID
                                                         </p>
                                                         <div className="flex items-center gap-2">
                                                             <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[220px]">
@@ -187,7 +187,9 @@ export function AppDetailPage() {
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 className="h-6 w-6 cursor-pointer flex-shrink-0"
-                                                                onClick={() => copyToClipboard(app.id || '', 'App ID')}
+                                                                onClick={() =>
+                                                                    copyToClipboard(app.id || '', 'Service ID')
+                                                                }
                                                             >
                                                                 <Copy className="h-3 w-3" />
                                                             </Button>

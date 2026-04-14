@@ -38,7 +38,7 @@ export function MASDetailPage() {
                                     <div className="space-y-2">
                                         <CardTitle>{mas.name}</CardTitle>
                                         <CardDescription>
-                                            Multi-Agent System configuration and applications
+                                            Multi-Agent System configuration and agentic services
                                         </CardDescription>
                                     </div>
                                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
@@ -49,7 +49,7 @@ export function MASDetailPage() {
                                             </TabsTrigger>
                                             <TabsTrigger value="apps">
                                                 <AppWindow className="mr-2 h-4 w-4" />
-                                                Applications
+                                                Agentic Services
                                             </TabsTrigger>
                                             <TabsTrigger value="scopes">
                                                 <Tags className="mr-2 h-4 w-4" />

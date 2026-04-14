@@ -8,8 +8,7 @@ import {Button} from '@/components/ui/button';
 
 const routeTitles: Record<string, string> = {
     '/': 'Dashboard',
-    '/applications': 'Applications',
-    '/apps': 'Applications',
+    '/agentic-services': 'Agentic Services',
     '/mas': 'Multi-Agent Systems',
     '/scopes': 'Scopes',
     '/settings': 'Settings',
@@ -19,7 +18,7 @@ const routeTitles: Record<string, string> = {
 
 // Map breadcrumb paths to actual routes
 const routeRedirects: Record<string, string> = {
-    '/apps': '/applications',
+    '/agentic-services': '/agentic-services',
     '/mas': '/mas',
     '/scopes': '/scopes'
 };
@@ -48,8 +47,8 @@ export function SiteHeader() {
             label = 'Create';
         } else if (segment === 'edit') {
             label = 'Edit';
-        } else if (pathSegments[index - 1] === 'apps' && segment !== 'create') {
-            // It's an app ID - try to find the app name
+        } else if (pathSegments[index - 1] === 'agentic-services' && segment !== 'create') {
+            // It's a service ID - try to find the service name
             const app = appsData?.items?.find((a) => a.id === segment);
             label = app?.name || segment;
         } else if (pathSegments[index - 1] === 'mas' && segment !== 'create') {

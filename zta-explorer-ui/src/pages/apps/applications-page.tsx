@@ -9,10 +9,10 @@ export function ApplicationsPage() {
     const handleRefresh = async () => {
         try {
             await refetch();
-            toast.success('Applications refreshed successfully');
+            toast.success('Agentic Services refreshed successfully');
         } catch (error) {
-            console.error('Failed to refresh apps:', error);
-            toast.error('Failed to refresh applications');
+            console.error('Failed to refresh agentic services:', error);
+            toast.error('Failed to refresh agentic services');
         }
     };
 
@@ -20,7 +20,7 @@ export function ApplicationsPage() {
         <div>
             <div className="flex items-center justify-between pb-4">
                 <div>
-                    <h1 className="text-2xl font-bold">Applications</h1>
+                    <h1 className="text-2xl font-bold">Agentic Services</h1>
                     <p className="text-muted-foreground">Agents, clients, and MCP servers</p>
                 </div>
             </div>
@@ -30,8 +30,8 @@ export function ApplicationsPage() {
                     isLoading={isLoading}
                     isError={!!error}
                     error={error as Error}
-                    loadingMessage="Loading applications..."
-                    errorMessage="Failed to load applications. Please try again."
+                    loadingMessage="Loading agentic services..."
+                    errorMessage="Failed to load agentic services. Please try again."
                     onRetry={() => refetch()}
                 >
                     <ApplicationsTable

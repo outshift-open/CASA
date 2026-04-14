@@ -23,7 +23,7 @@ export const MASGraphMASNode = memo(({data}: MASGraphMASNodeProps) => {
                 <div className="text-center">
                     <div className="font-bold text-lg">{data.name}</div>
                     <div className="text-sm opacity-90">
-                        {data.appCount} {data.appCount === 1 ? 'Application' : 'Applications'}
+                        {data.appCount} {data.appCount === 1 ? 'Agentic Service' : 'Agentic Services'}
                     </div>
                 </div>
             </div>

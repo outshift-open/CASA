@@ -66,7 +66,7 @@ export const createMASColumns = (
                         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
                         className="cursor-pointer"
                     >
-                        Apps
+                        Services
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                 </div>
@@ -98,7 +98,9 @@ export const createMASColumns = (
                             </TooltipTrigger>
                             <TooltipContent className="max-w-sm p-3">
                                 {count === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic">No applications configured</p>
+                                    <p className="text-sm text-muted-foreground italic">
+                                        No agentic services configured
+                                    </p>
                                 ) : (
                                     <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                                         {apps.map((app) => (
@@ -108,7 +110,7 @@ export const createMASColumns = (
                                                 className="text-xs font-medium px-2 py-0.5 cursor-pointer hover:bg-secondary/80 transition-colors"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    navigate(`/apps/${app.id}`);
+                                                    navigate(`/agentic-services/${app.id}`);
                                                 }}
                                             >
                                                 {app.name}

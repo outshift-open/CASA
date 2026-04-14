@@ -16,9 +16,9 @@ export function MASAppsTab({mas}: MASAppsTabProps) {
     return (
         <div className="space-y-4">
             <div>
-                <p className="text-lg font-semibold">Applications</p>
+                <p className="text-lg font-semibold">Agentic Services</p>
                 <p className="text-sm text-muted-foreground">
-                    {apps?.length || 0} application{apps?.length !== 1 ? 's' : ''} configured
+                    {apps?.length || 0} agentic service{apps?.length !== 1 ? 's' : ''} configured
                 </p>
             </div>
 
@@ -31,7 +31,7 @@ export function MASAppsTab({mas}: MASAppsTabProps) {
             ) : appsError ? (
                 <Card>
                     <CardContent className="pt-6">
-                        <p className="text-sm text-destructive text-center py-8">Error loading applications</p>
+                        <p className="text-sm text-destructive text-center py-8">Error loading agentic services</p>
                     </CardContent>
                 </Card>
             ) : apps && apps.length > 0 ? (
@@ -59,9 +59,9 @@ export function MASAppsTab({mas}: MASAppsTabProps) {
                         <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
                             <AppWindow className="h-10 w-10 opacity-40" />
                             <div className="text-center">
-                                <p className="text-sm font-medium">No applications</p>
+                                <p className="text-sm font-medium">No agentic services</p>
                                 <p className="text-xs mt-1">
-                                    This MAS doesn't have any applications associated with it
+                                    This MAS doesn't have any agentic services associated with it
                                 </p>
                             </div>
                         </div>

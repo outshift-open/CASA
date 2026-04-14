@@ -290,10 +290,10 @@ export function DashboardPage() {
 
                 <Card
                     className="cursor-pointer hover:bg-accent transition-colors"
-                    onClick={() => navigate('/applications')}
+                    onClick={() => navigate('/agentic-services')}
                 >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Agentic Services</CardTitle>
                         <AppWindow className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -349,15 +349,15 @@ export function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Applications by Type</CardTitle>
-                        <CardDescription>Breakdown of registered application types</CardDescription>
+                        <CardTitle>Agentic Services by Type</CardTitle>
+                        <CardDescription>Breakdown of registered agentic service types</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <DonutChart
                             data={appTypeData}
                             loading={isLoading}
                             emptyIcon={<AppWindow className="h-8 w-8 opacity-40" />}
-                            emptyText="No applications registered"
+                            emptyText="No agentic services registered"
                             unit="app"
                         />
                     </CardContent>

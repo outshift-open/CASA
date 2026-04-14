@@ -65,7 +65,7 @@ export function MASAppsTable({apps}: MASAppsTableProps) {
                     <div className="relative w-1/2">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                            placeholder="Search applications..."
+                            placeholder="Search agentic services..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-9"
@@ -108,7 +108,7 @@ export function MASAppsTable({apps}: MASAppsTableProps) {
                                 <Card
                                     key={app.id}
                                     className="cursor-pointer hover:bg-accent/50 transition-colors p-0"
-                                    onClick={() => navigate(`/apps/${app.id}`)}
+                                    onClick={() => navigate(`/agentic-services/${app.id}`)}
                                 >
                                     <div className="flex items-center gap-3 p-3">
                                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
@@ -139,8 +139,10 @@ export function MASAppsTable({apps}: MASAppsTableProps) {
                     <div className="flex flex-col items-center justify-center py-12 gap-3">
                         <AppWindow className="h-10 w-10 text-muted-foreground opacity-40" />
                         <div className="text-center">
-                            <p className="text-sm font-medium">No applications found</p>
-                            <p className="text-xs text-muted-foreground mt-1">No apps are registered in this MAS</p>
+                            <p className="text-sm font-medium">No agentic services found</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                No agentic services are registered in this MAS
+                            </p>
                         </div>
                     </div>
                 )
