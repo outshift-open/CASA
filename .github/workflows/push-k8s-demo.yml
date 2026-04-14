@@ -102,10 +102,30 @@ jobs:
       artifactory-devhub-enabled: true
       ghcr-enabled: false
 
+  docker-build-push-chat-ui:
+    name: Build & Push chat UI
+    needs: [prepare-release]
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    secrets:
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    with:
+      runner-group: arc-runner-set
+      image-name: "outshift-zta/chat-ui"
+      image-custom-tag: ${{ needs.prepare-release.outputs.version }}
+      context: demo/chat-ui
+      dockerfile: demo/chat-ui/Dockerfile
+      ecr-enabled: true
+      artifactory-devhub-enabled: true
+      ghcr-enabled: false
+
   reusable-workflow-ci-status:
     name: Reusable Workflow CI Status
     # This should be an array of ALL active jobs that are used/run
-    needs: [checkout, docker-build-push-k8s-agent, docker-build-push-k8s-mcp]
+    needs: [checkout, docker-build-push-k8s-agent, docker-build-push-k8s-mcp, docker-build-push-chat-ui]
     if: always()
     runs-on:
       group: arc-runner-set
