@@ -1,14 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { AgentToggle } from '@/components/AgentToggle'
 import { ChatMessage } from '@/components/ChatMessage'
 import { TypingIndicator } from '@/components/TypingIndicator'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import type { AgentMode, Message } from '@/types'
-import { AGENT_URLS } from '@/config'
+import type { Message } from '@/types'
+import { AGENT_URL } from '@/config'
 
 let messageCounter = 0
 function nextId() {
@@ -16,7 +14,6 @@ function nextId() {
 }
 
 export default function App() {
-  const [mode, setMode] = useState<AgentMode>('safe')
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -36,12 +33,6 @@ export default function App() {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`
   }, [input])
 
-  const handleModeChange = useCallback((newMode: AgentMode) => {
-    setMode(newMode)
-    setMessages([])
-    setError(null)
-  }, [])
-
   const sendMessage = useCallback(async () => {
     const text = input.trim()
     if (!text || loading) return
@@ -59,7 +50,7 @@ export default function App() {
     setLoading(true)
 
     try {
-      const res = await fetch(`${AGENT_URLS[mode]}/chat`, {
+      const res = await fetch(`${AGENT_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: text }),
@@ -80,7 +71,7 @@ export default function App() {
     } finally {
       setLoading(false)
     }
-  }, [input, loading, mode])
+  }, [input, loading])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -92,58 +83,36 @@ export default function App() {
     [sendMessage]
   )
 
-  const isSafe = mode === 'safe'
-
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       {/* Header */}
-      <header className="shrink-0 flex flex-col gap-3 border-b border-border bg-white/80 backdrop-blur px-6 py-4 z-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">ZTA Chat Demo</h1>
-            <p className="text-xs text-muted-foreground font-mono mt-0.5">
-              {AGENT_URLS[mode]}/chat
-            </p>
-          </div>
-          <AgentToggle mode={mode} onChange={handleModeChange} />
+      <header className="shrink-0 flex items-center justify-between border-b border-border bg-white/80 backdrop-blur px-6 py-4 z-10">
+        <div>
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">ZTA Chat Demo</h1>
+          <p className="text-xs text-muted-foreground font-mono mt-0.5">{AGENT_URL}/chat</p>
         </div>
-
-        <div
-          className={cn(
-            'flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-300',
-            isSafe ? 'bg-safe-muted text-safe' : 'bg-danger-muted text-danger'
-          )}
-        >
-          <span className={cn('inline-block h-2 w-2 rounded-full shrink-0', isSafe ? 'bg-safe' : 'bg-danger')} />
-          {isSafe
-            ? 'Connected to safe agent — ZTA authorization enforced'
-            : 'Connected to compromised agent — ZTA authorization enforced, malicious tool calls will be blocked'}
+        <div className="flex items-center gap-2 rounded-lg bg-safe-muted px-3 py-1.5 text-xs font-medium text-safe">
+          <span className="inline-block h-2 w-2 rounded-full bg-safe shrink-0" />
+          ZTA authorization enforced
         </div>
       </header>
 
-      {/* Messages — ScrollArea owns the scroll */}
+      {/* Messages */}
       <ScrollArea className="flex-1 min-h-0">
         <div className="mx-auto max-w-2xl flex flex-col gap-4 px-6 py-6">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-              <div
-                className={cn(
-                  'flex h-14 w-14 items-center justify-center rounded-2xl text-2xl',
-                  isSafe ? 'bg-safe-muted' : 'bg-danger-muted'
-                )}
-              >
-                {isSafe ? '🛡️' : '⚠️'}
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl bg-safe-muted">
+                🛡️
               </div>
               <p className="text-sm text-muted-foreground max-w-xs">
-                {isSafe
-                  ? 'Chat with the safe agent. All tool calls are verified by ZTA.'
-                  : 'Chat with the compromised agent. ZTA will detect and block unauthorized tool calls.'}
+                Chat with the agent. All tool calls are verified by ZTA.
               </p>
             </div>
           )}
 
           {messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} agentMode={mode} />
+            <ChatMessage key={msg.id} message={msg} />
           ))}
 
           {loading && <TypingIndicator />}
@@ -169,25 +138,17 @@ export default function App() {
             placeholder="Send a message… (Enter to send, Shift+Enter for newline)"
             rows={1}
             disabled={loading}
-            className={cn(
-              'flex-1 transition-[border-color,box-shadow]',
-              isSafe
-                ? 'focus-visible:ring-safe/40'
-                : 'focus-visible:ring-danger/40 border-danger/30'
-            )}
+            className="flex-1 transition-[border-color,box-shadow] focus-visible:ring-safe/40"
           />
           <Button
             onClick={() => void sendMessage()}
             disabled={!input.trim() || loading}
-            variant={isSafe ? 'safe' : 'danger'}
+            variant="safe"
             size="icon"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="mx-auto max-w-2xl mt-2 text-[11px] text-muted-foreground text-center">
-          Switching agents clears the conversation.
-        </p>
       </footer>
     </div>
   )
