@@ -96,10 +96,9 @@ chatUi:
     domainPrefix: "chat"
     annotations: {}
   agents:
-    # In-cluster service URLs for the safe and compromised demo agents.
-    # Override with --set if your agents have different service names/ports.
-    safeAgentUrl: ""
-    compromisedAgentUrl: ""
+    # In-cluster service URL for the demo agent.
+    # Override with --set if your agent has a different service name/port.
+    agentUrl: ""
 
 # ─── PostgreSQL (auth-service backend) ───────────────────────────────────────
 postgresAuth:

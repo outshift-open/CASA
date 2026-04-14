@@ -56,26 +56,14 @@ Internal auth-service URL (used by auth-service as AUTH_SERVER_URL and by the UI
 {{- end }}
 
 {{/*
-In-cluster URL for the safe demo agent.
-Defaults to "<release>-demo-agent-safe:8082" when not overridden.
+In-cluster URL for the demo agent.
+Defaults to "<release>-demo-agent:8082" when not overridden.
 */}}
-{{- define "zta-control-plane.safeAgentUrl" -}}
-{{- if .Values.chatUi.agents.safeAgentUrl }}
-{{- .Values.chatUi.agents.safeAgentUrl }}
+{{- define "zta-control-plane.agentUrl" -}}
+{{- if .Values.chatUi.agents.agentUrl }}
+{{- .Values.chatUi.agents.agentUrl }}
 {{- else }}
-{{- printf "http://%s-demo-agent-safe:8082" .Release.Name }}
-{{- end }}
-{{- end }}
-
-{{/*
-In-cluster URL for the compromised demo agent.
-Defaults to "<release>-demo-agent-compromised:8082" when not overridden.
-*/}}
-{{- define "zta-control-plane.compromisedAgentUrl" -}}
-{{- if .Values.chatUi.agents.compromisedAgentUrl }}
-{{- .Values.chatUi.agents.compromisedAgentUrl }}
-{{- else }}
-{{- printf "http://%s-demo-agent-compromised:8082" .Release.Name }}
+{{- printf "http://%s-demo-agent:8082" .Release.Name }}
 {{- end }}
 {{- end }}
 
