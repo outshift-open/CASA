@@ -175,9 +175,7 @@ class TestZTAPolicyAPI:
     def test_update_policy_status(self, client):
         """Test updating ZTAPolicy status via API."""
         now = datetime.now(timezone.utc).isoformat()
-        payload = {
-            "status": {"phase": "Active", "ciliumPolicyName": "cnp-test-policy", "lastSyncTime": now}
-        }
+        payload = {"status": {"phase": "Active", "ciliumPolicyName": "cnp-test-policy", "lastSyncTime": now}}
 
         response = client.patch("/k8s/namespaces/default/ztapolicies/test-policy/status", json=payload)
 

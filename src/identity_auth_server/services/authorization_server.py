@@ -134,7 +134,11 @@ class AuthorizationServerService:
 
         self.tracer.record_event(
             TokenIssuedEvent(
-                user_input_id=str(user_input.id), token=access_token, app_id=app_id, prompt=user_input.prompt
+                user_input_id=str(user_input.id),
+                token=access_token,
+                app_id=app_id,
+                mas_id=str(app.mas_id),
+                prompt=user_input.prompt,
             )
         )
 
@@ -197,6 +201,7 @@ class AuthorizationServerService:
                 act_token=token,
                 subject_app_id=str(subject_app.id),
                 act_app_id=str(actor_app.id),
+                mas_id=str(actor_app.mas_id),
                 tools=approved_tools,
             )
         )
@@ -210,6 +215,7 @@ class AuthorizationServerService:
                 caller_app_id=self._get_app_id_from_client_id(subject_token.act.sub)
                 if (subject_token.act is not None)
                 else subject_token.app_id,
+                mas_id=str(actor_app.mas_id),
                 blocked=tool.blocked,
                 blocking_type=tool.blocking_type,
                 blocking_reason=tool.blocking_reason,
@@ -297,6 +303,8 @@ class AuthorizationServerService:
         if sub_app is None or sub_app.type != AppType.CLIENT:
             return TokenIntrospectResponse(active=False)
 
+        mas_id = str(sub_app.mas_id) if sub_app.mas_id else None
+
         act: Optional[ActorClaim] = None
         act_str = claims.get("act")
         if act_str:
@@ -313,6 +321,8 @@ class AuthorizationServerService:
             if act_sub_app and act_sub_app.type == AppType.MCP_SERVER and tools:
                 if not set(tools).issubset(tools_claim):
                     return TokenIntrospectResponse(active=False)
+            if act_sub_app and act_sub_app.mas_id:
+                mas_id = str(act_sub_app.mas_id)
 
         return TokenIntrospectResponse(
             sub=sub,
@@ -320,10 +330,10 @@ class AuthorizationServerService:
             scope=claims.get("scope"),
             exp=claims.get("exp"),
             act=act,
-            extra=claims.get("extra"),
             user_input_id=claims.get("uiid"),
             app_id=app_id,
-            tools_claim=tools_claim,
+            mas_id=mas_id,
+            tools=tools_claim,
             active=True,
         )
 

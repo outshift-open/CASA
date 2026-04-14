@@ -12,7 +12,6 @@ from identity_auth_server.core.k8s_types import (
     LLMEndpoint,
     MASCreateRequest,
     MASPhase,
-    MASStatusUpdateRequest,
     MultiAgentSystemCRD,
     MultiAgentSystemMetadata,
     MultiAgentSystemSpec,

@@ -1,1 +1,1 @@
-"""Tests for Watch ...(argument truncated)
+"""Tests for Watch event processing in K8S CRD handlers."""

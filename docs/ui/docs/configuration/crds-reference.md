@@ -85,6 +85,11 @@ spec:
 **Short name:** `ztap`  
 **Scope:** Namespaced
 
+:::caution In Development
+`ZTAPolicy` is currently in development. Field names and semantics may change before the stable release. It controls per-workload **allowed protocols** and **LLM endpoint** allow-lists.
+:::
+
+
 ### Spec
 
 | Field | Type | Required | Description |
@@ -104,7 +109,6 @@ spec:
 | Field | Type | Description |
 |---|---|---|
 | `phase` | string | `Pending`, `Active`, or `Failed` |
-| `ciliumPolicyName` | string | Name of the generated `CiliumNetworkPolicy` |
 | `lastSyncTime` | string (datetime) | Timestamp of last successful reconciliation |
 | `message` | string | Human-readable status description |
 

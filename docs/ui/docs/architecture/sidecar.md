@@ -13,13 +13,14 @@ The ZTA sidecar is an Envoy-based proxy that is automatically injected into ever
 Sidecars are injected either by:
 
 - **Istio mode**: namespace label `istio-injection=enabled` triggers Istio's built-in sidecar injector. The `ext_authz_middleware` service (deployed separately) acts as the ext-authz filter backend.
-- **Cilium mode**: namespace label `zta.io/injection=enabled` triggers a ZTA mutating webhook that injects the custom Envoy-based sidecar.
+- **Cilium mode** *(coming soon)*: a ZTA node-level daemonset (deployed via Cilium) intercepts pod traffic without per-pod injection — no mutating webhook required.
 
 An init container runs first to configure iptables rules that redirect all inbound and outbound TCP traffic through the sidecar ports.
 
 ## Traffic Interception
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 flowchart TB
     subgraph Pod
         IN["Port 15001 (inbound proxy)"]
@@ -33,6 +34,14 @@ flowchart TB
 
     Inbound["Inbound traffic"] -->|intercepted| IN
     Outbound["Outbound traffic"] -->|intercepted| OUT
+
+    style IN       fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style EXT      fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style LUA      fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style OUT      fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
+    style APP      fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style Inbound  fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style Outbound fill:#1e293b,stroke:#475569,color:#cbd5e1
 ```
 
 **Inbound path (port 15001):**
@@ -67,29 +76,9 @@ The sidecar enforces that agents only use allowed protocols:
 
 Requests to paths that do not match allowed protocol patterns are rejected with a 403 before the control plane is consulted.
 
-## Sidecar Configuration
-
-The sidecar is configured via environment variables and a mounted ConfigMap:
-
-```yaml
-config.yaml: |
-  app_id: "my-agent-abc123"
-  control_plane_url: "https://zta-auth-service.zta-control-plane.svc.cluster.local:8443"
-  allowed_protocols:
-    - mcp
-    - a2a
-  token_cache_ttl: 30s
-  fail_mode: closed
-  log_level: info
-```
-
-Pod labels used by the injector:
-- `zta.io/app-type: agent` / `mcp_server` / `client` — determines allowed protocols
-- `zta.io/app-id: <id>` — identifies the application in the control plane
-
 ## Istio ext-authz Middleware
 
-In Istio mode, the external authorization check is handled by the `ext_authz_middleware` service (`ext_authz_middleware/` in the repo). This is a Go gRPC service that:
+In Istio mode, the external authorization check is handled by the `ext_authz_middleware` — a Go gRPC service bundled in the `zta-control-plane` Helm chart. It:
 
 1. Receives authorization check requests from Envoy's ext_authz filter
 2. Extracts the trace ID from the `traceparent` header (W3C trace context)
@@ -97,4 +86,4 @@ In Istio mode, the external authorization check is handled by the `ext_authz_mid
 4. On subsequent requests: performs token-based access control (TBAC) verification
 5. Returns ALLOW or DENY to Envoy
 
-The middleware also integrates with OpenTelemetry for distributed tracing (Jaeger).
+Telemetry and traces are visible in the **ZTA Explorer UI**.

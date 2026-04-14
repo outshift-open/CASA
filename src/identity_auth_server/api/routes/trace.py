@@ -1,6 +1,7 @@
 """Trace API endpoints."""
 
 from typing import Annotated, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -21,12 +22,16 @@ credentials_exception = HTTPException(
 
 
 class LLMCallStartedRequest(BaseModel):
+    """Request body for recording the start of an LLM call."""
+
     call_id: str
     prompt: str
     tools: Optional[str] = None
 
 
 class LLMCallEndedRequest(BaseModel):
+    """Request body for recording the end of an LLM call."""
+
     call_id: str
     response: str
     tools: Optional[str] = None
@@ -39,6 +44,7 @@ def trace_llm_call_start(
     jwt: Annotated[HTTPAuthorizationCredentials, Depends(jwt_security)],
     request: LLMCallStartedRequest,
 ) -> LLMCallStartedEvent:
+    """Record the start of an LLM call for the authenticated agent."""
     token = auth_server.introspect_token(jwt.credentials)
     if token is None or not token.active:
         raise credentials_exception
@@ -48,6 +54,7 @@ def trace_llm_call_start(
         call_id=request.call_id,
         token=jwt.credentials,
         user_input_id=token.user_input_id,
+        mas_id=token.mas_id,
         prompt=request.prompt,
         tools=request.tools,
     )
@@ -63,6 +70,7 @@ def trace_llm_call_end(
     jwt: Annotated[HTTPAuthorizationCredentials, Depends(jwt_security)],
     request: LLMCallEndedRequest,
 ) -> LLMCallEndedEvent:
+    """Record the end of an LLM call for the authenticated agent."""
     token = auth_server.introspect_token(jwt.credentials)
     if token is None or not token.active:
         raise credentials_exception
@@ -72,6 +80,7 @@ def trace_llm_call_end(
         call_id=request.call_id,
         token=jwt.credentials,
         user_input_id=token.user_input_id,
+        mas_id=token.mas_id,
         response=request.response,
         tools=request.tools,
     )
@@ -85,10 +94,11 @@ def get_traces(
     tracer: Annotated[Tracer, Depends(Container.get_tracer)],
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    mas_id: Optional[UUID] = Query(None),
 ):
     """Retrieve paginated traces for all source app calls."""
     try:
-        return tracer.get_traces(page, page_size)
+        return tracer.get_traces(page, page_size, mas_id=mas_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     # except Exception as exc:

@@ -2,6 +2,7 @@
 id: contributing
 sidebar_position: 1
 title: Contributing
+slug: /contributing
 ---
 
 # Contributing to ZTA
@@ -122,11 +123,11 @@ chore: update dependencies
 | Auth service tests | `test/` | pytest; unit + integration |
 | Control plane Helm chart | `deployments/k8s/helm/zta-control-plane/` | Helm v3 |
 | Demo MAS Helm chart | `demo/k8s/helm/` | Helm v3 |
-| Demo agent | `demo/k8s/agent/` | Python |
-| Demo MCP server | `demo/k8s/mcp/` | Python |
+| Demo agent | `demo/src/agent/` | Python |
+| Demo MCP server | `demo/src/mcp/` | Python |
+| Demo client UI | `demo/src/client/` | React |
 | ext-authz middleware | `ext_authz_middleware/` | Go |
-| Admin UI | `zta-explorer-ui/` | React |
-| Python SDK | `sdk/` | Python |
+| ZTA Explorer UI | `zta-explorer-ui/` | React |
 | Documentation | `docs/ui/` | Docusaurus |
 | Architecture specs | `contrib/wip/it1/` | Internal reference |
 

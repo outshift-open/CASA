@@ -23,11 +23,18 @@ Every application in a MAS has one of three types:
 A typical MAS looks like this:
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph LR
     client -->|MCP/A2A| agent
     agent -->|MCP| mcp_server_1
     agent -->|MCP| mcp_server_2
     agent -->|A2A| other_agent
+
+    style client       fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style agent        fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style other_agent  fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style mcp_server_1 fill:#1e293b,stroke:#475569,color:#cbd5e1
+    style mcp_server_2 fill:#1e293b,stroke:#475569,color:#cbd5e1
 ```
 
 All inter-application communication is intercepted by ZTA sidecars, which:

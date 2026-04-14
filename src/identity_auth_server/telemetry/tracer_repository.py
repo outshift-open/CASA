@@ -40,7 +40,7 @@ class TracerRepository(ABC):
         """Stores an event in the database."""
 
     @abstractmethod
-    def get_all(self, page: int, page_size: int) -> TraceList:
+    def get_all(self, page: int, page_size: int, mas_id: Optional[UUID] = None) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
         pass
 
@@ -72,10 +72,12 @@ class TracerPostgresRepository(TracerRepository):
         )
         self._session.add(trace)
 
-    def get_all(self, page: int = 0, page_size: int = 100) -> TraceList:
+    def get_all(self, page: int = 0, page_size: int = 100, mas_id: Optional[UUID] = None) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
+        mas_filter = Trace.event["mas_id"].as_string() == str(mas_id) if mas_id is not None else True  # type: ignore[assignment]
         group_by_qry = (
             select(Trace.user_input_id, func.max(Trace.created_at).label("created_at"))
+            .where(mas_filter)
             .group_by(Trace.user_input_id)
             .subquery()
         )
@@ -86,9 +88,10 @@ class TracerPostgresRepository(TracerRepository):
             .limit(page_size)
         )
         total_qry = select(func.count()).select_from(group_by_qry)
-        traces = self._session.exec(
-            select(Trace).filter(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))  # type: ignore[union-attr]
-        ).all()
+        traces_qry = select(Trace).filter(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))  # type: ignore[union-attr]
+        if mas_id is not None:
+            traces_qry = traces_qry.where(Trace.event["mas_id"].as_string() == str(mas_id))
+        traces = self._session.exec(traces_qry).all()
         total = self._session.exec(total_qry).one()
 
         items: Dict[str, List[Trace]] = defaultdict(list)

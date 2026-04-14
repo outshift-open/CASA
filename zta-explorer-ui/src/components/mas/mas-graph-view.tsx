@@ -18,7 +18,7 @@ import {MASGraphNode} from './mas-graph-node';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Badge} from '@/components/ui/badge';
-import {Bot, AppWindow, Server, Download, Search, X} from 'lucide-react';
+import {Bot, AppWindow, Server, Download, Search, X, Network} from 'lucide-react';
 import {toPng} from 'html-to-image';
 import type {MAS} from '@/types/mas.types';
 import type {App, AppType} from '@/types/app.types';
@@ -138,12 +138,7 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
 
         // Create edges with different colors per type and animation
         const appEdges: Edge[] = sortedApps.map((app) => {
-            const edgeColor =
-                app.type === 'agent'
-                    ? 'oklch(0.648 0.2 131.684)'
-                    : app.type === 'client'
-                      ? 'oklch(0.723 0.219 149.579)'
-                      : 'oklch(0.527 0.154 150.069)';
+            const edgeColor = app.type === 'agent' ? '#3b82f6' : app.type === 'client' ? '#22c55e' : '#a855f7';
 
             return {
                 id: `edge-mas-${app.id}`,
@@ -205,8 +200,12 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
 
     if (apps.length === 0) {
         return (
-            <div className="flex items-center justify-center py-12 text-muted-foreground">
-                <p>No applications to display in graph view</p>
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+                <Network className="h-10 w-10 opacity-40" />
+                <div className="text-center">
+                    <p className="text-sm font-medium">No applications to display</p>
+                    <p className="text-xs mt-1">Add applications to this MAS to see the graph</p>
+                </div>
             </div>
         );
     }
@@ -315,7 +314,11 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
                     <Controls />
                     <MiniMap
                         nodeColor={(node) => {
-                            if (node.type === 'masNode') return 'oklch(0.648 0.2 131.684)';
+                            if (node.type === 'masNode') return '#3b82f6';
+                            const type = node.data?.type as AppType | undefined;
+                            if (type === 'agent') return '#3b82f6';
+                            if (type === 'client') return '#22c55e';
+                            if (type === 'mcp_server') return '#a855f7';
                             return '#94a3b8';
                         }}
                         maskColor="rgba(0, 0, 0, 0.1)"
