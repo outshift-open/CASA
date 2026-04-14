@@ -333,6 +333,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                         onClick={(e) => {
                             e.stopPropagation();
                             downloadJson(trace, `event-${trace.id.slice(0, 8)}.json`);
+                            toast.success('Event downloaded');
                         }}
                         className="mt-2 ml-6 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     >
@@ -400,6 +401,7 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
                         onClick={(e) => {
                             e.stopPropagation();
                             downloadJson(session.events, `session-${session.userInputId.slice(0, 8)}.json`);
+                            toast.success('Session downloaded');
                         }}
                         className="ml-1 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
                         aria-label="Download session"
