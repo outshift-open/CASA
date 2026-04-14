@@ -19,7 +19,7 @@ import json
 import os
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 try:
@@ -1242,13 +1242,16 @@ def mock_tools(config: Config) -> bool:
         log_error(f"Failed to connect to database: {e}")
         return False
 
-    # Fetch existing user_input_ids and their mas_ids from TokenIssuedEvent traces
+    # Fetch existing user_input_ids, anchoring off the latest trace timestamp per session
+    # so mock events are inserted strictly after any LLM events already in the DB
     cur.execute(
         """
-        SELECT user_input_id, event->>'mas_id', event->>'app_id'
-        FROM trace
-        WHERE event_type = 'TokenIssuedEvent'
-        ORDER BY created_at DESC
+        SELECT t.user_input_id, t.event->>'mas_id', t.event->>'app_id', MAX(all_t.created_at) as latest_ts
+        FROM trace t
+        JOIN trace all_t ON all_t.user_input_id = t.user_input_id
+        WHERE t.event_type = 'TokenIssuedEvent'
+        GROUP BY t.user_input_id, t.event->>'mas_id', t.event->>'app_id'
+        ORDER BY MAX(all_t.created_at) DESC
         LIMIT 20
         """
     )
@@ -1427,43 +1430,85 @@ def mock_tools(config: Config) -> bool:
         return fallback_scenarios
 
     inserted = 0
-    now = datetime.now(timezone.utc)
 
-    for user_input_id, mas_id, app_id in rows:
+    for user_input_id, mas_id, app_id, token_created_at in rows:
         ids = mas_app_ids.get(mas_id, {}) if mas_id else {}
-        caller_id = ids.get("agent_id") or app_id
-        callee_id = ids.get("mcp_server_id") or app_id
-        for scenario in _pick_scenarios(mas_id):
-            event_id = str(uuid.uuid4())
-            event = {
-                "id": event_id,
+        agent_id = ids.get("agent_id") or app_id
+        mcp_server_id = ids.get("mcp_server_id") or app_id
+        base_ts = token_created_at if isinstance(token_created_at, datetime) else datetime.now(timezone.utc)
+
+        # T1 → T2: agent exchanges for LLM access (before any tool calls)
+        t2_exchange_id = str(uuid.uuid4())
+        t2_ts = base_ts + timedelta(seconds=1)
+        t2_event = {
+            "id": t2_exchange_id,
+            "user_input_id": str(user_input_id),
+            "created_at": t2_ts.isoformat(),
+            "mas_id": mas_id,
+            "subject_token": "",
+            "act_token": "",
+            "subject_app_id": str(app_id) if app_id else "",
+            "act_app_id": str(agent_id) if agent_id else "",
+            "tools": None,
+        }
+        cur.execute(
+            "INSERT INTO trace (id, user_input_id, created_at, event_type, event) VALUES (%s, %s, %s, %s, %s)",
+            (t2_exchange_id, str(user_input_id), t2_ts, "TokenExchangedEvent", json.dumps(t2_event)),
+        )
+        inserted += 1
+
+        # For each tool call: T1 → T3 exchange then the MCP call
+        for i, scenario in enumerate(_pick_scenarios(mas_id)):
+            exchange_ts = base_ts + timedelta(seconds=2 + i * 2)
+            mcp_ts = base_ts + timedelta(seconds=3 + i * 2)
+
+            # TokenExchangedEvent (T1 → T3 for this specific tool)
+            exchange_id = str(uuid.uuid4())
+            exchange_event = {
+                "id": exchange_id,
                 "user_input_id": str(user_input_id),
-                "created_at": now.isoformat(),
+                "created_at": exchange_ts.isoformat(),
+                "mas_id": mas_id,
+                "subject_token": "",
+                "act_token": "",
+                "subject_app_id": str(app_id) if app_id else "",
+                "act_app_id": str(mcp_server_id) if mcp_server_id else "",
+                "tools": [scenario["tool"]],
+            }
+            cur.execute(
+                "INSERT INTO trace (id, user_input_id, created_at, event_type, event) VALUES (%s, %s, %s, %s, %s)",
+                (exchange_id, str(user_input_id), exchange_ts, "TokenExchangedEvent", json.dumps(exchange_event)),
+            )
+            inserted += 1
+
+            # MCPCallStartedEvent
+            mcp_id = str(uuid.uuid4())
+            mcp_event = {
+                "id": mcp_id,
+                "user_input_id": str(user_input_id),
+                "created_at": mcp_ts.isoformat(),
                 "mas_id": mas_id,
                 "app_id": app_id,
                 "token": "",
-                "caller_app_id": str(caller_id) if caller_id else "",
-                "callee_app_id": str(callee_id) if callee_id else "",
+                "caller_app_id": str(agent_id) if agent_id else "",
+                "callee_app_id": str(mcp_server_id) if mcp_server_id else "",
                 "tool": scenario["tool"],
                 "blocked": scenario["blocked"],
                 "blocking_type": scenario["blocking_type"],
                 "blocking_reason": scenario["blocking_reason"],
             }
             cur.execute(
-                """
-                INSERT INTO trace (id, user_input_id, created_at, event_type, event)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (event_id, str(user_input_id), now, "MCPCallStartedEvent", json.dumps(event)),
+                "INSERT INTO trace (id, user_input_id, created_at, event_type, event) VALUES (%s, %s, %s, %s, %s)",
+                (mcp_id, str(user_input_id), mcp_ts, "MCPCallStartedEvent", json.dumps(mcp_event)),
             )
-            status = "blocked" if scenario["blocked"] else "approved"
+            status = "denied" if scenario["blocked"] else "allowed"
             log_info(f"  {scenario['tool']} → {status} ({scenario.get('blocking_reason') or 'ok'})", config)
             inserted += 1
 
     cur.close()
     conn.close()
 
-    log_success(f"Inserted {inserted} mock MCPCallStartedEvent traces")
+    log_success(f"Inserted {inserted} mock traces (TokenExchangedEvent + MCPCallStartedEvent)")
     return True
 
 
@@ -1495,10 +1540,12 @@ def mock_scopes(config: Config) -> bool:
 
     cur.execute(
         """
-        SELECT user_input_id, event->>'mas_id', event->>'app_id'
-        FROM trace
-        WHERE event_type = 'TokenIssuedEvent'
-        ORDER BY created_at DESC
+        SELECT t.user_input_id, t.event->>'mas_id', t.event->>'app_id', MAX(all_t.created_at) as latest_ts
+        FROM trace t
+        JOIN trace all_t ON all_t.user_input_id = t.user_input_id
+        WHERE t.event_type = 'TokenIssuedEvent'
+        GROUP BY t.user_input_id, t.event->>'mas_id', t.event->>'app_id'
+        ORDER BY MAX(all_t.created_at) DESC
         LIMIT 20
         """
     )
@@ -1590,43 +1637,85 @@ def mock_scopes(config: Config) -> bool:
         return fallback_scenarios
 
     inserted = 0
-    now = datetime.now(timezone.utc)
 
-    for user_input_id, mas_id, app_id in rows:
+    for user_input_id, mas_id, app_id, token_created_at in rows:
         ids = mas_app_ids.get(mas_id, {}) if mas_id else {}
-        caller_id = ids.get("agent_id") or app_id
-        callee_id = ids.get("mcp_server_id") or app_id
-        for scenario in _pick_scenarios(mas_id):
-            event_id = str(uuid.uuid4())
-            event = {
-                "id": event_id,
+        agent_id = ids.get("agent_id") or app_id
+        mcp_server_id = ids.get("mcp_server_id") or app_id
+        base_ts = token_created_at if isinstance(token_created_at, datetime) else datetime.now(timezone.utc)
+
+        # T1 → T2: agent exchanges for LLM access (before any tool calls)
+        t2_exchange_id = str(uuid.uuid4())
+        t2_ts = base_ts + timedelta(seconds=1)
+        t2_event = {
+            "id": t2_exchange_id,
+            "user_input_id": str(user_input_id),
+            "created_at": t2_ts.isoformat(),
+            "mas_id": mas_id,
+            "subject_token": "",
+            "act_token": "",
+            "subject_app_id": str(app_id) if app_id else "",
+            "act_app_id": str(agent_id) if agent_id else "",
+            "tools": None,
+        }
+        cur.execute(
+            "INSERT INTO trace (id, user_input_id, created_at, event_type, event) VALUES (%s, %s, %s, %s, %s)",
+            (t2_exchange_id, str(user_input_id), t2_ts, "TokenExchangedEvent", json.dumps(t2_event)),
+        )
+        inserted += 1
+
+        # For each tool call: T1 → T3 exchange then the MCP call
+        for i, scenario in enumerate(_pick_scenarios(mas_id)):
+            exchange_ts = base_ts + timedelta(seconds=2 + i * 2)
+            mcp_ts = base_ts + timedelta(seconds=3 + i * 2)
+
+            # TokenExchangedEvent (T1 → T3 for this specific tool)
+            exchange_id = str(uuid.uuid4())
+            exchange_event = {
+                "id": exchange_id,
                 "user_input_id": str(user_input_id),
-                "created_at": now.isoformat(),
+                "created_at": exchange_ts.isoformat(),
+                "mas_id": mas_id,
+                "subject_token": "",
+                "act_token": "",
+                "subject_app_id": str(app_id) if app_id else "",
+                "act_app_id": str(mcp_server_id) if mcp_server_id else "",
+                "tools": [scenario["tool"]],
+            }
+            cur.execute(
+                "INSERT INTO trace (id, user_input_id, created_at, event_type, event) VALUES (%s, %s, %s, %s, %s)",
+                (exchange_id, str(user_input_id), exchange_ts, "TokenExchangedEvent", json.dumps(exchange_event)),
+            )
+            inserted += 1
+
+            # MCPCallStartedEvent
+            mcp_id = str(uuid.uuid4())
+            mcp_event = {
+                "id": mcp_id,
+                "user_input_id": str(user_input_id),
+                "created_at": mcp_ts.isoformat(),
                 "mas_id": mas_id,
                 "app_id": app_id,
                 "token": "",
-                "caller_app_id": str(caller_id) if caller_id else "",
-                "callee_app_id": str(callee_id) if callee_id else "",
+                "caller_app_id": str(agent_id) if agent_id else "",
+                "callee_app_id": str(mcp_server_id) if mcp_server_id else "",
                 "tool": scenario["tool"],
                 "blocked": scenario["blocked"],
                 "blocking_type": scenario["blocking_type"],
                 "blocking_reason": scenario["blocking_reason"],
             }
             cur.execute(
-                """
-                INSERT INTO trace (id, user_input_id, created_at, event_type, event)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (event_id, str(user_input_id), now, "MCPCallStartedEvent", json.dumps(event)),
+                "INSERT INTO trace (id, user_input_id, created_at, event_type, event) VALUES (%s, %s, %s, %s, %s)",
+                (mcp_id, str(user_input_id), mcp_ts, "MCPCallStartedEvent", json.dumps(mcp_event)),
             )
-            status = "blocked (insufficient_scope)" if scenario["blocked"] else "approved"
+            status = "denied (insufficient_scope)" if scenario["blocked"] else "allowed"
             log_info(f"  {scenario['tool']} → {status}", config)
             inserted += 1
 
     cur.close()
     conn.close()
 
-    log_success(f"Inserted {inserted} mock scope-blocked MCPCallStartedEvent traces")
+    log_success(f"Inserted {inserted} mock traces (TokenExchangedEvent + MCPCallStartedEvent)")
     return True
 
 

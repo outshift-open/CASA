@@ -169,8 +169,8 @@ export function DashboardPage() {
     const traceStats = useMemo(() => {
         const tokenRequests = allTraces.filter((t) => t.event_type === 'TokenIssuedEvent').length;
         const mcpCalls = allTraces.filter((t) => t.event_type === 'MCPCallStartedEvent');
-        const approved = mcpCalls.filter((t) => !t.event.blocked).length;
-        const blocked = mcpCalls.filter((t) => t.event.blocked).length;
+        const allowed = mcpCalls.filter((t) => !t.event.blocked).length;
+        const denied = mcpCalls.filter((t) => t.event.blocked).length;
 
         const reasonCounts: Partial<Record<BlockingReason, number>> = {};
         mcpCalls
@@ -194,8 +194,8 @@ export function DashboardPage() {
 
         return {
             tokenRequests,
-            approved,
-            blocked,
+            allowed,
+            denied,
             totalMcpCalls: mcpCalls.length,
             blockReasons,
             deterministicBlocks,
@@ -219,8 +219,8 @@ export function DashboardPage() {
     const mcpDonutData = useMemo(
         () =>
             [
-                {name: 'Approved', value: traceStats.approved, color: '#22c55e'},
-                {name: 'Blocked', value: traceStats.blocked, color: '#ef4444'}
+                {name: 'Allowed', value: traceStats.allowed, color: '#22c55e'},
+                {name: 'Denied', value: traceStats.denied, color: '#ef4444'}
             ].filter((d) => d.value > 0),
         [traceStats]
     );
@@ -338,7 +338,7 @@ export function DashboardPage() {
                         )}
                         <p className="text-xs text-muted-foreground">
                             {traceStats.totalMcpCalls > 0
-                                ? `${traceStats.approved} approved · ${traceStats.blocked} blocked`
+                                ? `${traceStats.allowed} allowed · ${traceStats.denied} denied`
                                 : 'Token requests issued'}
                         </p>
                     </CardContent>
@@ -366,7 +366,7 @@ export function DashboardPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>MCP Tool Calls</CardTitle>
-                        <CardDescription>Approved vs blocked tool call decisions</CardDescription>
+                        <CardDescription>Allowed vs denied tool call decisions</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <DonutChart
@@ -381,81 +381,84 @@ export function DashboardPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Block Type</CardTitle>
-                        <CardDescription>Deterministic vs AI-powered blocks</CardDescription>
+                        <CardTitle>Deny Type</CardTitle>
+                        <CardDescription>Deterministic vs AI-powered denies</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <DonutChart
                             data={blockTypeData}
                             loading={tracesLoading}
                             emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
-                            emptyText="No blocked calls recorded yet"
+                            emptyText="No denied calls recorded yet"
                             unit="block"
                         />
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Block reasons bar chart — only shown when there's data */}
-            {(tracesLoading || traceStats.blockReasons.length > 0) && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Block Reasons</CardTitle>
-                        <CardDescription>Why tool calls were blocked by the authorization server</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {tracesLoading ? (
-                            <div className="space-y-3">
-                                {Array.from({length: 3}).map((_, i) => (
-                                    <Skeleton key={i} className="w-full h-8" />
-                                ))}
-                            </div>
-                        ) : (
-                            <div style={{height: `${traceStats.blockReasons.length * 48 + 16}px`}}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart
-                                        data={traceStats.blockReasons}
-                                        layout="vertical"
-                                        margin={{left: 8, right: 24, top: 4, bottom: 4}}
-                                    >
-                                        <CartesianGrid
-                                            strokeDasharray="3 3"
-                                            stroke="rgba(204,204,220,0.1)"
-                                            horizontal={false}
-                                        />
-                                        <XAxis
-                                            type="number"
-                                            allowDecimals={false}
-                                            tick={{fill: '#8b8fa8', fontSize: 11}}
-                                            axisLine={false}
-                                            tickLine={false}
-                                        />
-                                        <YAxis
-                                            type="category"
-                                            dataKey="name"
-                                            width={140}
-                                            tick={{fill: '#ccccdc', fontSize: 11}}
-                                            axisLine={false}
-                                            tickLine={false}
-                                        />
-                                        <ChartTooltip
-                                            {...CHART_TOOLTIP_STYLE}
-                                            formatter={(value: number) => [value, 'blocked calls']}
-                                        />
-                                        <Bar
-                                            dataKey="count"
-                                            name="Blocked calls"
-                                            fill="#ef4444"
-                                            radius={[0, 4, 4, 0]}
-                                            barSize={14}
-                                        />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
+            {/* Deny reasons bar chart */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Deny Reasons</CardTitle>
+                    <CardDescription>Why tool calls were denied by the authorization server</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {tracesLoading ? (
+                        <div className="space-y-3">
+                            {Array.from({length: 3}).map((_, i) => (
+                                <Skeleton key={i} className="w-full h-8" />
+                            ))}
+                        </div>
+                    ) : traceStats.blockReasons.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-[200px] gap-3 text-muted-foreground">
+                            <Shield className="h-8 w-8 opacity-40" />
+                            <p className="text-sm">No denied calls recorded yet</p>
+                        </div>
+                    ) : (
+                        <div style={{height: `${traceStats.blockReasons.length * 48 + 16}px`}}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={traceStats.blockReasons}
+                                    layout="vertical"
+                                    margin={{left: 8, right: 24, top: 4, bottom: 4}}
+                                >
+                                    <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke="rgba(204,204,220,0.1)"
+                                        horizontal={false}
+                                    />
+                                    <XAxis
+                                        type="number"
+                                        allowDecimals={false}
+                                        tick={{fill: '#8b8fa8', fontSize: 11}}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="name"
+                                        width={140}
+                                        tick={{fill: '#ccccdc', fontSize: 11}}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <ChartTooltip
+                                        {...CHART_TOOLTIP_STYLE}
+                                        formatter={(value: number) => [value, 'denied calls']}
+                                    />
+                                    <Bar
+                                        dataKey="count"
+                                        name="Denied calls"
+                                        fill="#ef4444"
+                                        radius={[0, 4, 4, 0]}
+                                        barSize={14}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }

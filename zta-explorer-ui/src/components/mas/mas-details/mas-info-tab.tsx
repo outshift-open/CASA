@@ -16,18 +16,18 @@ const FLAG_AI_POWERED_TOOL_MATCH = 1 << 2;
 const TOOL_CHECKS = [
     {
         flag: FLAG_DETERMINISTIC_TOOL_SELECTED,
-        label: 'Tool selected',
-        description: 'Tool must appear in the LLM-selected tools list'
+        label: 'Deny if tool not selected by LLM',
+        description: 'Tool not in LLM-selected tools list'
     },
     {
         flag: FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS,
-        label: 'LLM made tool calls',
-        description: 'LLM must have made at least one tool selection call'
+        label: 'Deny if no LLM calls made',
+        description: 'App never made an LLM call'
     },
     {
         flag: FLAG_AI_POWERED_TOOL_MATCH,
-        label: 'AI intent match',
-        description: 'AI verifies tool matches the user original intent'
+        label: 'Deny if intent mismatch',
+        description: 'Tool does not match user intent'
     }
 ];
 
@@ -212,9 +212,7 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
             {/* Authorization checks */}
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Authorization Checks
-                    </p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deny Conditions</p>
                     {(() => {
                         const allFlags = TOOL_CHECKS.reduce((acc, {flag}) => acc | flag, 0);
                         const allEnabled = (checks & allFlags) === allFlags;
