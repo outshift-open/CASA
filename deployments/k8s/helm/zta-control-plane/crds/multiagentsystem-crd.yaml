@@ -2,6 +2,9 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: multiagentsystems.zta.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/sync-options: Prune=false
 spec:
   group: zta.io
   names:
@@ -23,14 +26,10 @@ spec:
             type: object
             required:
             - name
-            - authorizationServer # TODO: to remove
             properties:
-              name: # TODO: should it be unique?
+              name:
                 type: string
                 description: "Human-readable name for the Multi-Agent System"
-              authorizationServer: # TODO: to remove
-                type: string
-                description: "Keycloak realm name for this MAS"
               enabledToolChecks:
                 type: array
                 description: "List of enabled tool authorization checks"
@@ -86,9 +85,6 @@ spec:
     - name: Apps Ready
       type: integer
       jsonPath: .status.appsReady
-    - name: Realm # TODO: to remove
-      type: string
-      jsonPath: .spec.authorizationServer
     - name: Age
       type: date
       jsonPath: .metadata.creationTimestamp

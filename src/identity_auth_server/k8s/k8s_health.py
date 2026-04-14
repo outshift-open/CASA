@@ -32,7 +32,7 @@ class ComponentHealth(BaseModel):
 class HealthChecker:
     """Performs health checks on system components."""
 
-    def __init__(self):
+    def __init__(self):  # noqa: D107
         self._startup_time = datetime.now(timezone.utc)
         self._ready = False
 
@@ -91,7 +91,7 @@ class HealthChecker:
             start = time.time()
             db = Database()
             # Simple query to verify connection
-            with db.session_scope() as session:
+            with db.session_scope() as session:  # type: ignore[attr-defined]
                 session.execute("SELECT 1")
             latency = (time.time() - start) * 1000
 

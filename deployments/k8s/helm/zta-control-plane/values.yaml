@@ -149,3 +149,20 @@ keycloak:
   # "<keycloak.ingress.domainPrefix>.<keycloak.ingress.apiDomainName>".
   hostname: localhost
   hostnamePort: 8080
+
+# ─── Operator ────────────────────────────────────────────────────────────────
+operator:
+  image:
+    repository: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/zta-operator
+    tag: latest
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  # When empty, defaults to in-cluster auth-service URL via _helpers.tpl
+  authServiceUrl: ""
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"

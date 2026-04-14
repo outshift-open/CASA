@@ -1,3 +1,4 @@
+# ruff: noqa: D100, D101, D102, N806
 import os
 from abc import ABC, abstractmethod
 from typing import Annotated, Any, Callable, Generator, Generic, TypeVar
@@ -243,3 +244,13 @@ class Container:
         idp_client: Annotated[IdpClient, Depends(get_idp_client)],
     ):
         return MultiAgentSystemService(mas_repository, app_repository, authorization_server_repository, idp_client)
+
+    @staticmethod
+    def get_k8s_crd_service(
+        mas_service: Annotated[MultiAgentSystemService, Depends(get_mas_service)],
+        app_service: Annotated[AppService, Depends(get_app_service)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
+    ):
+        from identity_auth_server.k8s.k8s_crd_service import K8sCRDService
+
+        return K8sCRDService(mas_service, app_service, idp_client)
