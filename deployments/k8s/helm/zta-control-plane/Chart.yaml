@@ -2,7 +2,7 @@ apiVersion: v2
 name: zta-control-plane
 description: ZTA Control Plane — auth-service, UI explorer, Keycloak, PostgreSQL
 type: application
-version: 0.1.7
+version: 0.1.8
 appVersion: "0.0.11"
 keywords:
   - zero-trust
