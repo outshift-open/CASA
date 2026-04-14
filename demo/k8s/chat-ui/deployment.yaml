@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chat-ui
-  namespace: default
+  namespace: zta-control-plane-dev
   labels:
     app: chat-ui
     component: demo

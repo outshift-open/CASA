@@ -5,12 +5,14 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   name: {{ .Values.mas.name }}
-  authorizationServer: {{ .Values.mas.authorizationServer }}
   enabledToolChecks: {{ toYaml .Values.mas.enabledToolChecks | nindent 4 }}
   apps:
-    - name: {{ .Values.agent.serviceName }}
+    - name: {{ .Values.agentSafe.serviceName }}
       type: agent
-      baseUrl: http://{{ .Values.agent.serviceName }}:{{ .Values.agent.servicePort }}
+      baseUrl: http://{{ .Values.agentSafe.serviceName }}:{{ .Values.agentSafe.servicePort }}
+    - name: {{ .Values.agentCompromised.serviceName }}
+      type: agent
+      baseUrl: http://{{ .Values.agentCompromised.serviceName }}:{{ .Values.agentCompromised.servicePort }}
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl: http://{{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}

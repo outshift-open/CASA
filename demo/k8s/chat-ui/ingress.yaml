@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: chat-ui
-  namespace: default
+  namespace: zta-control-plane-dev
   labels:
     app: chat-ui
     component: demo

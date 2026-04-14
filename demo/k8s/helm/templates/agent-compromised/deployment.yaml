@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.agentCompromised.serviceName }}
+  namespace: '{{ .Release.Namespace }}'
+  labels:
+    app: {{ .Values.agentCompromised.serviceName }}
+    version: v2
+spec:
+  replicas: {{ .Values.agentCompromised.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.agentCompromised.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.agentCompromised.serviceName }}
+        version: v2
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+      - name: {{ .Values.agentCompromised.serviceName }}
+        image: {{ .Values.agentCompromised.docker.registry }}/{{ .Values.agentCompromised.docker.image }}:{{ .Values.agentCompromised.tagversion }}
+        imagePullPolicy: Always
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+        ports:
+        - containerPort: {{ .Values.agentCompromised.servicePort }}
+          name: http
+        env:
+        - name: OPENAI_API_BASE
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-base-url
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-key
+        - name: MCP_SERVER_URL
+          value: "{{ .Values.agentCompromised.mcp_server_url }}"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

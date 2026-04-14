@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - feat/add-chat-ui
 
 jobs:
   checkout:
@@ -62,8 +63,8 @@ jobs:
         id: set-version
         run: echo "version=$(echo "$GITHUB_REF" | cut -d / -f 3 | cut -c2-)" >> "$GITHUB_OUTPUT"
 
-  docker-build-push-k8s-agent:
-    name: Build & Push k8s demo agent
+  docker-build-push-agent-safe:
+    name: Build & Push demo agent (safe)
     needs: [prepare-release]
     uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
     secrets:
@@ -74,10 +75,30 @@ jobs:
       ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
     with:
       runner-group: arc-runner-set
-      image-name: "outshift-zta/k8s-demo-agent"
+      image-name: "outshift-zta/demo-agent-safe"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
-      context: demo/k8s/agent
-      dockerfile: demo/k8s/agent/Dockerfile
+      context: demo/k8s/agent-safe
+      dockerfile: demo/k8s/agent-safe/Dockerfile
+      ecr-enabled: true
+      artifactory-devhub-enabled: true
+      ghcr-enabled: false
+
+  docker-build-push-agent-compromised:
+    name: Build & Push demo agent (compromised)
+    needs: [prepare-release]
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    secrets:
+      vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+      vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+      ghcr-username: ${{ secrets.GHCR_USERNAME }}
+      ghcr-token: ${{ secrets.GHCR_TOKEN }}
+      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    with:
+      runner-group: arc-runner-set
+      image-name: "outshift-zta/demo-agent-compromised"
+      image-custom-tag: ${{ needs.prepare-release.outputs.version }}
+      context: demo/k8s/agent-compromised
+      dockerfile: demo/k8s/agent-compromised/Dockerfile
       ecr-enabled: true
       artifactory-devhub-enabled: true
       ghcr-enabled: false
@@ -125,7 +146,7 @@ jobs:
   reusable-workflow-ci-status:
     name: Reusable Workflow CI Status
     # This should be an array of ALL active jobs that are used/run
-    needs: [checkout, docker-build-push-k8s-agent, docker-build-push-k8s-mcp, docker-build-push-chat-ui]
+    needs: [checkout, docker-build-push-agent-safe, docker-build-push-agent-compromised, docker-build-push-k8s-mcp, docker-build-push-chat-ui]
     if: always()
     runs-on:
       group: arc-runner-set

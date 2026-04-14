@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: chat-ui-nginx
-  namespace: default
+  namespace: zta-control-plane-dev
   labels:
     app: chat-ui
     component: demo
