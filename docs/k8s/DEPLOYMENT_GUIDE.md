@@ -201,7 +201,6 @@ metadata:
   namespace: my-namespace
 spec:
   name: "My MAS"                  # Human-friendly display name
-  authorizationServer: my-realm   # Keycloak realm name
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
   apps:
@@ -217,7 +216,6 @@ spec:
 
 - `metadata.name`: K8s resource identifier (DNS-compliant: lowercase + dashes)
 - `spec.name`: Display name shown in UI (can have spaces, capitals)
-- `spec.authorizationServer`: Keycloak realm name (gets created automatically)
 - `spec.apps[].baseUrl`: Must be `http://service-name:port` format
   - Use the K8s Service name, not pod name
   - Must be accessible from auth-service pod
