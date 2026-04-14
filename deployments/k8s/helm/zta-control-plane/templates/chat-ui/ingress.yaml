@@ -1,0 +1,33 @@
+{{- if and .Values.chatUi.enabled .Values.chatUi.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-chat-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zta-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: chat-ui
+  {{- if .Values.chatUi.ingress.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.chatUi.ingress.annotations }}
+    {{ $key }}: {{ tpl $value $ | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.chatUi.ingress.className }}
+  tls:
+  - hosts:
+    - "{{ .Values.chatUi.ingress.domainPrefix }}.{{ .Values.chatUi.ingress.apiDomainName }}"
+    secretName: "{{ .Release.Name }}-chat-ui-tls"
+  rules:
+  - host: "{{ .Values.chatUi.ingress.domainPrefix }}.{{ .Values.chatUi.ingress.apiDomainName }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: {{ .Release.Name }}-chat-ui
+            port:
+              number: {{ .Values.chatUi.service.port }}
+        path: /
+        pathType: Prefix
+{{- end }}

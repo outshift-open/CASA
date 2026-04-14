@@ -71,6 +71,36 @@ uiExplorer:
     # When false, the UI image must be built with the full auth-service URL.
     apiProxyEnabled: true
 
+# ─── Chat UI (demo) ──────────────────────────────────────────────────────────
+chatUi:
+  enabled: true
+  image:
+    repository: ghcr.io/cisco-eti/identity-auth-server-chat-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  ingress:
+    enabled: false
+    className: ""
+    apiDomainName: ""
+    domainPrefix: "chat"
+    annotations: {}
+  agents:
+    # In-cluster service URLs for the safe and compromised demo agents.
+    # Override with --set if your agents have different service names/ports.
+    safeAgentUrl: ""
+    compromisedAgentUrl: ""
+
 # ─── PostgreSQL (auth-service backend) ───────────────────────────────────────
 postgresAuth:
   image:

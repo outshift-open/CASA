@@ -1,0 +1,20 @@
+{{- if .Values.chatUi.enabled }}
+{{- $component := "chat-ui" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-chat-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zta-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  type: {{ .Values.chatUi.service.type }}
+  selector:
+    {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 4 }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.chatUi.service.port }}
+      targetPort: http
+{{- end }}

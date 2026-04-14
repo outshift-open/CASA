@@ -1,0 +1,58 @@
+{{- if .Values.chatUi.enabled }}
+{{- $component := "chat-ui" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-chat-ui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zta-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  replicas: {{ .Values.chatUi.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
+      annotations:
+        # Force pod restart when nginx config changes
+        checksum/nginx-config: {{ include (print $.Template.BasePath "/chat-ui/configmap.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.chatUi.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: chat-ui
+          image: "{{ .Values.chatUi.image.repository }}:{{ .Values.chatUi.image.tag }}"
+          imagePullPolicy: {{ .Values.chatUi.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          resources:
+            {{- toYaml .Values.chatUi.resources | nindent 12 }}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ .Release.Name }}-chat-ui-nginx
+{{- end }}
