@@ -26,3 +26,9 @@ mcp:
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
   tagversion: 2026-03-16-a0d1194
+
+mas:
+  name: "ZTA Demo"
+  authorizationServer: "zta-demo-realm"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED

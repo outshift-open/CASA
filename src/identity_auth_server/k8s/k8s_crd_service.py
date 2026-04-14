@@ -7,6 +7,7 @@ from typing import List, Optional
 from identity_auth_server.core.idp.idp_client import IdpClient
 from identity_auth_server.core.types import MultiAgentSystem, ToolCheckFlags
 from identity_auth_server.k8s.k8s_types import (
+    AppCredentials,
     AppSpec,
     AppTypeK8s,
     MASCreateRequest,
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 class K8sCRDService:
     """Service for managing Kubernetes CRD resources in the ZTA control plane."""
 
-    def __init__(
+    def __init__(  # noqa: D107
         self,
         mas_service: MultiAgentSystemService,
         app_service: AppService,
@@ -77,9 +78,6 @@ class K8sCRDService:
         # Build app specs
         app_specs = [AppSpec(name=app.name, type=AppTypeK8s(app.type), base_url=app.base_url) for app in apps]
 
-        # Get realm name from authorization server
-        realm = mas.authorization_server.realm if mas.authorization_server else f"mas-{mas.id}"
-
         # Build status
         status = MultiAgentSystemStatus(
             phase=MASPhase.ACTIVE,
@@ -97,37 +95,93 @@ class K8sCRDService:
             ),
             spec=MultiAgentSystemSpec(
                 name=mas.name,
-                authorizationServer=realm,
-                enabled_tool_checks=self._convert_flags_to_tool_checks(mas.enabled_tool_checks),
+                enabled_tool_checks=self._convert_flags_to_tool_checks(mas.enabled_tool_checks or ToolCheckFlags.NONE),
                 apps=app_specs,
             ),
             status=status,
         )
 
     def create_mas_from_crd(self, request: MASCreateRequest) -> MultiAgentSystemCRD:
-        """Create a new MultiAgentSystem from CRD request."""
+        """Create a new MultiAgentSystem from CRD request (idempotent)."""
+        # Check if MAS already exists (by k8s_name and namespace)
+        try:
+            existing_mas = self._mas_service._mas_repository.get_by_name_and_namespace(
+                request.metadata.name, request.metadata.namespace
+            )
+            logger.info(f"MAS {request.metadata.name} already exists in namespace {request.metadata.namespace}")
+            mas = existing_mas
+
+            # Get existing apps
+            existing_apps = self._app_service.get_mas_apps(str(mas.id))
+            credentials = []
+
+            # Return credentials for existing apps
+            for app in existing_apps:
+                if app.client_credentials:
+                    credentials.append(
+                        AppCredentials(
+                            app_name=app.name,
+                            app_id=str(app.id),
+                            client_id=app.client_credentials.client_id,
+                            client_secret=app.client_credentials.client_secret or "",
+                            secret_name=f"{app.id}-oauth2-credentials",
+                        )
+                    )
+
+            # Build CRD response with existing data
+            crd = self._mas_to_crd(mas, namespace=request.metadata.namespace)
+            crd.metadata.uid = str(mas.id)
+            crd.status = MultiAgentSystemStatus(
+                phase=MASPhase.ACTIVE,
+                apps_ready=len(existing_apps),
+                last_sync_time=datetime.now(timezone.utc),
+                message=f"MAS already exists with {len(existing_apps)} apps",
+                credentials=credentials if credentials else None,
+            )
+            return crd
+
+        except Exception:
+            # MAS doesn't exist, create it
+            logger.info(f"Creating new MAS {request.metadata.name} in namespace {request.metadata.namespace}")
+            pass
+
+        # Create new MAS
         mas = self._mas_service.create_mas(
             MultiAgentSystemCreateRequest(
                 name=request.spec.name,
                 namespace=request.metadata.namespace,
                 enabled_tool_checks=self._convert_tool_checks_to_flags(request.spec.enabled_tool_checks),
+                k8s_name=request.metadata.name,
             )
         )
 
-        # Create apps
+        # Create apps and collect credentials
         created_apps = []
+        credentials = []
         for app_spec in request.spec.apps:
             try:
                 app = self._app_service.create_app(
                     AppRequest(
                         name=app_spec.name,
                         base_url=app_spec.base_url,
-                        mas_id=mas.id,
+                        mas_id=str(mas.id),
                         type=self._convert_app_type(app_spec.type),
                     )
                 )
 
                 created_apps.append(app)
+
+                # Collect credentials for operator to create K8s secrets
+                if app.client_credentials:
+                    credentials.append(
+                        AppCredentials(
+                            app_name=app.name,
+                            app_id=str(app.id),
+                            client_id=app.client_credentials.client_id,
+                            client_secret=app.client_credentials.client_secret or "",
+                            secret_name=f"{app.id}-oauth2-credentials",
+                        )
+                    )
             except Exception as e:
                 logger.error(f"Failed to create app {app_spec.name}: {e}")
 
@@ -139,6 +193,7 @@ class K8sCRDService:
             apps_ready=len(created_apps),
             last_sync_time=datetime.now(timezone.utc),
             message=f"Created {len(created_apps)}/{len(request.spec.apps)} apps successfully",
+            credentials=credentials if credentials else None,
         )
 
         return crd
@@ -162,8 +217,11 @@ class K8sCRDService:
 
         return crds
 
-    def update_mas_crd(self, namespace: str, mas_id: str, request: MASUpdateRequest) -> MultiAgentSystemCRD:
+    def update_mas_crd(self, namespace: str, name: str, request: MASUpdateRequest) -> MultiAgentSystemCRD:
         """Update a MultiAgentSystem CRD spec."""
+        # Convert name to UUID
+        mas_id = self._mas_service.get_id_by_name(name, namespace)
+
         mas = self._mas_service.update_mas(mas_id, MultiAgentSystemUpdateRequest(name=request.spec.name))
 
         # # Update realm if changed
@@ -173,7 +231,7 @@ class K8sCRDService:
 
         existing_apps = self._app_service.get_mas_apps(mas_id)
         for app in existing_apps:
-            self._app_service.delete_app(app.id)
+            self._app_service.delete_app(str(app.id))
 
         for app_spec in request.spec.apps:
             try:
@@ -181,7 +239,7 @@ class K8sCRDService:
                     AppRequest(
                         name=app_spec.name,
                         base_url=app_spec.base_url,
-                        mas_id=mas.id,
+                        mas_id=str(mas.id),
                         type=self._convert_app_type(app_spec.type),
                     )
                 )
@@ -203,6 +261,15 @@ class K8sCRDService:
 
         return existing_crd
 
-    def delete_mas_crd(self, namespace: str, mas_id: str) -> None:
-        """Delete a MultiAgentSystem CRD."""
-        self._mas_service.delete_mas(mas_id)
+    def delete_mas_crd(self, namespace: str, name: str) -> None:
+        """Delete a MultiAgentSystem CRD by namespace and name."""
+        # Convert name to UUID
+        mas_id = self._mas_service.get_id_by_name(name, namespace)
+
+        # Look up the MAS CRD
+        mas_crd = self.get_mas_crd(namespace, mas_id)
+        if not mas_crd or not mas_crd.metadata.uid:
+            raise ValueError(f"MultiAgentSystem {namespace}/{name} not found")
+
+        # Delete by UUID
+        self._mas_service.delete_mas(mas_crd.metadata.uid)

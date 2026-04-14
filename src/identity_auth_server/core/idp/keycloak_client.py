@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import time
 
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
@@ -14,6 +15,8 @@ from identity_auth_server.core.types import ActorClaim, AppMetadataResponse, Aut
 logger = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT = 30  # seconds
+REALM_READY_MAX_RETRIES = 10
+REALM_READY_RETRY_DELAY = 2  # seconds
 
 
 class KeycloakClient(IdpClient):
@@ -63,8 +66,45 @@ class KeycloakClient(IdpClient):
                 },
                 skip_exists=False,
             )
+
+            # Wait for realm to be operational before returning
+            # Keycloak needs time to initialize the realm and its token endpoint
+            self._wait_for_realm_ready(authz_serv)
+
         except Exception:
             pass  # Realm already exists
+
+    def _wait_for_realm_ready(self, authz_serv: AuthorizationServer) -> None:
+        """Wait for a newly created realm to be operational.
+
+        Tests the realm's token endpoint to ensure it's ready to accept requests.
+        This prevents race conditions where apps try to register before the realm is ready.
+
+        Args:
+            authz_serv: The AuthorizationServer object containing realm information
+        """
+        for attempt in range(REALM_READY_MAX_RETRIES):
+            try:
+                # Try to get a token from the new realm - this verifies it's operational
+                openid = KeycloakOpenID(
+                    server_url=self.server_url,
+                    realm_name=authz_serv.realm,
+                    client_id="admin-cli",
+                )
+                openid.token(username=self.username, password=self.password)
+                logger.info(f"Realm {authz_serv.realm} is ready after {attempt + 1} attempts")
+                return
+            except Exception as e:
+                if attempt < REALM_READY_MAX_RETRIES - 1:
+                    logger.debug(
+                        f"Realm {authz_serv.realm} not ready yet (attempt {attempt + 1}/{REALM_READY_MAX_RETRIES}): {e}"
+                    )
+                    time.sleep(REALM_READY_RETRY_DELAY)
+                else:
+                    logger.warning(
+                        f"Realm {authz_serv.realm} may not be fully ready after {REALM_READY_MAX_RETRIES} attempts: {e}"
+                    )
+                    # Continue anyway - the realm exists, just might be slow
 
     def delete_authorization_server(self, authz_serv: AuthorizationServer) -> None:
         try:
