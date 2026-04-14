@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Override root gitignore — src/lib is source code, not a build artifact
+!src/lib
