@@ -29,6 +29,5 @@ mcp:
 
 mas:
   name: "ZTA Demo"
-  authorizationServer: "zta-demo-realm"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED

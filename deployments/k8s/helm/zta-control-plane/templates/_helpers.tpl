@@ -56,30 +56,6 @@ Internal auth-service URL (used by auth-service as AUTH_SERVER_URL and by the UI
 {{- end }}
 
 {{/*
-In-cluster URL for the safe demo agent.
-Defaults to "<release>-demo-agent-safe:8082" when not overridden.
-*/}}
-{{- define "zta-control-plane.safeAgentUrl" -}}
-{{- if .Values.chatUi.agents.safeAgentUrl }}
-{{- .Values.chatUi.agents.safeAgentUrl }}
-{{- else }}
-{{- printf "http://%s-demo-agent-safe:8082" .Release.Name }}
-{{- end }}
-{{- end }}
-
-{{/*
-In-cluster URL for the compromised demo agent.
-Defaults to "<release>-demo-agent-compromised:8082" when not overridden.
-*/}}
-{{- define "zta-control-plane.compromisedAgentUrl" -}}
-{{- if .Values.chatUi.agents.compromisedAgentUrl }}
-{{- .Values.chatUi.agents.compromisedAgentUrl }}
-{{- else }}
-{{- printf "http://%s-demo-agent-compromised:8082" .Release.Name }}
-{{- end }}
-{{- end }}
-
-{{/*
 Effective Keycloak hostname for KC_HOSTNAME.
 When keycloak.ingress.enabled is true, derived from "<domainPrefix>.<apiDomainName>".
 Falls back to keycloak.hostname otherwise.

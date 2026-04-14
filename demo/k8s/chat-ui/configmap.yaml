@@ -1,12 +1,11 @@
-{{- if .Values.chatUi.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-chat-ui-nginx
-  namespace: {{ .Release.Namespace }}
+  name: chat-ui-nginx
+  namespace: default
   labels:
-    {{- include "zta-control-plane.labels" . | nindent 4 }}
-    app.kubernetes.io/component: chat-ui
+    app: chat-ui
+    component: demo
 data:
   default.conf: |
     server {
@@ -40,7 +39,7 @@ data:
         # Proxy /safe-agent/ → safe demo agent
         # Variable assignment defers DNS resolution to request time (requires resolver above)
         location /safe-agent/ {
-            set $safe_agent {{ include "zta-control-plane.safeAgentUrl" . }};
+            set $safe_agent http://demo-agent-safe:8082;
             proxy_pass $safe_agent/;
             proxy_http_version 1.1;
             proxy_set_header Host $host;
@@ -51,7 +50,7 @@ data:
 
         # Proxy /compromised-agent/ → compromised demo agent
         location /compromised-agent/ {
-            set $compromised_agent {{ include "zta-control-plane.compromisedAgentUrl" . }};
+            set $compromised_agent http://demo-agent-compromised:8082;
             proxy_pass $compromised_agent/;
             proxy_http_version 1.1;
             proxy_set_header Host $host;
@@ -67,4 +66,3 @@ data:
 
         error_page 404 /index.html;
     }
-{{- end }}
