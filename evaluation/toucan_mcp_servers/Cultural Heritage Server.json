@@ -1,0 +1,21 @@
+{
+  "name": "Cultural Heritage Server",
+  "tools": [
+    {
+      "name": "search_cultural_heritage",
+      "description": "\n    Search for cultural heritage items (artworks, artifacts, etc.) from European institutions.\n    \n    Args:\n        query: Search term (artist name, artwork title, type, etc.)\n        limit: Maximum number of results to return (default: 5)\n    \n    Returns:\n        Formatted list of cultural heritage items with details\n    "
+    },
+    {
+      "name": "get_artwork_details",
+      "description": "\n    Get detailed information about a specific artwork or cultural item.\n    \n    Args:\n        artwork_id: Unique identifier of the artwork\n    \n    Returns:\n        Detailed information about the artwork including description, provenance, and technical details\n    "
+    },
+    {
+      "name": "get_collections_by_institution",
+      "description": "\n    Get artworks and cultural items from a specific museum or cultural institution.\n    \n    Args:\n        institution_name: Name of the cultural institution (e.g., \"Louvre\", \"British Museum\")\n    \n    Returns:\n        List of cultural items from the specified institution\n    "
+    },
+    {
+      "name": "get_cultural_recommendations",
+      "description": "\n    Get AI-powered recommendations for cultural heritage items based on user interests.\n    \n    Args:\n        user_interest: User's cultural interests (e.g., \"modern art\", \"renaissance\", \"impressionist\")\n    \n    Returns:\n        Personalized recommendations for cultural heritage exploration\n    "
+    }
+  ]
+}

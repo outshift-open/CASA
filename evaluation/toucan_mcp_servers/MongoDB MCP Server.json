@@ -1,0 +1,85 @@
+{
+  "name": "MongoDB MCP Server",
+  "tools": [
+    {
+      "name": "connect",
+      "description": "Connect to a MongoDB instance"
+    },
+    {
+      "name": "list-collections",
+      "description": "List all collections for a given database"
+    },
+    {
+      "name": "list-databases",
+      "description": "List all databases for a MongoDB connection"
+    },
+    {
+      "name": "collection-indexes",
+      "description": "Describe the indexes for a collection"
+    },
+    {
+      "name": "create-index",
+      "description": "Create an index for a collection"
+    },
+    {
+      "name": "collection-schema",
+      "description": "Describe the schema for a collection"
+    },
+    {
+      "name": "find",
+      "description": "Run a find query against a MongoDB collection"
+    },
+    {
+      "name": "insert-many",
+      "description": "Insert an array of documents into a MongoDB collection"
+    },
+    {
+      "name": "delete-many",
+      "description": "Removes all documents that match the filter from a MongoDB collection"
+    },
+    {
+      "name": "collection-storage-size",
+      "description": "Gets the size of the collection"
+    },
+    {
+      "name": "count",
+      "description": "Gets the number of documents in a MongoDB collection using db.collection.count() and query as an optional filter parameter"
+    },
+    {
+      "name": "db-stats",
+      "description": "Returns statistics that reflect the use state of a single database"
+    },
+    {
+      "name": "aggregate",
+      "description": "Run an aggregation against a MongoDB collection"
+    },
+    {
+      "name": "update-many",
+      "description": "Updates all documents that match the specified filter for a collection"
+    },
+    {
+      "name": "rename-collection",
+      "description": "Renames a collection in a MongoDB database"
+    },
+    {
+      "name": "drop-database",
+      "description": "Removes the specified database, deleting the associated data files"
+    },
+    {
+      "name": "drop-collection",
+      "description": "Removes a collection or view from the database. The method also removes any indexes associated with the dropped collection."
+    },
+    {
+      "name": "explain",
+      "description": "Returns statistics describing the execution of the winning plan chosen by the query optimizer for the evaluated method"
+    },
+    {
+      "name": "create-collection",
+      "description": "Creates a new collection in a database. If the database doesn't exist, it will be created automatically."
+    },
+    {
+      "name": "mongodb-logs",
+      "description": "Returns the most recent logged mongod events"
+    }
+  ]
+}

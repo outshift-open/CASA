@@ -1,0 +1,1384 @@
+{
+  "name": "nasdaq-data-link",
+  "tools": [
+    {
+      "name": "get_indicator_value",
+      "title": null,
+      "description": "\nRetrieves World Bank indicator value for a specific country and indicator.\n\nParameters:\n  - country: Country name or ISO code (e.g., 'United States', 'US')\n  - indicator: World Bank indicator code (e.g., 'NY.GDP.MKTP.CD')\n\nExample: get_indicator_value(country='United States', indicator='NY.GDP.MKTP.CD')\n",
+      "inputSchema": {
+        "properties": {
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "indicator": {
+            "title": "Indicator",
+            "type": "string"
+          }
+        },
+        "required": [
+          "country",
+          "indicator"
+        ],
+        "title": "get_indicator_valueArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "get_indicator_valueOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "country_code",
+      "title": null,
+      "description": "\nConverts a country name to its ISO 3166-1 alpha-2 country code.\n\nParameters:\n  - country_name: Full country name (e.g., 'United States', 'Germany')\n\nReturns the 2-letter ISO country code (e.g., 'US', 'DE')\n\nExample: country_code(country_name='United States') returns 'US'\n",
+      "inputSchema": {
+        "properties": {
+          "country_name": {
+            "title": "Country Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "country_name"
+        ],
+        "title": "country_codeArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "country_codeOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_worldbank_indicators",
+      "title": null,
+      "description": "\nLists all available World Bank indicators.\n\nReturns a comprehensive list of all World Bank indicator codes and names\nthat can be used with the get_indicator_value function.\n\nExample: list_worldbank_indicators()\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_worldbank_indicatorsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_worldbank_indicatorsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "search_worldbank_indicators",
+      "title": null,
+      "description": "\nSearches World Bank indicators by keyword.\n\nParameters:\n  - keyword: Search term to find relevant indicators\n    (e.g., 'GDP', 'inflation', 'population')\n\nReturns a list of matching World Bank indicator codes and names.\n\nExample: search_worldbank_indicators(keyword='GDP')\n",
+      "inputSchema": {
+        "properties": {
+          "keyword": {
+            "title": "Keyword",
+            "type": "string"
+          }
+        },
+        "required": [
+          "keyword"
+        ],
+        "title": "search_worldbank_indicatorsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "search_worldbank_indicatorsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_rtat10",
+      "title": null,
+      "description": "\nRetrieves Retail Trading Activity Tracker 10 (RTAT10) data\nfor specific dates and optional tickers.\n\nExample: get_rtat10(\n    dates='2025-03-31,2025-03-28,2025-03-27', tickers='TSLA,TQQQ,SQQQ'\n)\n",
+      "inputSchema": {
+        "properties": {
+          "dates": {
+            "title": "Dates",
+            "type": "string"
+          },
+          "tickers": {
+            "default": null,
+            "title": "Tickers",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dates"
+        ],
+        "title": "get_rtat10Arguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_rtat",
+      "title": null,
+      "description": "\nRetrieves Retail Trading Activity (RTAT) data for specific dates and optional\ntickers.\n\nExample: get_rtat(\n    dates='2025-03-31,2025-03-28,2025-03-27', tickers='TSLA,TQQQ,SQQQ'\n)\n",
+      "inputSchema": {
+        "properties": {
+          "dates": {
+            "title": "Dates",
+            "type": "string"
+          },
+          "tickers": {
+            "default": null,
+            "title": "Tickers",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dates"
+        ],
+        "title": "get_rtatArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_stock_stats",
+      "title": null,
+      "description": "\nRetrieves company statistics from Nasdaq Equities 360 database.\n\nProvides comprehensive statistics for a company including market cap, PE ratio,\n52-week highs/lows, dividend information, and more.\n\nEither symbol or figi must be provided.\n\nExample: get_stock_stats(symbol='MSFT')\nExample: get_stock_stats(figi='BBG000BPH459')\n",
+      "inputSchema": {
+        "properties": {
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symbol"
+          },
+          "figi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Figi"
+          }
+        },
+        "title": "get_stock_statsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_stock_stat_fields",
+      "title": null,
+      "description": "\nLists all available fields in the stock statistics database with descriptions.\n\nThis helps users understand what data is available through the get_stock_stats tool.\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_stock_stat_fieldsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_stock_stat_fieldsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_fundamental_data",
+      "title": null,
+      "description": "\nRetrieves fundamental financial data from Nasdaq Equities 360 Fundamental\nSummary database.\n\nProvides comprehensive fundamental data including profitability ratios,\nvaluation metrics, income statement items, and financial health indicators.\n\nEither symbol or figi must be provided.\n\nParameters:\n  - symbol: Stock ticker symbol (e.g., 'MSFT')\n  - figi: Bloomberg FIGI identifier (e.g., 'BBG000BPH459')\n  - calendardate: Calendar date in YYYY-MM-DD format (e.g., '2022-12-31')\n  - dimension: Data dimension (MRQ: quarterly, MRY: annual,\n    MRT: trailing twelve months)\n\nExample: get_fundamental_data(symbol='MSFT', dimension='MRY')\nExample: get_fundamental_data(figi='BBG000BPH459', calendardate='2022-12-31')\n",
+      "inputSchema": {
+        "properties": {
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symbol"
+          },
+          "figi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Figi"
+          },
+          "calendardate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Calendardate"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dimension"
+          }
+        },
+        "title": "get_fundamental_dataArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_fundamental_fields",
+      "title": null,
+      "description": "\nLists all available fields in the fundamental summary database with descriptions.\n\nThis helps users understand what data is available through the\nget_fundamental_data tool, including profitability ratios, valuation metrics,\nand financial health indicators.\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_fundamental_fieldsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_fundamental_fieldsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_detailed_financials",
+      "title": null,
+      "description": "\nRetrieves detailed financial data from Nasdaq Equities 360 Fundamental\nDetails database.\n\nProvides comprehensive financial statement data including balance sheet items,\nincome statement components, cash flow statement details, and financial ratios.\n\nEither symbol or figi must be provided.\n\nParameters:\n  - symbol: Stock ticker symbol (e.g., 'MSFT')\n  - figi: Bloomberg FIGI identifier (e.g., 'BBG000BPH459')\n  - calendardate: Calendar date in YYYY-MM-DD format (e.g., '2022-12-31')\n  - dimension: Data dimension (MRQ: quarterly, MRY: annual,\n    MRT: trailing twelve months)\n\nExample: get_detailed_financials(symbol='MSFT', dimension='MRY')\nExample: get_detailed_financials(figi='BBG000BPH459', calendardate='2022-12-31')\n",
+      "inputSchema": {
+        "properties": {
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symbol"
+          },
+          "figi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Figi"
+          },
+          "calendardate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Calendardate"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dimension"
+          }
+        },
+        "title": "get_detailed_financialsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_detailed_financial_fields",
+      "title": null,
+      "description": "\nLists all available fields in the fundamental details database with descriptions.\n\nThis helps users understand what data is available through the\nget_detailed_financials tool, including balance sheet items, income statement\ncomponents, cash flow details, and more.\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_detailed_financial_fieldsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_detailed_financial_fieldsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_balance_sheet_data",
+      "title": null,
+      "description": "\nRetrieves balance sheet data from Nasdaq Equities 360 Balance Sheet database.\n\nProvides comprehensive balance sheet data including assets, liabilities, equity,\nand detailed breakdowns of each category.\n\nEither symbol or figi must be provided.\n\nParameters:\n  - symbol: Stock ticker symbol (e.g., 'MSFT')\n  - figi: Bloomberg FIGI identifier (e.g., 'BBG000BPH459')\n  - calendardate: Calendar date in YYYY-MM-DD format (e.g., '2022-12-31')\n  - dimension: Data dimension (MRQ: quarterly, MRY: annual,\n    MRT: trailing twelve months)\n\nExample: get_balance_sheet_data(symbol='MSFT', dimension='MRY')\nExample: get_balance_sheet_data(figi='BBG000BPH459', calendardate='2022-12-31')\n",
+      "inputSchema": {
+        "properties": {
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symbol"
+          },
+          "figi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Figi"
+          },
+          "calendardate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Calendardate"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dimension"
+          }
+        },
+        "title": "get_balance_sheet_dataArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_balance_sheet_fields",
+      "title": null,
+      "description": "\nLists all available fields in the balance sheet database with descriptions.\n\nThis helps users understand what data is available through the\nget_balance_sheet_data tool, including assets, liabilities, equity, and detailed\nbreakdowns of each category.\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_balance_sheet_fieldsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_balance_sheet_fieldsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_cash_flow_data",
+      "title": null,
+      "description": "\nRetrieves cash flow statement data from Nasdaq Equities 360 Cash Flow database.\n\nProvides cash flow statement data including operating, investing, and financing\nactivities, as well as free cash flow and capital expenditure information.\n\nEither symbol or figi must be provided.\n\nParameters:\n  - symbol: Stock ticker symbol (e.g., 'MSFT')\n  - figi: Bloomberg FIGI identifier (e.g., 'BBG000BPH459')\n  - calendardate: Calendar date in YYYY-MM-DD format (e.g., '2022-12-31')\n  - dimension: Data dimension (MRQ: quarterly, MRY: annual,\n    MRT: trailing twelve months)\n\nExample: get_cash_flow_data(symbol='MSFT', dimension='MRY')\nExample: get_cash_flow_data(figi='BBG000BPH459', calendardate='2022-12-31')\n",
+      "inputSchema": {
+        "properties": {
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symbol"
+          },
+          "figi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Figi"
+          },
+          "calendardate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Calendardate"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Dimension"
+          }
+        },
+        "title": "get_cash_flow_dataArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_cash_flow_fields",
+      "title": null,
+      "description": "\nLists all available fields in the cash flow statement database with descriptions.\n\nThis helps users understand what data is available through the\nget_cash_flow_data tool, including operating, investing, and financing cash\nflows, and related metrics.\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_cash_flow_fieldsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_cash_flow_fieldsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_corporate_action_data",
+      "title": null,
+      "description": "\nRetrieves corporate actions data from Nasdaq Equities 360 Corporate Actions\ndatabase.\n\nProvides information about corporate events such as stock splits, mergers,\nacquisitions, and other significant company actions that can affect stock price\nand ownership.\n\nParameters:\n  - symbol: Stock ticker symbol (e.g., 'TSLA')\n  - figi: Bloomberg FIGI identifier\n  - date: Date of the corporate action in YYYY-MM-DD format (e.g., '2023-03-24')\n  - action: Type of corporate action (e.g., 'split', 'merger')\n\nExample: get_corporate_action_data(symbol='TSLA', action='split')\nExample: get_corporate_action_data(date='2023-03-24')\n",
+      "inputSchema": {
+        "properties": {
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symbol"
+          },
+          "figi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Figi"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Date"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Action"
+          }
+        },
+        "title": "get_corporate_action_dataArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_corporate_action_fields",
+      "title": null,
+      "description": "\nLists all available fields in the corporate actions database with descriptions.\n\nThis helps users understand what data is available through the\nget_corporate_action_data tool, including date, action type, value, and related\ncompany information.\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_corporate_action_fieldsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_corporate_action_fieldsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_company_reference_data",
+      "title": null,
+      "description": "\nRetrieves company reference data from Nasdaq Equities 360 Reference Data database.\n\nProvides static information about companies including exchange, industry, sector,\ncompany website, SEC filings links, and location information.\n\nEither symbol or figi must be provided.\n\nParameters:\n  - symbol: Stock ticker symbol (e.g., 'AMD')\n  - figi: Bloomberg FIGI identifier (e.g., 'BBG000BBQCY0')\n\nExample: get_company_reference_data(symbol='AMD')\nExample: get_company_reference_data(figi='BBG000BBQCY0')\n",
+      "inputSchema": {
+        "properties": {
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Symbol"
+          },
+          "figi": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Figi"
+          }
+        },
+        "title": "get_company_reference_dataArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "list_reference_data_fields",
+      "title": null,
+      "description": "\nLists all available fields in the company reference database with descriptions.\n\nThis helps users understand what data is available through the\nget_company_reference_data tool, including exchange, industry, sector, company\nwebsite, and location information.\n",
+      "inputSchema": {
+        "properties": {},
+        "title": "list_reference_data_fieldsArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Result",
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "list_reference_data_fieldsOutput",
+        "type": "object"
+      },
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_trade_summary_data",
+      "title": null,
+      "description": "\nRetrieves Trade Summary data from Nasdaq Data Link NDAQ/TS datatable.\n\nProvides consolidated trade data including open, high, low, close, and volume.\n\nExamples:\n  get_trade_summary_data()  # Returns all available data\n  # (may be limited by API quotas)\n",
+      "inputSchema": {
+        "properties": {
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_trade_summary_dataArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_fund_master_report",
+      "title": null,
+      "description": "\nRetrieves Fund Master Report (NFN/MFRFM) data from Nasdaq Fund Network.\n\nProvides basic information about live NFN funds, mutual funds and closed-end funds.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - name: Optional fund name\n  - investment_company_type: Optional investment company type\n    (N-1A for Open-Ended mutual funds, N-2 for Closed-End funds)\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_fund_master_report(fund_id='12345')\nExample: get_fund_master_report(investment_company_type='N-1A')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "investment_company_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Investment Company Type"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_fund_master_reportArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_fund_information",
+      "title": null,
+      "description": "\nRetrieves Fund Information Report (NFN/MFRFI) data from Nasdaq Fund Network.\n\nProvides detailed information about funds including investment strategy, objectives,\nand classification data.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - name: Optional fund name\n  - investment_company_type: Optional investment company type\n    (N-1A for Open-Ended mutual funds, N-2 for Closed-End funds)\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_fund_information(fund_id='12345')\nExample: get_fund_information(investment_company_type='N-1A')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "investment_company_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Investment Company Type"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_fund_informationArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_share_class_master",
+      "title": null,
+      "description": "\nRetrieves Fund Share Class Master (NFN/MFRSM) data from Nasdaq Fund Network.\n\nProvides basic information about fund share classes, including identifiers and name.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - name: Optional fund name\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_share_class_master(fund_id='12345')\nExample: get_share_class_master(name='Growth Fund')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Name"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_share_class_masterArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_share_class_information",
+      "title": null,
+      "description": "\nRetrieves Fund Share Class Information (NFN/MFRSI) data from Nasdaq Fund Network.\n\nProvides detailed information about fund share classes including minimum\ninvestments, fees, and other attributes.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_share_class_information(fund_id='12345')\nExample: get_share_class_information(ticker='ABCDX')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_share_class_informationArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_price_history",
+      "title": null,
+      "description": "\nRetrieves Fund Price History (NFN/MFRPH) data from Nasdaq Fund Network.\n\nProvides historical NAV, offering, and redemption prices for funds.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - start_date: Optional start date for price history (YYYY-MM-DD format)\n  - end_date: Optional end date for price history (YYYY-MM-DD format)\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_price_history(\n    ticker='ABCDX', start_date='2024-01-01', end_date='2024-04-30'\n)\nExample: get_price_history(fund_id='12345')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "End Date"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_price_historyArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_recent_price_history",
+      "title": null,
+      "description": "\nRetrieves recent Fund Price History (NFN/MFRPH10) data from Nasdaq Fund Network.\n\nProvides historical NAV, offering, and redemption prices for funds for the\nlast 10 trading days.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - start_date: Optional start date for price history (YYYY-MM-DD format)\n  - end_date: Optional end date for price history (YYYY-MM-DD format)\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_recent_price_history(ticker='ABCDX')\nExample: get_recent_price_history(fund_id='12345')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "End Date"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_recent_price_historyArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_performance_statistics",
+      "title": null,
+      "description": "\nRetrieves Fund Performance Statistics (NFN/MFRPS) data from Nasdaq Fund Network.\n\nProvides performance returns for various time periods\n(1mo, 3mo, YTD, 1yr, 3yr, etc.).\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_performance_statistics(ticker='ABCDX')\nExample: get_performance_statistics(fund_id='12345')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_performance_statisticsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_performance_benchmark",
+      "title": null,
+      "description": "\nRetrieves Fund Performance Benchmark (NFN/MFRPRB) data from Nasdaq Fund Network.\n\nProvides information about fund benchmark indexes used for performance comparison.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_performance_benchmark(ticker='ABCDX')\nExample: get_performance_benchmark(fund_id='12345')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_performance_benchmarkArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_performance_analytics",
+      "title": null,
+      "description": "\nRetrieves Fund Performance Analytics (NFN/MFRPA) data from Nasdaq Fund Network.\n\nProvides analytical metrics such as alpha, beta, R-squared, Sharpe ratio, etc.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_performance_analytics(ticker='ABCDX')\nExample: get_performance_analytics(fund_id='12345')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_performance_analyticsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_fees_and_expenses",
+      "title": null,
+      "description": "\nRetrieves Fund Fee and Expense Data (NFN/MFRPM) from Nasdaq Fund Network.\n\nProvides information about fund fees, expenses, and sales charges.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_fees_and_expenses(ticker='ABCDX')\nExample: get_fees_and_expenses(fund_id='12345')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_fees_and_expensesArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    },
+    {
+      "name": "get_monthly_flows",
+      "title": null,
+      "description": "\nRetrieves Fund Monthly Flows (NFN/MFRMF) data from Nasdaq Fund Network.\n\nProvides historical fund flow data on a monthly basis.\n\nParameters:\n  - fund_id: Optional unique fund identifier\n  - ticker: Optional ticker symbol\n  - Additional parameters supported by the Nasdaq Data Link API\n\nExample: get_monthly_flows(ticker='ABCDX')\nExample: get_monthly_flows(fund_id='12345')\n",
+      "inputSchema": {
+        "properties": {
+          "fund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Fund Id"
+          },
+          "ticker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Ticker"
+          },
+          "kwargs": {
+            "title": "kwargs",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kwargs"
+        ],
+        "title": "get_monthly_flowsArguments",
+        "type": "object"
+      },
+      "outputSchema": null,
+      "annotations": null,
+      "meta": null
+    }
+  ],
+  "resources": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Markdown Downloader",
+  "tools": [
+    {
+      "name": "download_markdown",
+      "description": "Download a webpage as markdown using r.jina.ai"
+    },
+    {
+      "name": "list_downloaded_files",
+      "description": "List all downloaded markdown files"
+    },
+    {
+      "name": "set_download_directory",
+      "description": "Set the main local download folder for markdown files"
+    },
+    {
+      "name": "get_download_directory",
+      "description": "Get the current download directory"
+    },
+    {
+      "name": "create_subdirectory",
+      "description": "Create a new subdirectory in the root download folder"
+    }
+  ]
+}

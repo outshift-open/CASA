@@ -1,0 +1,57 @@
+{
+  "name": "After Effects MCP Server",
+  "tools": [
+    {
+      "name": "run-script",
+      "description": "Run a read-only script in After Effects"
+    },
+    {
+      "name": "get-results",
+      "description": "Get results from the last script executed in After Effects"
+    },
+    {
+      "name": "get-help",
+      "description": "Get help on using the After Effects MCP integration"
+    },
+    {
+      "name": "create-composition",
+      "description": "Create a new composition in After Effects with specified parameters"
+    },
+    {
+      "name": "setLayerKeyframe",
+      "description": "Set a keyframe for a specific layer property at a given time."
+    },
+    {
+      "name": "setLayerExpression",
+      "description": "Set or remove an expression for a specific layer property."
+    },
+    {
+      "name": "test-animation",
+      "description": "Test animation functionality in After Effects"
+    },
+    {
+      "name": "apply-effect",
+      "description": "Apply an effect to a layer in After Effects"
+    },
+    {
+      "name": "apply-effect-template",
+      "description": "Apply a predefined effect template to a layer in After Effects"
+    },
+    {
+      "name": "mcp_aftereffects_applyEffect",
+      "description": "Apply an effect to a layer in After Effects"
+    },
+    {
+      "name": "mcp_aftereffects_applyEffectTemplate",
+      "description": "Apply a predefined effect template to a layer in After Effects"
+    },
+    {
+      "name": "mcp_aftereffects_get_effects_help",
+      "description": "Get help on using After Effects effects"
+    },
+    {
+      "name": "run-bridge-test",
+      "description": "Run the bridge test effects script to verify communication and apply test effects"
+    }
+  ]
+}

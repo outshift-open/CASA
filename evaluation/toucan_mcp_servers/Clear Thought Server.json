@@ -1,0 +1,49 @@
+{
+  "name": "Clear Thought Server",
+  "tools": [
+    {
+      "name": "sequentialthinking",
+      "description": "A detailed tool for dynamic and reflective problem-solving through thoughts.\nThis tool helps analyze problems through a flexible thinking process that can adapt and evolve.\nEach thought can build on, question, or revise previous insights as understanding deepens.\n\nWhen to use this tool:\n- Breaking down complex problems into steps\n- Planning and design with room for revision\n- Analysis that might need course correction\n- Problems where the full scope might not be clear initially\n- Problems that require a multi-step solution\n- Tasks that need to maintain context over multiple steps\n- Situations where irrelevant information needs to be filtered out\n\nYou should:\n1. Start with an initial estimate of needed thoughts, but be ready to adjust\n2. Feel free to question or revise previous thoughts\n3. Don't hesitate to add more thoughts if needed, even at the \"end\"\n4. Express uncertainty when present\n5. Mark thoughts that revise previous thinking or branch into new paths\n6. Ignore information that is irrelevant to the current step\n7. Generate a solution hypothesis when appropriate\n8. Verify the hypothesis based on the Chain of Thought steps\n9. Repeat the process until satisfied with the solution\n10. Provide a single, ideally correct answer as the final output\n11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached"
+    },
+    {
+      "name": "mentalmodel",
+      "description": "A tool for applying structured mental models to problem-solving.\nSupports various mental models including:\n- First Principles Thinking\n- Opportunity Cost Analysis\n- Error Propagation Understanding\n- Rubber Duck Debugging\n- Pareto Principle\n- Occam's Razor\n\nEach model provides a systematic approach to breaking down and solving problems."
+    },
+    {
+      "name": "designpattern",
+      "description": "A tool for applying design patterns to software architecture and implementation.\nSupports various design patterns including:\n- Modular Architecture\n- API Integration Patterns\n- State Management\n- Asynchronous Processing\n- Scalability Considerations\n- Security Best Practices\n- Agentic Design Patterns\n\nEach pattern provides a structured approach to solving common design challenges."
+    },
+    {
+      "name": "programmingparadigm",
+      "description": "A tool for applying different programming paradigms to solve problems.\nSupports various programming paradigms including:\n- Imperative Programming\n- Procedural Programming\n- Object-Oriented Programming\n- Functional Programming\n- Declarative Programming\n- Logic Programming\n- Event-Driven Programming\n- Aspect-Oriented Programming\n- Concurrent Programming\n- Reactive Programming\n\nEach paradigm provides a different approach to structuring and executing code."
+    },
+    {
+      "name": "debuggingapproach",
+      "description": "A tool for applying systematic debugging approaches to solve technical issues.\nSupports various debugging methods including:\n- Binary Search\n- Reverse Engineering\n- Divide and Conquer\n- Backtracking\n- Cause Elimination\n- Program Slicing\n\nEach approach provides a structured method for identifying and resolving issues."
+    },
+    {
+      "name": "collaborativereasoning",
+      "description": "A detailed tool for simulating expert collaboration with diverse perspectives.\nThis tool helps models tackle complex problems by coordinating multiple viewpoints.\nIt provides a framework for structured collaborative reasoning and perspective integration."
+    },
+    {
+      "name": "decisionframework",
+      "description": "A detailed tool for structured decision analysis and rational choice.\nThis tool helps models systematically evaluate options, criteria, and outcomes.\nIt supports multiple decision frameworks, probability estimates, and value judgments."
+    },
+    {
+      "name": "metacognitivemonitoring",
+      "description": "A detailed tool for systematic self-monitoring of knowledge and reasoning quality.\nThis tool helps models track knowledge boundaries, claim certainty, and reasoning biases.\nIt provides a framework for metacognitive assessment across various domains and reasoning tasks."
+    },
+    {
+      "name": "scientificmethod",
+      "description": "A detailed tool for applying formal scientific reasoning to questions and problems.\nThis tool guides models through the scientific method with structured hypothesis testing.\nIt enforces explicit variable identification, prediction making, and evidence evaluation."
+    },
+    {
+      "name": "structuredargumentation",
+      "description": "A detailed tool for systematic dialectical reasoning and argument analysis.\nThis tool helps analyze complex questions through formal argumentation structures.\nIt facilitates the creation, critique, and synthesis of competing arguments."
+    },
+    {
+      "name": "visualreasoning",
+      "description": "A tool for visual thinking, problem-solving, and communication.\nThis tool enables models to create, manipulate, and interpret diagrams, graphs, and other visual representations.\nIt supports various visual elements and operations to facilitate insight generation and hypothesis testing."
+    }
+  ]
+}

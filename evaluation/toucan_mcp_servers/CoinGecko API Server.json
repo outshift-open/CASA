@@ -1,0 +1,33 @@
+{
+  "name": "CoinGecko API Server",
+  "tools": [
+    {
+      "name": "API-simple-price",
+      "description": "Coin Price by IDs"
+    },
+    {
+      "name": "API-coins-list",
+      "description": "Coins List (ID Map)"
+    },
+    {
+      "name": "API-coins-markets",
+      "description": "Coins List with Market Data"
+    },
+    {
+      "name": "API-coins-id",
+      "description": "Coin Data by ID"
+    },
+    {
+      "name": "API-coins-id-ohlc",
+      "description": "Coin OHLC Chart by ID"
+    },
+    {
+      "name": "API-search-data",
+      "description": "Search Queries"
+    },
+    {
+      "name": "API-trending-search",
+      "description": "Trending Search List"
+    }
+  ]
+}

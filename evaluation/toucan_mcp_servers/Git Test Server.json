@@ -1,0 +1,25 @@
+{
+  "name": "Git Test Server",
+  "tools": [
+    {
+      "name": "search_law_cases",
+      "description": "\n    법제처 판례 목록 조회 API를 호출합니다.\n\n    Args:\n        OC (str): 사용자 이메일 ID (필수).\n        target (str): 서비스 대상 (기본값: \"prec\").\n        type (str): 출력 형태 (기본값: \"JSON\", HTML/XML/JSON).\n        search (Optional[int]): 검색 범위 (1: 판례명, 2: 본문검색).\n        query (Optional[str]): 검색을 원하는 질의.\n        display (Optional[int]): 검색 결과 개수 (기본값: 20, 최대: 100).\n        page (Optional[int]): 검색 결과 페이지 (기본값: 1).\n        org (Optional[str]): 법원 종류 (예: 400201, 400202).\n        curt (Optional[str]): 법원명 (예: 대법원, 서울고등법원).\n        JO (Optional[str]): 참조법령명.\n        gana (Optional[str]): 사전식 검색.\n        sort (Optional[str]): 정렬 옵션.\n        date (Optional[int]): 판례 선고일자.\n        prncYd (Optional[str]): 선고일자 검색 범위 (예: \"20090101~20090130\").\n        nb (Optional[str]): 판례 사건번호.\n        datSrcNm (Optional[str]): 데이터 출처명.\n        popYn (Optional[str]): 상세화면 팝업창 여부 (팝업창으로 띄우고 싶을 때: \"Y\").\n\n    Returns:\n        dict: API 응답 (JSON 형식).\n    "
+    },
+    {
+      "name": "get_law_case_body",
+      "description": "\n    법제처 판례 본문 조회 API를 호출합니다.\n\n    Args:\n        ID (str): 판례 일련번호 (필수).\n        OC (str): 사용자 이메일 ID (필수, 기본값: \"trojansaga\").\n        target (str): 서비스 대상 (기본값: \"prec\").\n        type (str): 출력 형태 (기본값: \"HTML\", HTML/XML/JSON).\n                    *참고: 국세청 판례 본문 조회는 HTML만 가능합니다.\n        LM (Optional[str]): 판례명.\n\n    Returns:\n        dict: API 응답 (JSON 형식 또는 원시 텍스트).\n    "
+    },
+    {
+      "name": "get_airport_congestion",
+      "description": "\n    공항 혼잡도 정보를 조회합니다.\n\n    Args:\n        page (int): 페이지 인덱스 (기본값: 1).\n        perPage (int): 페이지 크기 (기본값: 10).\n        returnType (str): 응답 데이터 타입 (기본값: \"JSON\", XML도 가능).\n        iata_apcd (Optional[str]): IATA 공항 코드 (예: ICN, GMP).\n        service_key (Optional[str]): API 서비스 키.\n\n    Returns:\n        dict: 공항 혼잡도 정보 (JSON 형식 또는 원시 텍스트).\n    "
+    },
+    {
+      "name": "get_sexual_abuse_notice_house_jibun",
+      "description": "\n    성범죄자 주거이동정보 조회 API를 호출합니다.\n\n    Args:\n        pageNo (int): 페이지 번호 (기본값: 1).\n        numOfRows (int): 한 페이지 결과 수 (기본값: 10).\n        type (str): 응답 데이터 타입 (기본값: \"json\").\n        service_key (Optional[str]): API 서비스 키.\n        chgBfrCtpvNm (Optional[str]) : 변경이전시도명\n        chgBfrSggNm(Optional[str]) : 변경이전시군구명\n        chgBfrUmdNm(Optional[str]) : 변경이전읍면동명\n\n    Returns:\n        dict: 성범죄자 주거이동정보 (JSON 형식).\n    "
+    },
+    {
+      "name": "get_sexual_code",
+      "description": "\n    성범죄자 코드 목록 조회 API를 호출합니다.\n\n    Args:\n        pageNo (int): 페이지 번호 (기본값: 1)\n        numOfRows (int): 한 페이지 결과 수 (기본값: 1)\n        type (str): 응답 데이터 타입 (기본값: \"json\")\n        service_key (str): API 서비스 키 (기본값: service_key_decoding)\n\n    Returns:\n        dict: 성범죄자 코드 목록 (JSON 형식)\n    "
+    }
+  ]
+}

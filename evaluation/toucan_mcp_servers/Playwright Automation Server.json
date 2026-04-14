@@ -1,0 +1,125 @@
+{
+  "name": "Playwright Automation Server",
+  "tools": [
+    {
+      "name": "start_codegen_session",
+      "description": "Start a new code generation session to record Playwright actions"
+    },
+    {
+      "name": "end_codegen_session",
+      "description": "End a code generation session and generate the test file"
+    },
+    {
+      "name": "get_codegen_session",
+      "description": "Get information about a code generation session"
+    },
+    {
+      "name": "clear_codegen_session",
+      "description": "Clear a code generation session without generating a test"
+    },
+    {
+      "name": "playwright_navigate",
+      "description": "Navigate to a URL"
+    },
+    {
+      "name": "playwright_screenshot",
+      "description": "Take a screenshot of the current page or a specific element"
+    },
+    {
+      "name": "playwright_click",
+      "description": "Click an element on the page"
+    },
+    {
+      "name": "playwright_iframe_click",
+      "description": "Click an element in an iframe on the page"
+    },
+    {
+      "name": "playwright_fill",
+      "description": "fill out an input field"
+    },
+    {
+      "name": "playwright_select",
+      "description": "Select an element on the page with Select tag"
+    },
+    {
+      "name": "playwright_hover",
+      "description": "Hover an element on the page"
+    },
+    {
+      "name": "playwright_evaluate",
+      "description": "Execute JavaScript in the browser console"
+    },
+    {
+      "name": "playwright_console_logs",
+      "description": "Retrieve console logs from the browser with filtering options"
+    },
+    {
+      "name": "playwright_close",
+      "description": "Close the browser and release all resources"
+    },
+    {
+      "name": "playwright_get",
+      "description": "Perform an HTTP GET request"
+    },
+    {
+      "name": "playwright_post",
+      "description": "Perform an HTTP POST request"
+    },
+    {
+      "name": "playwright_put",
+      "description": "Perform an HTTP PUT request"
+    },
+    {
+      "name": "playwright_patch",
+      "description": "Perform an HTTP PATCH request"
+    },
+    {
+      "name": "playwright_delete",
+      "description": "Perform an HTTP DELETE request"
+    },
+    {
+      "name": "playwright_expect_response",
+      "description": "Ask Playwright to start waiting for a HTTP response. This tool initiates the wait operation but does not wait for its completion."
+    },
+    {
+      "name": "playwright_assert_response",
+      "description": "Wait for and validate a previously initiated HTTP response wait operation."
+    },
+    {
+      "name": "playwright_custom_user_agent",
+      "description": "Set a custom User Agent for the browser"
+    },
+    {
+      "name": "playwright_get_visible_text",
+      "description": "Get the visible text content of the current page"
+    },
+    {
+      "name": "playwright_get_visible_html",
+      "description": "Get the HTML content of the current page"
+    },
+    {
+      "name": "playwright_go_back",
+      "description": "Navigate back in browser history"
+    },
+    {
+      "name": "playwright_go_forward",
+      "description": "Navigate forward in browser history"
+    },
+    {
+      "name": "playwright_drag",
+      "description": "Drag an element to a target location"
+    },
+    {
+      "name": "playwright_press_key",
+      "description": "Press a keyboard key"
+    },
+    {
+      "name": "playwright_save_as_pdf",
+      "description": "Save the current page as a PDF file"
+    },
+    {
+      "name": "playwright_click_and_switch_tab",
+      "description": "Click a link and switch to the newly opened tab"
+    }
+  ]
+}

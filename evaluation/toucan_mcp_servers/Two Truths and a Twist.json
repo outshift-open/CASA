@@ -1,0 +1,29 @@
+{
+  "name": "Two Truths and a Twist",
+  "tools": [
+    {
+      "name": "create_round",
+      "description": "Create a new game round with a question and three statements. The twist should be playful, surprising, and entertaining - not just factually incorrect."
+    },
+    {
+      "name": "submit_guess",
+      "description": "Submit a player's guess for which statement is the twist"
+    },
+    {
+      "name": "reveal_twist",
+      "description": "Reveal which statement was the twist and provide explanations. The explanations should be entertaining and playful - build anticipation and make the reveal fun!"
+    },
+    {
+      "name": "get_round",
+      "description": "Get details of a specific round"
+    },
+    {
+      "name": "get_last_round",
+      "description": "Get details of the most recent round"
+    },
+    {
+      "name": "get_stats",
+      "description": "Get game statistics"
+    }
+  ]
+}

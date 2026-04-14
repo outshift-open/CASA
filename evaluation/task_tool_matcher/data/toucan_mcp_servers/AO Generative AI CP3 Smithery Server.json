@@ -1,0 +1,29 @@
+{
+  "name": "AO Generative AI CP3 Smithery Server",
+  "tools": [
+    {
+      "name": "get_forecast",
+      "description": "Get 5-day weather forecast for a Portuguese city.\n\n    Args:\n        city: Name of the city (e.g. Lisboa, Porto, Faro)\n    "
+    },
+    {
+      "name": "weather_warnings",
+      "description": "\n    Retrieve and format weather warnings from IPMA for Portugal up to 3 days ahead.\n\n    Returns:\n        A formatted string summarizing current weather warnings, with details by area and level.\n    "
+    },
+    {
+      "name": "get_sea_forecast",
+      "description": "\n    Get daily sea state forecast for Portugal coastal areas.\n\n    Args:\n        day: 0 = today, 1 = tomorrow, 2 = day after tomorrow\n\n    Returns:\n        Formatted string with forecast info by location.\n    "
+    },
+    {
+      "name": "get_earthquakes",
+      "description": "\n    Get earthquake information for Portugal areas (Azores or Mainland + Madeira).\n\n    Args:\n        area: 3 for Azores, 7 for Mainland + Madeira\n\n    Returns:\n        Formatted string with recent earthquakes (last 30 days).\n    "
+    },
+    {
+      "name": "get_fire_risk_forecast",
+      "description": "Get fire risk forecast for Portugal (today or tomorrow).\n\n    Args:\n        day: 1 for today, 2 for tomorrow\n    "
+    },
+    {
+      "name": "uv_forecast",
+      "description": "\n    Get the Ultraviolet Index (UV) forecast for Portugal for the next 3 days.\n\n    Returns:\n        A formatted string with UV index levels by date, location, and hour interval.\n    "
+    }
+  ]
+}

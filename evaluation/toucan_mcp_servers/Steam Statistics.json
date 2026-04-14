@@ -1,0 +1,21 @@
+{
+  "name": "Steam Statistics",
+  "tools": [
+    {
+      "name": "get_top_games",
+      "description": "\n    Steam'in en çok oynanan oyunlarını ve oyuncu sayılarını döndürür\n    "
+    },
+    {
+      "name": "get_game_genres",
+      "description": "\n    Belirli bir oyunun türlerini döndürür\n    "
+    },
+    {
+      "name": "get_popular_genres",
+      "description": "\n    En popüler oyun türlerini ve oyuncu sayılarını döndürür\n    "
+    },
+    {
+      "name": "get_player_stats",
+      "description": "\n    Oyuncunun son oynadığı oyunu ve istatistiklerini döndürür\n    "
+    }
+  ]
+}

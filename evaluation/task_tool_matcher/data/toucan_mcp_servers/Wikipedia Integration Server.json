@@ -1,0 +1,41 @@
+{
+  "name": "Wikipedia Integration Server",
+  "tools": [
+    {
+      "name": "search_wikipedia",
+      "description": "Search Wikipedia for articles matching a query."
+    },
+    {
+      "name": "get_article",
+      "description": "Get the full content of a Wikipedia article."
+    },
+    {
+      "name": "get_summary",
+      "description": "Get a summary of a Wikipedia article."
+    },
+    {
+      "name": "summarize_article_for_query",
+      "description": "Get a summary of a Wikipedia article tailored to a specific query."
+    },
+    {
+      "name": "summarize_article_section",
+      "description": "Get a summary of a specific section of a Wikipedia article."
+    },
+    {
+      "name": "extract_key_facts",
+      "description": "Extract key facts from a Wikipedia article, optionally focused on a topic."
+    },
+    {
+      "name": "get_related_topics",
+      "description": "Get topics related to a Wikipedia article based on links and categories."
+    },
+    {
+      "name": "get_sections",
+      "description": "Get the sections of a Wikipedia article."
+    },
+    {
+      "name": "get_links",
+      "description": "Get the links contained within a Wikipedia article."
+    }
+  ]
+}

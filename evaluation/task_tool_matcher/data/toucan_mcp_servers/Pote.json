@@ -1,0 +1,21 @@
+{
+  "name": "Pote",
+  "tools": [
+    {
+      "name": "get-all-breeds",
+      "description": "Get a list of all supported dog breeds and their IDs"
+    },
+    {
+      "name": "get-breed-info",
+      "description": "Get detailed information about a specific dog breed by ID"
+    },
+    {
+      "name": "get-breed-posts",
+      "description": "Get a list of available dog posts/ads for a specific breed."
+    },
+    {
+      "name": "get-post-by-id",
+      "description": "Get more detailed information about a specific post by providing the ID of the post in the database. The ID should be found in the list of posts returned by the get-breed-posts tool. It's a mongodb id."
+    }
+  ]
+}

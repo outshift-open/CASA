@@ -1,0 +1,61 @@
+{
+  "name": "Crypto_MCP",
+  "tools": [
+    {
+      "name": "aes_encrypt",
+      "description": "encrypt text with aes"
+    },
+    {
+      "name": "aes_decrypt",
+      "description": "decrypt text with aes"
+    },
+    {
+      "name": "md5",
+      "description": "Calculate MD5 hash of a string"
+    },
+    {
+      "name": "sha1",
+      "description": "Calculate SHA-1 hash of a string"
+    },
+    {
+      "name": "sha256",
+      "description": "Calculate SHA-256 hash of a string"
+    },
+    {
+      "name": "sha384",
+      "description": "Calculate SHA-384 hash of a string"
+    },
+    {
+      "name": "sha512",
+      "description": "Calculate SHA-512 hash of a string"
+    },
+    {
+      "name": "sha224",
+      "description": "Calculate SHA-224 hash of a string"
+    },
+    {
+      "name": "des_encrypt",
+      "description": "encrypt text with des"
+    },
+    {
+      "name": "des_decrypt",
+      "description": "decrypt text with des"
+    },
+    {
+      "name": "base64_encode",
+      "description": "encode text to base64"
+    },
+    {
+      "name": "base64_decode",
+      "description": "decode base64 to text"
+    },
+    {
+      "name": "hex_encode",
+      "description": "encode text to hex"
+    },
+    {
+      "name": "hex_decode",
+      "description": "decode hex to text"
+    }
+  ]
+}

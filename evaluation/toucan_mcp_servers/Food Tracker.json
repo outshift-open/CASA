@@ -1,0 +1,33 @@
+{
+  "name": "Food Tracker",
+  "tools": [
+    {
+      "name": "get_product_by_barcode",
+      "description": "\n    Get detailed information about a food product by barcode.\n    \n    Args:\n        barcode: The product barcode (EAN, UPC, etc.)\n    "
+    },
+    {
+      "name": "search_products",
+      "description": "\n    Search for food products by name or description.\n    \n    Args:\n        query: The search query\n        page: Page number for pagination (default: 1)\n        page_size: Number of results per page (default: 10)\n    "
+    },
+    {
+      "name": "manage_user_restrictions",
+      "description": "\n    Manage a user's dietary restrictions.\n    \n    Args:\n        user_id: The user's unique identifier\n        action: The action to perform (get, add, remove, update)\n        restriction_type: Type of restriction (allergen, diet, ingredient, medical, preference)\n        restriction_value: The specific restriction value (e.g., \"peanuts\", \"vegetarian\")\n        severity: How severe the restriction is (avoid, limit, fatal)\n        notes: Additional notes about the restriction\n    "
+    },
+    {
+      "name": "check_product_compatibility",
+      "description": "\n    Check if a product is compatible with a user's dietary restrictions.\n    \n    Args:\n        user_id: The user's unique identifier\n        barcode: The product barcode to check\n    "
+    },
+    {
+      "name": "analyze_nutrition",
+      "description": "\n    Analyze the nutritional content of a food product.\n    \n    Args:\n        barcode: The product barcode\n    "
+    },
+    {
+      "name": "log_food_consumption",
+      "description": "\n    Log food consumption for a user.\n    \n    Args:\n        user_id: The user's unique identifier\n        barcode: The product barcode\n        quantity: Amount consumed (default: 1 serving)\n        meal_type: Type of meal (breakfast, lunch, dinner, snack)\n    "
+    },
+    {
+      "name": "get_user_food_log",
+      "description": "\n    Get a user's food log for a specific date.\n    \n    Args:\n        user_id: The user's unique identifier\n        date: Date in YYYY-MM-DD format (defaults to today)\n    "
+    }
+  ]
+}

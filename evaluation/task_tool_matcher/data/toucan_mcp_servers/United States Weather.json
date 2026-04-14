@@ -1,0 +1,29 @@
+{
+  "name": "United States Weather",
+  "tools": [
+    {
+      "name": "get_current_weather",
+      "description": "Get current weather conditions for a location in the United States. Perfect for 'What's the weather like in [US location]?' questions. Covers all US states, territories, and coastal waters."
+    },
+    {
+      "name": "get_weather_forecast",
+      "description": "Get multi-day weather forecast for a location in the United States. Perfect for 'What's the forecast for [US location]?' questions. Provides detailed day/night forecasts for up to 7 days."
+    },
+    {
+      "name": "get_hourly_forecast",
+      "description": "Get hour-by-hour weather forecast for a location in the United States. Perfect for 'What's the hourly forecast?' or 'Will it rain this afternoon in [US location]?' questions. Provides detailed hourly conditions for up to 48 hours."
+    },
+    {
+      "name": "get_weather_alerts",
+      "description": "Get active weather alerts, warnings, watches, and advisories for locations in the United States. Perfect for 'Are there any weather alerts in [US location]?' questions. Covers severe weather, winter storms, heat warnings, flood alerts, and more."
+    },
+    {
+      "name": "find_weather_stations",
+      "description": "Find weather observation stations near a location in the United States. Useful for getting station-specific data, finding data sources, or understanding which stations provide weather data for an area. Includes ASOS, AWOS, and other automated weather stations."
+    },
+    {
+      "name": "get_local_time",
+      "description": "Get the current local time for a US location. Shows what time it is right now at the specified location."
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "name": "Medical Calculation Server",
+  "tools": [
+    {
+      "name": "egfr_epi_cr_cys",
+      "description": "\n    Estimated Glomerular Filtration Rate (eGFR) using the 2021 CKD-EPI Creatinine-Cystatin C equation\n    Reference: N Engl J Med. 2021 Nov 4;385(19):1737-1749\n    \n    Parameters:\n    -----------\n    scr : float\n        Serum creatinine level in mg/dL\n    scys : float\n        Serum cystatin C level in mg/L\n    age : int\n        Age in years\n    male : bool\n        True if patient is male, False if female\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing eGFR result and calculation parameters\n    "
+    },
+    {
+      "name": "egfr_epi",
+      "description": "\n    Estimated Glomerular Filtration Rate (eGFR) using the EPI formula (version 2021)\n    Reference: N Engl J Med. 2021 Nov 4;385(19):1737-1749\n    \n    Parameters:\n    -----------\n    scr : float\n        serum creatinine level in mg/dL\n    age : int\n        Age in years\n    male : bool\n        true if Male\n    \n    Returns:\n    --------\n    float\n        Estimated GFR in mL/min/1.73m^2\n    "
+    },
+    {
+      "name": "bp_children",
+      "description": "\n    혈압 센타일(percentile)을 계산하는 함수\n    \n    Parameters:\n    -----------\n    years : int\n        나이(년)\n    months : int\n        나이(월)\n    height : int\n        키(cm)\n    sex : str\n        성별 ('male' 또는 'female')\n    systolic : int\n        수축기 혈압(mmHg)\n    diastolic : int\n        이완기 혈압(mmHg)\n    \n    Returns:\n    --------\n    dict\n        수축기 및 이완기 혈압 센타일 결과를 포함하는 딕셔너리\n    "
+    },
+    {
+      "name": "bmi_bsa_calculator",
+      "description": "\n    Calculates Body Mass Index (BMI) and Body Surface Area (BSA)\n    \n    Parameters:\n    -----------\n    weight : float\n        Weight in kilograms\n    height : float\n        Height in centimeters (default) or meters\n    height_unit : str\n        Unit of height measurement ('cm' or 'm', default is 'cm')\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing BMI, BSA, and classification\n    "
+    },
+    {
+      "name": "crcl_cockcroft_gault",
+      "description": "\n    Calculate Creatinine Clearance using the Cockcroft-Gault formula\n    \n    Parameters:\n    -----------\n    age : int\n        Age in years\n    weight : float\n        Actual body weight in kg\n    height : float\n        Height in inches\n    scr : float\n        Serum creatinine in mg/dL\n    sex : str\n        Gender ('male' or 'female')\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing creatinine clearance result and weight calculations\n    "
+    },
+    {
+      "name": "map_calculator",
+      "description": "\n    Calculate Mean Arterial Pressure (MAP)\n    \n    Parameters:\n    -----------\n    sbp : int\n        Systolic Blood Pressure in mmHg\n    dbp : int\n        Diastolic Blood Pressure in mmHg\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing MAP result and input values\n    "
+    },
+    {
+      "name": "chads2_vasc_score",
+      "description": "\n    Calculate CHA₂DS₂-VASc Score for Atrial Fibrillation Stroke Risk\n    \n    Parameters:\n    -----------\n    age : int\n        Age in years\n    female : bool\n        True if patient is female, False if male\n    chf : bool\n        True if patient has history of congestive heart failure\n    hypertension : bool\n        True if patient has history of hypertension\n    stroke_history : bool\n        True if patient has history of stroke, TIA, or thromboembolism\n    vascular_disease : bool\n        True if patient has history of vascular disease (prior MI, peripheral artery disease, or aortic plaque)\n    diabetes : bool\n        True if patient has history of diabetes mellitus\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing CHA₂DS₂-VASc score and risk factors\n    "
+    },
+    {
+      "name": "prevent_cvd_risk",
+      "description": "\n    Predicting Risk of Cardiovascular Disease EVENTs (PREVENT)\n    Predicts 10-year risk of CVD in patients aged 30-79 without known CVD.\n    \n    Parameters:\n    -----------\n    age : int\n        Age in years (30-79)\n    female : bool\n        True if patient is female, False if male\n    tc : float\n        Total cholesterol in mmol/L\n    hdl : float\n        HDL cholesterol in mmol/L\n    sbp : int\n        Systolic blood pressure in mmHg\n    diabetes : bool\n        True if patient has diabetes\n    current_smoker : bool\n        True if patient is a current smoker\n    egfr : float\n        Estimated glomerular filtration rate in mL/min/1.73m²\n    using_antihtn : bool\n        True if patient is using antihypertensive drugs\n    using_statins : bool\n        True if patient is using statins\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing 10-year CVD risk and calculation details\n    "
+    },
+    {
+      "name": "corrected_calcium",
+      "description": "\n    Calcium Correction for Hypoalbuminemia and Hyperalbuminemia\n    Calculates a corrected calcium level for patients with abnormal albumin levels.\n    \n    Parameters:\n    -----------\n    serum_calcium : float\n        Patient's measured serum calcium level in mg/dL\n    patient_albumin : float\n        Patient's serum albumin level in g/dL\n    normal_albumin : float, optional\n        Normal/reference albumin level in g/dL, default is 4.0 g/dL\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing corrected calcium value, interpretation, and calculation details\n        \n    Formula:\n    --------\n    Corrected Calcium = (0.8 * (Normal Albumin - Patient's Albumin)) + Serum Calcium\n    \n    References:\n    -----------\n    Payne RB, et al. Br Med J. 1973;4(5893):643-646.\n    "
+    },
+    {
+      "name": "qtc_calculator",
+      "description": "\n    Corrected QT Interval (QTc) Calculator\n    Corrects the QT interval for heart rate extremes using various formulas.\n    \n    Parameters:\n    -----------\n    qt_interval : float\n        Measured QT interval in milliseconds (ms)\n    heart_rate : float\n        Heart rate in beats per minute (bpm)\n    formula : str, optional\n        Formula to use for correction (default: \"bazett\")\n        Options: \"bazett\", \"fridericia\", \"framingham\", \"hodges\", \"rautaharju\"\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing QTc value, interpretation, and calculation details\n        \n    Formulas:\n    ---------\n    RR interval = 60 / heart_rate (in seconds)\n    Bazett: QTc = QT / √(RR)\n    Fridericia: QTc = QT / (RR)^(1/3)\n    Framingham: QTc = QT + 154 × (1 - RR)\n    Hodges: QTc = QT + 1.75 × (heart_rate - 60)\n    Rautaharju: QTc = QT × (120 + heart_rate) / 180\n    \n    References:\n    -----------\n    Bazett HC. Heart. 1920;7:353-370\n    Fridericia LS. Acta Med Scand. 1920;53:469-486\n    Sagie A, et al. Am J Cardiol. 1992;70(7):797-801 (Framingham)\n    Hodges M, et al. J Electrocardiol. 1983;16(1):17-24\n    Rautaharju PM, et al. J Am Coll Cardiol. 2004;44(3):594-600\n    "
+    },
+    {
+      "name": "wells_pe_criteria",
+      "description": "\n    Wells' Criteria for Pulmonary Embolism\n    Objectifies risk of pulmonary embolism based on clinical criteria.\n    Reference: Wells PS, et al. Thromb Haemost. 2000;83(3):416-20.\n    \n    Parameters:\n    -----------\n    clinical_signs_dvt: bool\n        Clinical signs and symptoms of DVT (leg swelling, pain with palpation)\n    alternative_diagnosis_less_likely: bool\n        Alternative diagnosis less likely than PE\n    heart_rate_over_100: bool\n        Heart rate > 100 beats per minute\n    immobilization_or_surgery: bool\n        Immobilization or surgery in the previous four weeks\n    previous_dvt_or_pe: bool\n        Previous DVT/PE\n    hemoptysis: bool\n        Hemoptysis\n    malignancy: bool\n        Malignancy (treatment ongoing, treated in last 6 months, or palliative)\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing the score, risk category for both three-tier and \n        two-tier models, and recommendations\n    "
+    },
+    {
+      "name": "ibw_abw_calculator",
+      "description": "\n    Ideal Body Weight and Adjusted Body Weight Calculator\n    Calculates ideal body weight (Devine formula) and adjusted body weight.\n    \n    Parameters:\n    -----------\n    weight_kg : float\n        Actual body weight in kilograms\n    height_inches : float\n        Height in inches\n    male : bool\n        True if patient is male, False if female\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing ideal body weight, adjusted body weight, and calculation details\n        \n    Formulas:\n    ---------\n    Ideal Body Weight (IBW) (Devine formula):\n    - Men: IBW = 50 kg + 2.3 kg × (height in inches - 60)\n    - Women: IBW = 45.5 kg + 2.3 kg × (height in inches - 60)\n    \n    Adjusted Body Weight (ABW):\n    - ABW = IBW + 0.4 × (actual weight - IBW)\n    \n    References:\n    -----------\n    Devine BJ. Gentamicin therapy. Drug Intell Clin Pharm. 1974;8:650-655.\n    Pai MP. Drug Dosing Based on Weight and Body Surface Area: Mathematical Assumptions and Limitations in Obese Adults. Pharmacotherapy. 2012;32(9):856-868.\n    "
+    },
+    {
+      "name": "pregnancy_calculator",
+      "description": "\n    Pregnancy Due Dates Calculator\n    Calculates pregnancy dates from last period, gestational age, or date of conception.\n    \n    Parameters:\n    -----------\n    calculation_method : str\n        Method used for calculation: \"lmp\" (last menstrual period), \"conception\", or \"ultrasound\"\n    date_value : str\n        Date in format 'YYYY-MM-DD' (date of LMP, conception, or ultrasound)\n    cycle_length : int, optional\n        Length of menstrual cycle in days (default: 28)\n    gestational_age_weeks : int, optional\n        Weeks of gestational age at ultrasound (required if calculation_method is \"ultrasound\")\n    gestational_age_days : int, optional\n        Days of gestational age at ultrasound (required if calculation_method is \"ultrasound\")\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing calculated pregnancy dates and information\n        \n    Formulas:\n    ---------\n    - EGA (Estimated Gestational Age) = time since 1st day of LMP\n    - EDC (Estimated Date of Conception) = LMP + 2 weeks (adjusted for cycle length)\n    - EDD (Estimated Due Date) = LMP + 40 weeks (adjusted for cycle length)\n    \n    For non-28 day cycles:\n    - Adjustment = (cycle_length - 28) days\n    - EDD = LMP + 40 weeks + Adjustment\n    "
+    },
+    {
+      "name": "revised_cardiac_risk_index",
+      "description": "\n    Revised Cardiac Risk Index for Pre-Operative Risk\n    Estimates risk of cardiac complications after noncardiac surgery.\n    \n    Parameters:\n    -----------\n    high_risk_surgery : bool\n        Intraperitoneal, intrathoracic, or suprainguinal vascular surgery\n    ischemic_heart_disease : bool\n        History of MI, positive exercise test, current chest pain considered due to myocardial \n        ischemia, use of nitrate therapy, or ECG with pathological Q waves\n    congestive_heart_failure : bool\n        Pulmonary edema, bilateral rales, S3 gallop, paroxysmal nocturnal dyspnea, or \n        CXR showing pulmonary vascular redistribution\n    cerebrovascular_disease : bool\n        Prior transient ischemic attack (TIA) or stroke\n    insulin_treatment : bool\n        Pre-operative treatment with insulin\n    creatinine_over_2mg : bool\n        Pre-operative creatinine >2 mg/dL (176.8 µmol/L)\n    \n    Returns:\n    --------\n    dict\n        Dictionary containing RCRI score and risk interpretation\n        \n    References:\n    -----------\n    Lee TH, et al. Circulation. 1999;100(10):1043-1049.\n    Canadian Cardiovascular Society (CCS) Guidelines, 2017.\n    European Society of Cardiology (ESC) Guidelines, 2022.\n    "
+    },
+    {
+      "name": "child_pugh_score",
+      "description": "\n    Calculates the Child-Pugh Score for cirrhosis mortality assessment.\n\n    Parameters:\n    -----------\n    bilirubin : float\n        Total bilirubin in mg/dL.\n    albumin : float\n        Albumin in g/dL.\n    inr : float\n        International Normalized Ratio (INR) for prothrombin time.\n    ascites : str\n        One of: \"absent\", \"slight\", \"moderate\".\n    encephalopathy_grade : int\n        Hepatic encephalopathy grade: 0 (none), 1-2 (mild), 3-4 (severe).\n\n    Returns:\n    --------\n    int\n        Total Child-Pugh score (5–15).\n    "
+    },
+    {
+      "name": "steroid_conversion",
+      "description": "\n    Converts corticosteroid dosages using standard equivalencies.\n\n    Parameters:\n    -----------\n    from_steroid : str\n        Name of the original steroid (e.g., 'prednisone', 'dexamethasone').\n    from_dose_mg : float\n        Dose of the original steroid in mg.\n    to_steroid : str\n        Name of the steroid to convert to.\n\n    Returns:\n    --------\n    float\n        Equivalent dose in mg of the target steroid.\n    "
+    },
+    {
+      "name": "calculate_mme",
+      "description": "\n    Calculates total daily Morphine Milligram Equivalents (MME).\n\n    Parameters:\n    -----------\n    opioid : str\n        Name of the opioid (e.g., 'oxycodone', 'fentanyl_patch').\n    dose_per_administration : float\n        Amount of opioid per dose (mg for most, mcg/hr for fentanyl patch).\n    doses_per_day : int\n        Number of times the dose is taken per day.\n\n    Returns:\n    --------\n    float\n        Total MME/day.\n    "
+    },
+    {
+      "name": "maintenance_fluids",
+      "description": "\n    Calculates maintenance IV fluid rate (mL/hr) using the 4-2-1 Rule.\n\n    Parameters:\n    -----------\n    weight_kg : float\n        Patient's weight in kilograms.\n\n    Returns:\n    --------\n    float\n        Maintenance fluid rate in mL/hr.\n    "
+    },
+    {
+      "name": "corrected_sodium",
+      "description": "\n    Calculates corrected sodium level in the setting of hyperglycemia\n    using Katz and Hillier correction formulas.\n\n    Parameters:\n    -----------\n    measured_sodium : float\n        Measured serum sodium in mEq/L.\n    serum_glucose : float\n        Serum glucose in mg/dL.\n\n    Returns:\n    --------\n    dict\n        Dictionary with corrected sodium values using Katz and Hillier formulas.\n    "
+    },
+    {
+      "name": "meld_3",
+      "description": "\n    Calculates MELD 3.0 Score for liver disease transplant planning.\n\n    Parameters:\n    -----------\n    age : int\n        Patient age in years.\n    female : bool\n        True if patient is female.\n    bilirubin : float\n        Serum bilirubin in mg/dL.\n    inr : float\n        INR (International Normalized Ratio).\n    creatinine : float\n        Serum creatinine in mg/dL.\n    albumin : float\n        Serum albumin in g/dL.\n    sodium : float\n        Serum sodium in mEq/L.\n    dialysis : bool\n        True if patient had ≥2 dialysis sessions or 24h CVVHD in last 7 days.\n\n    Returns:\n    --------\n    int\n        MELD 3.0 score, rounded to the nearest whole number.\n    "
+    },
+    {
+      "name": "framingham_risk_score",
+      "description": "\n    Calculates the Framingham Risk Score for 10-year risk of heart attack (CHD)\n    based on the Framingham Heart Study equation (men and women).\n\n    Parameters:\n    -----------\n    age : int\n        Age of the patient (30-79 years).\n    total_cholesterol : float\n        Total cholesterol in mg/dL.\n    hdl_cholesterol : float\n        HDL cholesterol in mg/dL.\n    systolic_bp : float\n        Systolic blood pressure in mmHg.\n    treated_for_bp : bool\n        Whether the patient is treated for high blood pressure (1 if yes, 0 if no).\n    smoker : bool\n        Whether the patient is a smoker (1 if yes, 0 if no).\n    gender : str\n        Gender of the patient (\"male\" or \"female\").\n\n    Returns:\n    --------\n    float\n        10-year risk of heart attack as a percentage.\n    "
+    },
+    {
+      "name": "homa_ir",
+      "description": "\n    Calculates the HOMA-IR score for insulin resistance.\n\n    Formula:\n    Score = (Fasting insulin (uIU/mL) * Fasting glucose (mg/dL)) / 405\n\n    Parameters:\n    -----------\n    fasting_insulin : float\n        Fasting insulin level in micro-units per milliliter (uIU/mL).\n    fasting_glucose : float\n        Fasting glucose level in milligrams per deciliter (mg/dL).\n\n    Returns:\n    --------\n    float\n        HOMA-IR score.\n    "
+    }
+  ]
+}

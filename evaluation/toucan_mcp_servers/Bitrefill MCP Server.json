@@ -1,0 +1,21 @@
+{
+  "name": "Bitrefill MCP Server",
+  "tools": [
+    {
+      "name": "search",
+      "description": "Search for gift cards, esims, mobile topups and more. It's suggested to use the `categories` tool before searching for products, to have a better understanding of what's available."
+    },
+    {
+      "name": "detail",
+      "description": "Get detailed information about a product"
+    },
+    {
+      "name": "categories",
+      "description": "Get the full product type/categories map. It's suggested to use this tool to get the categories and then use the `search` tool to search for products in a specific category."
+    },
+    {
+      "name": "ping",
+      "description": "Check if the Bitrefill API is available"
+    }
+  ]
+}

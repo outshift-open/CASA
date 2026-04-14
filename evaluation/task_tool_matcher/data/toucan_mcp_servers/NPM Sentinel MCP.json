@@ -1,0 +1,81 @@
+{
+  "name": "NPM Sentinel MCP",
+  "tools": [
+    {
+      "name": "npmVersions",
+      "description": "Get all available versions of an NPM package"
+    },
+    {
+      "name": "npmLatest",
+      "description": "Get the latest version and changelog of an NPM package"
+    },
+    {
+      "name": "npmDeps",
+      "description": "Analyze dependencies and devDependencies of an NPM package"
+    },
+    {
+      "name": "npmTypes",
+      "description": "Check TypeScript types availability and version for a package"
+    },
+    {
+      "name": "npmSize",
+      "description": "Get package size information including dependencies and bundle size"
+    },
+    {
+      "name": "npmVulnerabilities",
+      "description": "Check for known vulnerabilities in packages"
+    },
+    {
+      "name": "npmTrends",
+      "description": "Get download trends and popularity metrics for packages"
+    },
+    {
+      "name": "npmCompare",
+      "description": "Compare multiple NPM packages based on various metrics"
+    },
+    {
+      "name": "npmMaintainers",
+      "description": "Get maintainers information for NPM packages"
+    },
+    {
+      "name": "npmScore",
+      "description": "Get consolidated package score based on quality, maintenance, and popularity metrics"
+    },
+    {
+      "name": "npmPackageReadme",
+      "description": "Get the README content for NPM packages"
+    },
+    {
+      "name": "npmSearch",
+      "description": "Search for NPM packages with optional limit"
+    },
+    {
+      "name": "npmLicenseCompatibility",
+      "description": "Check license compatibility between multiple packages"
+    },
+    {
+      "name": "npmRepoStats",
+      "description": "Get repository statistics for NPM packages"
+    },
+    {
+      "name": "npmDeprecated",
+      "description": "Check if packages are deprecated"
+    },
+    {
+      "name": "npmChangelogAnalysis",
+      "description": "Analyze changelog and release history of packages"
+    },
+    {
+      "name": "npmAlternatives",
+      "description": "Find alternative packages with similar functionality"
+    },
+    {
+      "name": "npmQuality",
+      "description": "Analyze package quality metrics"
+    },
+    {
+      "name": "npmMaintenance",
+      "description": "Analyze package maintenance metrics"
+    }
+  ]
+}

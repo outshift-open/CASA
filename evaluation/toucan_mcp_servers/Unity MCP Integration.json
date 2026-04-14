@@ -1,0 +1,65 @@
+{
+  "name": "Unity MCP Integration",
+  "tools": [
+    {
+      "name": "get_current_scene_info",
+      "description": "Retrieve information about the current scene in Unity Editor with configurable detail level"
+    },
+    {
+      "name": "get_game_objects_info",
+      "description": "Retrieve detailed information about specific GameObjects in the current scene"
+    },
+    {
+      "name": "execute_editor_command",
+      "description": "Execute C# code directly in the Unity Editor - allows full flexibility including custom namespaces and multiple classes"
+    },
+    {
+      "name": "get_logs",
+      "description": "Retrieve Unity Editor logs with filtering options"
+    },
+    {
+      "name": "verify_connection",
+      "description": "Verify that the MCP server has an active connection to Unity Editor"
+    },
+    {
+      "name": "get_editor_state",
+      "description": "Get the current Unity Editor state including project information"
+    },
+    {
+      "name": "read_file",
+      "description": "Read the contents of a file from the Unity project. Paths are relative to the project's Assets folder. For example, use 'Scenes/MainScene.unity' to read Assets/Scenes/MainScene.unity."
+    },
+    {
+      "name": "read_multiple_files",
+      "description": "Read the contents of multiple files from the Unity project simultaneously."
+    },
+    {
+      "name": "write_file",
+      "description": "Create a new file or completely overwrite an existing file in the Unity project."
+    },
+    {
+      "name": "edit_file",
+      "description": "Make precise edits to a text file in the Unity project. Returns a git-style diff showing changes."
+    },
+    {
+      "name": "list_directory",
+      "description": "Get a listing of all files and directories in a specified path in the Unity project. Paths are relative to the Assets folder unless absolute. For example, use 'Scenes' to list all files in Assets/Scenes directory. Use empty string to list the Assets folder."
+    },
+    {
+      "name": "directory_tree",
+      "description": "Get a recursive tree view of files and directories in the Unity project as a JSON structure."
+    },
+    {
+      "name": "search_files",
+      "description": "Recursively search for files and directories matching a pattern in the Unity project."
+    },
+    {
+      "name": "get_file_info",
+      "description": "Retrieve detailed metadata about a file or directory in the Unity project."
+    },
+    {
+      "name": "find_assets_by_type",
+      "description": "Find all Unity assets of a specified type (e.g., Material, Prefab, Scene, Script) in the project. Set searchPath to an empty string to search the entire Assets folder."
+    }
+  ]
+}

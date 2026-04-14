@@ -1,0 +1,21 @@
+{
+  "name": "Cal Server",
+  "tools": [
+    {
+      "name": "cal",
+      "description": "Use the expr-eval library to evaluate the input mathematical expression and return the result.\n\nConstant \tDescription\nE \tThe value of Math.E from your JavaScript runtime\nPI \tThe value of Math.PI from your JavaScript runtime\ntrue \tLogical true value\nfalse \tLogical false value"
+    },
+    {
+      "name": "getDateByTimestamp",
+      "description": "Convert the provided timestamp to date format"
+    },
+    {
+      "name": "batchGetDateByTimestamp",
+      "description": "Batch convert the provided list of timestamps to date format, used for processing multiple timestamps"
+    },
+    {
+      "name": "getNow",
+      "description": "Get the current timestamp"
+    }
+  ]
+}

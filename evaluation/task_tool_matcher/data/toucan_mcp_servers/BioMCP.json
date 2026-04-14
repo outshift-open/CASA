@@ -1,0 +1,41 @@
+{
+  "name": "BioMCP",
+  "tools": [
+    {
+      "name": "article_details",
+      "description": "\n    Retrieves details for a single PubMed article given its\n    PubMed ID (PMID).\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - pmid: A single PubMed ID (e.g., 34397683)\n\n    Process: Calls the PubTator3 API to fetch the article's\n             title, abstract, and full text (if available).\n    Output: A Markdown formatted string containing the\n            retrieved article content.\n    "
+    },
+    {
+      "name": "article_searcher",
+      "description": "\n    Searches PubMed articles using structured criteria.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - chemicals: List of chemicals for filtering results\n    - diseases: Diseases such as Hypertension, Lung Adenocarcinoma, etc.\n    - genes: List of genes for filtering results\n    - keywords: List of other keywords for filtering results\n    - variants: List of variants for filtering results\n\n    Notes:\n    - Use full terms (\"Non-small cell lung carcinoma\") over abbreviations (\"NSCLC\")\n    - Use keywords to specify terms that don't fit in disease, gene (\"EGFR\"),\n      chemical (\"Cisplatin\"), or variant (\"BRAF V600E\") categories\n    - Parameters can be provided as lists or comma-separated strings\n\n    Returns:\n    Markdown formatted list of matching articles (PMID, title, abstract, etc.)\n    Limited to max 40 results.\n    "
+    },
+    {
+      "name": "trial_protocol",
+      "description": "\n    Retrieves core protocol information for a single clinical\n    trial identified by its NCT ID.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - nct_id: A single NCT ID (string, e.g., \"NCT04280705\")\n\n    Process: Fetches standard \"Protocol\" view modules (like ID,\n             Status, Sponsor, Design, Eligibility) from the\n             ClinicalTrials.gov v2 API.\n    Output: A Markdown formatted string detailing title, status,\n            sponsor, purpose, study design, phase, interventions,\n            eligibility criteria, etc. Returns error if invalid.\n    "
+    },
+    {
+      "name": "trial_locations",
+      "description": "\n    Retrieves contact and location details for a single\n    clinical trial identified by its NCT ID.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - nct_id: A single NCT ID (string, e.g., \"NCT04280705\")\n\n    Process: Fetches the `ContactsLocationsModule` from the\n             ClinicalTrials.gov v2 API for the given NCT ID.\n    Output: A Markdown formatted string detailing facility names,\n            addresses (city, state, country), and contact info.\n            Returns an error message if the NCT ID is invalid.\n    "
+    },
+    {
+      "name": "trial_outcomes",
+      "description": "\n    Retrieves outcome measures, results (if available), and\n    adverse event data for a single clinical trial.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - nct_id: A single NCT ID (string, e.g., \"NCT04280705\")\n\n    Process: Fetches the `OutcomesModule` and `ResultsSection`\n             from the ClinicalTrials.gov v2 API for the NCT ID.\n    Output: A Markdown formatted string detailing primary/secondary\n            outcomes, participant flow, results tables (if posted),\n            and adverse event summaries. Returns an error if invalid.\n    "
+    },
+    {
+      "name": "trial_references",
+      "description": "\n    Retrieves publications and other references associated with\n    a single clinical trial identified by its NCT ID.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - nct_id: A single NCT ID (string, e.g., \"NCT04280705\")\n\n    Process: Fetches the `ReferencesModule` from the\n             ClinicalTrials.gov v2 API for the NCT ID.\n    Output: A Markdown formatted string listing citations,\n            associated PubMed IDs (PMIDs), and reference types\n            (e.g., result publication). Returns error if invalid.\n    "
+    },
+    {
+      "name": "trial_searcher",
+      "description": "\n    Searches for clinical trials based on specified criteria.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - conditions: Condition terms (e.g., \"breast cancer\") - list or comma-separated string\n    - terms: General search terms - list or comma-separated string\n    - interventions: Intervention names (e.g., \"pembrolizumab\") - list or comma-separated string\n    - recruiting_status: Study recruitment status (OPEN, CLOSED, ANY)\n    - study_type: Type of study\n    - nct_ids: Clinical trial NCT IDs - list or comma-separated string\n    - lat: Latitude for location search\n    - long: Longitude for location search\n    - distance: Distance from lat/long in miles\n    - min_date: Minimum date for filtering (YYYY-MM-DD)\n    - max_date: Maximum date for filtering (YYYY-MM-DD)\n    - date_field: Date field to filter on\n    - phase: Trial phase filter\n    - age_group: Age group filter\n    - primary_purpose: Primary purpose of the trial\n    - intervention_type: Type of intervention\n    - sponsor_type: Type of sponsor\n    - study_design: Study design\n    - sort: Sort order for results\n    - next_page_hash: Token to retrieve the next page of results\n\n    Returns:\n    Markdown formatted list of clinical trials\n    "
+    },
+    {
+      "name": "variant_searcher",
+      "description": "\n    Searches for genetic variants based on specified criteria.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - gene: Gene symbol to search for (e.g. BRAF, TP53)\n    - hgvsp: Protein change notation (e.g., p.V600E, p.Arg557His)\n    - hgvsc: cDNA notation (e.g., c.1799T>A)\n    - rsid: dbSNP rsID (e.g., rs113488022)\n    - region: Genomic region as chr:start-end (e.g. chr1:12345-67890)\n    - significance: ClinVar clinical significance\n    - max_frequency: Maximum population allele frequency threshold\n    - min_frequency: Minimum population allele frequency threshold\n    - cadd: Minimum CADD phred score\n    - polyphen: PolyPhen-2 prediction\n    - sift: SIFT prediction\n    - sources: Include only specific data sources (list or comma-separated string)\n    - size: Number of results to return (default: 40)\n    - offset: Result offset for pagination (default: 0)\n\n    Returns:\n    Markdown formatted list of matching variants with key annotations\n    "
+    },
+    {
+      "name": "variant_details",
+      "description": "\n    Retrieves detailed information for a *single* genetic variant.\n\n    Parameters:\n    - call_benefit: Define and summarize why this function is being called and the intended benefit\n    - variant_id: A variant identifier (\"chr7:g.140453136A>T\")\n\n    Process: Queries the MyVariant.info GET endpoint\n    Output: A Markdown formatted string containing comprehensive\n            variant annotations (genomic context, frequencies,\n            predictions, clinical data). Returns error if invalid.\n    Note: Use the variant_searcher to find the variant id first.\n    "
+    }
+  ]
+}

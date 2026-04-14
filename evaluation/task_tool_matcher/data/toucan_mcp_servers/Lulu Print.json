@@ -1,0 +1,13 @@
+{
+  "name": "Lulu Print",
+  "tools": [
+    {
+      "name": "calculate-print-job-cost",
+      "description": "Calculate the cost of a print job without creating it"
+    },
+    {
+      "name": "get-product-details",
+      "description": "Get specifications and details for a Lulu product"
+    }
+  ]
+}

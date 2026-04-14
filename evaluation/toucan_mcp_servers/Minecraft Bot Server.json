@@ -1,0 +1,65 @@
+{
+  "name": "Minecraft Bot Server",
+  "tools": [
+    {
+      "name": "get-position",
+      "description": "Get the current position of the bot"
+    },
+    {
+      "name": "move-to-position",
+      "description": "Move the bot to a specific position"
+    },
+    {
+      "name": "look-at",
+      "description": "Make the bot look at a specific position"
+    },
+    {
+      "name": "jump",
+      "description": "Make the bot jump"
+    },
+    {
+      "name": "move-in-direction",
+      "description": "Move the bot in a specific direction for a duration"
+    },
+    {
+      "name": "list-inventory",
+      "description": "List all items in the bot's inventory"
+    },
+    {
+      "name": "find-item",
+      "description": "Find a specific item in the bot's inventory"
+    },
+    {
+      "name": "equip-item",
+      "description": "Equip a specific item"
+    },
+    {
+      "name": "place-block",
+      "description": "Place a block at the specified position"
+    },
+    {
+      "name": "dig-block",
+      "description": "Dig a block at the specified position"
+    },
+    {
+      "name": "get-block-info",
+      "description": "Get information about a block at the specified position"
+    },
+    {
+      "name": "find-block",
+      "description": "Find the nearest block of a specific type"
+    },
+    {
+      "name": "find-entity",
+      "description": "Find the nearest entity of a specific type"
+    },
+    {
+      "name": "send-chat",
+      "description": "Send a chat message in-game"
+    },
+    {
+      "name": "fly-to",
+      "description": "Make the bot fly to a specific position"
+    }
+  ]
+}

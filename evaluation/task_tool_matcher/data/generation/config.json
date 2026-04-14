@@ -1,0 +1,20 @@
+{
+    "mcp_servers": [
+        "atlassian",
+        "github-official",
+        "grafana",
+        "hummingbot-mcp",
+        "mongodb",
+        "nasdaq-data-link",
+        "notion",
+        "paper-search",
+        "azure",
+        "sonarqube",
+        "stripe",
+        "wikipedia-mcp"
+    ],
+    "num_correct_matches": 1056,
+    "ratio_wrong_matches": 2,
+    "ratio_null_matches": 2,
+    "mixing_wrong_null_in_multitool": false
+}

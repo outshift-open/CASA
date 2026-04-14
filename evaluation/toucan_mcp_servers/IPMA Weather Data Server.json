@@ -1,0 +1,29 @@
+{
+  "name": "IPMA Weather Data Server",
+  "tools": [
+    {
+      "name": "get_weather_forecast",
+      "description": "Obter previsão meteorológica para uma cidade específica em Portugal"
+    },
+    {
+      "name": "get_weather_warnings",
+      "description": "Obter avisos meteorológicos ativos em Portugal"
+    },
+    {
+      "name": "get_seismic_data",
+      "description": "Obter dados sísmicos recentes"
+    },
+    {
+      "name": "get_locations",
+      "description": "Listar todas as cidades/locais disponíveis para previsão"
+    },
+    {
+      "name": "get_weather_stations",
+      "description": "Obter dados de observação das estações meteorológicas"
+    },
+    {
+      "name": "get_uv_forecast",
+      "description": "Obter previsão do índice UV"
+    }
+  ]
+}

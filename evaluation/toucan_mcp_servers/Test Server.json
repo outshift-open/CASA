@@ -1,0 +1,29 @@
+{
+  "name": "Test Server",
+  "tools": [
+    {
+      "name": "create_user",
+      "description": "Create a new user in the database"
+    },
+    {
+      "name": "find_user",
+      "description": "Find a user in the database by email."
+    },
+    {
+      "name": "find_all_users",
+      "description": "Retrieve all users from the database."
+    },
+    {
+      "name": "get_crypto_price",
+      "description": "Get the current price of a cryptocurrency"
+    },
+    {
+      "name": "get_binance_price",
+      "description": "Get the current price of a cryptocurrency from Binance"
+    },
+    {
+      "name": "get_greeting",
+      "description": "Return a greeting message."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Current Forest Fire Status in Korea",
+  "tools": [
+    {
+      "name": "get_forest_fire_info",
+      "description": "산림청에서 산불 현황 정보를 가져옵니다.\n\nReturns:\n    dict: 산불 발생 현황 및 경보 정보를 포함한 딕셔너리"
+    },
+    {
+      "name": "get_formatted_fire_info",
+      "description": "산불 정보를 조회하고 사람이 읽기 쉬운 형태로 포맷팅합니다.\n\nReturns:\n    dict: 포맷팅된 산불 정보를 포함한 딕셔너리"
+    },
+    {
+      "name": "search_google",
+      "description": "Google Custom Search API를 사용하여 검색을 수행합니다.\n\nArgs:\n    query (str): 검색 쿼리\n    num_results (int, optional): 검색 결과 수. 기본값은 10.\n    \nReturns:\n    list: 검색 결과 목록"
+    },
+    {
+      "name": "find_evacuation_shelters",
+      "description": "특정 지역의 대피소를 검색합니다.\n\nArgs:\n    location (str): 대피소를 찾을 지역명\n    num_results (int, optional): 검색 결과 수. 기본값은 5.\n    \nReturns:\n    dict: 대피소 검색 결과 및 포맷팅된 메시지"
+    },
+    {
+      "name": "get_comprehensive_fire_info",
+      "description": "산불 정보와 지정된 위치의 대피소 정보를 함께 제공합니다.\n\nArgs:\n    location (str, optional): 대피소를 검색할 지역명. 지정하지 않으면 대피소 정보는 제외됩니다.\n    \nReturns:\n    dict: 산불 정보와 대피소 정보를 포함한 딕셔너리"
+    }
+  ]
+}

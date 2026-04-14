@@ -1,0 +1,21 @@
+{
+  "name": "arXiv Research Assistant",
+  "tools": [
+    {
+      "name": "scrape_recent_category_papers",
+      "description": "[크롤링] 특정 카테고리의 'recent' 페이지를 스크랩하여 최신 논문 목록을 가져옵니다."
+    },
+    {
+      "name": "search_papers",
+      "description": "키워드로 arXiv 논문을 검색합니다."
+    },
+    {
+      "name": "get_paper_info",
+      "description": "논문 ID로 상세 정보를 가져옵니다."
+    },
+    {
+      "name": "analyze_trends",
+      "description": "특정 카테고리의 최신 트렌드를 분석합니다."
+    }
+  ]
+}

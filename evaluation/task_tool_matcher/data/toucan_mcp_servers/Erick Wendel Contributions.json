@@ -1,0 +1,21 @@
+{
+  "name": "Erick Wendel Contributions",
+  "tools": [
+    {
+      "name": "get_talks",
+      "description": "Get a list of talks with optional filtering and pagination."
+    },
+    {
+      "name": "get_posts",
+      "description": "Get a list of posts with optional filtering and pagination."
+    },
+    {
+      "name": "get_videos",
+      "description": "Get a list of videos with optional filtering and pagination."
+    },
+    {
+      "name": "check_status",
+      "description": "Check if the API is alive and responding."
+    }
+  ]
+}

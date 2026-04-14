@@ -1,0 +1,29 @@
+{
+  "name": "Mapas Mentais Server",
+  "tools": [
+    {
+      "name": "compara",
+      "description": "Gera um mapa mental comparando dois temas."
+    },
+    {
+      "name": "revisa",
+      "description": "Gera um mapa mental para revisão de conteúdo sobre um tema."
+    },
+    {
+      "name": "problemas",
+      "description": "Gera um mapa mental de análise de problemas relacionados ao tema."
+    },
+    {
+      "name": "apresenta",
+      "description": "Gera um mapa mental para apresentações sobre um tema."
+    },
+    {
+      "name": "inicial",
+      "description": "Gera um mapa mental de conhecimentos iniciais sobre o tema."
+    },
+    {
+      "name": "intermediario",
+      "description": "Gera um mapa mental de conhecimentos intermediários sobre o tema."
+    }
+  ]
+}

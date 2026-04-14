@@ -1,0 +1,21 @@
+{
+  "name": "Terraform MCP Server",
+  "tools": [
+    {
+      "name": "getProviderDocs",
+      "description": "Fetches up-to-date documentation for a specific service from a Terraform provider. You must call 'resolveProviderDocID' first to obtain the exact tfprovider-compatible providerDocID required to use this tool."
+    },
+    {
+      "name": "moduleDetails",
+      "description": "Fetches up-to-date documentation on how to use a Terraform module. You must call 'searchModules' first to obtain the exact valid and compatible moduleID required to use this tool."
+    },
+    {
+      "name": "resolveProviderDocID",
+      "description": "This tool retrieves a list of potential documents based on the serviceSlug and providerDataType provided. You MUST call this function before 'getProviderDocs' to obtain a valid tfprovider-compatible providerDocID. \n\t\t\tUse the most relevant single word as the search query for serviceSlug, if unsure about the serviceSlug, use the providerName for its value.\n\t\t\tWhen selecting the best match, consider: - Title similarity to the query - Category relevance Return the selected providerDocID and explain your choice.  \n\t\t\tIf there are multiple good matches, mention this but proceed with the most relevant one."
+    },
+    {
+      "name": "searchModules",
+      "description": "Resolves a Terraform module name to obtain a compatible moduleID for the moduleDetails tool and returns a list of matching Terraform modules. You MUST call this function before 'moduleDetails' to obtain a valid and compatible moduleID. When selecting the best match, consider: - Name similarity to the query - Description relevance - Verification status (verified) - Download counts (popularity) Return the selected moduleID and explain your choice. If there are multiple good matches, mention this but proceed with the most relevant one. If no modules were found, reattempt the search with a new moduleName query."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "Weather Information Server",
+  "tools": [
+    {
+      "name": "ping",
+      "description": "Simple ping tool to test server responsiveness and prevent timeouts."
+    },
+    {
+      "name": "health_check",
+      "description": "Health check to verify server connectivity and status."
+    },
+    {
+      "name": "get_weather",
+      "description": "Get current weather for a city."
+    },
+    {
+      "name": "compare_weather",
+      "description": "Compare weather between multiple cities."
+    },
+    {
+      "name": "get_current_weather_tool",
+      "description": "\n    Get current weather information for a specific city.\n\n    Args:\n        city: Name of the city to get weather for\n\n    Returns:\n        Current weather data including temperature, conditions, humidity, wind, etc.\n    "
+    },
+    {
+      "name": "get_weather_forecast_tool",
+      "description": "\n    Get weather forecast for a specific city.\n\n    Args:\n        city: Name of the city to get forecast for\n        days: Number of days to forecast (1-10, default: 3)\n\n    Returns:\n        Weather forecast data for the specified number of days\n    "
+    },
+    {
+      "name": "search_locations_tool",
+      "description": "\n    Search for locations by name.\n\n    Args:\n        query: Location name or partial name to search for\n\n    Returns:\n        List of matching locations with their details\n    "
+    },
+    {
+      "name": "get_live_temp",
+      "description": "\n    Legacy tool: Get current temperature for a city (for backward compatibility).\n    Use get_current_weather_tool for more detailed information.\n    "
+    }
+  ]
+}

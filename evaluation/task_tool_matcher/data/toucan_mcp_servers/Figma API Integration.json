@@ -1,0 +1,77 @@
+{
+  "name": "Figma API Integration",
+  "tools": [
+    {
+      "name": "set_api_key",
+      "description": "Set your Figma API personal access token (will be saved to ~/.mcp-figma/config.json)"
+    },
+    {
+      "name": "check_api_key",
+      "description": "Check if a Figma API key is already configured"
+    },
+    {
+      "name": "get_file",
+      "description": "Get a Figma file by key"
+    },
+    {
+      "name": "get_file_nodes",
+      "description": "Get specific nodes from a Figma file"
+    },
+    {
+      "name": "get_image",
+      "description": "Get images for nodes in a Figma file"
+    },
+    {
+      "name": "get_image_fills",
+      "description": "Get URLs for images used in a Figma file"
+    },
+    {
+      "name": "get_comments",
+      "description": "Get comments on a Figma file"
+    },
+    {
+      "name": "post_comment",
+      "description": "Post a comment on a Figma file"
+    },
+    {
+      "name": "delete_comment",
+      "description": "Delete a comment from a Figma file"
+    },
+    {
+      "name": "get_team_projects",
+      "description": "Get projects for a team"
+    },
+    {
+      "name": "get_project_files",
+      "description": "Get files for a project"
+    },
+    {
+      "name": "get_team_components",
+      "description": "Get components for a team"
+    },
+    {
+      "name": "get_file_components",
+      "description": "Get components from a file"
+    },
+    {
+      "name": "get_component",
+      "description": "Get a component by key"
+    },
+    {
+      "name": "get_team_component_sets",
+      "description": "Get component sets for a team"
+    },
+    {
+      "name": "get_team_styles",
+      "description": "Get styles for a team"
+    },
+    {
+      "name": "get_file_styles",
+      "description": "Get styles from a file"
+    },
+    {
+      "name": "get_style",
+      "description": "Get a style by key"
+    }
+  ]
+}

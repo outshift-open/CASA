@@ -1,0 +1,21 @@
+{
+  "name": "Dog Image Fetcher",
+  "tools": [
+    {
+      "name": "get_random_dog_image",
+      "description": "\n    Get random dog images with optional breed and category filtering.\n\n    Args:\n        breed_id: Optional breed ID to filter by specific breed\n        category_ids: Optional category IDs (comma-separated) to filter by\n        format: Response format (json or src)\n        limit: Number of images to return (1-10)\n\n    Returns:\n        JSON string with dog image data\n    "
+    },
+    {
+      "name": "get_dog_breeds",
+      "description": "\n    Get list of dog breeds with detailed information.\n\n    Args:\n        limit: Number of breeds to return (1-100)\n        page: Page number for pagination\n        search: Search term to filter breeds by name\n\n    Returns:\n        JSON string with breed information\n    "
+    },
+    {
+      "name": "search_dog_images",
+      "description": "\n    Search for dog images by breed name.\n\n    Args:\n        breed_name: Name of the dog breed to search for\n        limit: Number of images to return (1-10)\n        has_breeds: Whether to include breed information\n\n    Returns:\n        JSON string with search results\n    "
+    },
+    {
+      "name": "check_dog_api_status",
+      "description": "\n    Check the status and configuration of The Dog API connection.\n\n    Returns:\n        JSON string with API status information\n    "
+    }
+  ]
+}

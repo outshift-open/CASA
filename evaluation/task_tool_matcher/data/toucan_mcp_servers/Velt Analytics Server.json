@@ -1,0 +1,29 @@
+{
+  "name": "Velt Analytics Server",
+  "tools": [
+    {
+      "name": "get_events_analytics",
+      "description": "Get paginated events from Velt with comprehensive filtering and timezone support. \n        Supports three filtering modes:\n        1. Date range: Use startDate and endDate for a specific period\n        2. Single date: Use date for events from a specific day\n        3. Fallback: Use lastDaysCount for recent events (default: 30 days)\n        \n        Returns events with event_name, event_timestamp (ISO format), properties, and unique id.\n        Supports pagination with nextPageToken for retrieving subsequent pages."
+    },
+    {
+      "name": "get_attachment_analytics_values",
+      "description": "Get attachment analytics from Velt showing total size by attachment type."
+    },
+    {
+      "name": "get_organization_top_number_analytics",
+      "description": "Get organization analytics from Velt."
+    },
+    {
+      "name": "get_user_top_number_analytics",
+      "description": "Get user analytics from Velt."
+    },
+    {
+      "name": "get_feature_analytics_count",
+      "description": "Get comprehensive feature analytics data from Velt, showing CRUD operation counts for each feature.\n        \n        This tool retrieves detailed analytics about how different Velt features are being used by querying BigQuery data from transformed Mixpanel events. It provides granular insights into user interactions with various Velt features.\n        \n        **What it returns:**\n        - A breakdown of usage statistics for each Velt feature (comments, huddles, recordings, notifications, arrows)\n        - For each feature, you get counts of:\n          * create_count: Number of create operations performed\n          * read_count: Number of read operations performed  \n          * update_count: Number of update operations performed\n          * delete_count: Number of delete operations performed\n          * total_count: Total number of all operations combined\n        \n        **Use cases:**\n        - Understand which features are most actively used\n        - Analyze feature adoption patterns over time\n        - Identify user engagement trends for different features\n        - Monitor feature usage growth or decline\n        - Compare activity levels between different Velt features\n        - Track CRUD operation patterns to understand user behavior\n        \n        **Date filtering options:**\n        - Use 'date' for a specific day's analytics\n        - Use 'lastDaysCount' for a rolling window (e.g., last 7, 30, 90 days)\n        - Use 'startDate' and 'endDate' for a custom date range\n        \n        The data is sourced from BigQuery analytics tables and provides accurate, real-time insights into feature usage patterns."
+    },
+    {
+      "name": "get_document_top_number_analytics",
+      "description": "Get document analytics from Velt."
+    }
+  ]
+}

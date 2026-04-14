@@ -1,0 +1,97 @@
+{
+  "name": "Firestore Server",
+  "tools": [
+    {
+      "name": "firestore-list-collections",
+      "description": "List Firestore collections"
+    },
+    {
+      "name": "firestore-get-collection",
+      "description": "Get documents from a Firestore collection"
+    },
+    {
+      "name": "firestore-get-document",
+      "description": "Get a document from Firestore"
+    },
+    {
+      "name": "firestore-create-document",
+      "description": "Create a new document in Firestore"
+    },
+    {
+      "name": "firestore-update-document",
+      "description": "Update an existing Firestore document"
+    },
+    {
+      "name": "firestore-delete-document",
+      "description": "Delete a document from Firestore"
+    },
+    {
+      "name": "firestore-query-collection",
+      "description": "Query documents in a Firestore collection"
+    },
+    {
+      "name": "firestore-list-subcollections",
+      "description": "List subcollections of a document"
+    },
+    {
+      "name": "firestore-get-collection-by-path",
+      "description": "Get documents from a collection using full path (supports subcollections)"
+    },
+    {
+      "name": "firestore-get-document-by-path",
+      "description": "Get a document using full path (supports subcollections)"
+    },
+    {
+      "name": "firestore-create-document-by-path",
+      "description": "Create a document in a collection using full path (supports subcollections)"
+    },
+    {
+      "name": "firestore-update-document-by-path",
+      "description": "Update a document using full path (supports subcollections)"
+    },
+    {
+      "name": "firestore-delete-document-by-path",
+      "description": "Delete a document using full path (supports subcollections)"
+    },
+    {
+      "name": "firestore-query-collection-by-path",
+      "description": "Query documents in a collection using full path (supports subcollections)"
+    },
+    {
+      "name": "firestore-batch-write",
+      "description": "Execute multiple write operations in a single atomic batch"
+    },
+    {
+      "name": "firestore-batch-read",
+      "description": "Read multiple documents in a single operation"
+    },
+    {
+      "name": "firestore-transaction",
+      "description": "Execute a transaction with read and write operations"
+    },
+    {
+      "name": "firestore-increment-field",
+      "description": "Atomically increment a numeric field value"
+    },
+    {
+      "name": "firestore-array-union",
+      "description": "Add elements to an array field without duplicates"
+    },
+    {
+      "name": "firestore-array-remove",
+      "description": "Remove elements from an array field"
+    },
+    {
+      "name": "firestore-server-timestamp",
+      "description": "Set a field to the server timestamp"
+    },
+    {
+      "name": "firestore-delete-field",
+      "description": "Delete specific fields from a document"
+    },
+    {
+      "name": "firestore-field-value-batch",
+      "description": "Execute multiple field value operations in a batch"
+    }
+  ]
+}
