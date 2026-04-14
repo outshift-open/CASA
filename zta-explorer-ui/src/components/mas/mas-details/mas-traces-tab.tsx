@@ -152,6 +152,29 @@ function EventTimestamp({createdAt}: {createdAt: string}) {
 // Only hide internal/base fields
 const ALWAYS_HIDDEN = new Set(['id', 'user_input_id', 'mas_id', 'created_at']);
 
+const JWT_FIELDS = new Set(['token', 'subject_token', 'act_token']);
+
+function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
+    try {
+        const parts = jwt.split('.');
+        if (parts.length !== 3) return null;
+        const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(payload));
+    } catch {
+        return null;
+    }
+}
+
+function formatValue(key: string, val: unknown): string {
+    if (JWT_FIELDS.has(key) && typeof val === 'string') {
+        const decoded = decodeJwtPayload(val);
+        return decoded ? JSON.stringify(decoded, null, 2) : val;
+    }
+    if (Array.isArray(val)) return val.join(', ');
+    if (typeof val === 'object') return JSON.stringify(val, null, 2);
+    return String(val);
+}
+
 function EventAttributes({event, eventType: _eventType}: {event: Trace['event']; eventType: string}) {
     const entries = Object.entries(event).filter(
         ([key, val]) => !ALWAYS_HIDDEN.has(key) && val !== null && val !== undefined
@@ -160,11 +183,8 @@ function EventAttributes({event, eventType: _eventType}: {event: Trace['event'];
     return (
         <div className="mt-1.5 ml-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
             {entries.map(([key, val]) => {
-                const display = Array.isArray(val)
-                    ? val.join(', ')
-                    : typeof val === 'object'
-                      ? JSON.stringify(val)
-                      : String(val);
+                const isJwt = JWT_FIELDS.has(key) && typeof val === 'string';
+                const display = formatValue(key, val);
                 return (
                     <>
                         <span
@@ -173,9 +193,18 @@ function EventAttributes({event, eventType: _eventType}: {event: Trace['event'];
                         >
                             {key}
                         </span>
-                        <span key={`v-${key}`} className="text-[10px] font-mono text-foreground/80 break-all">
-                            {display}
-                        </span>
+                        {isJwt ? (
+                            <pre
+                                key={`v-${key}`}
+                                className="text-[10px] font-mono text-foreground/80 whitespace-pre-wrap break-all leading-relaxed"
+                            >
+                                {display}
+                            </pre>
+                        ) : (
+                            <span key={`v-${key}`} className="text-[10px] font-mono text-foreground/80 break-all">
+                                {display}
+                            </span>
+                        )}
                     </>
                 );
             })}
