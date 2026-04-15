@@ -11,7 +11,7 @@ RUN pip install uv
 COPY pyproject.toml uv.lock ./
 
 # Copy workspace SDK (required by pyproject.toml workspace definition)
-COPY sdk/ ./sdk/
+COPY sdk/python ./sdk/
 
 # Copy source code
 COPY src/ ./src/
