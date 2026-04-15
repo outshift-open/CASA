@@ -213,7 +213,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **token**
-> TokenResponse token(app_id, client_id, client_secret, user_input)
+> TokenResponse token(app_id, client_id, client_secret, user_input=user_input, user_input_id=user_input_id)
 
 Token
 
@@ -242,11 +242,12 @@ with identity_auth_sdk.ApiClient(configuration) as api_client:
     app_id = 'app_id_example' # str | 
     client_id = 'client_id_example' # str | 
     client_secret = 'client_secret_example' # str | 
-    user_input = 'user_input_example' # str | 
+    user_input = 'user_input_example' # str |  (optional)
+    user_input_id = 'user_input_id_example' # str |  (optional)
 
     try:
         # Token
-        api_response = api_instance.token(app_id, client_id, client_secret, user_input)
+        api_response = api_instance.token(app_id, client_id, client_secret, user_input=user_input, user_input_id=user_input_id)
         print("The response of AuthorizationServerApi->token:\n")
         pprint(api_response)
     except Exception as e:
@@ -263,7 +264,8 @@ Name | Type | Description  | Notes
  **app_id** | **str**|  | 
  **client_id** | **str**|  | 
  **client_secret** | **str**|  | 
- **user_input** | **str**|  | 
+ **user_input** | **str**|  | [optional] 
+ **user_input_id** | **str**|  | [optional] 
 
 ### Return type
 

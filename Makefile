@@ -302,3 +302,7 @@ mas-helm-upgrade:
 mas-helm-uninstall:
 > helm uninstall zta-mas  --namespace zta-sidecar
 .PHONY: mas-helm-uninstall
+
+ext-auth-generate-mocks:
+> docker run --rm -v $(PWD):/src -w /src/sidecar/ext_auth vektra/mockery:3
+.PHONY: ext-auth-generate-mocks

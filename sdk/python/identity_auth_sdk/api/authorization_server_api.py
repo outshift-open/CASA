@@ -843,7 +843,8 @@ class AuthorizationServerApi:
         app_id: StrictStr,
         client_id: StrictStr,
         client_secret: StrictStr,
-        user_input: StrictStr,
+        user_input: Optional[StrictStr] = None,
+        user_input_id: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -867,8 +868,10 @@ class AuthorizationServerApi:
         :type client_id: str
         :param client_secret: (required)
         :type client_secret: str
-        :param user_input: (required)
+        :param user_input:
         :type user_input: str
+        :param user_input_id:
+        :type user_input_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -896,6 +899,7 @@ class AuthorizationServerApi:
             client_id=client_id,
             client_secret=client_secret,
             user_input=user_input,
+            user_input_id=user_input_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -923,7 +927,8 @@ class AuthorizationServerApi:
         app_id: StrictStr,
         client_id: StrictStr,
         client_secret: StrictStr,
-        user_input: StrictStr,
+        user_input: Optional[StrictStr] = None,
+        user_input_id: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -947,8 +952,10 @@ class AuthorizationServerApi:
         :type client_id: str
         :param client_secret: (required)
         :type client_secret: str
-        :param user_input: (required)
+        :param user_input:
         :type user_input: str
+        :param user_input_id:
+        :type user_input_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -976,6 +983,7 @@ class AuthorizationServerApi:
             client_id=client_id,
             client_secret=client_secret,
             user_input=user_input,
+            user_input_id=user_input_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1003,7 +1011,8 @@ class AuthorizationServerApi:
         app_id: StrictStr,
         client_id: StrictStr,
         client_secret: StrictStr,
-        user_input: StrictStr,
+        user_input: Optional[StrictStr] = None,
+        user_input_id: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1027,8 +1036,10 @@ class AuthorizationServerApi:
         :type client_id: str
         :param client_secret: (required)
         :type client_secret: str
-        :param user_input: (required)
+        :param user_input:
         :type user_input: str
+        :param user_input_id:
+        :type user_input_id: str
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -1056,6 +1067,7 @@ class AuthorizationServerApi:
             client_id=client_id,
             client_secret=client_secret,
             user_input=user_input,
+            user_input_id=user_input_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -1079,6 +1091,7 @@ class AuthorizationServerApi:
         client_id,
         client_secret,
         user_input,
+        user_input_id,
         _request_auth,
         _content_type,
         _headers,
@@ -1111,6 +1124,8 @@ class AuthorizationServerApi:
             _form_params.append(('client_secret', client_secret))
         if user_input is not None:
             _form_params.append(('user_input', user_input))
+        if user_input_id is not None:
+            _form_params.append(('user_input_id', user_input_id))
         # process the body parameter
 
 

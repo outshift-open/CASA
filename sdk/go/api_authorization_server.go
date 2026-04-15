@@ -368,6 +368,7 @@ type ApiTokenRequest struct {
 	clientId *string
 	clientSecret *string
 	userInput *string
+	userInputId *string
 }
 
 func (r ApiTokenRequest) ClientId(clientId string) ApiTokenRequest {
@@ -382,6 +383,11 @@ func (r ApiTokenRequest) ClientSecret(clientSecret string) ApiTokenRequest {
 
 func (r ApiTokenRequest) UserInput(userInput string) ApiTokenRequest {
 	r.userInput = &userInput
+	return r
+}
+
+func (r ApiTokenRequest) UserInputId(userInputId string) ApiTokenRequest {
+	r.userInputId = &userInputId
 	return r
 }
 
@@ -433,9 +439,6 @@ func (a *AuthorizationServerAPIService) TokenExecute(r ApiTokenRequest) (*TokenR
 	if r.clientSecret == nil {
 		return localVarReturnValue, nil, reportError("clientSecret is required and must be specified")
 	}
-	if r.userInput == nil {
-		return localVarReturnValue, nil, reportError("userInput is required and must be specified")
-	}
 
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{"application/x-www-form-urlencoded"}
@@ -456,7 +459,12 @@ func (a *AuthorizationServerAPIService) TokenExecute(r ApiTokenRequest) (*TokenR
 	}
 	parameterAddToHeaderOrQuery(localVarFormParams, "client_id", r.clientId, "", "")
 	parameterAddToHeaderOrQuery(localVarFormParams, "client_secret", r.clientSecret, "", "")
-	parameterAddToHeaderOrQuery(localVarFormParams, "user_input", r.userInput, "", "")
+	if r.userInput != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "user_input", r.userInput, "", "")
+	}
+	if r.userInputId != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "user_input_id", r.userInputId, "", "")
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

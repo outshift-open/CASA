@@ -4,9 +4,11 @@ README.md
 api/openapi.yaml
 api_apps.go
 api_authorization_server.go
+api_kubernetes_resources.go
 api_multi_agent_systems.go
 api_scopes.go
 api_traces.go
+api_user_inputs.go
 client.go
 configuration.go
 docs/ActorClaim.md
@@ -16,7 +18,14 @@ docs/AppType.md
 docs/AppViewModel.md
 docs/AppsAPI.md
 docs/AuthorizationServerAPI.md
+docs/CacheTokenLoadRequest.md
+docs/CacheTokenStoreRequest.md
+docs/CreateUserInputRequest.md
 docs/HTTPValidationError.md
+docs/K8sAppSpecViewModel.md
+docs/K8sMultiAgentSystemCRDViewModel.md
+docs/K8sMultiAgentSystemMetadataViewModel.md
+docs/KubernetesResourcesAPI.md
 docs/LLMCallEndedEvent.md
 docs/LLMCallEndedRequest.md
 docs/LLMCallStartedEvent.md
@@ -39,6 +48,8 @@ docs/ToolCheckFlags.md
 docs/ToolRequest.md
 docs/ToolViewModel.md
 docs/TracesAPI.md
+docs/UserInput.md
+docs/UserInputsAPI.md
 docs/ValidationError.md
 git_push.sh
 go.mod
@@ -48,7 +59,13 @@ model_app_metadata_response.go
 model_app_request.go
 model_app_type.go
 model_app_view_model.go
+model_cache_token_load_request.go
+model_cache_token_store_request.go
+model_create_user_input_request.go
 model_http_validation_error.go
+model_k8s_app_spec_view_model.go
+model_k8s_multi_agent_system_crd_view_model.go
+model_k8s_multi_agent_system_metadata_view_model.go
 model_llm_call_ended_event.go
 model_llm_call_ended_request.go
 model_llm_call_started_event.go
@@ -68,6 +85,7 @@ model_token_response.go
 model_tool_check_flags.go
 model_tool_request.go
 model_tool_view_model.go
+model_user_input.go
 model_validation_error.go
 response.go
 utils.go

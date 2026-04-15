@@ -211,7 +211,7 @@ No authorization required
 
 ## Token
 
-> TokenResponse Token(ctx, appId).ClientId(clientId).ClientSecret(clientSecret).UserInput(userInput).Execute()
+> TokenResponse Token(ctx, appId).ClientId(clientId).ClientSecret(clientSecret).UserInput(userInput).UserInputId(userInputId).Execute()
 
 Token
 
@@ -233,11 +233,12 @@ func main() {
 	appId := "appId_example" // string | 
 	clientId := "clientId_example" // string | 
 	clientSecret := "clientSecret_example" // string | 
-	userInput := "userInput_example" // string | 
+	userInput := "userInput_example" // string |  (optional)
+	userInputId := "userInputId_example" // string |  (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AuthorizationServerAPI.Token(context.Background(), appId).ClientId(clientId).ClientSecret(clientSecret).UserInput(userInput).Execute()
+	resp, r, err := apiClient.AuthorizationServerAPI.Token(context.Background(), appId).ClientId(clientId).ClientSecret(clientSecret).UserInput(userInput).UserInputId(userInputId).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `AuthorizationServerAPI.Token``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -266,6 +267,7 @@ Name | Type | Description  | Notes
  **clientId** | **string** |  | 
  **clientSecret** | **string** |  | 
  **userInput** | **string** |  | 
+ **userInputId** | **string** |  | 
 
 ### Return type
 

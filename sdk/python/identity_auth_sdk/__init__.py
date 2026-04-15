@@ -20,9 +20,11 @@ __version__ = "1.0.0"
 __all__ = [
     "AppsApi",
     "AuthorizationServerApi",
+    "KubernetesResourcesApi",
     "MultiAgentSystemsApi",
     "ScopesApi",
     "TracesApi",
+    "UserInputsApi",
     "ApiResponse",
     "ApiClient",
     "Configuration",
@@ -37,7 +39,13 @@ __all__ = [
     "AppRequest",
     "AppType",
     "AppViewModel",
+    "CacheTokenLoadRequest",
+    "CacheTokenStoreRequest",
+    "CreateUserInputRequest",
     "HTTPValidationError",
+    "K8sAppSpecViewModel",
+    "K8sMultiAgentSystemCRDViewModel",
+    "K8sMultiAgentSystemMetadataViewModel",
     "LLMCallEndedEvent",
     "LLMCallEndedRequest",
     "LLMCallStartedEvent",
@@ -57,15 +65,18 @@ __all__ = [
     "ToolCheckFlags",
     "ToolRequest",
     "ToolViewModel",
+    "UserInput",
     "ValidationError",
 ]
 
 # import apis into sdk package
 from identity_auth_sdk.api.apps_api import AppsApi as AppsApi
 from identity_auth_sdk.api.authorization_server_api import AuthorizationServerApi as AuthorizationServerApi
+from identity_auth_sdk.api.kubernetes_resources_api import KubernetesResourcesApi as KubernetesResourcesApi
 from identity_auth_sdk.api.multi_agent_systems_api import MultiAgentSystemsApi as MultiAgentSystemsApi
 from identity_auth_sdk.api.scopes_api import ScopesApi as ScopesApi
 from identity_auth_sdk.api.traces_api import TracesApi as TracesApi
+from identity_auth_sdk.api.user_inputs_api import UserInputsApi as UserInputsApi
 
 # import ApiClient
 from identity_auth_sdk.api_response import ApiResponse as ApiResponse
@@ -84,7 +95,13 @@ from identity_auth_sdk.models.app_metadata_response import AppMetadataResponse a
 from identity_auth_sdk.models.app_request import AppRequest as AppRequest
 from identity_auth_sdk.models.app_type import AppType as AppType
 from identity_auth_sdk.models.app_view_model import AppViewModel as AppViewModel
+from identity_auth_sdk.models.cache_token_load_request import CacheTokenLoadRequest as CacheTokenLoadRequest
+from identity_auth_sdk.models.cache_token_store_request import CacheTokenStoreRequest as CacheTokenStoreRequest
+from identity_auth_sdk.models.create_user_input_request import CreateUserInputRequest as CreateUserInputRequest
 from identity_auth_sdk.models.http_validation_error import HTTPValidationError as HTTPValidationError
+from identity_auth_sdk.models.k8s_app_spec_view_model import K8sAppSpecViewModel as K8sAppSpecViewModel
+from identity_auth_sdk.models.k8s_multi_agent_system_crd_view_model import K8sMultiAgentSystemCRDViewModel as K8sMultiAgentSystemCRDViewModel
+from identity_auth_sdk.models.k8s_multi_agent_system_metadata_view_model import K8sMultiAgentSystemMetadataViewModel as K8sMultiAgentSystemMetadataViewModel
 from identity_auth_sdk.models.llm_call_ended_event import LLMCallEndedEvent as LLMCallEndedEvent
 from identity_auth_sdk.models.llm_call_ended_request import LLMCallEndedRequest as LLMCallEndedRequest
 from identity_auth_sdk.models.llm_call_started_event import LLMCallStartedEvent as LLMCallStartedEvent
@@ -104,5 +121,6 @@ from identity_auth_sdk.models.token_response import TokenResponse as TokenRespon
 from identity_auth_sdk.models.tool_check_flags import ToolCheckFlags as ToolCheckFlags
 from identity_auth_sdk.models.tool_request import ToolRequest as ToolRequest
 from identity_auth_sdk.models.tool_view_model import ToolViewModel as ToolViewModel
+from identity_auth_sdk.models.user_input import UserInput as UserInput
 from identity_auth_sdk.models.validation_error import ValidationError as ValidationError
 

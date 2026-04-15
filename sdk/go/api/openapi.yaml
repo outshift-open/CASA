@@ -702,6 +702,164 @@ paths:
       summary: Update Scope
       tags:
       - Scopes
+  /user-inputs:
+    post:
+      description: Create a new User Input.
+      operationId: create_user_input
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserInputRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInput"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create User Input
+      tags:
+      - UserInputs
+  /user_inputs/get_by_tag/{tag}:
+    get:
+      description: Get a UserInput by tag.
+      operationId: get_user_input_by_tag
+      parameters:
+      - explode: false
+        in: path
+        name: tag
+        required: true
+        schema:
+          title: Tag
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInput"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get User Input By Tag
+      tags:
+      - UserInputs
+  /k8s/namespaces/{namespace}/get_mas_by_app_host:
+    get:
+      operationId: get_k8s_mas_by_app_host
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: app_host
+        required: true
+        schema:
+          title: App Host
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/K8sMultiAgentSystemCRDViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get K8S Mas By App Host
+      tags:
+      - Kubernetes Resources
+  /k8s/namespaces/{namespace}/cache/store-token:
+    post:
+      operationId: cache_store_token
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CacheTokenStoreRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Store Token
+      tags:
+      - Kubernetes Resources
+  /k8s/namespaces/{namespace}/cache/load-token:
+    post:
+      operationId: cache_load_token
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CacheTokenLoadRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Load Token
+      tags:
+      - Kubernetes Resources
 components:
   schemas:
     ActorClaim:
@@ -904,6 +1062,68 @@ components:
       required:
       - token
       title: Body_introspect
+    CacheTokenLoadRequest:
+      example:
+        app_host: app_host
+        trace_id: trace_id
+        app_type: agent
+      properties:
+        trace_id:
+          title: Trace Id
+          type: string
+        app_host:
+          title: App Host
+          type: string
+        app_type:
+          $ref: "#/components/schemas/AppType"
+      required:
+      - app_host
+      - app_type
+      - trace_id
+      title: CacheTokenLoadRequest
+    CacheTokenStoreRequest:
+      example:
+        app_host: app_host
+        access_token: access_token
+        trace_id: trace_id
+        app_type: agent
+      properties:
+        trace_id:
+          title: Trace Id
+          type: string
+        app_host:
+          title: App Host
+          type: string
+        app_type:
+          $ref: "#/components/schemas/AppType"
+        access_token:
+          title: Access Token
+          type: string
+      required:
+      - access_token
+      - app_host
+      - app_type
+      - trace_id
+      title: CacheTokenStoreRequest
+    CreateUserInputRequest:
+      example:
+        tag: tag
+        prompt: prompt
+        app_id: app_id
+      properties:
+        prompt:
+          title: Prompt
+          type: string
+        app_id:
+          title: App Id
+          type: string
+        tag:
+          nullable: true
+          type: string
+      required:
+      - app_id
+      - prompt
+      title: CreateUserInputRequest
     HTTPValidationError:
       example:
         detail:
@@ -928,6 +1148,152 @@ components:
           title: Detail
           type: array
       title: HTTPValidationError
+    K8sAppSpecViewModel:
+      description: View model for application specification data.
+      example:
+        kubernetes_workload_name: kubernetes_workload_name
+        name: name
+        prompt_field_json_path: prompt_field_json_path
+        mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: agent
+        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        url_host: url_host
+        url_scheme: url_scheme
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        name:
+          title: Name
+          type: string
+        type:
+          $ref: "#/components/schemas/AppType"
+        url_host:
+          title: Url Host
+          type: string
+        url_scheme:
+          title: Url Scheme
+          type: string
+        prompt_field_json_path:
+          nullable: true
+          type: string
+        kubernetes_workload_name:
+          nullable: true
+          type: string
+        mas_crd_id:
+          format: uuid
+          nullable: true
+          type: string
+        app_id:
+          format: uuid
+          nullable: true
+          type: string
+      required:
+      - name
+      - type
+      - url_host
+      - url_scheme
+      title: K8sAppSpecViewModel
+    K8sMultiAgentSystemCRDViewModel:
+      description: View model for a complete MultiAgentSystem CRD.
+      example:
+        enabled_tool_checks: ""
+        mas_metadata: ""
+        kind: kind
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        namespace: namespace
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        app_specs:
+        - kubernetes_workload_name: kubernetes_workload_name
+          name: name
+          prompt_field_json_path: prompt_field_json_path
+          mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: agent
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          url_host: url_host
+          url_scheme: url_scheme
+        - kubernetes_workload_name: kubernetes_workload_name
+          name: name
+          prompt_field_json_path: prompt_field_json_path
+          mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: agent
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          url_host: url_host
+          url_scheme: url_scheme
+        api_version: api_version
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        api_version:
+          title: Api Version
+          type: string
+        kind:
+          title: Kind
+          type: string
+        namespace:
+          title: Namespace
+          type: string
+        mas_metadata:
+          allOf:
+          - $ref: "#/components/schemas/K8sMultiAgentSystemMetadataViewModel"
+          nullable: true
+        name:
+          title: Name
+          type: string
+        enabled_tool_checks:
+          allOf:
+          - $ref: "#/components/schemas/ToolCheckFlags"
+          nullable: true
+        app_specs:
+          default: []
+          items:
+            $ref: "#/components/schemas/K8sAppSpecViewModel"
+          title: App Specs
+          type: array
+        mas_id:
+          format: uuid
+          nullable: true
+          type: string
+      required:
+      - api_version
+      - enabled_tool_checks
+      - kind
+      - name
+      - namespace
+      title: K8sMultiAgentSystemCRDViewModel
+    K8sMultiAgentSystemMetadataViewModel:
+      description: View model for MultiAgentSystem metadata.
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        name:
+          title: Name
+          type: string
+        uid:
+          nullable: true
+          type: string
+        resource_version:
+          nullable: true
+          type: string
+        generation:
+          nullable: true
+          type: integer
+        mas_crd_id:
+          format: uuid
+          nullable: true
+          type: string
+      required:
+      - name
+      title: K8sMultiAgentSystemMetadataViewModel
     LLMCallEndedEvent:
       example:
         user_input_id: user_input_id
@@ -1083,7 +1449,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-08T16:30:49.730681Z
+          default: 2026-04-15T15:18:00.589239Z
           format: date-time
           title: Created At
           type: string
@@ -1367,12 +1733,14 @@ components:
           title: Client Secret
           type: string
         user_input:
-          title: User Input
+          nullable: true
+          type: string
+        user_input_id:
+          nullable: true
           type: string
       required:
       - client_id
       - client_secret
-      - user_input
       title: TokenRequest
     TokenResponse:
       description: Pydantic model for the token response.
@@ -1476,6 +1844,39 @@ components:
       - output_schema
       - scopes
       title: ToolViewModel
+    UserInput:
+      description: User Input model containing the user input prompt.
+      example:
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        tag: tag
+        prompt: prompt
+        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        prompt:
+          title: Prompt
+          type: string
+        created_at:
+          default: 2026-04-15T15:18:00.590581Z
+          format: date-time
+          title: Created At
+          type: string
+        app_id:
+          format: uuid
+          nullable: true
+          type: string
+        tag:
+          nullable: true
+          type: string
+      required:
+      - app_id
+      - prompt
+      - tag
+      title: UserInput
     ValidationError:
       example:
         msg: msg

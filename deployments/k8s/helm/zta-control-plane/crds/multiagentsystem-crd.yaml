@@ -48,6 +48,7 @@ spec:
                   - name
                   - type
                   - baseUrl
+                  - kubernetesWorkloadName
                   properties:
                     name:
                       type: string
@@ -55,10 +56,31 @@ spec:
                     type:
                       type: string
                       description: "Application type"
-                      enum: [agent, client, mcp_server]
+                      enum: [agent, mcp_server]
                     baseUrl:
-                      type: string
+                      type: object
                       description: "Base URL where the application is accessible"
+                      required:
+                      - host
+                      - scheme
+                      properties:
+                        host:
+                          type: string
+                          description: "The host of the base URL"
+                        scheme:
+                          type: string
+                          description: "The scheme of the base URL (http, https)"
+                    kubernetesWorkloadName:
+                      type: string
+                      description: "Name of the Kubernetes workload (deployment, etc.) running the app."
+                    httpRequestSchema:
+                      type: object
+                      required:
+                      - promptFieldJsonPath
+                      properties:
+                        promptFieldJsonPath:
+                          type: string
+                          description: "A JSON path used to fetch the user prompt from the HTTP request body"
           status:
             type: object
             properties:

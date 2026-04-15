@@ -3,11 +3,11 @@
 import json
 import logging
 import re
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Self
 from urllib.parse import urlparse
 
 import jwt
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from identity_auth_server.checks.base import Payload
 from identity_auth_server.checks.factory import ToolCheckFactory
@@ -44,7 +44,14 @@ class TokenRequest(BaseModel):
 
     client_id: str
     client_secret: str
-    user_input: str
+    user_input: Optional[str] = None
+    user_input_id: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_user_input(self) -> Self:
+        if (not self.user_input or self.user_input == "") and (not self.user_input_id or self.user_input_id == ""):
+            raise ValueError(f"Either user_input or user_input_id must be provided.")
+        return self
 
 
 class TokenExchangeRequest(BaseModel):
@@ -110,13 +117,21 @@ class AuthorizationServerService:
         if app.mas.authorization_server is None:
             raise Exception(f"App {app_id} has no authorization server configured.")
 
-        # store the user initial prompt
-        user_input = self.user_input_repository.create(
-            UserInput(
-                prompt=request.user_input,
-                app_id=app.id,
+        user_input: UserInput = None
+        if request.user_input and request.user_input != "":
+            # store the user initial prompt
+            user_input = self.user_input_repository.create(
+                UserInput(
+                    prompt=request.user_input,
+                    app_id=app.id,
+                )
             )
-        )
+        elif request.user_input_id and request.user_input_id != "":
+            user_input = self.user_input_repository.get_by_id(request.user_input_id)
+            if user_input is None:
+                raise Exception(f"User Input with id {request.user_input_id} not found.")
+        else:
+            raise Exception("User Input must be provided")
 
         token_payload = self.idp_client.get_token(
             app.mas.authorization_server,

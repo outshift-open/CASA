@@ -88,6 +88,9 @@ Class | Method | HTTP request | Description
 *AuthorizationServerAPI* | [**Introspect**](docs/AuthorizationServerAPI.md#introspect) | **Post** /oauth2/introspect | Introspect
 *AuthorizationServerAPI* | [**Token**](docs/AuthorizationServerAPI.md#token) | **Post** /{app_id}/oauth2/token | Token
 *AuthorizationServerAPI* | [**TokenExchange**](docs/AuthorizationServerAPI.md#tokenexchange) | **Post** /{app_id}/oauth2/token_exchange | Token Exchange
+*KubernetesResourcesAPI* | [**CacheLoadToken**](docs/KubernetesResourcesAPI.md#cacheloadtoken) | **Post** /k8s/namespaces/{namespace}/cache/load-token | Load Token
+*KubernetesResourcesAPI* | [**CacheStoreToken**](docs/KubernetesResourcesAPI.md#cachestoretoken) | **Post** /k8s/namespaces/{namespace}/cache/store-token | Store Token
+*KubernetesResourcesAPI* | [**GetK8sMasByAppHost**](docs/KubernetesResourcesAPI.md#getk8smasbyapphost) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 *MultiAgentSystemsAPI* | [**BindAppsMasMasIdBindAppsPost**](docs/MultiAgentSystemsAPI.md#bindappsmasmasidbindappspost) | **Post** /mas/{mas_id}/bind_apps | Bind Apps
 *MultiAgentSystemsAPI* | [**CreateMasMasPut**](docs/MultiAgentSystemsAPI.md#createmasmasput) | **Put** /mas | Create Mas
 *MultiAgentSystemsAPI* | [**DeleteMasMasMasIdDelete**](docs/MultiAgentSystemsAPI.md#deletemasmasmasiddelete) | **Delete** /mas/{mas_id} | Delete Mas
@@ -103,6 +106,8 @@ Class | Method | HTTP request | Description
 *TracesAPI* | [**GetTracesTraceGet**](docs/TracesAPI.md#gettracestraceget) | **Get** /trace | Get Traces
 *TracesAPI* | [**TraceLlmCallEnd**](docs/TracesAPI.md#tracellmcallend) | **Post** /trace/llm/call_end | Trace Llm Call End
 *TracesAPI* | [**TraceLlmCallStart**](docs/TracesAPI.md#tracellmcallstart) | **Post** /trace/llm/call_start | Trace Llm Call Start
+*UserInputsAPI* | [**CreateUserInput**](docs/UserInputsAPI.md#createuserinput) | **Post** /user-inputs | Create User Input
+*UserInputsAPI* | [**GetUserInputByTag**](docs/UserInputsAPI.md#getuserinputbytag) | **Get** /user_inputs/get_by_tag/{tag} | Get User Input By Tag
 
 
 ## Documentation For Models
@@ -112,7 +117,13 @@ Class | Method | HTTP request | Description
  - [AppRequest](docs/AppRequest.md)
  - [AppType](docs/AppType.md)
  - [AppViewModel](docs/AppViewModel.md)
+ - [CacheTokenLoadRequest](docs/CacheTokenLoadRequest.md)
+ - [CacheTokenStoreRequest](docs/CacheTokenStoreRequest.md)
+ - [CreateUserInputRequest](docs/CreateUserInputRequest.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [K8sAppSpecViewModel](docs/K8sAppSpecViewModel.md)
+ - [K8sMultiAgentSystemCRDViewModel](docs/K8sMultiAgentSystemCRDViewModel.md)
+ - [K8sMultiAgentSystemMetadataViewModel](docs/K8sMultiAgentSystemMetadataViewModel.md)
  - [LLMCallEndedEvent](docs/LLMCallEndedEvent.md)
  - [LLMCallEndedRequest](docs/LLMCallEndedRequest.md)
  - [LLMCallStartedEvent](docs/LLMCallStartedEvent.md)
@@ -132,6 +143,7 @@ Class | Method | HTTP request | Description
  - [ToolCheckFlags](docs/ToolCheckFlags.md)
  - [ToolRequest](docs/ToolRequest.md)
  - [ToolViewModel](docs/ToolViewModel.md)
+ - [UserInput](docs/UserInput.md)
  - [ValidationError](docs/ValidationError.md)
 
 

@@ -18,7 +18,13 @@ from identity_auth_sdk.models.app_metadata_response import AppMetadataResponse
 from identity_auth_sdk.models.app_request import AppRequest
 from identity_auth_sdk.models.app_type import AppType
 from identity_auth_sdk.models.app_view_model import AppViewModel
+from identity_auth_sdk.models.cache_token_load_request import CacheTokenLoadRequest
+from identity_auth_sdk.models.cache_token_store_request import CacheTokenStoreRequest
+from identity_auth_sdk.models.create_user_input_request import CreateUserInputRequest
 from identity_auth_sdk.models.http_validation_error import HTTPValidationError
+from identity_auth_sdk.models.k8s_app_spec_view_model import K8sAppSpecViewModel
+from identity_auth_sdk.models.k8s_multi_agent_system_crd_view_model import K8sMultiAgentSystemCRDViewModel
+from identity_auth_sdk.models.k8s_multi_agent_system_metadata_view_model import K8sMultiAgentSystemMetadataViewModel
 from identity_auth_sdk.models.llm_call_ended_event import LLMCallEndedEvent
 from identity_auth_sdk.models.llm_call_ended_request import LLMCallEndedRequest
 from identity_auth_sdk.models.llm_call_started_event import LLMCallStartedEvent
@@ -38,5 +44,6 @@ from identity_auth_sdk.models.token_response import TokenResponse
 from identity_auth_sdk.models.tool_check_flags import ToolCheckFlags
 from identity_auth_sdk.models.tool_request import ToolRequest
 from identity_auth_sdk.models.tool_view_model import ToolViewModel
+from identity_auth_sdk.models.user_input import UserInput
 from identity_auth_sdk.models.validation_error import ValidationError
 

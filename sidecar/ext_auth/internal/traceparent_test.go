@@ -1,10 +1,10 @@
-package main_test
+package internal_test
 
 import (
 	"encoding/hex"
 	"testing"
 
-	main "github.com/cisco-eti/identity-auth-server/sidecar/ext_auth"
+	internal "github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +27,7 @@ func TestParseTraceParent(t *testing.T) {
 		t.Run(tn, func(t *testing.T) {
 			t.Parallel()
 
-			tp, err := main.ParseTraceParent(tc.raw)
+			tp, err := internal.ParseTraceParent(tc.raw)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedTraceID, hex.EncodeToString(tp.TraceID[:]))
