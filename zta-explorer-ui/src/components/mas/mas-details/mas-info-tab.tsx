@@ -117,8 +117,8 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
         updateMAS(
             {name: mas.name, enabled_tool_checks: newChecks},
             {
-                onSuccess: () => toast.success('Authorization checks updated'),
-                onError: () => toast.error('Failed to update authorization checks')
+                onSuccess: () => toast.success('Deny conditions updated'),
+                onError: () => toast.error('Failed to update deny conditions')
             }
         );
     };
@@ -226,8 +226,10 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
                                         {name: mas.name, enabled_tool_checks: allEnabled ? 0 : allFlags},
                                         {
                                             onSuccess: () =>
-                                                toast.success(`All checks ${allEnabled ? 'disabled' : 'enabled'}`),
-                                            onError: () => toast.error('Failed to update authorization checks')
+                                                toast.success(
+                                                    `All deny conditions ${allEnabled ? 'disabled' : 'enabled'}`
+                                                ),
+                                            onError: () => toast.error('Failed to update deny conditions')
                                         }
                                     )
                                 }

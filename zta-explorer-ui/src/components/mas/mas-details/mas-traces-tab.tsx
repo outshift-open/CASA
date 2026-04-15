@@ -154,6 +154,10 @@ const ALWAYS_HIDDEN = new Set(['id', 'user_input_id', 'mas_id', 'created_at']);
 
 const JWT_FIELDS = new Set(['token', 'subject_token', 'act_token']);
 
+const FIELD_LABELS: Record<string, string> = {
+    prompt: 'task'
+};
+
 function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
     try {
         const parts = jwt.split('.');
@@ -191,7 +195,7 @@ function EventAttributes({event, eventType: _eventType}: {event: Trace['event'];
                             key={`k-${key}`}
                             className="text-[10px] text-muted-foreground/70 font-mono pt-0.5 whitespace-nowrap"
                         >
-                            {key}
+                            {FIELD_LABELS[key] ?? key}
                         </span>
                         {isJwt ? (
                             <pre
@@ -231,7 +235,14 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                         <AppIdChip id={event.app_id} appNames={appNames} />
                     </>
                 )}
-                {event.prompt && <span className="ml-1 text-foreground/70">"{event.prompt}"</span>}
+                {event.prompt && (
+                    <>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide ml-1">
+                            Task:
+                        </span>
+                        <span className="text-foreground/70">"{event.prompt}"</span>
+                    </>
+                )}
             </div>
         );
     } else if (event_type === 'TokenExchangedEvent') {
@@ -244,6 +255,12 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                     <>
                         <span>by</span>
                         <AppIdChip id={event.subject_app_id} appNames={appNames} />
+                    </>
+                )}
+                {event.act_app_id && (
+                    <>
+                        <span>→ for</span>
+                        <AppIdChip id={event.act_app_id} appNames={appNames} />
                     </>
                 )}
                 {tools.length > 0 && (
@@ -323,7 +340,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                                 variant="outline"
                                 className={`text-[9px] h-4 px-1.5 font-medium ${event.blocking_type === 'AI_POWERED' ? 'border-purple-500/50 text-purple-400' : 'border-orange-500/50 text-orange-400'}`}
                             >
-                                {event.blocking_type === 'AI_POWERED' ? 'AI' : 'DET'}
+                                {event.blocking_type === 'AI_POWERED' ? 'AI' : 'DETERMINISTIC'}
                             </Badge>
                         )}
                     </>
@@ -404,6 +421,9 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
                 )}
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mr-1.5">
+                            Task:
+                        </span>
                         {session.prompt ?? <span className="text-muted-foreground italic">No prompt</span>}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">

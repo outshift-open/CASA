@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse
+import base64
 import json
 import os
 import sys
@@ -59,6 +60,17 @@ except ImportError:
         """Fallback style class when colorama is not installed."""
 
         RESET_ALL = BRIGHT = ""
+
+
+def _b64url(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
+
+
+def make_mock_jwt(payload: dict) -> str:
+    """Build a mock unsigned JWT (alg=none) for demo purposes."""
+    header = _b64url(json.dumps({"alg": "none", "typ": "JWT"}).encode())
+    body = _b64url(json.dumps(payload).encode())
+    return f"{header}.{body}."
 
 
 class Config:
@@ -1440,13 +1452,30 @@ def mock_tools(config: Config) -> bool:
         # T1 → T2: agent exchanges for LLM access (before any tool calls)
         t2_exchange_id = str(uuid.uuid4())
         t2_ts = base_ts + timedelta(seconds=1)
+        now_ts = int(t2_ts.timestamp())
         t2_event = {
             "id": t2_exchange_id,
             "user_input_id": str(user_input_id),
             "created_at": t2_ts.isoformat(),
             "mas_id": mas_id,
-            "subject_token": "",
-            "act_token": "",
+            "subject_token": make_mock_jwt(
+                {
+                    "sub": str(app_id) if app_id else "client",
+                    "iat": now_ts,
+                    "exp": now_ts + 3600,
+                    "scope": "openid",
+                    "mas_id": mas_id,
+                }
+            ),
+            "act_token": make_mock_jwt(
+                {
+                    "sub": str(agent_id) if agent_id else "agent",
+                    "iat": now_ts,
+                    "exp": now_ts + 3600,
+                    "act": {"sub": str(app_id) if app_id else "client"},
+                    "mas_id": mas_id,
+                }
+            ),
             "subject_app_id": str(app_id) if app_id else "",
             "act_app_id": str(agent_id) if agent_id else "",
             "tools": None,
@@ -1464,13 +1493,31 @@ def mock_tools(config: Config) -> bool:
 
             # TokenExchangedEvent (T1 → T3 for this specific tool)
             exchange_id = str(uuid.uuid4())
+            ex_ts = int(exchange_ts.timestamp())
             exchange_event = {
                 "id": exchange_id,
                 "user_input_id": str(user_input_id),
                 "created_at": exchange_ts.isoformat(),
                 "mas_id": mas_id,
-                "subject_token": "",
-                "act_token": "",
+                "subject_token": make_mock_jwt(
+                    {
+                        "sub": str(agent_id) if agent_id else "agent",
+                        "iat": ex_ts,
+                        "exp": ex_ts + 3600,
+                        "scope": "openid",
+                        "mas_id": mas_id,
+                    }
+                ),
+                "act_token": make_mock_jwt(
+                    {
+                        "sub": str(mcp_server_id) if mcp_server_id else "mcp_server",
+                        "iat": ex_ts,
+                        "exp": ex_ts + 3600,
+                        "act": {"sub": str(agent_id) if agent_id else "agent"},
+                        "tools": [scenario["tool"]],
+                        "mas_id": mas_id,
+                    }
+                ),
                 "subject_app_id": str(app_id) if app_id else "",
                 "act_app_id": str(mcp_server_id) if mcp_server_id else "",
                 "tools": [scenario["tool"]],
@@ -1483,13 +1530,23 @@ def mock_tools(config: Config) -> bool:
 
             # MCPCallStartedEvent
             mcp_id = str(uuid.uuid4())
+            mcp_ts_int = int(mcp_ts.timestamp())
             mcp_event = {
                 "id": mcp_id,
                 "user_input_id": str(user_input_id),
                 "created_at": mcp_ts.isoformat(),
                 "mas_id": mas_id,
                 "app_id": app_id,
-                "token": "",
+                "token": make_mock_jwt(
+                    {
+                        "sub": str(mcp_server_id) if mcp_server_id else "mcp_server",
+                        "iat": mcp_ts_int,
+                        "exp": mcp_ts_int + 3600,
+                        "act": {"sub": str(agent_id) if agent_id else "agent"},
+                        "tools": [scenario["tool"]],
+                        "mas_id": mas_id,
+                    }
+                ),
                 "caller_app_id": str(agent_id) if agent_id else "",
                 "callee_app_id": str(mcp_server_id) if mcp_server_id else "",
                 "tool": scenario["tool"],
@@ -1647,13 +1704,30 @@ def mock_scopes(config: Config) -> bool:
         # T1 → T2: agent exchanges for LLM access (before any tool calls)
         t2_exchange_id = str(uuid.uuid4())
         t2_ts = base_ts + timedelta(seconds=1)
+        now_ts = int(t2_ts.timestamp())
         t2_event = {
             "id": t2_exchange_id,
             "user_input_id": str(user_input_id),
             "created_at": t2_ts.isoformat(),
             "mas_id": mas_id,
-            "subject_token": "",
-            "act_token": "",
+            "subject_token": make_mock_jwt(
+                {
+                    "sub": str(app_id) if app_id else "client",
+                    "iat": now_ts,
+                    "exp": now_ts + 3600,
+                    "scope": "openid",
+                    "mas_id": mas_id,
+                }
+            ),
+            "act_token": make_mock_jwt(
+                {
+                    "sub": str(agent_id) if agent_id else "agent",
+                    "iat": now_ts,
+                    "exp": now_ts + 3600,
+                    "act": {"sub": str(app_id) if app_id else "client"},
+                    "mas_id": mas_id,
+                }
+            ),
             "subject_app_id": str(app_id) if app_id else "",
             "act_app_id": str(agent_id) if agent_id else "",
             "tools": None,
@@ -1671,13 +1745,31 @@ def mock_scopes(config: Config) -> bool:
 
             # TokenExchangedEvent (T1 → T3 for this specific tool)
             exchange_id = str(uuid.uuid4())
+            ex_ts = int(exchange_ts.timestamp())
             exchange_event = {
                 "id": exchange_id,
                 "user_input_id": str(user_input_id),
                 "created_at": exchange_ts.isoformat(),
                 "mas_id": mas_id,
-                "subject_token": "",
-                "act_token": "",
+                "subject_token": make_mock_jwt(
+                    {
+                        "sub": str(agent_id) if agent_id else "agent",
+                        "iat": ex_ts,
+                        "exp": ex_ts + 3600,
+                        "scope": "openid",
+                        "mas_id": mas_id,
+                    }
+                ),
+                "act_token": make_mock_jwt(
+                    {
+                        "sub": str(mcp_server_id) if mcp_server_id else "mcp_server",
+                        "iat": ex_ts,
+                        "exp": ex_ts + 3600,
+                        "act": {"sub": str(agent_id) if agent_id else "agent"},
+                        "tools": [scenario["tool"]],
+                        "mas_id": mas_id,
+                    }
+                ),
                 "subject_app_id": str(app_id) if app_id else "",
                 "act_app_id": str(mcp_server_id) if mcp_server_id else "",
                 "tools": [scenario["tool"]],
@@ -1690,13 +1782,23 @@ def mock_scopes(config: Config) -> bool:
 
             # MCPCallStartedEvent
             mcp_id = str(uuid.uuid4())
+            mcp_ts_int = int(mcp_ts.timestamp())
             mcp_event = {
                 "id": mcp_id,
                 "user_input_id": str(user_input_id),
                 "created_at": mcp_ts.isoformat(),
                 "mas_id": mas_id,
                 "app_id": app_id,
-                "token": "",
+                "token": make_mock_jwt(
+                    {
+                        "sub": str(mcp_server_id) if mcp_server_id else "mcp_server",
+                        "iat": mcp_ts_int,
+                        "exp": mcp_ts_int + 3600,
+                        "act": {"sub": str(agent_id) if agent_id else "agent"},
+                        "tools": [scenario["tool"]],
+                        "mas_id": mas_id,
+                    }
+                ),
                 "caller_app_id": str(agent_id) if agent_id else "",
                 "callee_app_id": str(mcp_server_id) if mcp_server_id else "",
                 "tool": scenario["tool"],
