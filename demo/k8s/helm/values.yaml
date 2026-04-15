@@ -1,21 +1,26 @@
-namespace: zta-sidecar
+namespace: zta-control-plane-dev
 
-agent:
+agentSafe:
   replicas: 1
-  serviceName: zta-demo-agent
+  serviceName: demo-agent-safe
   servicePort: 8082
   docker:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
-    image: outshift-zta/k8s-demo-agent
+    image: outshift-zta/demo-agent-safe
     suffix: ''
-  tagversion: 2026-03-16-a0d1194
-
+  tagversion: latest
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
-  # We can move them later to an external vault when we needed
-  secret:
-    openai_api_base: https://litellm.prod.outshift.ai
-    openai_api_key: SECRET_HERE
+agentCompromised:
+  replicas: 1
+  serviceName: demo-agent-compromised
+  servicePort: 8082
+  docker:
+    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    image: outshift-zta/demo-agent-compromised
+    suffix: ''
+  tagversion: latest
+  mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
   replicas: 1
@@ -29,6 +34,5 @@ mcp:
 
 mas:
   name: "ZTA Demo"
-  authorizationServer: "zta-demo-realm"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
