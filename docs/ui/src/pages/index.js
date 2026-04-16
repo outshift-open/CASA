@@ -21,11 +21,7 @@ function HomepageHeader() {
                     </Link>
                     <Link
                         className="button button--outline button--lg"
-                        style={{
-                            marginLeft: "1rem",
-                            color: "white",
-                            borderColor: "white",
-                        }}
+                        style={{ color: "white", borderColor: "rgba(255,255,255,0.6)" }}
                         to="/architecture/architecture-overview"
                     >
                         Architecture
@@ -36,14 +32,15 @@ function HomepageHeader() {
     );
 }
 
-function Feature({ title, description, link }) {
+function Feature({ icon, title, description, link }) {
     return (
-        <div className={clsx("col col--4")}>
-            <div className="padding-horiz--md padding-vert--md">
-                <h3>
+        <div className="col col--4" style={{ marginBottom: "1.5rem" }}>
+            <div className={styles.featureCard}>
+                <div className={styles.featureIconWrap}>{icon}</div>
+                <h3 className={styles.featureTitle}>
                     <Link to={link}>{title}</Link>
                 </h3>
-                <p>{description}</p>
+                <p className={styles.featureDesc}>{description}</p>
             </div>
         </div>
     );
@@ -51,23 +48,34 @@ function Feature({ title, description, link }) {
 
 const features = [
     {
+        icon: "🛡️",
         title: "Zero Trust, No Code Changes",
         description:
             "ZTA enforces intent-scoped authorization at the sidecar level. Your agents and MCP servers need no SDK or configuration changes.",
         link: "/concepts/mas",
     },
     {
+        icon: "☸️",
         title: "Kubernetes-Native",
         description:
             "Deploy via Helm. Configure via CRDs. Works with Istio or Cilium. Fits naturally into your existing cloud-native stack.",
         link: "/installation/control-plane",
     },
     {
+        icon: "🔍",
         title: "Deterministic + Semantic Checks",
         description:
             "Choose rule-based validation, AI-powered intent matching, or both — configured per Multi-Agent System, not per service.",
         link: "/concepts/deterministic-checks",
     },
+];
+
+const quickLinks = [
+    { label: "Core Concepts", to: "/concepts/mas" },
+    { label: "Architecture", to: "/architecture/architecture-overview" },
+    { label: "Installation", to: "/installation/prerequisites" },
+    { label: "Demo Walkthrough", to: "/demo/walkthrough" },
+    { label: "Explorer UI", to: "/explorer-ui" },
 ];
 
 export default function Home() {
@@ -78,7 +86,7 @@ export default function Home() {
         >
             <HomepageHeader />
             <main>
-                <section style={{ padding: "2rem 0" }}>
+                <section className={styles.featuresSection}>
                     <div className="container">
                         <div className="row">
                             {features.map((props, idx) => (
@@ -87,6 +95,12 @@ export default function Home() {
                         </div>
                     </div>
                 </section>
+                <div className={styles.quickLinks}>
+                    <span>Quick links</span>
+                    {quickLinks.map(({ label, to }) => (
+                        <Link key={to} to={to}>{label}</Link>
+                    ))}
+                </div>
             </main>
         </Layout>
     );
