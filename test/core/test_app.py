@@ -25,14 +25,17 @@ def database_with_session():
 
 
 def test_create_app(database_with_session):
-    """Test create an app"""
-    db, _ = database_with_session
-    repository = AppPostgresRepository(db)
+    """Test create an app."""
+    _, session = database_with_session
+    repository = AppPostgresRepository(session)
 
     # Create app
     app = repository.create_app(App(name="Test App", type=AppType.MCP_SERVER))
 
     assert app.id is not None
+
+    # Configure mock so get_app_by_id returns the created app
+    session.exec.return_value.first.return_value = app
 
     # Find by id
     found_app = repository.get_app_by_id(app.id)

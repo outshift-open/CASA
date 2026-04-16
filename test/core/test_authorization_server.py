@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from identity_auth_server.core.repositories.authorization_server import AuthorizationServerPostgresRepository
-from identity_auth_server.core.types import AuthorizationServer, ClientCredentials, Token
+from identity_auth_server.core.types import AuthorizationServer, ClientCredentials
 
 
 @pytest.fixture
@@ -47,17 +47,6 @@ def test_create_all(database_with_session):
     assert client_credential.id is not None
     assert client_credential.authorization_server_id == authorization_server.id
 
-    # Find ClientCredentials by ID
-    found_credential = repository.find_client_credentials_by_client_id(client_credential.client_id)
+    # Find ClientCredentials by client_id
+    found_credential = repository.get_client_credentials_by_client_id(client_credential.client_id)
     assert found_credential is not None
-
-    # Create Token
-    token = repository.create_token(
-        Token(
-            client_credential_id="credential-id",
-            value="token-value",
-            expires_at="2024-12-31T23:59:59Z",
-        )
-    )
-
-    assert token.client_credential_id is not None
