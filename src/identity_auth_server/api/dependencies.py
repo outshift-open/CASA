@@ -257,10 +257,11 @@ class Container:
         mas_service: Annotated[MultiAgentSystemService, Depends(get_mas_service)],
         app_service: Annotated[AppService, Depends(get_app_service)],
         idp_client: Annotated[IdpClient, Depends(get_idp_client)],
+        k8s_mas_repository: Annotated[K8sMultiAgentSystemPostgresRepository, Depends(get_k8s_mas_repository)],
     ):
         from identity_auth_server.k8s.k8s_crd_service import K8sCRDService
 
-        return K8sCRDService(mas_service, app_service, idp_client)
+        return K8sCRDService(mas_service, app_service, idp_client, k8s_mas_repository)
 
     @staticmethod
     def get_user_input_service(
