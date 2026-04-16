@@ -86,6 +86,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 
 		// get stored JWT of the caller
 		for _, appSpec := range masCRD.AppSpecs {
+			slog.Info("[OUT] Matching caller app", "src_workload", callerWorkloadName, "workload", appSpec.GetKubernetesWorkloadName())
 			if !strings.EqualFold(callerWorkloadName, appSpec.GetKubernetesWorkloadName()) {
 				continue
 			}
@@ -99,6 +100,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			if token == nil || token.AccessToken == "" {
 				return s.deny(), nil
 			}
+
+			slog.Info("[OUT] Found cached access token", "workload", appSpec.GetKubernetesWorkloadName(), "token", token.AccessToken)
 
 			callerToken = token.AccessToken
 			break
