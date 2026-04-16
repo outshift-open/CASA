@@ -1,4 +1,23 @@
-[![pytest](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml) [![pre-commit](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml)
+<!-- CI/CD -->
+[![pytest](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml)
+[![pre-commit](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml)
+[![Docs](https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Release](https://img.shields.io/github/v/release/cisco-eti/identity-auth-server?include_prereleases&label=release)](https://github.com/cisco-eti/identity-auth-server/releases)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![Stars](https://img.shields.io/github/stars/cisco-eti/identity-auth-server?style=social)](https://github.com/cisco-eti/identity-auth-server/stargazers)
+[![Forks](https://img.shields.io/github/forks/cisco-eti/identity-auth-server?style=social)](https://github.com/cisco-eti/identity-auth-server/network/members)
+[![Issues](https://img.shields.io/github/issues/cisco-eti/identity-auth-server)](https://github.com/cisco-eti/identity-auth-server/issues)
+[![Contributors](https://img.shields.io/github/contributors/cisco-eti/identity-auth-server)](https://github.com/cisco-eti/identity-auth-server/graphs/contributors)
+[![Last Commit](https://img.shields.io/github/last-commit/cisco-eti/identity-auth-server/main)](https://github.com/cisco-eti/identity-auth-server/commits/main)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Helm](https://img.shields.io/badge/Helm-3.x-0F1689?logo=helm&logoColor=white)](https://helm.sh/)
+[![Docker](https://img.shields.io/badge/GHCR-images-0075D4?logo=docker&logoColor=white)](https://github.com/cisco-eti/identity-auth-server/pkgs/container/identity-auth-server)
+[![Keycloak](https://img.shields.io/badge/Keycloak-IdP-4D6D6D?logo=keycloak&logoColor=white)](https://www.keycloak.org/)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github)](https://cisco-eti.github.io/identity-auth-server/)
 
 # ZTA — Zero Trust for Multi-Agent Systems
 
