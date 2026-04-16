@@ -6,7 +6,7 @@ name: ZTA Control Plane CI/CD
 on:
   push:
     branches:
-      - "feature/PYRA-640-create-the-write-endpoint-called-by-the-operator-in-k-8-s-crd-service"
+      - "PYRA-640-create-the-write-endpoint-called-by-the-operator-in-k-8-s-crd-service"
       - "main"
   workflow_dispatch:
   workflow_call:
