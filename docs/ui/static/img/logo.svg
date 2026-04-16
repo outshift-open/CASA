@@ -30,26 +30,26 @@
         stroke="#2dd4bf" stroke-width="1.5" fill="none"/>
 
   <!-- Connection lines (drawn before nodes so nodes sit on top) -->
-  <line x1="50" y1="44" x2="37" y2="33" stroke="#99f6e4" stroke-width="1.2" opacity="0.8"/>
-  <line x1="50" y1="44" x2="63" y2="33" stroke="#99f6e4" stroke-width="1.2" opacity="0.8"/>
-  <line x1="50" y1="44" x2="50" y2="63" stroke="#99f6e4" stroke-width="1.2" opacity="0.8"/>
-  <line x1="37" y1="33" x2="63" y2="33" stroke="#99f6e4" stroke-width="0.8" opacity="0.45"/>
+  <line x1="50" y1="40" x2="37" y2="29" stroke="#99f6e4" stroke-width="1.2" opacity="0.8"/>
+  <line x1="50" y1="40" x2="63" y2="29" stroke="#99f6e4" stroke-width="1.2" opacity="0.8"/>
+  <line x1="50" y1="40" x2="50" y2="59" stroke="#99f6e4" stroke-width="1.2" opacity="0.8"/>
+  <line x1="37" y1="29" x2="63" y2="29" stroke="#99f6e4" stroke-width="0.8" opacity="0.45"/>
 
   <!-- Central node (orchestrator) -->
-  <circle cx="50" cy="44" r="4.5" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.5"/>
+  <circle cx="50" cy="40" r="4.5" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.5"/>
 
   <!-- Left node (agent) -->
-  <circle cx="37" cy="33" r="3.2" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.2"/>
+  <circle cx="37" cy="29" r="3.2" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.2"/>
 
   <!-- Right node (MCP server) -->
-  <circle cx="63" cy="33" r="3.2" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.2"/>
+  <circle cx="63" cy="29" r="3.2" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.2"/>
 
   <!-- Bottom node (client) -->
-  <circle cx="50" cy="63" r="3.2" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.2"/>
+  <circle cx="50" cy="59" r="3.2" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.2"/>
 
   <!-- ZTA text -->
-  <text x="50" y="93"
+  <text x="50" y="72"
         font-family="system-ui,-apple-system,BlinkMacSystemFont,sans-serif"
-        font-weight="800" font-size="9" fill="#2dd4bf"
-        text-anchor="middle" letter-spacing="3">ZTA</text>
+        font-weight="800" font-size="8.5" fill="#2dd4bf"
+        text-anchor="middle" letter-spacing="2">ZTA</text>
 </svg>
