@@ -19,7 +19,7 @@ import (
 // checks if the LLMCallStartedEvent type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &LLMCallStartedEvent{}
 
-// LLMCallStartedEvent struct for LLMCallStartedEvent
+// LLMCallStartedEvent Event emitted when an LLM call begins (recorded by the agent).
 type LLMCallStartedEvent struct {
 	Id *string `json:"id,omitempty"`
 	UserInputId string `json:"user_input_id"`
@@ -27,6 +27,7 @@ type LLMCallStartedEvent struct {
 	CallId string `json:"call_id"`
 	Token string `json:"token"`
 	AppId string `json:"app_id"`
+	MasId NullableString `json:"mas_id,omitempty"`
 	Prompt string `json:"prompt"`
 	Tools NullableString `json:"tools"`
 }
@@ -216,6 +217,48 @@ func (o *LLMCallStartedEvent) SetAppId(v string) {
 	o.AppId = v
 }
 
+// GetMasId returns the MasId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *LLMCallStartedEvent) GetMasId() string {
+	if o == nil || IsNil(o.MasId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.MasId.Get()
+}
+
+// GetMasIdOk returns a tuple with the MasId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *LLMCallStartedEvent) GetMasIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.MasId.Get(), o.MasId.IsSet()
+}
+
+// HasMasId returns a boolean if a field has been set.
+func (o *LLMCallStartedEvent) HasMasId() bool {
+	if o != nil && o.MasId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetMasId gets a reference to the given NullableString and assigns it to the MasId field.
+func (o *LLMCallStartedEvent) SetMasId(v string) {
+	o.MasId.Set(&v)
+}
+// SetMasIdNil sets the value for MasId to be an explicit nil
+func (o *LLMCallStartedEvent) SetMasIdNil() {
+	o.MasId.Set(nil)
+}
+
+// UnsetMasId ensures that no value is present for MasId, not even an explicit nil
+func (o *LLMCallStartedEvent) UnsetMasId() {
+	o.MasId.Unset()
+}
+
 // GetPrompt returns the Prompt field value
 func (o *LLMCallStartedEvent) GetPrompt() string {
 	if o == nil {
@@ -286,6 +329,9 @@ func (o LLMCallStartedEvent) ToMap() (map[string]interface{}, error) {
 	toSerialize["call_id"] = o.CallId
 	toSerialize["token"] = o.Token
 	toSerialize["app_id"] = o.AppId
+	if o.MasId.IsSet() {
+		toSerialize["mas_id"] = o.MasId.Get()
+	}
 	toSerialize["prompt"] = o.Prompt
 	toSerialize["tools"] = o.Tools.Get()
 	return toSerialize, nil

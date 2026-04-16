@@ -8,7 +8,6 @@ from pydantic import ValidationError
 from identity_auth_server.k8s.k8s_types import (
     AllowedEndpoint,
     AppSpec,
-    AppTypeK8s,
     LLMEndpoint,
     MASCreateRequest,
     MASPhase,
@@ -25,6 +24,7 @@ from identity_auth_server.k8s.k8s_types import (
     ZTAPolicySpec,
     ZTAPolicyStatus,
 )
+from identity_auth_server.core.types import AppType
 
 
 class TestMultiAgentSystemCRD:
@@ -74,12 +74,12 @@ class TestMultiAgentSystemCRD:
                 apps=[
                     AppSpec(
                         name="orchestrator-agent",
-                        type=AppTypeK8s.AGENT,
+                        type=AppType.AGENT,
                         base_url="http://orchestrator:8000",
                     ),
                     AppSpec(
                         name="filesystem-mcp",
-                        type=AppTypeK8s.MCP_SERVER,
+                        type=AppType.MCP_SERVER,
                         base_url="http://fs-mcp:8080",
                     ),
                 ],
@@ -91,8 +91,8 @@ class TestMultiAgentSystemCRD:
         assert crd.metadata.labels == {"environment": "production"}
         assert len(crd.spec.apps) == 2
         assert crd.spec.apps[0].name == "orchestrator-agent"
-        assert crd.spec.apps[0].type == AppTypeK8s.AGENT
-        assert crd.spec.apps[1].type == AppTypeK8s.MCP_SERVER
+        assert crd.spec.apps[0].type == AppType.AGENT
+        assert crd.spec.apps[1].type == AppType.MCP_SERVER
 
     def test_mas_with_status(self):
         """Test MultiAgentSystem with status."""
@@ -257,9 +257,9 @@ class TestAppTypeK8s:
 
     def test_all_app_types(self):
         """Test all app types are defined."""
-        assert AppTypeK8s.AGENT == "agent"
-        assert AppTypeK8s.CLIENT == "client"
-        assert AppTypeK8s.MCP_SERVER == "mcp_server"
+        assert AppType.AGENT == "agent"
+        assert AppType.CLIENT == "client"
+        assert AppType.MCP_SERVER == "mcp_server"
 
 
 class TestMASPhase:

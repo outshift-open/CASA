@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **Name** | **string** |  | 
 **EnabledToolChecks** | Pointer to [**NullableToolCheckFlags**](ToolCheckFlags.md) |  | [optional] 
 **Namespace** | Pointer to **NullableString** |  | [optional] 
+**K8sName** | Pointer to **NullableString** |  | [optional] 
 
 ## Methods
 
@@ -117,6 +118,41 @@ HasNamespace returns a boolean if a field has been set.
 `func (o *MultiAgentSystemCreateRequest) UnsetNamespace()`
 
 UnsetNamespace ensures that no value is present for Namespace, not even an explicit nil
+### GetK8sName
+
+`func (o *MultiAgentSystemCreateRequest) GetK8sName() string`
+
+GetK8sName returns the K8sName field if non-nil, zero value otherwise.
+
+### GetK8sNameOk
+
+`func (o *MultiAgentSystemCreateRequest) GetK8sNameOk() (*string, bool)`
+
+GetK8sNameOk returns a tuple with the K8sName field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetK8sName
+
+`func (o *MultiAgentSystemCreateRequest) SetK8sName(v string)`
+
+SetK8sName sets K8sName field to given value.
+
+### HasK8sName
+
+`func (o *MultiAgentSystemCreateRequest) HasK8sName() bool`
+
+HasK8sName returns a boolean if a field has been set.
+
+### SetK8sNameNil
+
+`func (o *MultiAgentSystemCreateRequest) SetK8sNameNil(b bool)`
+
+ SetK8sNameNil sets the value for K8sName to be an explicit nil
+
+### UnsetK8sName
+`func (o *MultiAgentSystemCreateRequest) UnsetK8sName()`
+
+UnsetK8sName ensures that no value is present for K8sName, not even an explicit nil
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

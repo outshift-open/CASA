@@ -19,6 +19,7 @@ from typing_extensions import Annotated
 from pydantic import Field
 from typing import Any, Optional
 from typing_extensions import Annotated
+from uuid import UUID
 from identity_auth_sdk.models.llm_call_ended_event import LLMCallEndedEvent
 from identity_auth_sdk.models.llm_call_ended_request import LLMCallEndedRequest
 from identity_auth_sdk.models.llm_call_started_event import LLMCallStartedEvent
@@ -47,6 +48,7 @@ class TracesApi:
         self,
         page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
+        mas_id: Optional[UUID] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -68,6 +70,8 @@ class TracesApi:
         :type page: int
         :param page_size:
         :type page_size: int
+        :param mas_id:
+        :type mas_id: UUID
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -93,6 +97,7 @@ class TracesApi:
         _param = self._get_traces_trace_get_serialize(
             page=page,
             page_size=page_size,
+            mas_id=mas_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -119,6 +124,7 @@ class TracesApi:
         self,
         page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
+        mas_id: Optional[UUID] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -140,6 +146,8 @@ class TracesApi:
         :type page: int
         :param page_size:
         :type page_size: int
+        :param mas_id:
+        :type mas_id: UUID
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -165,6 +173,7 @@ class TracesApi:
         _param = self._get_traces_trace_get_serialize(
             page=page,
             page_size=page_size,
+            mas_id=mas_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -191,6 +200,7 @@ class TracesApi:
         self,
         page: Optional[Annotated[int, Field(strict=True, ge=1)]] = None,
         page_size: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
+        mas_id: Optional[UUID] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -212,6 +222,8 @@ class TracesApi:
         :type page: int
         :param page_size:
         :type page_size: int
+        :param mas_id:
+        :type mas_id: UUID
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -237,6 +249,7 @@ class TracesApi:
         _param = self._get_traces_trace_get_serialize(
             page=page,
             page_size=page_size,
+            mas_id=mas_id,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -258,6 +271,7 @@ class TracesApi:
         self,
         page,
         page_size,
+        mas_id,
         _request_auth,
         _content_type,
         _headers,
@@ -287,6 +301,10 @@ class TracesApi:
         if page_size is not None:
             
             _query_params.append(('page_size', page_size))
+            
+        if mas_id is not None:
+            
+            _query_params.append(('mas_id', mas_id))
             
         # process the header parameters
         # process the form parameters
@@ -343,6 +361,7 @@ class TracesApi:
     ) -> LLMCallEndedEvent:
         """Trace Llm Call End
 
+        Record the end of an LLM call for the authenticated agent.
 
         :param llm_call_ended_request: (required)
         :type llm_call_ended_request: LLMCallEndedRequest
@@ -410,6 +429,7 @@ class TracesApi:
     ) -> ApiResponse[LLMCallEndedEvent]:
         """Trace Llm Call End
 
+        Record the end of an LLM call for the authenticated agent.
 
         :param llm_call_ended_request: (required)
         :type llm_call_ended_request: LLMCallEndedRequest
@@ -477,6 +497,7 @@ class TracesApi:
     ) -> RESTResponseType:
         """Trace Llm Call End
 
+        Record the end of an LLM call for the authenticated agent.
 
         :param llm_call_ended_request: (required)
         :type llm_call_ended_request: LLMCallEndedRequest
@@ -617,6 +638,7 @@ class TracesApi:
     ) -> LLMCallStartedEvent:
         """Trace Llm Call Start
 
+        Record the start of an LLM call for the authenticated agent.
 
         :param llm_call_started_request: (required)
         :type llm_call_started_request: LLMCallStartedRequest
@@ -684,6 +706,7 @@ class TracesApi:
     ) -> ApiResponse[LLMCallStartedEvent]:
         """Trace Llm Call Start
 
+        Record the start of an LLM call for the authenticated agent.
 
         :param llm_call_started_request: (required)
         :type llm_call_started_request: LLMCallStartedRequest
@@ -751,6 +774,7 @@ class TracesApi:
     ) -> RESTResponseType:
         """Trace Llm Call Start
 
+        Record the start of an LLM call for the authenticated agent.
 
         :param llm_call_started_request: (required)
         :type llm_call_started_request: LLMCallStartedRequest

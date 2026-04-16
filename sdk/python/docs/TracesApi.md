@@ -10,7 +10,7 @@ Method | HTTP request | Description
 
 
 # **get_traces_trace_get**
-> object get_traces_trace_get(page=page, page_size=page_size)
+> object get_traces_trace_get(page=page, page_size=page_size, mas_id=mas_id)
 
 Get Traces
 
@@ -37,10 +37,11 @@ with identity_auth_sdk.ApiClient(configuration) as api_client:
     api_instance = identity_auth_sdk.TracesApi(api_client)
     page = 1 # int |  (optional) (default to 1)
     page_size = 20 # int |  (optional) (default to 20)
+    mas_id = UUID('38400000-8cf0-11bd-b23e-10b96e4ef00d') # UUID |  (optional)
 
     try:
         # Get Traces
-        api_response = api_instance.get_traces_trace_get(page=page, page_size=page_size)
+        api_response = api_instance.get_traces_trace_get(page=page, page_size=page_size, mas_id=mas_id)
         print("The response of TracesApi->get_traces_trace_get:\n")
         pprint(api_response)
     except Exception as e:
@@ -56,6 +57,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **page** | **int**|  | [optional] [default to 1]
  **page_size** | **int**|  | [optional] [default to 20]
+ **mas_id** | **UUID**|  | [optional] 
 
 ### Return type
 
@@ -83,6 +85,8 @@ No authorization required
 > LLMCallEndedEvent trace_llm_call_end(llm_call_ended_request)
 
 Trace Llm Call End
+
+Record the end of an LLM call for the authenticated agent.
 
 ### Example
 
@@ -161,6 +165,8 @@ Name | Type | Description  | Notes
 > LLMCallStartedEvent trace_llm_call_start(llm_call_started_request)
 
 Trace Llm Call Start
+
+Record the start of an LLM call for the authenticated agent.
 
 ### Example
 

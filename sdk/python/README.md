@@ -95,6 +95,18 @@ Class | Method | HTTP request | Description
 *AuthorizationServerApi* | [**introspect**](docs/AuthorizationServerApi.md#introspect) | **POST** /oauth2/introspect | Introspect
 *AuthorizationServerApi* | [**token**](docs/AuthorizationServerApi.md#token) | **POST** /{app_id}/oauth2/token | Token
 *AuthorizationServerApi* | [**token_exchange**](docs/AuthorizationServerApi.md#token_exchange) | **POST** /{app_id}/oauth2/token_exchange | Token Exchange
+*KubernetesCRDsApi* | [**create_mas_crd_k8s_namespaces_namespace_mas_post**](docs/KubernetesCRDsApi.md#create_mas_crd_k8s_namespaces_namespace_mas_post) | **POST** /k8s/namespaces/{namespace}/mas | Create Mas Crd
+*KubernetesCRDsApi* | [**delete_mas_crd_k8s_namespaces_namespace_mas_name_delete**](docs/KubernetesCRDsApi.md#delete_mas_crd_k8s_namespaces_namespace_mas_name_delete) | **DELETE** /k8s/namespaces/{namespace}/mas/{name} | Delete Mas Crd
+*KubernetesCRDsApi* | [**get_mas_crd_k8s_namespaces_namespace_mas_mas_id_get**](docs/KubernetesCRDsApi.md#get_mas_crd_k8s_namespaces_namespace_mas_mas_id_get) | **GET** /k8s/namespaces/{namespace}/mas/{mas_id} | Get Mas Crd
+*KubernetesCRDsApi* | [**list_all_mas_crds_k8s_mas_get**](docs/KubernetesCRDsApi.md#list_all_mas_crds_k8s_mas_get) | **GET** /k8s/mas | List All Mas Crds
+*KubernetesCRDsApi* | [**list_mas_crds_in_namespace_k8s_namespaces_namespace_mas_get**](docs/KubernetesCRDsApi.md#list_mas_crds_in_namespace_k8s_namespaces_namespace_mas_get) | **GET** /k8s/namespaces/{namespace}/mas | List Mas Crds In Namespace
+*KubernetesCRDsApi* | [**liveness_probe_k8s_healthz_get**](docs/KubernetesCRDsApi.md#liveness_probe_k8s_healthz_get) | **GET** /k8s/healthz | Liveness Probe
+*KubernetesCRDsApi* | [**readiness_probe_k8s_readyz_get**](docs/KubernetesCRDsApi.md#readiness_probe_k8s_readyz_get) | **GET** /k8s/readyz | Readiness Probe
+*KubernetesCRDsApi* | [**update_mas_crd_k8s_namespaces_namespace_mas_name_put**](docs/KubernetesCRDsApi.md#update_mas_crd_k8s_namespaces_namespace_mas_name_put) | **PUT** /k8s/namespaces/{namespace}/mas/{name} | Update Mas Crd
+*KubernetesCRDsApi* | [**update_mas_status_k8s_namespaces_namespace_mas_name_status_patch**](docs/KubernetesCRDsApi.md#update_mas_status_k8s_namespaces_namespace_mas_name_status_patch) | **PATCH** /k8s/namespaces/{namespace}/mas/{name}/status | Update Mas Status
+*KubernetesCRDsApi* | [**watch_all_mas_k8s_watch_multiagentsystems_get**](docs/KubernetesCRDsApi.md#watch_all_mas_k8s_watch_multiagentsystems_get) | **GET** /k8s/watch/multiagentsystems | Watch All Mas
+*KubernetesCRDsApi* | [**watch_mas_in_namespace_k8s_watch_namespaces_namespace_multiagentsystems_get**](docs/KubernetesCRDsApi.md#watch_mas_in_namespace_k8s_watch_namespaces_namespace_multiagentsystems_get) | **GET** /k8s/watch/namespaces/{namespace}/multiagentsystems | Watch Mas In Namespace
+*KubernetesCRDsApi* | [**watch_policies_in_namespace_k8s_watch_namespaces_namespace_ztapolicies_get**](docs/KubernetesCRDsApi.md#watch_policies_in_namespace_k8s_watch_namespaces_namespace_ztapolicies_get) | **GET** /k8s/watch/namespaces/{namespace}/ztapolicies | Watch Policies In Namespace
 *KubernetesResourcesApi* | [**cache_load_token**](docs/KubernetesResourcesApi.md#cache_load_token) | **POST** /k8s/namespaces/{namespace}/cache/load-token | Load Token
 *KubernetesResourcesApi* | [**cache_store_token**](docs/KubernetesResourcesApi.md#cache_store_token) | **POST** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 *KubernetesResourcesApi* | [**get_k8s_mas_by_app_host**](docs/KubernetesResourcesApi.md#get_k8s_mas_by_app_host) | **GET** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
@@ -120,8 +132,10 @@ Class | Method | HTTP request | Description
 ## Documentation For Models
 
  - [ActorClaim](docs/ActorClaim.md)
+ - [AppCredentials](docs/AppCredentials.md)
  - [AppMetadataResponse](docs/AppMetadataResponse.md)
  - [AppRequest](docs/AppRequest.md)
+ - [AppSpec](docs/AppSpec.md)
  - [AppType](docs/AppType.md)
  - [AppViewModel](docs/AppViewModel.md)
  - [CacheTokenLoadRequest](docs/CacheTokenLoadRequest.md)
@@ -136,9 +150,19 @@ Class | Method | HTTP request | Description
  - [LLMCallStartedEvent](docs/LLMCallStartedEvent.md)
  - [LLMCallStartedRequest](docs/LLMCallStartedRequest.md)
  - [LocationInner](docs/LocationInner.md)
+ - [MASCreateRequest](docs/MASCreateRequest.md)
+ - [MASListResponse](docs/MASListResponse.md)
+ - [MASPhase](docs/MASPhase.md)
+ - [MASStatusUpdateRequest](docs/MASStatusUpdateRequest.md)
+ - [MASUpdateRequest](docs/MASUpdateRequest.md)
  - [MultiAgentSystem](docs/MultiAgentSystem.md)
  - [MultiAgentSystemAppsBindingRequest](docs/MultiAgentSystemAppsBindingRequest.md)
+ - [MultiAgentSystemCRD](docs/MultiAgentSystemCRD.md)
  - [MultiAgentSystemCreateRequest](docs/MultiAgentSystemCreateRequest.md)
+ - [MultiAgentSystemMetadata](docs/MultiAgentSystemMetadata.md)
+ - [MultiAgentSystemSpecInput](docs/MultiAgentSystemSpecInput.md)
+ - [MultiAgentSystemSpecOutput](docs/MultiAgentSystemSpecOutput.md)
+ - [MultiAgentSystemStatus](docs/MultiAgentSystemStatus.md)
  - [MultiAgentSystemUpdateRequest](docs/MultiAgentSystemUpdateRequest.md)
  - [MultiAgentSystemViewModel](docs/MultiAgentSystemViewModel.md)
  - [ScopeCreateRequest](docs/ScopeCreateRequest.md)
@@ -148,6 +172,7 @@ Class | Method | HTTP request | Description
  - [TokenIntrospectResponse](docs/TokenIntrospectResponse.md)
  - [TokenResponse](docs/TokenResponse.md)
  - [ToolCheckFlags](docs/ToolCheckFlags.md)
+ - [ToolCheckType](docs/ToolCheckType.md)
  - [ToolRequest](docs/ToolRequest.md)
  - [ToolViewModel](docs/ToolViewModel.md)
  - [UserInput](docs/UserInput.md)

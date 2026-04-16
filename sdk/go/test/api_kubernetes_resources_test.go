@@ -22,6 +22,34 @@ func Test_api_KubernetesResourcesAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
+	t.Run("Test KubernetesResourcesAPIService CacheLoadToken", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var namespace string
+
+		resp, httpRes, err := apiClient.KubernetesResourcesAPI.CacheLoadToken(context.Background(), namespace).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
+	t.Run("Test KubernetesResourcesAPIService CacheStoreToken", func(t *testing.T) {
+
+		t.Skip("skip test")  // remove to run test
+
+		var namespace string
+
+		resp, httpRes, err := apiClient.KubernetesResourcesAPI.CacheStoreToken(context.Background(), namespace).Execute()
+
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, 200, httpRes.StatusCode)
+
+	})
+
 	t.Run("Test KubernetesResourcesAPIService GetK8sMasByAppHost", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test

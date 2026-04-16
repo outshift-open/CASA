@@ -20,7 +20,7 @@ from typing_extensions import Self
 
 class ToolCheckFlags(int, Enum):
     """
-    ToolCheckFlags
+    Bitmask flags controlling which tool authorization checks are enabled on a MAS.
     """
 
     """

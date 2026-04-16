@@ -38,8 +38,10 @@ class TestK8sAppSpecViewModel(unittest.TestCase):
                 id = '',
                 name = '',
                 type = 'agent',
-                base_url = '',
-                prompt_json_path = '',
+                url_host = '',
+                url_scheme = '',
+                prompt_field_json_path = '',
+                kubernetes_workload_name = '',
                 mas_crd_id = '',
                 app_id = ''
             )
@@ -47,7 +49,8 @@ class TestK8sAppSpecViewModel(unittest.TestCase):
             return K8sAppSpecViewModel(
                 name = '',
                 type = 'agent',
-                base_url = '',
+                url_host = '',
+                url_scheme = '',
         )
         """
 

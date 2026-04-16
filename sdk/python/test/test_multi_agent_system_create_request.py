@@ -37,7 +37,8 @@ class TestMultiAgentSystemCreateRequest(unittest.TestCase):
             return MultiAgentSystemCreateRequest(
                 name = '',
                 enabled_tool_checks = 0,
-                namespace = ''
+                namespace = '',
+                k8s_name = ''
             )
         else:
             return MultiAgentSystemCreateRequest(

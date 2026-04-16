@@ -45,6 +45,7 @@ class TestTokenIntrospectResponse(unittest.TestCase):
                 exp = 56,
                 user_input_id = '',
                 app_id = '',
+                mas_id = '',
                 tools = [
                     ''
                     ],

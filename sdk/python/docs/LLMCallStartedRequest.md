@@ -1,5 +1,6 @@
 # LLMCallStartedRequest
 
+Request body for recording the start of an LLM call.
 
 ## Properties
 

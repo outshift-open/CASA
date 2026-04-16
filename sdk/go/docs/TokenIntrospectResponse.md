@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **Exp** | Pointer to **NullableInt32** |  | [optional] 
 **UserInputId** | Pointer to **NullableString** |  | [optional] 
 **AppId** | Pointer to **NullableString** |  | [optional] 
+**MasId** | Pointer to **NullableString** |  | [optional] 
 **Tools** | Pointer to **[]string** |  | [optional] 
 **Active** | **bool** |  | 
 
@@ -314,6 +315,41 @@ HasAppId returns a boolean if a field has been set.
 `func (o *TokenIntrospectResponse) UnsetAppId()`
 
 UnsetAppId ensures that no value is present for AppId, not even an explicit nil
+### GetMasId
+
+`func (o *TokenIntrospectResponse) GetMasId() string`
+
+GetMasId returns the MasId field if non-nil, zero value otherwise.
+
+### GetMasIdOk
+
+`func (o *TokenIntrospectResponse) GetMasIdOk() (*string, bool)`
+
+GetMasIdOk returns a tuple with the MasId field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetMasId
+
+`func (o *TokenIntrospectResponse) SetMasId(v string)`
+
+SetMasId sets MasId field to given value.
+
+### HasMasId
+
+`func (o *TokenIntrospectResponse) HasMasId() bool`
+
+HasMasId returns a boolean if a field has been set.
+
+### SetMasIdNil
+
+`func (o *TokenIntrospectResponse) SetMasIdNil(b bool)`
+
+ SetMasIdNil sets the value for MasId to be an explicit nil
+
+### UnsetMasId
+`func (o *TokenIntrospectResponse) UnsetMasId()`
+
+UnsetMasId ensures that no value is present for MasId, not even an explicit nil
 ### GetTools
 
 `func (o *TokenIntrospectResponse) GetTools() []string`

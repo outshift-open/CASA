@@ -29,6 +29,7 @@ type TokenIntrospectResponse struct {
 	Exp NullableInt32 `json:"exp,omitempty"`
 	UserInputId NullableString `json:"user_input_id,omitempty"`
 	AppId NullableString `json:"app_id,omitempty"`
+	MasId NullableString `json:"mas_id,omitempty"`
 	Tools []string `json:"tools,omitempty"`
 	Active bool `json:"active"`
 }
@@ -380,6 +381,48 @@ func (o *TokenIntrospectResponse) UnsetAppId() {
 	o.AppId.Unset()
 }
 
+// GetMasId returns the MasId field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *TokenIntrospectResponse) GetMasId() string {
+	if o == nil || IsNil(o.MasId.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.MasId.Get()
+}
+
+// GetMasIdOk returns a tuple with the MasId field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *TokenIntrospectResponse) GetMasIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.MasId.Get(), o.MasId.IsSet()
+}
+
+// HasMasId returns a boolean if a field has been set.
+func (o *TokenIntrospectResponse) HasMasId() bool {
+	if o != nil && o.MasId.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetMasId gets a reference to the given NullableString and assigns it to the MasId field.
+func (o *TokenIntrospectResponse) SetMasId(v string) {
+	o.MasId.Set(&v)
+}
+// SetMasIdNil sets the value for MasId to be an explicit nil
+func (o *TokenIntrospectResponse) SetMasIdNil() {
+	o.MasId.Set(nil)
+}
+
+// UnsetMasId ensures that no value is present for MasId, not even an explicit nil
+func (o *TokenIntrospectResponse) UnsetMasId() {
+	o.MasId.Unset()
+}
+
 // GetTools returns the Tools field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *TokenIntrospectResponse) GetTools() []string {
 	if o == nil {
@@ -470,6 +513,9 @@ func (o TokenIntrospectResponse) ToMap() (map[string]interface{}, error) {
 	}
 	if o.AppId.IsSet() {
 		toSerialize["app_id"] = o.AppId.Get()
+	}
+	if o.MasId.IsSet() {
+		toSerialize["mas_id"] = o.MasId.Get()
 	}
 	if o.Tools != nil {
 		toSerialize["tools"] = o.Tools

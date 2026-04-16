@@ -35,9 +35,10 @@ class TokenIntrospectResponse(BaseModel):
     exp: Optional[StrictInt] = None
     user_input_id: Optional[StrictStr] = None
     app_id: Optional[StrictStr] = None
+    mas_id: Optional[StrictStr] = None
     tools: Optional[List[StrictStr]] = None
     active: StrictBool
-    __properties: ClassVar[List[str]] = ["client_id", "scope", "sub", "act", "other", "exp", "user_input_id", "app_id", "tools", "active"]
+    __properties: ClassVar[List[str]] = ["client_id", "scope", "sub", "act", "other", "exp", "user_input_id", "app_id", "mas_id", "tools", "active"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -121,6 +122,11 @@ class TokenIntrospectResponse(BaseModel):
         if self.app_id is None and "app_id" in self.model_fields_set:
             _dict['app_id'] = None
 
+        # set to None if mas_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.mas_id is None and "mas_id" in self.model_fields_set:
+            _dict['mas_id'] = None
+
         # set to None if tools (nullable) is None
         # and model_fields_set contains the field
         if self.tools is None and "tools" in self.model_fields_set:
@@ -146,6 +152,7 @@ class TokenIntrospectResponse(BaseModel):
             "exp": obj.get("exp"),
             "user_input_id": obj.get("user_input_id"),
             "app_id": obj.get("app_id"),
+            "mas_id": obj.get("mas_id"),
             "tools": obj.get("tools"),
             "active": obj.get("active")
         })

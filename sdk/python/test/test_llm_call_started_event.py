@@ -41,6 +41,7 @@ class TestLLMCallStartedEvent(unittest.TestCase):
                 call_id = '',
                 token = '',
                 app_id = '',
+                mas_id = '',
                 prompt = '',
                 tools = ''
             )

@@ -26,6 +26,20 @@ class TestKubernetesResourcesApi(unittest.TestCase):
     def tearDown(self) -> None:
         pass
 
+    def test_cache_load_token(self) -> None:
+        """Test case for cache_load_token
+
+        Load Token
+        """
+        pass
+
+    def test_cache_store_token(self) -> None:
+        """Test case for cache_store_token
+
+        Store Token
+        """
+        pass
+
     def test_get_k8s_mas_by_app_host(self) -> None:
         """Test case for get_k8s_mas_by_app_host
 

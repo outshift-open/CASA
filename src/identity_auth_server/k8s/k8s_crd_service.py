@@ -5,11 +5,10 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from identity_auth_server.core.idp.idp_client import IdpClient
-from identity_auth_server.core.types import MultiAgentSystem, ToolCheckFlags
+from identity_auth_server.core.types import AppType, MultiAgentSystem, ToolCheckFlags
 from identity_auth_server.k8s.k8s_types import (
     AppCredentials,
     AppSpec,
-    AppTypeK8s,
     MASCreateRequest,
     MASPhase,
     MASStatusUpdateRequest,
@@ -66,7 +65,7 @@ class K8sCRDService:
             checks.append(ToolCheckType.AI_POWERED_TOOL_MATCH)
         return checks
 
-    def _convert_app_type(self, app_type: AppTypeK8s) -> str:
+    def _convert_app_type(self, app_type: AppType) -> str:
         """Convert K8s app type to internal app type."""
         return app_type.value
 
@@ -76,7 +75,7 @@ class K8sCRDService:
         apps = self._app_service.get_mas_apps(str(mas.id))
 
         # Build app specs
-        app_specs = [AppSpec(name=app.name, type=AppTypeK8s(app.type), base_url=app.base_url) for app in apps]
+        app_specs = [AppSpec(name=app.name, type=AppType(app.type), base_url=app.base_url) for app in apps]
 
         # Build status
         status = MultiAgentSystemStatus(

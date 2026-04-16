@@ -22,11 +22,11 @@ func Test_api_UserInputsAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
-	t.Run("Test UserInputsAPIService CreateUserInputUserInputsPost", func(t *testing.T) {
+	t.Run("Test UserInputsAPIService CreateUserInput", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test
 
-		resp, httpRes, err := apiClient.UserInputsAPI.CreateUserInputUserInputsPost(context.Background()).Execute()
+		resp, httpRes, err := apiClient.UserInputsAPI.CreateUserInput(context.Background()).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
@@ -34,13 +34,13 @@ func Test_api_UserInputsAPIService(t *testing.T) {
 
 	})
 
-	t.Run("Test UserInputsAPIService GetAppUserInputsGetByTagTagGet", func(t *testing.T) {
+	t.Run("Test UserInputsAPIService GetUserInputByTag", func(t *testing.T) {
 
 		t.Skip("skip test")  // remove to run test
 
 		var tag string
 
-		resp, httpRes, err := apiClient.UserInputsAPI.GetAppUserInputsGetByTagTagGet(context.Background(), tag).Execute()
+		resp, httpRes, err := apiClient.UserInputsAPI.GetUserInputByTag(context.Background(), tag).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)

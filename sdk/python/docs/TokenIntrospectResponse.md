@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **exp** | **int** |  | [optional] 
 **user_input_id** | **str** |  | [optional] 
 **app_id** | **str** |  | [optional] 
+**mas_id** | **str** |  | [optional] 
 **tools** | **List[str]** |  | [optional] 
 **active** | **bool** |  | 
 

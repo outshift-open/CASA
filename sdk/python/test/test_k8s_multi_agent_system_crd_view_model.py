@@ -53,8 +53,10 @@ class TestK8sMultiAgentSystemCRDViewModel(unittest.TestCase):
                         id = '', 
                         name = '', 
                         type = 'agent', 
-                        base_url = '', 
-                        prompt_json_path = '', 
+                        url_host = '', 
+                        url_scheme = '', 
+                        prompt_field_json_path = '', 
+                        kubernetes_workload_name = '', 
                         mas_crd_id = '', 
                         app_id = '', )
                     ],

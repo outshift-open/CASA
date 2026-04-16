@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **name** | **str** |  | 
 **enabled_tool_checks** | [**ToolCheckFlags**](ToolCheckFlags.md) |  | [optional] 
 **namespace** | **str** |  | [optional] 
+**k8s_name** | **str** |  | [optional] 
 
 ## Example
 

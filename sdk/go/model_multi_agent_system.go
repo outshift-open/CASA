@@ -23,6 +23,7 @@ var _ MappedNullable = &MultiAgentSystem{}
 type MultiAgentSystem struct {
 	Id NullableString `json:"id,omitempty"`
 	Name string `json:"name"`
+	K8sName NullableString `json:"k8s_name,omitempty"`
 	EnabledToolChecks NullableToolCheckFlags `json:"enabled_tool_checks,omitempty"`
 	AuthorizationServerId NullableString `json:"authorization_server_id"`
 	Namespace NullableString `json:"namespace"`
@@ -40,7 +41,7 @@ func NewMultiAgentSystem(name string, authorizationServerId NullableString, name
 	this.Name = name
 	this.AuthorizationServerId = authorizationServerId
 	this.Namespace = namespace
-	var createdAt string = "2026-04-15T15:18:00.589239Z"
+	var createdAt string = "2026-04-16T14:06:57.235019Z"
 	this.CreatedAt = &createdAt
 	return &this
 }
@@ -50,7 +51,7 @@ func NewMultiAgentSystem(name string, authorizationServerId NullableString, name
 // but it doesn't guarantee that properties required by API are set
 func NewMultiAgentSystemWithDefaults() *MultiAgentSystem {
 	this := MultiAgentSystem{}
-	var createdAt string = "2026-04-15T15:18:00.589239Z"
+	var createdAt string = "2026-04-16T14:06:57.235019Z"
 	this.CreatedAt = &createdAt
 	return &this
 }
@@ -119,6 +120,48 @@ func (o *MultiAgentSystem) GetNameOk() (*string, bool) {
 // SetName sets field value
 func (o *MultiAgentSystem) SetName(v string) {
 	o.Name = v
+}
+
+// GetK8sName returns the K8sName field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MultiAgentSystem) GetK8sName() string {
+	if o == nil || IsNil(o.K8sName.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.K8sName.Get()
+}
+
+// GetK8sNameOk returns a tuple with the K8sName field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MultiAgentSystem) GetK8sNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.K8sName.Get(), o.K8sName.IsSet()
+}
+
+// HasK8sName returns a boolean if a field has been set.
+func (o *MultiAgentSystem) HasK8sName() bool {
+	if o != nil && o.K8sName.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetK8sName gets a reference to the given NullableString and assigns it to the K8sName field.
+func (o *MultiAgentSystem) SetK8sName(v string) {
+	o.K8sName.Set(&v)
+}
+// SetK8sNameNil sets the value for K8sName to be an explicit nil
+func (o *MultiAgentSystem) SetK8sNameNil() {
+	o.K8sName.Set(nil)
+}
+
+// UnsetK8sName ensures that no value is present for K8sName, not even an explicit nil
+func (o *MultiAgentSystem) UnsetK8sName() {
+	o.K8sName.Unset()
 }
 
 // GetEnabledToolChecks returns the EnabledToolChecks field value if set, zero value otherwise (both if not set or set to explicit null).
@@ -261,6 +304,9 @@ func (o MultiAgentSystem) ToMap() (map[string]interface{}, error) {
 		toSerialize["id"] = o.Id.Get()
 	}
 	toSerialize["name"] = o.Name
+	if o.K8sName.IsSet() {
+		toSerialize["k8s_name"] = o.K8sName.Get()
+	}
 	if o.EnabledToolChecks.IsSet() {
 		toSerialize["enabled_tool_checks"] = o.EnabledToolChecks.Get()
 	}

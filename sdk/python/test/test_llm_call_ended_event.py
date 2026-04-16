@@ -41,6 +41,7 @@ class TestLLMCallEndedEvent(unittest.TestCase):
                 call_id = '',
                 token = '',
                 app_id = '',
+                mas_id = '',
                 response = '',
                 tools = ''
             )

@@ -6,10 +6,11 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | Pointer to **NullableString** |  | [optional] 
 **Name** | **string** |  | 
+**K8sName** | Pointer to **NullableString** |  | [optional] 
 **EnabledToolChecks** | Pointer to [**NullableToolCheckFlags**](ToolCheckFlags.md) |  | [optional] 
 **AuthorizationServerId** | **NullableString** |  | 
 **Namespace** | **NullableString** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-15T15:18:00.589239Z"]
+**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-16T14:06:57.235019Z"]
 
 ## Methods
 
@@ -85,6 +86,41 @@ and a boolean to check if the value has been set.
 SetName sets Name field to given value.
 
 
+### GetK8sName
+
+`func (o *MultiAgentSystem) GetK8sName() string`
+
+GetK8sName returns the K8sName field if non-nil, zero value otherwise.
+
+### GetK8sNameOk
+
+`func (o *MultiAgentSystem) GetK8sNameOk() (*string, bool)`
+
+GetK8sNameOk returns a tuple with the K8sName field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetK8sName
+
+`func (o *MultiAgentSystem) SetK8sName(v string)`
+
+SetK8sName sets K8sName field to given value.
+
+### HasK8sName
+
+`func (o *MultiAgentSystem) HasK8sName() bool`
+
+HasK8sName returns a boolean if a field has been set.
+
+### SetK8sNameNil
+
+`func (o *MultiAgentSystem) SetK8sNameNil(b bool)`
+
+ SetK8sNameNil sets the value for K8sName to be an explicit nil
+
+### UnsetK8sName
+`func (o *MultiAgentSystem) UnsetK8sName()`
+
+UnsetK8sName ensures that no value is present for K8sName, not even an explicit nil
 ### GetEnabledToolChecks
 
 `func (o *MultiAgentSystem) GetEnabledToolChecks() ToolCheckFlags`

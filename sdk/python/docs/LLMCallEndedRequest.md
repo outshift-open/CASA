@@ -1,5 +1,6 @@
 # LLMCallEndedRequest
 
+Request body for recording the end of an LLM call.
 
 ## Properties
 

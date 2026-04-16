@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **CallId** | **string** |  | 
 **Token** | **string** |  | 
 **AppId** | **string** |  | 
+**MasId** | Pointer to **NullableString** |  | [optional] 
 **Prompt** | **string** |  | 
 **Tools** | **NullableString** |  | 
 
@@ -162,6 +163,41 @@ and a boolean to check if the value has been set.
 SetAppId sets AppId field to given value.
 
 
+### GetMasId
+
+`func (o *LLMCallStartedEvent) GetMasId() string`
+
+GetMasId returns the MasId field if non-nil, zero value otherwise.
+
+### GetMasIdOk
+
+`func (o *LLMCallStartedEvent) GetMasIdOk() (*string, bool)`
+
+GetMasIdOk returns a tuple with the MasId field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetMasId
+
+`func (o *LLMCallStartedEvent) SetMasId(v string)`
+
+SetMasId sets MasId field to given value.
+
+### HasMasId
+
+`func (o *LLMCallStartedEvent) HasMasId() bool`
+
+HasMasId returns a boolean if a field has been set.
+
+### SetMasIdNil
+
+`func (o *LLMCallStartedEvent) SetMasIdNil(b bool)`
+
+ SetMasIdNil sets the value for MasId to be an explicit nil
+
+### UnsetMasId
+`func (o *LLMCallStartedEvent) UnsetMasId()`
+
+UnsetMasId ensures that no value is present for MasId, not even an explicit nil
 ### GetPrompt
 
 `func (o *LLMCallStartedEvent) GetPrompt() string`

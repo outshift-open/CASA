@@ -19,7 +19,7 @@ import (
 // checks if the LLMCallStartedRequest type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &LLMCallStartedRequest{}
 
-// LLMCallStartedRequest struct for LLMCallStartedRequest
+// LLMCallStartedRequest Request body for recording the start of an LLM call.
 type LLMCallStartedRequest struct {
 	CallId string `json:"call_id"`
 	Prompt string `json:"prompt"`

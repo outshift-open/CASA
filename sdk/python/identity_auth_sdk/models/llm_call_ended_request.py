@@ -24,7 +24,7 @@ from typing_extensions import Self
 
 class LLMCallEndedRequest(BaseModel):
     """
-    LLMCallEndedRequest
+    Request body for recording the end of an LLM call.
     """ # noqa: E501
     call_id: StrictStr
     response: StrictStr

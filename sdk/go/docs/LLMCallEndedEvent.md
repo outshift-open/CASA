@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **CallId** | **string** |  | 
 **Token** | **string** |  | 
 **AppId** | **string** |  | 
+**MasId** | Pointer to **NullableString** |  | [optional] 
 **Response** | **string** |  | 
 **Tools** | **NullableString** |  | 
 
@@ -162,6 +163,41 @@ and a boolean to check if the value has been set.
 SetAppId sets AppId field to given value.
 
 
+### GetMasId
+
+`func (o *LLMCallEndedEvent) GetMasId() string`
+
+GetMasId returns the MasId field if non-nil, zero value otherwise.
+
+### GetMasIdOk
+
+`func (o *LLMCallEndedEvent) GetMasIdOk() (*string, bool)`
+
+GetMasIdOk returns a tuple with the MasId field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetMasId
+
+`func (o *LLMCallEndedEvent) SetMasId(v string)`
+
+SetMasId sets MasId field to given value.
+
+### HasMasId
+
+`func (o *LLMCallEndedEvent) HasMasId() bool`
+
+HasMasId returns a boolean if a field has been set.
+
+### SetMasIdNil
+
+`func (o *LLMCallEndedEvent) SetMasIdNil(b bool)`
+
+ SetMasIdNil sets the value for MasId to be an explicit nil
+
+### UnsetMasId
+`func (o *LLMCallEndedEvent) UnsetMasId()`
+
+UnsetMasId ensures that no value is present for MasId, not even an explicit nil
 ### GetResponse
 
 `func (o *LLMCallEndedEvent) GetResponse() string`

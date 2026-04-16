@@ -12,7 +12,7 @@ Method | HTTP request | Description
 
 ## GetTracesTraceGet
 
-> interface{} GetTracesTraceGet(ctx).Page(page).PageSize(pageSize).Execute()
+> interface{} GetTracesTraceGet(ctx).Page(page).PageSize(pageSize).MasId(masId).Execute()
 
 Get Traces
 
@@ -33,10 +33,11 @@ import (
 func main() {
 	page := int32(56) // int32 |  (optional) (default to 1)
 	pageSize := int32(56) // int32 |  (optional) (default to 20)
+	masId := "38400000-8cf0-11bd-b23e-10b96e4ef00d" // string |  (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.TracesAPI.GetTracesTraceGet(context.Background()).Page(page).PageSize(pageSize).Execute()
+	resp, r, err := apiClient.TracesAPI.GetTracesTraceGet(context.Background()).Page(page).PageSize(pageSize).MasId(masId).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `TracesAPI.GetTracesTraceGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -59,6 +60,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **page** | **int32** |  | [default to 1]
  **pageSize** | **int32** |  | [default to 20]
+ **masId** | **string** |  | 
 
 ### Return type
 
@@ -83,6 +85,8 @@ No authorization required
 > LLMCallEndedEvent TraceLlmCallEnd(ctx).LLMCallEndedRequest(lLMCallEndedRequest).Execute()
 
 Trace Llm Call End
+
+
 
 ### Example
 
@@ -147,6 +151,8 @@ Name | Type | Description  | Notes
 > LLMCallStartedEvent TraceLlmCallStart(ctx).LLMCallStartedRequest(lLMCallStartedRequest).Execute()
 
 Trace Llm Call Start
+
+
 
 ### Example
 

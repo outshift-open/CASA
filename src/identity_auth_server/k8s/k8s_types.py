@@ -1,18 +1,12 @@
 """Kubernetes CRD models for ZTA Multi-Agent System."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-
-class AppTypeK8s(str, Enum):
-    """Enumeration of app types for K8s CRD."""
-
-    AGENT = "agent"
-    CLIENT = "client"
-    MCP_SERVER = "mcp_server"
+from identity_auth_server.core.types import AppType
 
 
 class ToolCheckType(str, Enum):
@@ -35,7 +29,7 @@ class AppSpec(BaseModel):
     """Application specification within a MultiAgentSystem."""
 
     name: str = Field(description="Name of the application")
-    type: AppTypeK8s = Field(description="Type of the application")
+    type: AppType = Field(description="Type of the application")
     base_url: str = Field(description="Base URL of the application", alias="baseUrl")
 
     class Config:
@@ -90,9 +84,7 @@ class MultiAgentSystemStatus(BaseModel):
 
     phase: MASPhase = Field(default=MASPhase.PENDING, description="Current phase of the MAS")
     apps_ready: int = Field(default=0, description="Number of apps successfully registered", alias="appsReady")
-    last_sync_time: Optional[datetime] = Field(
-        default=None, description="Last time the MAS was reconciled", alias="lastSyncTime"
-    )
+    last_sync_time: datetime = datetime.now(timezone.utc)
     message: Optional[str] = Field(default=None, description="Human-readable status message")
     credentials: Optional[List[AppCredentials]] = Field(
         default=None, description="OAuth2 credentials for each app (used by operator to create secrets)"

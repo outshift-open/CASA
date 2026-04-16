@@ -24,6 +24,7 @@ type MultiAgentSystemCreateRequest struct {
 	Name string `json:"name"`
 	EnabledToolChecks NullableToolCheckFlags `json:"enabled_tool_checks,omitempty"`
 	Namespace NullableString `json:"namespace,omitempty"`
+	K8sName NullableString `json:"k8s_name,omitempty"`
 }
 
 type _MultiAgentSystemCreateRequest MultiAgentSystemCreateRequest
@@ -154,6 +155,48 @@ func (o *MultiAgentSystemCreateRequest) UnsetNamespace() {
 	o.Namespace.Unset()
 }
 
+// GetK8sName returns the K8sName field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MultiAgentSystemCreateRequest) GetK8sName() string {
+	if o == nil || IsNil(o.K8sName.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.K8sName.Get()
+}
+
+// GetK8sNameOk returns a tuple with the K8sName field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MultiAgentSystemCreateRequest) GetK8sNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.K8sName.Get(), o.K8sName.IsSet()
+}
+
+// HasK8sName returns a boolean if a field has been set.
+func (o *MultiAgentSystemCreateRequest) HasK8sName() bool {
+	if o != nil && o.K8sName.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetK8sName gets a reference to the given NullableString and assigns it to the K8sName field.
+func (o *MultiAgentSystemCreateRequest) SetK8sName(v string) {
+	o.K8sName.Set(&v)
+}
+// SetK8sNameNil sets the value for K8sName to be an explicit nil
+func (o *MultiAgentSystemCreateRequest) SetK8sNameNil() {
+	o.K8sName.Set(nil)
+}
+
+// UnsetK8sName ensures that no value is present for K8sName, not even an explicit nil
+func (o *MultiAgentSystemCreateRequest) UnsetK8sName() {
+	o.K8sName.Unset()
+}
+
 func (o MultiAgentSystemCreateRequest) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -170,6 +213,9 @@ func (o MultiAgentSystemCreateRequest) ToMap() (map[string]interface{}, error) {
 	}
 	if o.Namespace.IsSet() {
 		toSerialize["namespace"] = o.Namespace.Get()
+	}
+	if o.K8sName.IsSet() {
+		toSerialize["k8s_name"] = o.K8sName.Get()
 	}
 	return toSerialize, nil
 }

@@ -27,6 +27,7 @@ type ApiGetTracesTraceGetRequest struct {
 	ApiService *TracesAPIService
 	page *int32
 	pageSize *int32
+	masId *string
 }
 
 func (r ApiGetTracesTraceGetRequest) Page(page int32) ApiGetTracesTraceGetRequest {
@@ -36,6 +37,11 @@ func (r ApiGetTracesTraceGetRequest) Page(page int32) ApiGetTracesTraceGetReques
 
 func (r ApiGetTracesTraceGetRequest) PageSize(pageSize int32) ApiGetTracesTraceGetRequest {
 	r.pageSize = &pageSize
+	return r
+}
+
+func (r ApiGetTracesTraceGetRequest) MasId(masId string) ApiGetTracesTraceGetRequest {
+	r.masId = &masId
 	return r
 }
 
@@ -92,6 +98,9 @@ func (a *TracesAPIService) GetTracesTraceGetExecute(r ApiGetTracesTraceGetReques
 		var defaultValue int32 = 20
 		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
 		r.pageSize = &defaultValue
+	}
+	if r.masId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "mas_id", r.masId, "form", "")
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
@@ -174,6 +183,8 @@ func (r ApiTraceLlmCallEndRequest) Execute() (*LLMCallEndedEvent, *http.Response
 
 /*
 TraceLlmCallEnd Trace Llm Call End
+
+Record the end of an LLM call for the authenticated agent.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiTraceLlmCallEndRequest
@@ -292,6 +303,8 @@ func (r ApiTraceLlmCallStartRequest) Execute() (*LLMCallStartedEvent, *http.Resp
 
 /*
 TraceLlmCallStart Trace Llm Call Start
+
+Record the start of an LLM call for the authenticated agent.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiTraceLlmCallStartRequest

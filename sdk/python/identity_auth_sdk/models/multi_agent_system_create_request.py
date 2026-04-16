@@ -30,7 +30,8 @@ class MultiAgentSystemCreateRequest(BaseModel):
     name: StrictStr
     enabled_tool_checks: Optional[ToolCheckFlags] = None
     namespace: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["name", "enabled_tool_checks", "namespace"]
+    k8s_name: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["name", "enabled_tool_checks", "namespace", "k8s_name"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -81,6 +82,11 @@ class MultiAgentSystemCreateRequest(BaseModel):
         if self.namespace is None and "namespace" in self.model_fields_set:
             _dict['namespace'] = None
 
+        # set to None if k8s_name (nullable) is None
+        # and model_fields_set contains the field
+        if self.k8s_name is None and "k8s_name" in self.model_fields_set:
+            _dict['k8s_name'] = None
+
         return _dict
 
     @classmethod
@@ -95,7 +101,8 @@ class MultiAgentSystemCreateRequest(BaseModel):
         _obj = cls.model_validate({
             "name": obj.get("name"),
             "enabled_tool_checks": obj.get("enabled_tool_checks"),
-            "namespace": obj.get("namespace")
+            "namespace": obj.get("namespace"),
+            "k8s_name": obj.get("k8s_name")
         })
         return _obj
 

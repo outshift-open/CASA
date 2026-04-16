@@ -24,7 +24,7 @@ from typing_extensions import Self
 
 class LLMCallStartedRequest(BaseModel):
     """
-    LLMCallStartedRequest
+    Request body for recording the start of an LLM call.
     """ # noqa: E501
     call_id: StrictStr
     prompt: StrictStr

@@ -31,11 +31,12 @@ class MultiAgentSystem(BaseModel):
     """ # noqa: E501
     id: Optional[UUID] = None
     name: StrictStr
+    k8s_name: Optional[StrictStr] = None
     enabled_tool_checks: Optional[ToolCheckFlags] = None
     authorization_server_id: Optional[UUID]
     namespace: Optional[StrictStr]
     created_at: Optional[datetime] = None
-    __properties: ClassVar[List[str]] = ["id", "name", "enabled_tool_checks", "authorization_server_id", "namespace", "created_at"]
+    __properties: ClassVar[List[str]] = ["id", "name", "k8s_name", "enabled_tool_checks", "authorization_server_id", "namespace", "created_at"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -81,6 +82,11 @@ class MultiAgentSystem(BaseModel):
         if self.id is None and "id" in self.model_fields_set:
             _dict['id'] = None
 
+        # set to None if k8s_name (nullable) is None
+        # and model_fields_set contains the field
+        if self.k8s_name is None and "k8s_name" in self.model_fields_set:
+            _dict['k8s_name'] = None
+
         # set to None if enabled_tool_checks (nullable) is None
         # and model_fields_set contains the field
         if self.enabled_tool_checks is None and "enabled_tool_checks" in self.model_fields_set:
@@ -110,6 +116,7 @@ class MultiAgentSystem(BaseModel):
         _obj = cls.model_validate({
             "id": obj.get("id"),
             "name": obj.get("name"),
+            "k8s_name": obj.get("k8s_name"),
             "enabled_tool_checks": obj.get("enabled_tool_checks"),
             "authorization_server_id": obj.get("authorization_server_id"),
             "namespace": obj.get("namespace"),

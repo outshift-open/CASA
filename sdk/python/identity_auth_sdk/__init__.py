@@ -20,6 +20,7 @@ __version__ = "1.0.0"
 __all__ = [
     "AppsApi",
     "AuthorizationServerApi",
+    "KubernetesCRDsApi",
     "KubernetesResourcesApi",
     "MultiAgentSystemsApi",
     "ScopesApi",
@@ -35,8 +36,10 @@ __all__ = [
     "ApiAttributeError",
     "ApiException",
     "ActorClaim",
+    "AppCredentials",
     "AppMetadataResponse",
     "AppRequest",
+    "AppSpec",
     "AppType",
     "AppViewModel",
     "CacheTokenLoadRequest",
@@ -51,9 +54,19 @@ __all__ = [
     "LLMCallStartedEvent",
     "LLMCallStartedRequest",
     "LocationInner",
+    "MASCreateRequest",
+    "MASListResponse",
+    "MASPhase",
+    "MASStatusUpdateRequest",
+    "MASUpdateRequest",
     "MultiAgentSystem",
     "MultiAgentSystemAppsBindingRequest",
+    "MultiAgentSystemCRD",
     "MultiAgentSystemCreateRequest",
+    "MultiAgentSystemMetadata",
+    "MultiAgentSystemSpecInput",
+    "MultiAgentSystemSpecOutput",
+    "MultiAgentSystemStatus",
     "MultiAgentSystemUpdateRequest",
     "MultiAgentSystemViewModel",
     "ScopeCreateRequest",
@@ -63,6 +76,7 @@ __all__ = [
     "TokenIntrospectResponse",
     "TokenResponse",
     "ToolCheckFlags",
+    "ToolCheckType",
     "ToolRequest",
     "ToolViewModel",
     "UserInput",
@@ -72,6 +86,7 @@ __all__ = [
 # import apis into sdk package
 from identity_auth_sdk.api.apps_api import AppsApi as AppsApi
 from identity_auth_sdk.api.authorization_server_api import AuthorizationServerApi as AuthorizationServerApi
+from identity_auth_sdk.api.kubernetes_crds_api import KubernetesCRDsApi as KubernetesCRDsApi
 from identity_auth_sdk.api.kubernetes_resources_api import KubernetesResourcesApi as KubernetesResourcesApi
 from identity_auth_sdk.api.multi_agent_systems_api import MultiAgentSystemsApi as MultiAgentSystemsApi
 from identity_auth_sdk.api.scopes_api import ScopesApi as ScopesApi
@@ -91,8 +106,10 @@ from identity_auth_sdk.exceptions import ApiException as ApiException
 
 # import models into sdk package
 from identity_auth_sdk.models.actor_claim import ActorClaim as ActorClaim
+from identity_auth_sdk.models.app_credentials import AppCredentials as AppCredentials
 from identity_auth_sdk.models.app_metadata_response import AppMetadataResponse as AppMetadataResponse
 from identity_auth_sdk.models.app_request import AppRequest as AppRequest
+from identity_auth_sdk.models.app_spec import AppSpec as AppSpec
 from identity_auth_sdk.models.app_type import AppType as AppType
 from identity_auth_sdk.models.app_view_model import AppViewModel as AppViewModel
 from identity_auth_sdk.models.cache_token_load_request import CacheTokenLoadRequest as CacheTokenLoadRequest
@@ -107,9 +124,19 @@ from identity_auth_sdk.models.llm_call_ended_request import LLMCallEndedRequest 
 from identity_auth_sdk.models.llm_call_started_event import LLMCallStartedEvent as LLMCallStartedEvent
 from identity_auth_sdk.models.llm_call_started_request import LLMCallStartedRequest as LLMCallStartedRequest
 from identity_auth_sdk.models.location_inner import LocationInner as LocationInner
+from identity_auth_sdk.models.mas_create_request import MASCreateRequest as MASCreateRequest
+from identity_auth_sdk.models.mas_list_response import MASListResponse as MASListResponse
+from identity_auth_sdk.models.mas_phase import MASPhase as MASPhase
+from identity_auth_sdk.models.mas_status_update_request import MASStatusUpdateRequest as MASStatusUpdateRequest
+from identity_auth_sdk.models.mas_update_request import MASUpdateRequest as MASUpdateRequest
 from identity_auth_sdk.models.multi_agent_system import MultiAgentSystem as MultiAgentSystem
 from identity_auth_sdk.models.multi_agent_system_apps_binding_request import MultiAgentSystemAppsBindingRequest as MultiAgentSystemAppsBindingRequest
+from identity_auth_sdk.models.multi_agent_system_crd import MultiAgentSystemCRD as MultiAgentSystemCRD
 from identity_auth_sdk.models.multi_agent_system_create_request import MultiAgentSystemCreateRequest as MultiAgentSystemCreateRequest
+from identity_auth_sdk.models.multi_agent_system_metadata import MultiAgentSystemMetadata as MultiAgentSystemMetadata
+from identity_auth_sdk.models.multi_agent_system_spec_input import MultiAgentSystemSpecInput as MultiAgentSystemSpecInput
+from identity_auth_sdk.models.multi_agent_system_spec_output import MultiAgentSystemSpecOutput as MultiAgentSystemSpecOutput
+from identity_auth_sdk.models.multi_agent_system_status import MultiAgentSystemStatus as MultiAgentSystemStatus
 from identity_auth_sdk.models.multi_agent_system_update_request import MultiAgentSystemUpdateRequest as MultiAgentSystemUpdateRequest
 from identity_auth_sdk.models.multi_agent_system_view_model import MultiAgentSystemViewModel as MultiAgentSystemViewModel
 from identity_auth_sdk.models.scope_create_request import ScopeCreateRequest as ScopeCreateRequest
@@ -119,6 +146,7 @@ from identity_auth_sdk.models.scope_view_model_minimal import ScopeViewModelMini
 from identity_auth_sdk.models.token_introspect_response import TokenIntrospectResponse as TokenIntrospectResponse
 from identity_auth_sdk.models.token_response import TokenResponse as TokenResponse
 from identity_auth_sdk.models.tool_check_flags import ToolCheckFlags as ToolCheckFlags
+from identity_auth_sdk.models.tool_check_type import ToolCheckType as ToolCheckType
 from identity_auth_sdk.models.tool_request import ToolRequest as ToolRequest
 from identity_auth_sdk.models.tool_view_model import ToolViewModel as ToolViewModel
 from identity_auth_sdk.models.user_input import UserInput as UserInput

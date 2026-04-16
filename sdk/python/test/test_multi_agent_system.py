@@ -37,6 +37,7 @@ class TestMultiAgentSystem(unittest.TestCase):
             return MultiAgentSystem(
                 id = '',
                 name = '',
+                k8s_name = '',
                 enabled_tool_checks = 0,
                 authorization_server_id = '',
                 namespace = '',

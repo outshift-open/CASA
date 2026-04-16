@@ -25,7 +25,7 @@ from typing_extensions import Self
 
 class LLMCallEndedEvent(BaseModel):
     """
-    LLMCallEndedEvent
+    Event emitted when an LLM call completes (recorded by the agent).
     """ # noqa: E501
     id: Optional[StrictStr] = None
     user_input_id: StrictStr
@@ -33,9 +33,10 @@ class LLMCallEndedEvent(BaseModel):
     call_id: StrictStr
     token: StrictStr
     app_id: StrictStr
+    mas_id: Optional[StrictStr] = None
     response: StrictStr
     tools: Optional[StrictStr]
-    __properties: ClassVar[List[str]] = ["id", "user_input_id", "created_at", "call_id", "token", "app_id", "response", "tools"]
+    __properties: ClassVar[List[str]] = ["id", "user_input_id", "created_at", "call_id", "token", "app_id", "mas_id", "response", "tools"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -76,6 +77,11 @@ class LLMCallEndedEvent(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # set to None if mas_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.mas_id is None and "mas_id" in self.model_fields_set:
+            _dict['mas_id'] = None
+
         # set to None if tools (nullable) is None
         # and model_fields_set contains the field
         if self.tools is None and "tools" in self.model_fields_set:
@@ -99,6 +105,7 @@ class LLMCallEndedEvent(BaseModel):
             "call_id": obj.get("call_id"),
             "token": obj.get("token"),
             "app_id": obj.get("app_id"),
+            "mas_id": obj.get("mas_id"),
             "response": obj.get("response"),
             "tools": obj.get("tools")
         })

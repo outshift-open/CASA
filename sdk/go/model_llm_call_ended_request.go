@@ -19,7 +19,7 @@ import (
 // checks if the LLMCallEndedRequest type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &LLMCallEndedRequest{}
 
-// LLMCallEndedRequest struct for LLMCallEndedRequest
+// LLMCallEndedRequest Request body for recording the end of an LLM call.
 type LLMCallEndedRequest struct {
 	CallId string `json:"call_id"`
 	Response string `json:"response"`

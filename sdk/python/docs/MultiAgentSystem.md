@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **UUID** |  | [optional] 
 **name** | **str** |  | 
+**k8s_name** | **str** |  | [optional] 
 **enabled_tool_checks** | [**ToolCheckFlags**](ToolCheckFlags.md) |  | [optional] 
 **authorization_server_id** | **UUID** |  | 
 **namespace** | **str** |  | 

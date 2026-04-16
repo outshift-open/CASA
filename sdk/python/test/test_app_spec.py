@@ -14,10 +14,10 @@
 
 import unittest
 
-from identity_auth_sdk.models.k8s_multi_agent_system_crd import K8sMultiAgentSystemCRD
+from identity_auth_sdk.models.app_spec import AppSpec
 
-class TestK8sMultiAgentSystemCRD(unittest.TestCase):
-    """K8sMultiAgentSystemCRD unit test stubs"""
+class TestAppSpec(unittest.TestCase):
+    """AppSpec unit test stubs"""
 
     def setUp(self):
         pass
@@ -25,34 +25,30 @@ class TestK8sMultiAgentSystemCRD(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> K8sMultiAgentSystemCRD:
-        """Test K8sMultiAgentSystemCRD
+    def make_instance(self, include_optional) -> AppSpec:
+        """Test AppSpec
             include_optional is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `K8sMultiAgentSystemCRD`
+        # uncomment below to create an instance of `AppSpec`
         """
-        model = K8sMultiAgentSystemCRD()
+        model = AppSpec()
         if include_optional:
-            return K8sMultiAgentSystemCRD(
-                id = '',
-                api_version = 'zta.io/v1alpha1',
-                kind = 'MultiAgentSystem',
-                namespace = '',
+            return AppSpec(
                 name = '',
-                enabled_tool_checks = 0,
-                mas_id = ''
+                type = 'agent',
+                base_url = ''
             )
         else:
-            return K8sMultiAgentSystemCRD(
-                namespace = '',
+            return AppSpec(
                 name = '',
-                mas_id = '',
+                type = 'agent',
+                base_url = '',
         )
         """
 
-    def testK8sMultiAgentSystemCRD(self):
-        """Test K8sMultiAgentSystemCRD"""
+    def testAppSpec(self):
+        """Test AppSpec"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

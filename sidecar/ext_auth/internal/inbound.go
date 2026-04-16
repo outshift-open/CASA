@@ -136,7 +136,6 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 					}
 
 					// Step 9.2
-					// TODO: to configure
 					accessToken, err := s.authSrvClient.Token(
 						ctx,
 						appSpec.GetAppId(),

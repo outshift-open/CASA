@@ -15,7 +15,7 @@ import (
 	"fmt"
 )
 
-// ToolCheckFlags the model 'ToolCheckFlags'
+// ToolCheckFlags Bitmask flags controlling which tool authorization checks are enabled on a MAS.
 type ToolCheckFlags int32
 
 // List of ToolCheckFlags

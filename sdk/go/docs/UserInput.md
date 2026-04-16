@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | Pointer to **NullableString** |  | [optional] 
 **Prompt** | **string** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-15T15:18:00.590581Z"]
+**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-16T14:06:57.236317Z"]
 **AppId** | **NullableString** |  | 
 **Tag** | **NullableString** |  | 
 

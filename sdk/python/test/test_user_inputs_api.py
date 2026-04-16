@@ -26,17 +26,17 @@ class TestUserInputsApi(unittest.TestCase):
     def tearDown(self) -> None:
         pass
 
-    def test_create_user_input_user_inputs_post(self) -> None:
-        """Test case for create_user_input_user_inputs_post
+    def test_create_user_input(self) -> None:
+        """Test case for create_user_input
 
         Create User Input
         """
         pass
 
-    def test_get_app_user_inputs_get_by_tag_tag_get(self) -> None:
-        """Test case for get_app_user_inputs_get_by_tag_tag_get
+    def test_get_user_input_by_tag(self) -> None:
+        """Test case for get_user_input_by_tag
 
-        Get App
+        Get User Input By Tag
         """
         pass
 

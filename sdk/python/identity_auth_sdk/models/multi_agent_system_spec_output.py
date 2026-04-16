@@ -19,23 +19,19 @@ import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from uuid import UUID
-from identity_auth_sdk.models.tool_check_flags import ToolCheckFlags
+from identity_auth_sdk.models.app_spec import AppSpec
+from identity_auth_sdk.models.tool_check_type import ToolCheckType
 from typing import Optional, Set
 from typing_extensions import Self
 
-class K8sMultiAgentSystemCRD(BaseModel):
+class MultiAgentSystemSpecOutput(BaseModel):
     """
-    Complete MultiAgentSystem Custom Resource Definition.
+    Specification for MultiAgentSystem CRD.
     """ # noqa: E501
-    id: Optional[UUID] = None
-    api_version: Optional[StrictStr] = Field(default='zta.io/v1alpha1', description="API version", alias="apiVersion")
-    kind: Optional[StrictStr] = Field(default='MultiAgentSystem', description="Resource kind")
-    namespace: StrictStr = Field(description="Kubernetes namespace")
     name: StrictStr = Field(description="Display name of the Multi-Agent System")
-    enabled_tool_checks: Optional[ToolCheckFlags] = None
-    mas_id: Optional[UUID]
-    __properties: ClassVar[List[str]] = ["id", "apiVersion", "kind", "namespace", "name", "enabled_tool_checks", "mas_id"]
+    enabled_tool_checks: Optional[List[ToolCheckType]] = Field(default=None, description="List of enabled tool check types", alias="enabledToolChecks")
+    apps: Optional[List[AppSpec]] = Field(default=None, description="List of applications in this MAS")
+    __properties: ClassVar[List[str]] = ["name", "enabledToolChecks", "apps"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -55,7 +51,7 @@ class K8sMultiAgentSystemCRD(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of K8sMultiAgentSystemCRD from a JSON string"""
+        """Create an instance of MultiAgentSystemSpecOutput from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -76,26 +72,18 @@ class K8sMultiAgentSystemCRD(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # set to None if id (nullable) is None
-        # and model_fields_set contains the field
-        if self.id is None and "id" in self.model_fields_set:
-            _dict['id'] = None
-
-        # set to None if enabled_tool_checks (nullable) is None
-        # and model_fields_set contains the field
-        if self.enabled_tool_checks is None and "enabled_tool_checks" in self.model_fields_set:
-            _dict['enabled_tool_checks'] = None
-
-        # set to None if mas_id (nullable) is None
-        # and model_fields_set contains the field
-        if self.mas_id is None and "mas_id" in self.model_fields_set:
-            _dict['mas_id'] = None
-
+        # override the default output from pydantic by calling `to_dict()` of each item in apps (list)
+        _items = []
+        if self.apps:
+            for _item_apps in self.apps:
+                if _item_apps:
+                    _items.append(_item_apps.to_dict())
+            _dict['apps'] = _items
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of K8sMultiAgentSystemCRD from a dict"""
+        """Create an instance of MultiAgentSystemSpecOutput from a dict"""
         if obj is None:
             return None
 
@@ -103,13 +91,9 @@ class K8sMultiAgentSystemCRD(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "id": obj.get("id"),
-            "apiVersion": obj.get("apiVersion") if obj.get("apiVersion") is not None else 'zta.io/v1alpha1',
-            "kind": obj.get("kind") if obj.get("kind") is not None else 'MultiAgentSystem',
-            "namespace": obj.get("namespace"),
             "name": obj.get("name"),
-            "enabled_tool_checks": obj.get("enabled_tool_checks"),
-            "mas_id": obj.get("mas_id")
+            "enabledToolChecks": obj.get("enabledToolChecks"),
+            "apps": [AppSpec.from_dict(_item) for _item in obj["apps"]] if obj.get("apps") is not None else None
         })
         return _obj
 

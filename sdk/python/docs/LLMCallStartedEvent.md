@@ -1,5 +1,6 @@
 # LLMCallStartedEvent
 
+Event emitted when an LLM call begins (recorded by the agent).
 
 ## Properties
 
@@ -11,6 +12,7 @@ Name | Type | Description | Notes
 **call_id** | **str** |  | 
 **token** | **str** |  | 
 **app_id** | **str** |  | 
+**mas_id** | **str** |  | [optional] 
 **prompt** | **str** |  | 
 **tools** | **str** |  | 
 

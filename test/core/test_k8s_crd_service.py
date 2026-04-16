@@ -4,10 +4,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from identity_auth_server.core.types import ToolCheckFlags
+from identity_auth_server.core.types import AppType, ToolCheckFlags
 from identity_auth_server.k8s.k8s_crd_service import K8sCRDService
 from identity_auth_server.k8s.k8s_types import (
-    AppTypeK8s,
     ToolCheckType,
 )
 
@@ -50,9 +49,9 @@ class TestK8sCRDService:
 
     def test_convert_app_type(self, crd_service):
         """Test app type conversion."""
-        assert crd_service._convert_app_type(AppTypeK8s.AGENT) == "agent"
-        assert crd_service._convert_app_type(AppTypeK8s.CLIENT) == "client"
-        assert crd_service._convert_app_type(AppTypeK8s.MCP_SERVER) == "mcp_server"
+        assert crd_service._convert_app_type(AppType.AGENT) == "agent"
+        assert crd_service._convert_app_type(AppType.CLIENT) == "client"
+        assert crd_service._convert_app_type(AppType.MCP_SERVER) == "mcp_server"
 
     def test_convert_empty_flags(self, crd_service):
         """Test that NONE flags produce an empty list."""
