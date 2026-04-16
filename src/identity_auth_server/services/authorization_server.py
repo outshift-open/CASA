@@ -161,7 +161,7 @@ class AuthorizationServerService:
 
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
-        logger.debug(f"[TOKEN_EXCHANGE] subject_token = {request.subject_token}")
+        print(f"[TOKEN_EXCHANGE] subject_token = {request.subject_token}")
         subject_token = self._introspect_token(token=request.subject_token)
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id if subject_token.app_id else "")
         if subject_app is None:
@@ -312,7 +312,7 @@ class AuthorizationServerService:
         claims = jwt.decode(token, options={"verify_signature": False})
         sub = claims.get("sub")
 
-        logger.debug(f"[INTROSPECT] claims = {claims}")
+        print(f"[INTROSPECT] claims = {claims}")
 
         app_id = self._get_app_id_from_client_id(sub)
 
