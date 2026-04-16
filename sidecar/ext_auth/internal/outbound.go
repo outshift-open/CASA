@@ -156,7 +156,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					return s.allow(), nil
 				}
 
-				mcpURL, err := url.Parse(fmt.Sprintf("%s://%s", appSpec.UrlScheme, appSpec.UrlHost))
+				mcpURL, err := url.Parse(fmt.Sprintf("%s://%s/mcp", appSpec.UrlScheme, appSpec.UrlHost))
 				if err != nil {
 					slog.Error("Failed to construct MCP server URL", "err", err)
 					return nil, fmt.Errorf("unable to construct MCP server URL: %w", err)

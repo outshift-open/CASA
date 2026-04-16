@@ -318,7 +318,7 @@ class AuthorizationServerService:
 
         # The app in the sub must be a trusted client
         sub_app = self.app_repository.get_app_by_id(app_id)
-        if sub_app is None or sub_app.type != AppType.CLIENT:
+        if sub_app is None or sub_app.type == AppType.MCP_SERVER:
             return TokenIntrospectResponse(active=False)
 
         mas_id = str(sub_app.mas_id) if sub_app.mas_id else None
