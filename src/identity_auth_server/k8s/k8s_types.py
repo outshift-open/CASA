@@ -39,6 +39,8 @@ class AppSpec(BaseModel):
     base_url: str = Field(description="Base URL of the application", alias="baseUrl")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -46,6 +48,11 @@ class MultiAgentSystemSpec(BaseModel):
     """Specification for MultiAgentSystem CRD."""
 
     name: str = Field(description="Display name of the Multi-Agent System")
+    authorization_server: str = Field(
+        default="",
+        description="Keycloak realm name for this MAS",
+        alias="authorizationServer",
+    )
     enabled_tool_checks: List[ToolCheckType] = Field(
         default_factory=lambda: [
             ToolCheckType.DETERMINISTIC_TOOL_SELECTED,
@@ -58,6 +65,8 @@ class MultiAgentSystemSpec(BaseModel):
     apps: List[AppSpec] = Field(default_factory=list, description="List of applications in this MAS")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -71,6 +80,8 @@ class AppCredentials(BaseModel):
     secret_name: str = Field(description="Name of the K8s secret to create", alias="secretName")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -88,6 +99,8 @@ class MultiAgentSystemStatus(BaseModel):
     )
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -103,6 +116,8 @@ class MultiAgentSystemMetadata(BaseModel):
     annotations: Optional[dict] = Field(default=None, description="Resource annotations")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -116,6 +131,8 @@ class MultiAgentSystemCRD(BaseModel):
     status: Optional[MultiAgentSystemStatus] = Field(default=None, description="Resource status")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -142,6 +159,8 @@ class TargetRef(BaseModel):
     name: str = Field(description="Name of the resource")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -153,6 +172,8 @@ class AllowedEndpoint(BaseModel):
     port: int = Field(description="Port number")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -163,6 +184,8 @@ class LLMEndpoint(BaseModel):
     port: int = Field(description="Port number")
 
     class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True
 
 
@@ -193,4 +216,131 @@ class MASListResponse(BaseModel):
     items: List[MultiAgentSystemCRD]
 
     class Config:
+        """Pydantic model configuration."""
+
+        populate_by_name = True
+
+
+# ---------------------------------------------------------------------------
+# ZTAPolicy CRD types
+# ---------------------------------------------------------------------------
+
+
+class PolicyPhase(str, Enum):
+    """Phase of ZTAPolicy resource lifecycle."""
+
+    PENDING = "Pending"
+    ACTIVE = "Active"
+    FAILED = "Failed"
+
+
+class ZTAPolicyMetadata(BaseModel):
+    """Metadata for ZTAPolicy CRD."""
+
+    name: str = Field(description="Resource name")
+    namespace: str = Field(description="Kubernetes namespace")
+    uid: Optional[str] = Field(default=None, description="Kubernetes UID")
+    resource_version: Optional[str] = Field(default=None, description="Resource version", alias="resourceVersion")
+    generation: Optional[int] = Field(default=None, description="Generation number")
+    labels: Optional[dict] = Field(default=None, description="Resource labels")
+    annotations: Optional[dict] = Field(default=None, description="Resource annotations")
+
+    class Config:
+        """Pydantic model configuration."""
+
+        populate_by_name = True
+
+
+class ZTAPolicySpec(BaseModel):
+    """Specification for ZTAPolicy CRD."""
+
+    target_ref: TargetRef = Field(description="Reference to the K8s resource this policy applies to", alias="targetRef")
+    allowed_protocols: List[str] = Field(
+        default_factory=list,
+        description="Protocols the workload is allowed to use (e.g. 'mcp', 'a2a')",
+        alias="allowedProtocols",
+    )
+    allowed_endpoints: List[AllowedEndpoint] = Field(
+        default_factory=list,
+        description="Explicit egress endpoints the workload may reach",
+        alias="allowedEndpoints",
+    )
+    llm_endpoint: Optional[LLMEndpoint] = Field(
+        default=None,
+        description="External LLM endpoint the workload may reach",
+        alias="llmEndpoint",
+    )
+
+    class Config:
+        """Pydantic model configuration."""
+
+        populate_by_name = True
+
+
+class ZTAPolicyStatus(BaseModel):
+    """Status of ZTAPolicy CRD."""
+
+    phase: PolicyPhase = Field(default=PolicyPhase.PENDING, description="Current phase of the policy")
+    cilium_policy_name: Optional[str] = Field(
+        default=None,
+        description="Name of the generated CiliumNetworkPolicy",
+        alias="ciliumPolicyName",
+    )
+    last_sync_time: Optional[datetime] = Field(
+        default=None,
+        description="Last time the policy was reconciled",
+        alias="lastSyncTime",
+    )
+    message: Optional[str] = Field(default=None, description="Human-readable status message")
+
+    class Config:
+        """Pydantic model configuration."""
+
+        populate_by_name = True
+
+
+class ZTAPolicyCRD(BaseModel):
+    """Complete ZTAPolicy Custom Resource Definition."""
+
+    api_version: str = Field(default="zta.io/v1alpha1", description="API version", alias="apiVersion")
+    kind: Literal["ZTAPolicy"] = Field(default="ZTAPolicy", description="Resource kind")
+    metadata: ZTAPolicyMetadata
+    spec: ZTAPolicySpec
+    status: Optional[ZTAPolicyStatus] = Field(default=None, description="Resource status")
+
+    class Config:
+        """Pydantic model configuration."""
+
+        populate_by_name = True
+
+
+class PolicyCreateRequest(BaseModel):
+    """Request model for creating a ZTAPolicy via API."""
+
+    metadata: ZTAPolicyMetadata
+    spec: ZTAPolicySpec
+
+
+class PolicyUpdateRequest(BaseModel):
+    """Request model for updating a ZTAPolicy via API."""
+
+    spec: ZTAPolicySpec
+
+
+class PolicyStatusUpdateRequest(BaseModel):
+    """Request model for updating ZTAPolicy status (used by operator)."""
+
+    status: ZTAPolicyStatus
+
+
+class ZTAPolicyListResponse(BaseModel):
+    """Response model for listing ZTAPolicies."""
+
+    api_version: str = Field(default="zta.io/v1alpha1", alias="apiVersion")
+    kind: Literal["ZTAPolicyList"] = Field(default="ZTAPolicyList")
+    items: List[ZTAPolicyCRD]
+
+    class Config:
+        """Pydantic model configuration."""
+
         populate_by_name = True

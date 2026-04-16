@@ -107,6 +107,11 @@ class KeycloakClient(IdpClient):
                     # Continue anyway - the realm exists, just might be slow
 
     def delete_authorization_server(self, authz_serv: AuthorizationServer) -> None:
+        """Delete a Keycloak Authorization Server (Realm).
+
+        Args:
+            authz_serv: The AuthorizationServer object containing realm information
+        """
         try:
             self._get_keycloak_admin(authz_serv).delete_realm(authz_serv.realm)
         except Exception as e:
@@ -169,7 +174,8 @@ class KeycloakClient(IdpClient):
 
         Args:
             authz_serv: The AuthorizationServer object containing realm information
-            client_credentials: The ClientCredentials object containing client information
+            client_creds: The ClientCredentials object containing client information
+            metadata: Application metadata used to configure the Keycloak client
 
         Returns:
             ClientCredentials object containing client information

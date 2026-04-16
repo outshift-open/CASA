@@ -8,7 +8,7 @@ from identity_auth_server.core.types import UserInput
 
 
 class UserInputRepository(ABC):
-    """Interface defining the methods exposed by the UserInputRepository"""
+    """Interface defining the methods exposed by the UserInputRepository."""
 
     @abstractmethod
     def create(self, user_input: UserInput) -> UserInput:
@@ -20,7 +20,7 @@ class UserInputRepository(ABC):
 
 
 class UserInputPostgresRepository(UserInputRepository):
-    """PostgreSQL implementation of the UserInputRepository"""
+    """PostgreSQL implementation of the UserInputRepository."""
 
     def __init__(self, session: Session):
         """Initialize the repository with a then necessary dependencies."""

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from identity_auth_server.core.k8s_types import (
+from identity_auth_server.k8s.k8s_types import (
     AllowedEndpoint,
     AppSpec,
     AppTypeK8s,
