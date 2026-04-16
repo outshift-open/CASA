@@ -47,6 +47,11 @@ spec:
             - name: grpc-outbound
               containerPort: 5100
               protocol: TCP
+          env:
+            - name: AUTH_SERVER_HOST
+              value: zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000
+            - name: AUTH_SERVER_SCHEME
+              value: http
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

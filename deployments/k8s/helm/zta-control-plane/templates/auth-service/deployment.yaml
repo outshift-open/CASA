@@ -16,6 +16,7 @@ spec:
     metadata:
       labels:
         {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
+        sidecar.istio.io/inject: "false"
     spec:
       {{- with .Values.authService.imagePullSecrets }}
       imagePullSecrets:
@@ -57,6 +58,20 @@ spec:
             # ── Auth Server self-URL ──────────────────────────────────────────
             - name: AUTH_SERVER_URL
               value: {{ default (include "zta-control-plane.authServiceUrl" .) .Values.authService.env.authServerUrl | quote }}
+            - name: OPENAI_GPT4o_API_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: openai-api-base-url
+            - name: OPENAI_GPT4o_API_JWT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: openai-api-jwt-token
+            - name: OPENAI_GPT4o_MODEL_ID
+              value: {{ .Values.authService.openai.modelId | quote }}
+            - name: PIPELINE_OPENAI_GPT4o_MODEL_ID
+              value: {{ .Values.authService.openai.pipelineModelId | quote }}
           readinessProbe:
             tcpSocket:
               port: 8000

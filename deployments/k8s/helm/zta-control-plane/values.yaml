@@ -4,9 +4,11 @@
 # ─── Auth Service ────────────────────────────────────────────────────────────
 authService:
   image:
-    repository: ghcr.io/cisco-eti/identity-auth-server
-    tag: latest
+    repository:
+    tag:
     pullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: regcred
   replicaCount: 1
   service:
     type: ClusterIP
@@ -41,13 +43,20 @@ authService:
     adminUsername: admin
     # Override in production
     adminPassword: admin
+  openai:
+    apiBaseUrl:
+    jwtToken:
+    modelId:
+    pipelineModelId:
 
 # ─── UI Explorer ─────────────────────────────────────────────────────────────
 uiExplorer:
   image:
-    repository: ghcr.io/cisco-eti/identity-auth-server-ui
-    tag: latest
+    repository:
+    tag: 2026-04-14-7ce1d56
     pullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: regcred
   replicaCount: 1
   service:
     type: ClusterIP
@@ -110,30 +119,32 @@ postgresKeycloak:
   password: keycloak
   resources:
     requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
       memory: "512Mi"
       cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
 
 # ─── Keycloak ─────────────────────────────────────────────────────────────────
 keycloak:
   image:
     # Custom image that includes the POIT HTTP-header protocol mapper JAR
-    repository: ghcr.io/cisco-eti/identity-auth-server-keycloak
-    tag: latest
+    repository:
+    tag: 2026-04-14-7ce1d56
     pullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: regcred
   replicaCount: 1
   service:
     type: ClusterIP
     port: 8080
   resources:
     requests:
-      memory: "512Mi"
-      cpu: "500m"
-    limits:
       memory: "1Gi"
       cpu: "1"
+    limits:
+      memory: "2Gi"
+      cpu: "2"
   admin:
     username: admin
     # Override in production
@@ -153,10 +164,11 @@ keycloak:
 # ─── Operator ────────────────────────────────────────────────────────────────
 operator:
   image:
-    repository: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/zta-operator
-    tag: latest
+    repository:
+    tag: 2026-04-14-7ce1d56
     pullPolicy: IfNotPresent
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: regcred
   # When empty, defaults to in-cluster auth-service URL via _helpers.tpl
   authServiceUrl: ""
   resources:
