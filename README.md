@@ -1,22 +1,34 @@
-<!-- CI/CD -->
+<div align="center">
+  <img src="docs/ui/static/img/logo.svg" alt="ZTA Logo" width="128" height="128" />
 
-[![pytest](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml)
-[![pre-commit](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml)
-[![Docs](https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![Release](https://img.shields.io/github/v/release/cisco-eti/identity-auth-server?include_prereleases&label=release)](https://github.com/cisco-eti/identity-auth-server/releases)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![Helm](https://img.shields.io/badge/Helm-3.x-0F1689?logo=helm&logoColor=white)](https://helm.sh/)
-[![Docker](https://img.shields.io/badge/GHCR-images-0075D4?logo=docker&logoColor=white)](https://github.com/cisco-eti/identity-auth-server/pkgs/container/identity-auth-server)
-[![Keycloak](https://img.shields.io/badge/Keycloak-IdP-4D6D6D?logo=keycloak&logoColor=white)](https://www.keycloak.org/)
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github)](https://cisco-eti.github.io/identity-auth-server/)
+  <h1>ZTA — Zero Trust for Multi-Agent Systems</h1>
 
-# ZTA — Zero Trust for Multi-Agent Systems
+  <p>
+    <strong>Intent-scoped authorization for Kubernetes Multi-Agent Systems —<br/>
+    enforced at the network layer, with no code changes required in your agents.</strong>
+  </p>
 
-A cloud-native Kubernetes platform that enforces Zero Trust authorization for Multi-Agent Systems (MAS) — with no code changes required in the agents themselves.
+  <br/>
+
+  <p>
+    <a href="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg" alt="pytest"/></a>
+    <a href="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg" alt="pre-commit"/></a>
+    <a href="https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml/badge.svg" alt="Docs"/></a>
+    <a href="https://github.com/cisco-eti/identity-auth-server/releases"><img src="https://img.shields.io/github/v/release/cisco-eti/identity-auth-server?include_prereleases&label=release" alt="Release"/></a>
+    <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"/></a>
+  </p>
+
+  <p>
+    <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=white" alt="Python 3.12+"/></a>
+    <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"/></a>
+    <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"/></a>
+    <a href="https://kubernetes.io/"><img src="https://img.shields.io/badge/Kubernetes-1.28+-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes"/></a>
+    <a href="https://helm.sh/"><img src="https://img.shields.io/badge/Helm-3.x-0F1689?logo=helm&logoColor=white" alt="Helm"/></a>
+    <a href="https://github.com/cisco-eti/identity-auth-server/pkgs/container/identity-auth-server"><img src="https://img.shields.io/badge/GHCR-images-0075D4?logo=docker&logoColor=white" alt="Docker"/></a>
+    <a href="https://www.keycloak.org/"><img src="https://img.shields.io/badge/Keycloak-IdP-4D6D6D?logo=keycloak&logoColor=white" alt="Keycloak"/></a>
+    <a href="https://cisco-eti.github.io/identity-auth-server/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github" alt="Docs"/></a>
+  </p>
+</div>
 
 ---
 
