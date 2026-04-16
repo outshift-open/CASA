@@ -77,4 +77,5 @@ def introspect(
     token: Annotated[str, Form()],
     tools: Annotated[Optional[list[str]], Form()] = None,
 ) -> TokenIntrospectResponse:
+    """Introspect a token and evaluate it against the requested tools."""
     return auth_service.introspect_token(token, tools)

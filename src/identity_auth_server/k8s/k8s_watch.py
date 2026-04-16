@@ -43,6 +43,7 @@ class ResourceWatcher:
     """
 
     def __init__(self):
+        """Initialize the ResourceWatcher with empty subscriber and version maps."""
         self._mas_subscribers: Dict[str, list] = {}
         self._policy_subscribers: Dict[str, list] = {}
         self._resource_versions: Dict[str, int] = {}
@@ -62,7 +63,6 @@ class ResourceWatcher:
         Yields:
             WatchEvent objects for each change
         """
-        subscriber_id = f"mas-{namespace or 'all'}-{id(asyncio.current_task())}"
         queue: asyncio.Queue = asyncio.Queue()
 
         async with self._lock:
