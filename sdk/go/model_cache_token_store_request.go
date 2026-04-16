@@ -25,6 +25,7 @@ type CacheTokenStoreRequest struct {
 	AppHost string `json:"app_host"`
 	AppType AppType `json:"app_type"`
 	AccessToken string `json:"access_token"`
+	Tool NullableString `json:"tool,omitempty"`
 }
 
 type _CacheTokenStoreRequest CacheTokenStoreRequest
@@ -146,6 +147,48 @@ func (o *CacheTokenStoreRequest) SetAccessToken(v string) {
 	o.AccessToken = v
 }
 
+// GetTool returns the Tool field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *CacheTokenStoreRequest) GetTool() string {
+	if o == nil || IsNil(o.Tool.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Tool.Get()
+}
+
+// GetToolOk returns a tuple with the Tool field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *CacheTokenStoreRequest) GetToolOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Tool.Get(), o.Tool.IsSet()
+}
+
+// HasTool returns a boolean if a field has been set.
+func (o *CacheTokenStoreRequest) HasTool() bool {
+	if o != nil && o.Tool.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetTool gets a reference to the given NullableString and assigns it to the Tool field.
+func (o *CacheTokenStoreRequest) SetTool(v string) {
+	o.Tool.Set(&v)
+}
+// SetToolNil sets the value for Tool to be an explicit nil
+func (o *CacheTokenStoreRequest) SetToolNil() {
+	o.Tool.Set(nil)
+}
+
+// UnsetTool ensures that no value is present for Tool, not even an explicit nil
+func (o *CacheTokenStoreRequest) UnsetTool() {
+	o.Tool.Unset()
+}
+
 func (o CacheTokenStoreRequest) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -160,6 +203,9 @@ func (o CacheTokenStoreRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize["app_host"] = o.AppHost
 	toSerialize["app_type"] = o.AppType
 	toSerialize["access_token"] = o.AccessToken
+	if o.Tool.IsSet() {
+		toSerialize["tool"] = o.Tool.Get()
+	}
 	return toSerialize, nil
 }
 

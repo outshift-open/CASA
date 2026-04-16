@@ -11,8 +11,8 @@ import (
 
 type AuthServerClient interface {
 	GetK8SMultiAgentSystemByAppHost(ctx context.Context, namespace, appHost string) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error)
-	LoadTokenFromCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType) (*identitysdk.TokenResponse, error)
-	StoreTokenInCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, token string) error
+	LoadTokenFromCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, tool *string) (*identitysdk.TokenResponse, error)
+	StoreTokenInCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, token string, tool *string) error
 	CreateUserInput(ctx context.Context, appID, prompt, tag string) (string, error)
 	Token(ctx context.Context, appID, clientID, clientSecret, userInputID string) (string, error)
 	ExchangeToken(ctx context.Context, appID, clientID, clientSecret, subjectToken, mcpServerURL string, tools []string) (string, error)
@@ -34,6 +34,7 @@ func (c *authServerClient) GetK8SMultiAgentSystemByAppHost(
 	namespace string,
 	appHost string,
 ) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error) {
+	// TODO: KubernetesResourcesAPI.GetK8sMasByAppHost` err="3 is not a valid ToolCheckFlags"
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sMasByAppHost(ctx, namespace).AppHost(appHost).Execute()
 	if err != nil {
 		slog.Error("Error calling `KubernetesResourcesAPI.GetK8sMasByAppHost`", "err", err, "http.response", r)
@@ -49,6 +50,7 @@ func (c *authServerClient) LoadTokenFromCache(
 	traceID string,
 	appHost string,
 	appType identitysdk.AppType,
+	tool *string,
 ) (*identitysdk.TokenResponse, error) {
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.
 		CacheLoadToken(ctx, namespace).
@@ -56,6 +58,7 @@ func (c *authServerClient) LoadTokenFromCache(
 			TraceId: traceID,
 			AppHost: appHost,
 			AppType: appType,
+			Tool:    *identitysdk.NewNullableString(tool),
 		}).
 		Execute()
 	if err != nil {
@@ -77,6 +80,7 @@ func (c *authServerClient) StoreTokenInCache(
 	appHost string,
 	appType identitysdk.AppType,
 	token string,
+	tool *string,
 ) error {
 	_, r, err := c.authSrvClient.KubernetesResourcesAPI.
 		CacheStoreToken(ctx, namespace).
@@ -85,6 +89,7 @@ func (c *authServerClient) StoreTokenInCache(
 			AppHost:     appHost,
 			AppType:     appType,
 			AccessToken: token,
+			Tool:        *identitysdk.NewNullableString(tool),
 		}).
 		Execute()
 	if err != nil {

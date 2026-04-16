@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	api "github.com/cisco-eti/identity-auth-server/sdk/go"
+	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
@@ -91,7 +92,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				continue
 			}
 
-			token, err := s.authSrvClient.LoadTokenFromCache(ctx, s.namespace, traceID, appSpec.UrlHost, appSpec.Type)
+			token, err := s.authSrvClient.LoadTokenFromCache(ctx, s.namespace, traceID, appSpec.UrlHost, appSpec.Type, nil)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Unable to fetch cached tokens for host %s with trace id %s", appSpec.UrlHost, traceID), "err", err)
 				return nil, fmt.Errorf("outbound: unable to fetch cached tokens for host %s with trace id %s: %w", appSpec.UrlHost, traceID, err)
@@ -114,6 +115,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 
 			var err error
 			var accessToken string
+			var associatedTool *string
 
 			if appSpec.GetType() == api.AGENT {
 				clientCreds, err := s.getClientCredentials(ctx, appSpec.GetAppId())
@@ -141,9 +143,11 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				if accessToken == "" {
 					return s.deny(), nil
 				}
+
+				return s.allow(accessToken), nil
 			} else if appSpec.GetType() == api.MCP_SERVER {
 				if httpReq.Body == "" {
-					return s.allow(), nil
+					return s.allow(""), nil
 				}
 
 				toolName, err := GetMCPToolFromRequest(httpReq.Body)
@@ -153,7 +157,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				}
 
 				if toolName == "" {
-					return s.allow(), nil
+					return s.allow(""), nil
 				}
 
 				mcpURL, err := url.Parse(fmt.Sprintf("%s://%s/mcp", appSpec.UrlScheme, appSpec.UrlHost))
@@ -187,6 +191,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				if accessToken == "" {
 					return s.deny(), nil
 				}
+
+				associatedTool = &toolName
 			}
 
 			if accessToken != "" {
@@ -199,17 +205,18 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					appSpec.UrlHost,
 					appSpec.GetType(),
 					accessToken,
+					associatedTool,
 				)
 				if err != nil {
 					return nil, fmt.Errorf("outbound: unable to store token: %w", err)
 				}
 
-				return s.allow(), nil
+				return s.allow(accessToken), nil
 			}
 		}
 	}
 
-	return s.allow(), nil
+	return s.allow(""), nil
 }
 
 func (*OutboundExtAuthService) decodePeerMetadata(v string) (map[string]any, error) {
@@ -229,10 +236,22 @@ func (*OutboundExtAuthService) decodePeerMetadata(v string) (map[string]any, err
 	return s.AsMap(), nil
 }
 
-func (*OutboundExtAuthService) allow() *authv3.CheckResponse {
+func (*OutboundExtAuthService) allow(jwt string) *authv3.CheckResponse {
+	headers := []*corev3.HeaderValueOption{}
+	if jwt != "" {
+		headers = append(headers, &corev3.HeaderValueOption{
+			Header: &corev3.HeaderValue{
+				Key:   "Authorization",
+				Value: fmt.Sprintf("Bearer %s", jwt),
+			},
+		})
+	}
+
 	return &authv3.CheckResponse{
 		HttpResponse: &authv3.CheckResponse_OkResponse{
-			OkResponse: &authv3.OkHttpResponse{},
+			OkResponse: &authv3.OkHttpResponse{
+				Headers: headers,
+			},
 		},
 		Status: &status.Status{Code: int32(codes.OK)},
 	}

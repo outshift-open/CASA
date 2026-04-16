@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **app_host** | **str** |  | 
 **app_type** | [**AppType**](AppType.md) |  | 
 **access_token** | **str** |  | 
+**tool** | **str** |  | [optional] 
 
 ## Example
 

@@ -361,8 +361,8 @@ func (_c *AuthServerClient_Introspect_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // LoadTokenFromCache provides a mock function for the type AuthServerClient
-func (_mock *AuthServerClient) LoadTokenFromCache(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType) (*api.TokenResponse, error) {
-	ret := _mock.Called(ctx, namespace, traceID, appHost, appType)
+func (_mock *AuthServerClient) LoadTokenFromCache(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, tool *string) (*api.TokenResponse, error) {
+	ret := _mock.Called(ctx, namespace, traceID, appHost, appType, tool)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LoadTokenFromCache")
@@ -370,18 +370,18 @@ func (_mock *AuthServerClient) LoadTokenFromCache(ctx context.Context, namespace
 
 	var r0 *api.TokenResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, api.AppType) (*api.TokenResponse, error)); ok {
-		return returnFunc(ctx, namespace, traceID, appHost, appType)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, api.AppType, *string) (*api.TokenResponse, error)); ok {
+		return returnFunc(ctx, namespace, traceID, appHost, appType, tool)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, api.AppType) *api.TokenResponse); ok {
-		r0 = returnFunc(ctx, namespace, traceID, appHost, appType)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, api.AppType, *string) *api.TokenResponse); ok {
+		r0 = returnFunc(ctx, namespace, traceID, appHost, appType, tool)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*api.TokenResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, api.AppType) error); ok {
-		r1 = returnFunc(ctx, namespace, traceID, appHost, appType)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, api.AppType, *string) error); ok {
+		r1 = returnFunc(ctx, namespace, traceID, appHost, appType, tool)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -399,11 +399,12 @@ type AuthServerClient_LoadTokenFromCache_Call struct {
 //   - traceID string
 //   - appHost string
 //   - appType api.AppType
-func (_e *AuthServerClient_Expecter) LoadTokenFromCache(ctx interface{}, namespace interface{}, traceID interface{}, appHost interface{}, appType interface{}) *AuthServerClient_LoadTokenFromCache_Call {
-	return &AuthServerClient_LoadTokenFromCache_Call{Call: _e.mock.On("LoadTokenFromCache", ctx, namespace, traceID, appHost, appType)}
+//   - tool *string
+func (_e *AuthServerClient_Expecter) LoadTokenFromCache(ctx interface{}, namespace interface{}, traceID interface{}, appHost interface{}, appType interface{}, tool interface{}) *AuthServerClient_LoadTokenFromCache_Call {
+	return &AuthServerClient_LoadTokenFromCache_Call{Call: _e.mock.On("LoadTokenFromCache", ctx, namespace, traceID, appHost, appType, tool)}
 }
 
-func (_c *AuthServerClient_LoadTokenFromCache_Call) Run(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType)) *AuthServerClient_LoadTokenFromCache_Call {
+func (_c *AuthServerClient_LoadTokenFromCache_Call) Run(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, tool *string)) *AuthServerClient_LoadTokenFromCache_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -425,12 +426,17 @@ func (_c *AuthServerClient_LoadTokenFromCache_Call) Run(run func(ctx context.Con
 		if args[4] != nil {
 			arg4 = args[4].(api.AppType)
 		}
+		var arg5 *string
+		if args[5] != nil {
+			arg5 = args[5].(*string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
 			arg4,
+			arg5,
 		)
 	})
 	return _c
@@ -441,22 +447,22 @@ func (_c *AuthServerClient_LoadTokenFromCache_Call) Return(tokenResponse *api.To
 	return _c
 }
 
-func (_c *AuthServerClient_LoadTokenFromCache_Call) RunAndReturn(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType) (*api.TokenResponse, error)) *AuthServerClient_LoadTokenFromCache_Call {
+func (_c *AuthServerClient_LoadTokenFromCache_Call) RunAndReturn(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, tool *string) (*api.TokenResponse, error)) *AuthServerClient_LoadTokenFromCache_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // StoreTokenInCache provides a mock function for the type AuthServerClient
-func (_mock *AuthServerClient) StoreTokenInCache(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, token string) error {
-	ret := _mock.Called(ctx, namespace, traceID, appHost, appType, token)
+func (_mock *AuthServerClient) StoreTokenInCache(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, token string, tool *string) error {
+	ret := _mock.Called(ctx, namespace, traceID, appHost, appType, token, tool)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StoreTokenInCache")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, api.AppType, string) error); ok {
-		r0 = returnFunc(ctx, namespace, traceID, appHost, appType, token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, api.AppType, string, *string) error); ok {
+		r0 = returnFunc(ctx, namespace, traceID, appHost, appType, token, tool)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -475,11 +481,12 @@ type AuthServerClient_StoreTokenInCache_Call struct {
 //   - appHost string
 //   - appType api.AppType
 //   - token string
-func (_e *AuthServerClient_Expecter) StoreTokenInCache(ctx interface{}, namespace interface{}, traceID interface{}, appHost interface{}, appType interface{}, token interface{}) *AuthServerClient_StoreTokenInCache_Call {
-	return &AuthServerClient_StoreTokenInCache_Call{Call: _e.mock.On("StoreTokenInCache", ctx, namespace, traceID, appHost, appType, token)}
+//   - tool *string
+func (_e *AuthServerClient_Expecter) StoreTokenInCache(ctx interface{}, namespace interface{}, traceID interface{}, appHost interface{}, appType interface{}, token interface{}, tool interface{}) *AuthServerClient_StoreTokenInCache_Call {
+	return &AuthServerClient_StoreTokenInCache_Call{Call: _e.mock.On("StoreTokenInCache", ctx, namespace, traceID, appHost, appType, token, tool)}
 }
 
-func (_c *AuthServerClient_StoreTokenInCache_Call) Run(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, token string)) *AuthServerClient_StoreTokenInCache_Call {
+func (_c *AuthServerClient_StoreTokenInCache_Call) Run(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, token string, tool *string)) *AuthServerClient_StoreTokenInCache_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -505,6 +512,10 @@ func (_c *AuthServerClient_StoreTokenInCache_Call) Run(run func(ctx context.Cont
 		if args[5] != nil {
 			arg5 = args[5].(string)
 		}
+		var arg6 *string
+		if args[6] != nil {
+			arg6 = args[6].(*string)
+		}
 		run(
 			arg0,
 			arg1,
@@ -512,6 +523,7 @@ func (_c *AuthServerClient_StoreTokenInCache_Call) Run(run func(ctx context.Cont
 			arg3,
 			arg4,
 			arg5,
+			arg6,
 		)
 	})
 	return _c
@@ -522,7 +534,7 @@ func (_c *AuthServerClient_StoreTokenInCache_Call) Return(err error) *AuthServer
 	return _c
 }
 
-func (_c *AuthServerClient_StoreTokenInCache_Call) RunAndReturn(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, token string) error) *AuthServerClient_StoreTokenInCache_Call {
+func (_c *AuthServerClient_StoreTokenInCache_Call) RunAndReturn(run func(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, token string, tool *string) error) *AuthServerClient_StoreTokenInCache_Call {
 	_c.Call.Return(run)
 	return _c
 }

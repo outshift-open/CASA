@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Phase** | Pointer to [**MASPhase**](MASPhase.md) | Current phase of the MAS | [optional] [default to PENDING]
 **AppsReady** | Pointer to **int32** | Number of apps successfully registered | [optional] [default to 0]
-**LastSyncTime** | Pointer to **string** |  | [optional] [default to "2026-04-16T14:06:57.992400Z"]
+**LastSyncTime** | Pointer to **string** |  | [optional] [default to "2026-04-16T14:41:53.280298Z"]
 **Message** | Pointer to **NullableString** |  | [optional] 
 **Credentials** | Pointer to [**[]AppCredentials**](AppCredentials.md) |  | [optional] 
 

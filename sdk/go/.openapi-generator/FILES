@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 .travis.yml
 README.md
 api/openapi.yaml
@@ -117,12 +116,4 @@ model_tool_view_model.go
 model_user_input.go
 model_validation_error.go
 response.go
-test/api_apps_test.go
-test/api_authorization_server_test.go
-test/api_kubernetes_crds_test.go
-test/api_kubernetes_resources_test.go
-test/api_multi_agent_systems_test.go
-test/api_scopes_test.go
-test/api_traces_test.go
-test/api_user_inputs_test.go
 utils.go

@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **TraceId** | **string** |  | 
 **AppHost** | **string** |  | 
 **AppType** | [**AppType**](AppType.md) |  | 
+**Tool** | Pointer to **NullableString** |  | [optional] 
 
 ## Methods
 
@@ -87,6 +88,41 @@ and a boolean to check if the value has been set.
 SetAppType sets AppType field to given value.
 
 
+### GetTool
+
+`func (o *CacheTokenLoadRequest) GetTool() string`
+
+GetTool returns the Tool field if non-nil, zero value otherwise.
+
+### GetToolOk
+
+`func (o *CacheTokenLoadRequest) GetToolOk() (*string, bool)`
+
+GetToolOk returns a tuple with the Tool field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetTool
+
+`func (o *CacheTokenLoadRequest) SetTool(v string)`
+
+SetTool sets Tool field to given value.
+
+### HasTool
+
+`func (o *CacheTokenLoadRequest) HasTool() bool`
+
+HasTool returns a boolean if a field has been set.
+
+### SetToolNil
+
+`func (o *CacheTokenLoadRequest) SetToolNil(b bool)`
+
+ SetToolNil sets the value for Tool to be an explicit nil
+
+### UnsetTool
+`func (o *CacheTokenLoadRequest) UnsetTool()`
+
+UnsetTool ensures that no value is present for Tool, not even an explicit nil
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

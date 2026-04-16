@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, ConfigDict, StrictStr
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from identity_auth_sdk.models.app_type import AppType
 from typing import Optional, Set
 from typing_extensions import Self
@@ -31,7 +31,8 @@ class CacheTokenStoreRequest(BaseModel):
     app_host: StrictStr
     app_type: AppType
     access_token: StrictStr
-    __properties: ClassVar[List[str]] = ["trace_id", "app_host", "app_type", "access_token"]
+    tool: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["trace_id", "app_host", "app_type", "access_token", "tool"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -72,6 +73,11 @@ class CacheTokenStoreRequest(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # set to None if tool (nullable) is None
+        # and model_fields_set contains the field
+        if self.tool is None and "tool" in self.model_fields_set:
+            _dict['tool'] = None
+
         return _dict
 
     @classmethod
@@ -87,7 +93,8 @@ class CacheTokenStoreRequest(BaseModel):
             "trace_id": obj.get("trace_id"),
             "app_host": obj.get("app_host"),
             "app_type": obj.get("app_type"),
-            "access_token": obj.get("access_token")
+            "access_token": obj.get("access_token"),
+            "tool": obj.get("tool")
         })
         return _obj
 

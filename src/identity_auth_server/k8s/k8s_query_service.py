@@ -17,12 +17,14 @@ class CacheTokenStoreRequest(BaseModel):
     app_host: str
     app_type: AppType
     access_token: str
+    tool: Optional[str] = None
 
 
 class CacheTokenLoadRequest(BaseModel):
     trace_id: str
     app_host: str
     app_type: AppType
+    tool: Optional[str] = None
 
 
 class K8sQueryService:
@@ -42,6 +44,7 @@ class K8sQueryService:
             app_host=request.app_host,
             app_type=request.app_type,
             access_token=request.access_token,
+            tool=request.tool,
         )
         return self._k8s_mas_repository.store_token(token)
 
@@ -51,6 +54,7 @@ class K8sQueryService:
             trace_id=request.trace_id,
             app_host=request.app_host,
             app_type=request.app_type,
+            tool=request.tool,
         )
         if token is not None:
             return TokenResponse(access_token=token.access_token)

@@ -49,14 +49,14 @@ func TestOutbound(t *testing.T) {
 			},
 		}, nil)
 	authSrvClient.EXPECT().
-		LoadTokenFromCache(t.Context(), namespace, traceID, agentAppHost, identitysdk.AGENT).
+		LoadTokenFromCache(t.Context(), namespace, traceID, agentAppHost, identitysdk.AGENT, mock.Anything).
 		Return(&identitysdk.TokenResponse{
 			AccessToken: agentAccessToken,
 		}, nil)
 	authSrvClient.EXPECT().
-		ExchangeToken(t.Context(), mcpAppID, mock.Anything, mock.Anything, agentAccessToken, fmt.Sprintf("http://%s", mcpHost), mock.Anything).
+		ExchangeToken(t.Context(), mcpAppID, mock.Anything, mock.Anything, agentAccessToken, fmt.Sprintf("http://%s/mcp", mcpHost), mock.Anything).
 		Return(mcpAccessToken, nil)
-	authSrvClient.EXPECT().StoreTokenInCache(t.Context(), namespace, traceID, mcpHost, identitysdk.MCP_SERVER, mcpAccessToken).Return(nil)
+	authSrvClient.EXPECT().StoreTokenInCache(t.Context(), namespace, traceID, mcpHost, identitysdk.MCP_SERVER, mcpAccessToken, mock.Anything).Return(nil)
 
 	k8sSrv := mocks.NewKubernetesService(t)
 	k8sSrv.EXPECT().

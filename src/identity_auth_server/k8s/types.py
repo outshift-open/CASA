@@ -82,4 +82,5 @@ class K8sTokenCache(SQLModel, table=True):
         nullable=False,
     ))
     access_token: str = Field()
+    tool: Optional[str] = Field(default=None)
     created_at: datetime = datetime.now(timezone.utc)

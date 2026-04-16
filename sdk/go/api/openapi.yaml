@@ -1549,6 +1549,7 @@ components:
         app_host: app_host
         trace_id: trace_id
         app_type: agent
+        tool: tool
       properties:
         trace_id:
           title: Trace Id
@@ -1558,6 +1559,9 @@ components:
           type: string
         app_type:
           $ref: "#/components/schemas/AppType"
+        tool:
+          nullable: true
+          type: string
       required:
       - app_host
       - app_type
@@ -1569,6 +1573,7 @@ components:
         access_token: access_token
         trace_id: trace_id
         app_type: agent
+        tool: tool
       properties:
         trace_id:
           title: Trace Id
@@ -1580,6 +1585,9 @@ components:
           $ref: "#/components/schemas/AppType"
         access_token:
           title: Access Token
+          type: string
+        tool:
+          nullable: true
           type: string
       required:
       - access_token
@@ -2110,7 +2118,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-16T14:06:57.235019Z
+          default: 2026-04-16T14:41:52.404913Z
           format: date-time
           title: Created At
           type: string
@@ -2351,7 +2359,7 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-16T14:06:57.992400Z
+          default: 2026-04-16T14:41:53.280298Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -2746,7 +2754,7 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-16T14:06:57.236317Z
+          default: 2026-04-16T14:41:52.406186Z
           format: date-time
           title: Created At
           type: string

@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **trace_id** | **str** |  | 
 **app_host** | **str** |  | 
 **app_type** | [**AppType**](AppType.md) |  | 
+**tool** | **str** |  | [optional] 
 
 ## Example
 

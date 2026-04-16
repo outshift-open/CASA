@@ -45,14 +45,14 @@ func TestInboundCheck_should_generate_token_for_agent(t *testing.T) {
 			},
 		}, nil)
 	authSrvClient.EXPECT().
-		LoadTokenFromCache(t.Context(), namespace, traceID, host, identitysdk.AGENT).
+		LoadTokenFromCache(t.Context(), namespace, traceID, host, identitysdk.AGENT, mock.Anything).
 		Return(nil, nil)
 	authSrvClient.EXPECT().
 		Token(t.Context(), appID, clientCreds.ClientID, clientCreds.ClientSecret, userInputID).
 		Return(accessToken, nil)
 	authSrvClient.EXPECT().CreateUserInput(t.Context(), appID, prompt, traceID).Return(userInputID, nil)
 	authSrvClient.EXPECT().
-		StoreTokenInCache(t.Context(), namespace, traceID, host, identitysdk.AGENT, accessToken).
+		StoreTokenInCache(t.Context(), namespace, traceID, host, identitysdk.AGENT, accessToken, mock.Anything).
 		Return(nil)
 
 	k8sSrv := mocks.NewKubernetesService(t)
@@ -103,7 +103,7 @@ func TestInboundCheck_MCP(t *testing.T) {
 			},
 		}, nil)
 	authSrvClient.EXPECT().
-		LoadTokenFromCache(t.Context(), namespace, traceID, host, identitysdk.MCP_SERVER).
+		LoadTokenFromCache(t.Context(), namespace, traceID, host, identitysdk.MCP_SERVER, mock.Anything).
 		Return(&identitysdk.TokenResponse{AccessToken: accessToken}, nil)
 	authSrvClient.EXPECT().
 		Introspect(t.Context(), accessToken, mock.Anything).

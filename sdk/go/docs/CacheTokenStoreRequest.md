@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **AppHost** | **string** |  | 
 **AppType** | [**AppType**](AppType.md) |  | 
 **AccessToken** | **string** |  | 
+**Tool** | Pointer to **NullableString** |  | [optional] 
 
 ## Methods
 
@@ -108,6 +109,41 @@ and a boolean to check if the value has been set.
 SetAccessToken sets AccessToken field to given value.
 
 
+### GetTool
+
+`func (o *CacheTokenStoreRequest) GetTool() string`
+
+GetTool returns the Tool field if non-nil, zero value otherwise.
+
+### GetToolOk
+
+`func (o *CacheTokenStoreRequest) GetToolOk() (*string, bool)`
+
+GetToolOk returns a tuple with the Tool field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetTool
+
+`func (o *CacheTokenStoreRequest) SetTool(v string)`
+
+SetTool sets Tool field to given value.
+
+### HasTool
+
+`func (o *CacheTokenStoreRequest) HasTool() bool`
+
+HasTool returns a boolean if a field has been set.
+
+### SetToolNil
+
+`func (o *CacheTokenStoreRequest) SetToolNil(b bool)`
+
+ SetToolNil sets the value for Tool to be an explicit nil
+
+### UnsetTool
+`func (o *CacheTokenStoreRequest) UnsetTool()`
+
+UnsetTool ensures that no value is present for Tool, not even an explicit nil
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

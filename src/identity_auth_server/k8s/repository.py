@@ -22,7 +22,7 @@ class K8sMultiAgentSystemRepository(ABC):
         """Store a token in the cache"""
 
     @abstractmethod
-    def load_token(self, namespace: str, trace_id: str, app_host: str, app_type: AppType) -> Optional[K8sTokenCache]:
+    def load_token(self, namespace: str, trace_id: str, app_host: str, app_type: AppType, tool: Optional[str]) -> Optional[K8sTokenCache]:
         """Load a token from the cache"""
 
 
@@ -54,17 +54,17 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
         except Exception as e:
             raise Exception(f"Error storing token: {e}") from e
 
-    def load_token(self, namespace: str, trace_id: str, app_host: str, app_type: AppType) -> Optional[K8sTokenCache]:
+    def load_token(self, namespace: str, trace_id: str, app_host: str, app_type: AppType, tool: Optional[str]) -> Optional[K8sTokenCache]:
         """Load a token from the cache"""
         try:
-            token = self._session.exec(
-                select(K8sTokenCache)
-                .where(K8sTokenCache.namespace == namespace)
-                .where(K8sTokenCache.trace_id == trace_id)
-                .where(K8sTokenCache.app_host == app_host)
+            query = select(K8sTokenCache) \
+                .where(K8sTokenCache.namespace == namespace) \
+                .where(K8sTokenCache.trace_id == trace_id) \
+                .where(K8sTokenCache.app_host == app_host) \
                 .where(K8sTokenCache.app_type == app_type)
-                .order_by(desc(K8sTokenCache.created_at))
-            )
+            if tool and tool != "":
+                query = query.where(K8sTokenCache.tool == tool)
+            token = self._session.exec(query.order_by(desc(K8sTokenCache.created_at)))
             return token.first()
         except Exception as e:
             raise Exception(f"Error retrieving token: {e}") from e
