@@ -1,0 +1,2811 @@
+openapi: 3.1.0
+info:
+  title: FastAPI
+  version: 0.1.0
+servers:
+- url: /
+paths:
+  /health:
+    get:
+      description: Health check endpoint.
+      operationId: health_check_health_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                title: Response Health Check Health Get
+          description: Successful Response
+      summary: Health Check
+      tags:
+      - Authorization Server
+  /{app_id}/oauth2/client-metadata.json:
+    get:
+      description: Get an Application client metadata.
+      operationId: app_metadata
+      parameters:
+      - explode: false
+        in: path
+        name: app_id
+        required: true
+        schema:
+          title: App Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppMetadataResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: App Metadata
+      tags:
+      - Authorization Server
+  /{app_id}/oauth2/token:
+    post:
+      description: Generate a new token based on the request parameters.
+      operationId: token
+      parameters:
+      - explode: false
+        in: path
+        name: app_id
+        required: true
+        schema:
+          title: App Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TokenRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Token
+      tags:
+      - Authorization Server
+  /{app_id}/oauth2/token_exchange:
+    post:
+      description: Do a token exchange for an app.
+      operationId: token_exchange
+      parameters:
+      - explode: false
+        in: path
+        name: app_id
+        required: true
+        schema:
+          title: App Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TokenExchangeRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Token Exchange
+      tags:
+      - Authorization Server
+  /oauth2/introspect:
+    post:
+      operationId: introspect
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Body_introspect"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenIntrospectResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Introspect
+      tags:
+      - Authorization Server
+  /apps:
+    get:
+      description: Get all Apps.
+      operationId: get_apps_apps_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/AppViewModel"
+                title: Response Get Apps Apps Get
+                type: array
+          description: Successful Response
+      summary: Get Apps
+      tags:
+      - Apps
+    post:
+      description: Create a new App.
+      operationId: create_app_apps_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create App
+      tags:
+      - Apps
+  /apps/{app_id}:
+    delete:
+      description: Delete an App.
+      operationId: delete_app_apps__app_id__delete
+      parameters:
+      - explode: false
+        in: path
+        name: app_id
+        required: true
+        schema:
+          title: App Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                title: Response Delete App Apps  App Id  Delete
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Delete App
+      tags:
+      - Apps
+    get:
+      description: Get an App by ID.
+      operationId: get_app_apps__app_id__get
+      parameters:
+      - explode: false
+        in: path
+        name: app_id
+        required: true
+        schema:
+          title: App Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get App
+      tags:
+      - Apps
+    put:
+      description: Update an existing App.
+      operationId: update_app_apps__app_id__put
+      parameters:
+      - explode: false
+        in: path
+        name: app_id
+        required: true
+        schema:
+          title: App Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Update App
+      tags:
+      - Apps
+  /trace/llm/call_start:
+    post:
+      description: Record the start of an LLM call for the authenticated agent.
+      operationId: trace_llm_call_start
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LLMCallStartedRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LLMCallStartedEvent"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Trace Llm Call Start
+      tags:
+      - Traces
+  /trace/llm/call_end:
+    post:
+      description: Record the end of an LLM call for the authenticated agent.
+      operationId: trace_llm_call_end
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LLMCallEndedRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LLMCallEndedEvent"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      security:
+      - HTTPBearer: []
+      summary: Trace Llm Call End
+      tags:
+      - Traces
+  /trace:
+    get:
+      description: Retrieve paginated traces for all source app calls.
+      operationId: get_traces_trace_get
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          title: Page
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: page_size
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          title: Page Size
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: mas_id
+        required: false
+        schema:
+          format: uuid
+          nullable: true
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Traces
+      tags:
+      - Traces
+  /mas:
+    get:
+      description: Get the list of all multi agent systems.
+      operationId: get_all_mas_mas_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/MultiAgentSystem"
+                title: Response Get All Mas Mas Get
+                type: array
+          description: Successful Response
+      summary: Get All Mas
+      tags:
+      - Multi Agent Systems
+    put:
+      description: Create a new multi agent system.
+      operationId: create_mas_mas_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MultiAgentSystemCreateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultiAgentSystem"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create Mas
+      tags:
+      - Multi Agent Systems
+  /mas/{mas_id}/bind_apps:
+    post:
+      description: Bind a list of apps with an existing multi agent system.
+      operationId: bind_apps_mas__mas_id__bind_apps_post
+      parameters:
+      - explode: false
+        in: path
+        name: mas_id
+        required: true
+        schema:
+          title: Mas Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MultiAgentSystemAppsBindingRequest"
+        required: true
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Bind Apps
+      tags:
+      - Multi Agent Systems
+  /mas/{mas_id}:
+    delete:
+      description: Delete an existing multi agent system.
+      operationId: delete_mas_mas__mas_id__delete
+      parameters:
+      - explode: false
+        in: path
+        name: mas_id
+        required: true
+        schema:
+          title: Mas Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Delete Mas
+      tags:
+      - Multi Agent Systems
+    get:
+      description: Get a multi agent system by id.
+      operationId: get_mas_by_id_mas__mas_id__get
+      parameters:
+      - explode: false
+        in: path
+        name: mas_id
+        required: true
+        schema:
+          title: Mas Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultiAgentSystem"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Mas By Id
+      tags:
+      - Multi Agent Systems
+    post:
+      description: Update an existing multi agent system instance.
+      operationId: update_mas_mas__mas_id__post
+      parameters:
+      - explode: false
+        in: path
+        name: mas_id
+        required: true
+        schema:
+          title: Mas Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MultiAgentSystemUpdateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultiAgentSystem"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Update Mas
+      tags:
+      - Multi Agent Systems
+  /mas/{mas_id}/apps:
+    get:
+      description: Get all the apps related to a MAS.
+      operationId: get_mas_apps_mas__mas_id__apps_get
+      parameters:
+      - explode: false
+        in: path
+        name: mas_id
+        required: true
+        schema:
+          title: Mas Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/AppViewModel"
+                title: Response Get Mas Apps Mas  Mas Id  Apps Get
+                type: array
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Mas Apps
+      tags:
+      - Multi Agent Systems
+  /scopes:
+    get:
+      description: Get all scopes.
+      operationId: get_scopes_scopes_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ScopeViewModel"
+                title: Response Get Scopes Scopes Get
+                type: array
+          description: Successful Response
+      summary: Get Scopes
+      tags:
+      - Scopes
+    post:
+      description: Create a new scope.
+      operationId: create_scope_scopes_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScopeCreateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScopeViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create Scope
+      tags:
+      - Scopes
+  /scopes/{scope_id}:
+    delete:
+      description: Delete a scope.
+      operationId: delete_scope_scopes__scope_id__delete
+      parameters:
+      - explode: false
+        in: path
+        name: scope_id
+        required: true
+        schema:
+          title: Scope Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                title: Response Delete Scope Scopes  Scope Id  Delete
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Delete Scope
+      tags:
+      - Scopes
+    get:
+      description: Get a scope by ID.
+      operationId: get_scope_scopes__scope_id__get
+      parameters:
+      - explode: false
+        in: path
+        name: scope_id
+        required: true
+        schema:
+          title: Scope Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScopeViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Scope
+      tags:
+      - Scopes
+    put:
+      description: Update an existing scope.
+      operationId: update_scope_scopes__scope_id__put
+      parameters:
+      - explode: false
+        in: path
+        name: scope_id
+        required: true
+        schema:
+          title: Scope Id
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScopeUpdateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScopeViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Update Scope
+      tags:
+      - Scopes
+  /k8s/namespaces/{namespace}/mas:
+    get:
+      description: List all MultiAgentSystem CRDs in a specific namespace.
+      operationId: list_mas_crds_in_namespace_k8s_namespaces__namespace__mas_get
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MASListResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: List Mas Crds In Namespace
+      tags:
+      - Kubernetes CRDs
+    post:
+      description: |-
+        Create a new MultiAgentSystem CRD.
+
+        This endpoint is used by kubectl or Kubernetes operators to create a new
+        Multi-Agent System through the CRD API.
+      operationId: create_mas_crd_k8s_namespaces__namespace__mas_post
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MASCreateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultiAgentSystemCRD"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create Mas Crd
+      tags:
+      - Kubernetes CRDs
+  /k8s/namespaces/{namespace}/mas/{mas_id}:
+    get:
+      description: Get a MultiAgentSystem CRD by namespace and name.
+      operationId: get_mas_crd_k8s_namespaces__namespace__mas__mas_id__get
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: mas_id
+        required: true
+        schema:
+          title: Mas Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultiAgentSystemCRD"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Mas Crd
+      tags:
+      - Kubernetes CRDs
+  /k8s/mas:
+    get:
+      description: List all MultiAgentSystem CRDs across all namespaces or filtered
+        by namespace.
+      operationId: list_all_mas_crds_k8s_mas_get
+      parameters:
+      - description: Filter by namespace
+        explode: true
+        in: query
+        name: namespace
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MASListResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: List All Mas Crds
+      tags:
+      - Kubernetes CRDs
+  /k8s/namespaces/{namespace}/mas/{name}:
+    delete:
+      description: Delete a MultiAgentSystem CRD.
+      operationId: delete_mas_crd_k8s_namespaces__namespace__mas__name__delete
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          title: Name
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Delete Mas Crd
+      tags:
+      - Kubernetes CRDs
+    put:
+      description: Update a MultiAgentSystem CRD spec.
+      operationId: update_mas_crd_k8s_namespaces__namespace__mas__name__put
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          title: Name
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MASUpdateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultiAgentSystemCRD"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Update Mas Crd
+      tags:
+      - Kubernetes CRDs
+  /k8s/namespaces/{namespace}/mas/{name}/status:
+    patch:
+      description: Update a MultiAgentSystem CRD status (typically called by operator).
+      operationId: update_mas_status_k8s_namespaces__namespace__mas__name__status_patch
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          title: Name
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MASStatusUpdateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MultiAgentSystemCRD"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Update Mas Status
+      tags:
+      - Kubernetes CRDs
+  /k8s/watch/namespaces/{namespace}/multiagentsystems:
+    get:
+      description: |-
+        Watch MultiAgentSystem CRDs in a specific namespace.
+
+        This endpoint streams Server-Sent Events (SSE) for real-time updates.
+        Operators can use this to react to CRD changes immediately.
+
+        Example:
+            curl -N http://localhost:3000/k8s/watch/namespaces/default/multiagentsystems
+      operationId: watch_mas_in_namespace_k8s_watch_namespaces__namespace__multiagentsystems_get
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - description: Start watching from this version
+        explode: true
+        in: query
+        name: resource_version
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Watch Mas In Namespace
+      tags:
+      - Kubernetes CRDs
+  /k8s/watch/multiagentsystems:
+    get:
+      description: |-
+        Watch all MultiAgentSystem CRDs across all namespaces.
+
+        Example:
+            curl -N http://localhost:3000/k8s/watch/multiagentsystems
+      operationId: watch_all_mas_k8s_watch_multiagentsystems_get
+      parameters:
+      - description: Start watching from this version
+        explode: true
+        in: query
+        name: resource_version
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Watch All Mas
+      tags:
+      - Kubernetes CRDs
+  /k8s/watch/namespaces/{namespace}/ztapolicies:
+    get:
+      description: |-
+        Watch ZTAPolicy CRDs in a specific namespace.
+
+        Example:
+            curl -N http://localhost:3000/k8s/watch/namespaces/production-mas/ztapolicies
+      operationId: watch_policies_in_namespace_k8s_watch_namespaces__namespace__ztapolicies_get
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - description: Start watching from this version
+        explode: true
+        in: query
+        name: resource_version
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Watch Policies In Namespace
+      tags:
+      - Kubernetes CRDs
+  /k8s/healthz:
+    get:
+      description: |-
+        Liveness probe endpoint.
+
+        Returns 200 if the service is alive and should not be restarted.
+        This is a lightweight check.
+
+        Example:
+            curl http://localhost:3000/k8s/healthz
+      operationId: liveness_probe_k8s_healthz_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Liveness Probe
+      tags:
+      - Kubernetes CRDs
+  /k8s/readyz:
+    get:
+      description: |-
+        Readiness probe endpoint.
+
+        Returns 200 if the service is ready to receive traffic.
+        Checks database connectivity and other dependencies.
+
+        Example:
+            curl http://localhost:3000/k8s/readyz
+      operationId: readiness_probe_k8s_readyz_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+      summary: Readiness Probe
+      tags:
+      - Kubernetes CRDs
+  /user-inputs:
+    post:
+      description: Create a new User Input.
+      operationId: create_user_input
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserInputRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInput"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create User Input
+      tags:
+      - UserInputs
+  /user_inputs/get_by_tag/{tag}:
+    get:
+      description: Get a UserInput by tag.
+      operationId: get_user_input_by_tag
+      parameters:
+      - explode: false
+        in: path
+        name: tag
+        required: true
+        schema:
+          title: Tag
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInput"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get User Input By Tag
+      tags:
+      - UserInputs
+  /k8s/namespaces/{namespace}/get_mas_by_app_host:
+    get:
+      operationId: get_k8s_mas_by_app_host
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: app_host
+        required: true
+        schema:
+          title: App Host
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/K8sMultiAgentSystemCRDViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get K8S Mas By App Host
+      tags:
+      - Kubernetes Resources
+  /k8s/namespaces/{namespace}/cache/store-token:
+    post:
+      operationId: cache_store_token
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CacheTokenStoreRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Store Token
+      tags:
+      - Kubernetes Resources
+  /k8s/namespaces/{namespace}/cache/load-token:
+    post:
+      operationId: cache_load_token
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CacheTokenLoadRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Load Token
+      tags:
+      - Kubernetes Resources
+components:
+  schemas:
+    ActorClaim:
+      description: |-
+        Pydantic model for the JWT 'act' (actor) claim.
+
+        Represents an actor in a delegation chain. Can be nested to represent
+        a chain of delegation where the outermost act claim represents the
+        current actor and nested act claims represent prior actors.
+
+        As per RFC 8693, for access control decisions, only the top-level
+        claims and the current actor (outermost act claim) should be considered.
+      properties:
+        sub:
+          title: Sub
+          type: string
+        act:
+          allOf:
+          - $ref: "#/components/schemas/ActorClaim"
+          nullable: true
+      required:
+      - sub
+      title: ActorClaim
+    AppCredentials:
+      description: OAuth2 credentials for an application.
+      example:
+        secretName: secretName
+        clientId: clientId
+        appName: appName
+        appId: appId
+        clientSecret: clientSecret
+      properties:
+        appName:
+          description: Name of the application
+          title: Appname
+          type: string
+        appId:
+          description: Application UUID
+          title: Appid
+          type: string
+        clientId:
+          description: OAuth2 client ID
+          title: Clientid
+          type: string
+        clientSecret:
+          description: OAuth2 client secret
+          title: Clientsecret
+          type: string
+        secretName:
+          description: Name of the K8s secret to create
+          title: Secretname
+          type: string
+      required:
+      - appId
+      - appName
+      - clientId
+      - clientSecret
+      - secretName
+      title: AppCredentials
+    AppMetadataResponse:
+      description: Pydantic model for app metadata response.
+      example:
+        grant_types:
+        - grant_types
+        - grant_types
+        jwks_uri: jwks_uri
+        client_name: client_name
+        client_id: client_id
+        token_endpoint_auth_method: token_endpoint_auth_method
+        response_types:
+        - response_types
+        - response_types
+      properties:
+        client_id:
+          title: Client Id
+          type: string
+        client_name:
+          title: Client Name
+          type: string
+        grant_types:
+          items:
+            type: string
+          title: Grant Types
+          type: array
+        response_types:
+          items:
+            type: string
+          title: Response Types
+          type: array
+        token_endpoint_auth_method:
+          title: Token Endpoint Auth Method
+          type: string
+        jwks_uri:
+          title: Jwks Uri
+          type: string
+      required:
+      - client_id
+      - client_name
+      - grant_types
+      - jwks_uri
+      - response_types
+      - token_endpoint_auth_method
+      title: AppMetadataResponse
+    AppRequest:
+      description: Request model for app creation and updates.
+      example:
+        mas_id: mas_id
+        name: name
+        base_url: base_url
+        type: agent
+        tools:
+        - input_schema: input_schema
+          name: name
+          description: description
+          scopes:
+          - scopes
+          - scopes
+          output_schema: output_schema
+        - input_schema: input_schema
+          name: name
+          description: description
+          scopes:
+          - scopes
+          - scopes
+          output_schema: output_schema
+      properties:
+        type:
+          $ref: "#/components/schemas/AppType"
+        name:
+          title: Name
+          type: string
+        base_url:
+          title: Base Url
+          type: string
+        mas_id:
+          title: Mas Id
+          type: string
+        tools:
+          default: []
+          items:
+            $ref: "#/components/schemas/ToolRequest"
+          title: Tools
+          type: array
+      required:
+      - base_url
+      - mas_id
+      - name
+      - type
+      title: AppRequest
+    AppSpec:
+      description: Application specification within a MultiAgentSystem.
+      example:
+        baseUrl: baseUrl
+        name: name
+        type: ""
+      properties:
+        name:
+          description: Name of the application
+          title: Name
+          type: string
+        type:
+          allOf:
+          - $ref: "#/components/schemas/AppType"
+          description: Type of the application
+        baseUrl:
+          description: Base URL of the application
+          title: Baseurl
+          type: string
+      required:
+      - baseUrl
+      - name
+      - type
+      title: AppSpec
+    AppType:
+      description: Enumeration of app types.
+      enum:
+      - agent
+      - client
+      - mcp_server
+      title: AppType
+      type: string
+    AppViewModel:
+      description: View model for App including tools and MAS relationships.
+      example:
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
+        base_url: base_url
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: type
+        tools:
+        - input_schema: input_schema
+          name: name
+          description: description
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          scopes:
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          output_schema: output_schema
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - input_schema: input_schema
+          name: name
+          description: description
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          scopes:
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          output_schema: output_schema
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        mas: ""
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        type:
+          title: Type
+          type: string
+        name:
+          title: Name
+          type: string
+        base_url:
+          title: Base Url
+          type: string
+        tools:
+          items:
+            $ref: "#/components/schemas/ToolViewModel"
+          title: Tools
+          type: array
+        mas_id:
+          format: uuid
+          nullable: true
+          type: string
+        mas:
+          allOf:
+          - $ref: "#/components/schemas/MultiAgentSystemViewModel"
+          nullable: true
+      required:
+      - base_url
+      - id
+      - mas
+      - mas_id
+      - name
+      - tools
+      - type
+      title: AppViewModel
+    Body_introspect:
+      properties:
+        token:
+          title: Token
+          type: string
+        tools:
+          items:
+            type: string
+          nullable: true
+          type: array
+      required:
+      - token
+      title: Body_introspect
+    CacheTokenLoadRequest:
+      example:
+        app_host: app_host
+        trace_id: trace_id
+        app_type: agent
+        tool: tool
+      properties:
+        trace_id:
+          title: Trace Id
+          type: string
+        app_host:
+          title: App Host
+          type: string
+        app_type:
+          $ref: "#/components/schemas/AppType"
+        tool:
+          nullable: true
+          type: string
+      required:
+      - app_host
+      - app_type
+      - trace_id
+      title: CacheTokenLoadRequest
+    CacheTokenStoreRequest:
+      example:
+        app_host: app_host
+        access_token: access_token
+        trace_id: trace_id
+        app_type: agent
+        tool: tool
+      properties:
+        trace_id:
+          title: Trace Id
+          type: string
+        app_host:
+          title: App Host
+          type: string
+        app_type:
+          $ref: "#/components/schemas/AppType"
+        access_token:
+          title: Access Token
+          type: string
+        tool:
+          nullable: true
+          type: string
+      required:
+      - access_token
+      - app_host
+      - app_type
+      - trace_id
+      title: CacheTokenStoreRequest
+    CreateUserInputRequest:
+      example:
+        tag: tag
+        prompt: prompt
+        app_id: app_id
+      properties:
+        prompt:
+          title: Prompt
+          type: string
+        app_id:
+          title: App Id
+          type: string
+        tag:
+          nullable: true
+          type: string
+      required:
+      - app_id
+      - prompt
+      title: CreateUserInputRequest
+    HTTPValidationError:
+      example:
+        detail:
+        - msg: msg
+          loc:
+          - Location_inner
+          - Location_inner
+          input: ""
+          ctx: "{}"
+          type: type
+        - msg: msg
+          loc:
+          - Location_inner
+          - Location_inner
+          input: ""
+          ctx: "{}"
+          type: type
+      properties:
+        detail:
+          items:
+            $ref: "#/components/schemas/ValidationError"
+          title: Detail
+          type: array
+      title: HTTPValidationError
+    K8sAppSpecViewModel:
+      description: View model for application specification data.
+      example:
+        kubernetes_workload_name: kubernetes_workload_name
+        name: name
+        prompt_field_json_path: prompt_field_json_path
+        mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: agent
+        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        url_host: url_host
+        url_scheme: url_scheme
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        name:
+          title: Name
+          type: string
+        type:
+          $ref: "#/components/schemas/AppType"
+        url_host:
+          title: Url Host
+          type: string
+        url_scheme:
+          title: Url Scheme
+          type: string
+        prompt_field_json_path:
+          nullable: true
+          type: string
+        kubernetes_workload_name:
+          nullable: true
+          type: string
+        mas_crd_id:
+          format: uuid
+          nullable: true
+          type: string
+        app_id:
+          format: uuid
+          nullable: true
+          type: string
+      required:
+      - name
+      - type
+      - url_host
+      - url_scheme
+      title: K8sAppSpecViewModel
+    K8sMultiAgentSystemCRDViewModel:
+      description: View model for a complete MultiAgentSystem CRD.
+      example:
+        enabled_tool_checks: ""
+        mas_metadata: ""
+        kind: kind
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        namespace: namespace
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        app_specs:
+        - kubernetes_workload_name: kubernetes_workload_name
+          name: name
+          prompt_field_json_path: prompt_field_json_path
+          mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: agent
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          url_host: url_host
+          url_scheme: url_scheme
+        - kubernetes_workload_name: kubernetes_workload_name
+          name: name
+          prompt_field_json_path: prompt_field_json_path
+          mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: agent
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          url_host: url_host
+          url_scheme: url_scheme
+        api_version: api_version
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        api_version:
+          title: Api Version
+          type: string
+        kind:
+          title: Kind
+          type: string
+        namespace:
+          title: Namespace
+          type: string
+        mas_metadata:
+          allOf:
+          - $ref: "#/components/schemas/K8sMultiAgentSystemMetadataViewModel"
+          nullable: true
+        name:
+          title: Name
+          type: string
+        enabled_tool_checks:
+          allOf:
+          - $ref: "#/components/schemas/ToolCheckFlags"
+          nullable: true
+        app_specs:
+          default: []
+          items:
+            $ref: "#/components/schemas/K8sAppSpecViewModel"
+          title: App Specs
+          type: array
+        mas_id:
+          format: uuid
+          nullable: true
+          type: string
+      required:
+      - api_version
+      - enabled_tool_checks
+      - kind
+      - name
+      - namespace
+      title: K8sMultiAgentSystemCRDViewModel
+    K8sMultiAgentSystemMetadataViewModel:
+      description: View model for MultiAgentSystem metadata.
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        name:
+          title: Name
+          type: string
+        uid:
+          nullable: true
+          type: string
+        resource_version:
+          nullable: true
+          type: string
+        generation:
+          nullable: true
+          type: integer
+        mas_crd_id:
+          format: uuid
+          nullable: true
+          type: string
+      required:
+      - name
+      title: K8sMultiAgentSystemMetadataViewModel
+    LLMCallEndedEvent:
+      description: Event emitted when an LLM call completes (recorded by the agent).
+      example:
+        user_input_id: user_input_id
+        response: response
+        mas_id: mas_id
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        app_id: app_id
+        tools: tools
+        call_id: call_id
+        token: token
+      properties:
+        id:
+          title: Id
+          type: string
+        user_input_id:
+          title: User Input Id
+          type: string
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        call_id:
+          title: Call Id
+          type: string
+        token:
+          title: Token
+          type: string
+        app_id:
+          title: App Id
+          type: string
+        mas_id:
+          nullable: true
+          type: string
+        response:
+          title: Response
+          type: string
+        tools:
+          nullable: true
+          type: string
+      required:
+      - app_id
+      - call_id
+      - response
+      - token
+      - tools
+      - user_input_id
+      title: LLMCallEndedEvent
+    LLMCallEndedRequest:
+      description: Request body for recording the end of an LLM call.
+      example:
+        response: response
+        tools: tools
+        call_id: call_id
+      properties:
+        call_id:
+          title: Call Id
+          type: string
+        response:
+          title: Response
+          type: string
+        tools:
+          nullable: true
+          type: string
+      required:
+      - call_id
+      - response
+      title: LLMCallEndedRequest
+    LLMCallStartedEvent:
+      description: Event emitted when an LLM call begins (recorded by the agent).
+      example:
+        user_input_id: user_input_id
+        mas_id: mas_id
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: id
+        app_id: app_id
+        prompt: prompt
+        tools: tools
+        call_id: call_id
+        token: token
+      properties:
+        id:
+          title: Id
+          type: string
+        user_input_id:
+          title: User Input Id
+          type: string
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        call_id:
+          title: Call Id
+          type: string
+        token:
+          title: Token
+          type: string
+        app_id:
+          title: App Id
+          type: string
+        mas_id:
+          nullable: true
+          type: string
+        prompt:
+          title: Prompt
+          type: string
+        tools:
+          nullable: true
+          type: string
+      required:
+      - app_id
+      - call_id
+      - prompt
+      - token
+      - tools
+      - user_input_id
+      title: LLMCallStartedEvent
+    LLMCallStartedRequest:
+      description: Request body for recording the start of an LLM call.
+      example:
+        prompt: prompt
+        tools: tools
+        call_id: call_id
+      properties:
+        call_id:
+          title: Call Id
+          type: string
+        prompt:
+          title: Prompt
+          type: string
+        tools:
+          nullable: true
+          type: string
+      required:
+      - call_id
+      - prompt
+      title: LLMCallStartedRequest
+    MASCreateRequest:
+      description: Request model for creating a MultiAgentSystem via API.
+      example:
+        metadata:
+          generation: 0
+          uid: uid
+          resourceVersion: resourceVersion
+          name: name
+          namespace: namespace
+          annotations:
+            key: ""
+          labels:
+            key: ""
+        spec:
+          enabledToolChecks:
+          - DETERMINISTIC_TOOL_SELECTED
+          - DETERMINISTIC_TOOL_SELECTED
+          name: name
+          apps:
+          - baseUrl: baseUrl
+            name: name
+            type: ""
+          - baseUrl: baseUrl
+            name: name
+            type: ""
+      properties:
+        metadata:
+          $ref: "#/components/schemas/MultiAgentSystemMetadata"
+        spec:
+          $ref: "#/components/schemas/MultiAgentSystemSpec-Input"
+      required:
+      - metadata
+      - spec
+      title: MASCreateRequest
+    MASListResponse:
+      description: Response model for listing MultiAgentSystems.
+      example:
+        apiVersion: zta.io/v1alpha1
+        kind: MultiAgentSystemList
+        items:
+        - metadata:
+            generation: 0
+            uid: uid
+            resourceVersion: resourceVersion
+            name: name
+            namespace: namespace
+            annotations:
+              key: ""
+            labels:
+              key: ""
+          apiVersion: zta.io/v1alpha1
+          kind: MultiAgentSystem
+          spec:
+            enabledToolChecks:
+            - DETERMINISTIC_TOOL_SELECTED
+            - DETERMINISTIC_TOOL_SELECTED
+            name: name
+            apps:
+            - baseUrl: baseUrl
+              name: name
+              type: ""
+            - baseUrl: baseUrl
+              name: name
+              type: ""
+          status: ""
+        - metadata:
+            generation: 0
+            uid: uid
+            resourceVersion: resourceVersion
+            name: name
+            namespace: namespace
+            annotations:
+              key: ""
+            labels:
+              key: ""
+          apiVersion: zta.io/v1alpha1
+          kind: MultiAgentSystem
+          spec:
+            enabledToolChecks:
+            - DETERMINISTIC_TOOL_SELECTED
+            - DETERMINISTIC_TOOL_SELECTED
+            name: name
+            apps:
+            - baseUrl: baseUrl
+              name: name
+              type: ""
+            - baseUrl: baseUrl
+              name: name
+              type: ""
+          status: ""
+      properties:
+        apiVersion:
+          default: zta.io/v1alpha1
+          title: Apiversion
+          type: string
+        kind:
+          default: MultiAgentSystemList
+          enum:
+          - MultiAgentSystemList
+          title: Kind
+          type: string
+        items:
+          items:
+            $ref: "#/components/schemas/MultiAgentSystemCRD"
+          title: Items
+          type: array
+      required:
+      - items
+      title: MASListResponse
+    MASPhase:
+      description: Phase of MAS resource lifecycle.
+      enum:
+      - Pending
+      - Active
+      - Failed
+      title: MASPhase
+      type: string
+    MASStatusUpdateRequest:
+      description: Request model for updating MAS status (used by operator).
+      example:
+        status:
+          phase: ""
+          credentials:
+          - secretName: secretName
+            clientId: clientId
+            appName: appName
+            appId: appId
+            clientSecret: clientSecret
+          - secretName: secretName
+            clientId: clientId
+            appName: appName
+            appId: appId
+            clientSecret: clientSecret
+          last_sync_time: 2000-01-23T04:56:07.000+00:00
+          appsReady: 0
+          message: message
+      properties:
+        status:
+          $ref: "#/components/schemas/MultiAgentSystemStatus"
+      required:
+      - status
+      title: MASStatusUpdateRequest
+    MASUpdateRequest:
+      description: Request model for updating a MultiAgentSystem via API.
+      example:
+        spec:
+          enabledToolChecks:
+          - DETERMINISTIC_TOOL_SELECTED
+          - DETERMINISTIC_TOOL_SELECTED
+          name: name
+          apps:
+          - baseUrl: baseUrl
+            name: name
+            type: ""
+          - baseUrl: baseUrl
+            name: name
+            type: ""
+      properties:
+        spec:
+          $ref: "#/components/schemas/MultiAgentSystemSpec-Input"
+      required:
+      - spec
+      title: MASUpdateRequest
+    MultiAgentSystem:
+      description: "An entity describing a multi agent system, which is a set of apps."
+      example:
+        enabled_tool_checks: ""
+        k8s_name: k8s_name
+        authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
+        namespace: namespace
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        name:
+          title: Name
+          type: string
+        k8s_name:
+          nullable: true
+          type: string
+        enabled_tool_checks:
+          allOf:
+          - $ref: "#/components/schemas/ToolCheckFlags"
+          nullable: true
+        authorization_server_id:
+          format: uuid
+          nullable: true
+          type: string
+        namespace:
+          nullable: true
+          type: string
+        created_at:
+          default: 2026-04-16T14:41:52.404913Z
+          format: date-time
+          title: Created At
+          type: string
+      required:
+      - authorization_server_id
+      - name
+      - namespace
+      title: MultiAgentSystem
+    MultiAgentSystemAppsBindingRequest:
+      description: Request model for binding/unbinding a list of apps to a MAS instance.
+      example:
+        app_ids:
+        - app_ids
+        - app_ids
+      properties:
+        app_ids:
+          items:
+            type: string
+          title: App Ids
+          type: array
+      required:
+      - app_ids
+      title: MultiAgentSystemAppsBindingRequest
+    MultiAgentSystemCRD:
+      description: Complete MultiAgentSystem Custom Resource Definition.
+      example:
+        metadata:
+          generation: 0
+          uid: uid
+          resourceVersion: resourceVersion
+          name: name
+          namespace: namespace
+          annotations:
+            key: ""
+          labels:
+            key: ""
+        apiVersion: zta.io/v1alpha1
+        kind: MultiAgentSystem
+        spec:
+          enabledToolChecks:
+          - DETERMINISTIC_TOOL_SELECTED
+          - DETERMINISTIC_TOOL_SELECTED
+          name: name
+          apps:
+          - baseUrl: baseUrl
+            name: name
+            type: ""
+          - baseUrl: baseUrl
+            name: name
+            type: ""
+        status: ""
+      properties:
+        apiVersion:
+          default: zta.io/v1alpha1
+          description: API version
+          title: Apiversion
+          type: string
+        kind:
+          default: MultiAgentSystem
+          description: Resource kind
+          enum:
+          - MultiAgentSystem
+          title: Kind
+          type: string
+        metadata:
+          $ref: "#/components/schemas/MultiAgentSystemMetadata"
+        spec:
+          $ref: "#/components/schemas/MultiAgentSystemSpec-Output"
+        status:
+          allOf:
+          - $ref: "#/components/schemas/MultiAgentSystemStatus"
+          nullable: true
+      required:
+      - metadata
+      - spec
+      title: MultiAgentSystemCRD
+    MultiAgentSystemCreateRequest:
+      description: Request model for MAS creation.
+      example:
+        enabled_tool_checks: ""
+        k8s_name: k8s_name
+        name: name
+        namespace: namespace
+      properties:
+        name:
+          title: Name
+          type: string
+        enabled_tool_checks:
+          allOf:
+          - $ref: "#/components/schemas/ToolCheckFlags"
+          nullable: true
+        namespace:
+          nullable: true
+          type: string
+        k8s_name:
+          nullable: true
+          type: string
+      required:
+      - name
+      title: MultiAgentSystemCreateRequest
+    MultiAgentSystemMetadata:
+      description: Metadata for MultiAgentSystem CRD.
+      example:
+        generation: 0
+        uid: uid
+        resourceVersion: resourceVersion
+        name: name
+        namespace: namespace
+        annotations:
+          key: ""
+        labels:
+          key: ""
+      properties:
+        name:
+          description: Resource name
+          title: Name
+          type: string
+        namespace:
+          description: Kubernetes namespace
+          title: Namespace
+          type: string
+        uid:
+          nullable: true
+          type: string
+        resourceVersion:
+          nullable: true
+          type: string
+        generation:
+          nullable: true
+          type: integer
+        labels:
+          additionalProperties: true
+          nullable: true
+          type: object
+        annotations:
+          additionalProperties: true
+          nullable: true
+          type: object
+      required:
+      - name
+      - namespace
+      title: MultiAgentSystemMetadata
+    MultiAgentSystemSpec-Input:
+      description: Specification for MultiAgentSystem CRD.
+      example:
+        enabledToolChecks:
+        - DETERMINISTIC_TOOL_SELECTED
+        - DETERMINISTIC_TOOL_SELECTED
+        name: name
+        apps:
+        - baseUrl: baseUrl
+          name: name
+          type: ""
+        - baseUrl: baseUrl
+          name: name
+          type: ""
+      properties:
+        name:
+          description: Display name of the Multi-Agent System
+          title: Name
+          type: string
+        enabledToolChecks:
+          description: List of enabled tool check types
+          items:
+            $ref: "#/components/schemas/ToolCheckType"
+          title: Enabledtoolchecks
+          type: array
+        apps:
+          description: List of applications in this MAS
+          items:
+            $ref: "#/components/schemas/AppSpec"
+          title: Apps
+          type: array
+      required:
+      - name
+      title: MultiAgentSystemSpec
+    MultiAgentSystemSpec-Output:
+      description: Specification for MultiAgentSystem CRD.
+      example:
+        enabledToolChecks:
+        - DETERMINISTIC_TOOL_SELECTED
+        - DETERMINISTIC_TOOL_SELECTED
+        name: name
+        apps:
+        - baseUrl: baseUrl
+          name: name
+          type: ""
+        - baseUrl: baseUrl
+          name: name
+          type: ""
+      properties:
+        name:
+          description: Display name of the Multi-Agent System
+          title: Name
+          type: string
+        enabledToolChecks:
+          description: List of enabled tool check types
+          items:
+            $ref: "#/components/schemas/ToolCheckType"
+          title: Enabledtoolchecks
+          type: array
+        apps:
+          description: List of applications in this MAS
+          items:
+            $ref: "#/components/schemas/AppSpec"
+          title: Apps
+          type: array
+      required:
+      - name
+      title: MultiAgentSystemSpec
+    MultiAgentSystemStatus:
+      description: Status of MultiAgentSystem CRD.
+      example:
+        phase: ""
+        credentials:
+        - secretName: secretName
+          clientId: clientId
+          appName: appName
+          appId: appId
+          clientSecret: clientSecret
+        - secretName: secretName
+          clientId: clientId
+          appName: appName
+          appId: appId
+          clientSecret: clientSecret
+        last_sync_time: 2000-01-23T04:56:07.000+00:00
+        appsReady: 0
+        message: message
+      properties:
+        phase:
+          allOf:
+          - $ref: "#/components/schemas/MASPhase"
+          default: Pending
+          description: Current phase of the MAS
+        appsReady:
+          default: 0
+          description: Number of apps successfully registered
+          title: Appsready
+          type: integer
+        last_sync_time:
+          default: 2026-04-16T14:41:53.280298Z
+          format: date-time
+          title: Last Sync Time
+          type: string
+        message:
+          nullable: true
+          type: string
+        credentials:
+          items:
+            $ref: "#/components/schemas/AppCredentials"
+          nullable: true
+          type: array
+      title: MultiAgentSystemStatus
+    MultiAgentSystemUpdateRequest:
+      description: Request model for updating an existing MAS instance.
+      example:
+        enabled_tool_checks: ""
+        name: name
+      properties:
+        name:
+          title: Name
+          type: string
+        enabled_tool_checks:
+          allOf:
+          - $ref: "#/components/schemas/ToolCheckFlags"
+          nullable: true
+      required:
+      - name
+      title: MultiAgentSystemUpdateRequest
+    MultiAgentSystemViewModel:
+      description: View model for Multi-Agent System.
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        authorization_server_id:
+          format: uuid
+          nullable: true
+          type: string
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+      required:
+      - authorization_server_id
+      - created_at
+      - id
+      - name
+      title: MultiAgentSystemViewModel
+    ScopeCreateRequest:
+      description: Request model for scope creation.
+      example:
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
+      properties:
+        name:
+          title: Name
+          type: string
+        mas_id:
+          format: uuid
+          title: Mas Id
+          type: string
+      required:
+      - mas_id
+      - name
+      title: ScopeCreateRequest
+    ScopeUpdateRequest:
+      description: Request model for scope updates.
+      example:
+        name: name
+      properties:
+        name:
+          title: Name
+          type: string
+      required:
+      - name
+      title: ScopeUpdateRequest
+    ScopeViewModel:
+      description: Full view model for Scope including relationships.
+      example:
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        tools:
+        - input_schema: input_schema
+          name: name
+          description: description
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          scopes:
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          output_schema: output_schema
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - input_schema: input_schema
+          name: name
+          description: description
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          scopes:
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          output_schema: output_schema
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        mas: ""
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        mas_id:
+          format: uuid
+          nullable: true
+          type: string
+        mas:
+          allOf:
+          - $ref: "#/components/schemas/MultiAgentSystemViewModel"
+          nullable: true
+        tools:
+          items:
+            $ref: "#/components/schemas/ToolViewModel"
+          title: Tools
+          type: array
+      required:
+      - id
+      - mas
+      - mas_id
+      - name
+      - tools
+      title: ScopeViewModel
+    ScopeViewModelMinimal:
+      description: Minimal view model for Scope with only essential fields (used in
+        Tool.scopes).
+      example:
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+      - id
+      - name
+      title: ScopeViewModelMinimal
+    TokenExchangeRequest:
+      description: A model representing a token exchange request.
+      properties:
+        client_id:
+          title: Client Id
+          type: string
+        client_secret:
+          title: Client Secret
+          type: string
+        subject_token:
+          title: Subject Token
+          type: string
+        subject_token_type:
+          title: Subject Token Type
+          type: string
+        scope:
+          nullable: true
+          type: string
+        mcp_server_url:
+          nullable: true
+          type: string
+        tools:
+          items:
+            type: string
+          nullable: true
+          type: array
+      required:
+      - client_id
+      - client_secret
+      - subject_token
+      - subject_token_type
+      title: TokenExchangeRequest
+    TokenIntrospectResponse:
+      description: Pydantic model for the token introspection response.
+      example:
+        sub: sub
+        other:
+          key: ""
+        act: ""
+        user_input_id: user_input_id
+        scope: scope
+        mas_id: mas_id
+        active: true
+        exp: 0
+        app_id: app_id
+        tools:
+        - tools
+        - tools
+        client_id: client_id
+      properties:
+        client_id:
+          nullable: true
+          type: string
+        scope:
+          nullable: true
+          type: string
+        sub:
+          nullable: true
+          type: string
+        act:
+          allOf:
+          - $ref: "#/components/schemas/ActorClaim"
+          nullable: true
+        other:
+          additionalProperties: true
+          nullable: true
+          type: object
+        exp:
+          nullable: true
+          type: integer
+        user_input_id:
+          nullable: true
+          type: string
+        app_id:
+          nullable: true
+          type: string
+        mas_id:
+          nullable: true
+          type: string
+        tools:
+          items:
+            type: string
+          nullable: true
+          type: array
+        active:
+          title: Active
+          type: boolean
+      required:
+      - active
+      title: TokenIntrospectResponse
+    TokenRequest:
+      description: A model representing a token generation request.
+      properties:
+        client_id:
+          title: Client Id
+          type: string
+        client_secret:
+          title: Client Secret
+          type: string
+        user_input:
+          nullable: true
+          type: string
+        user_input_id:
+          nullable: true
+          type: string
+      required:
+      - client_id
+      - client_secret
+      title: TokenRequest
+    TokenResponse:
+      description: Pydantic model for the token response.
+      example:
+        access_token: access_token
+      properties:
+        access_token:
+          title: Access Token
+          type: string
+      required:
+      - access_token
+      title: TokenResponse
+    ToolCheckFlags:
+      description: Bitmask flags controlling which tool authorization checks are enabled
+        on a MAS.
+      enum:
+      - 0
+      - 1
+      - 2
+      - 4
+      title: ToolCheckFlags
+      type: integer
+    ToolCheckType:
+      description: Tool check types supported in MAS.
+      enum:
+      - DETERMINISTIC_TOOL_SELECTED
+      - DETERMINISTIC_LLM_SELECTED_TOOLS
+      - AI_POWERED_TOOL_MATCH
+      title: ToolCheckType
+      type: string
+    ToolRequest:
+      description: Request model for tool creation.
+      example:
+        input_schema: input_schema
+        name: name
+        description: description
+        scopes:
+        - scopes
+        - scopes
+        output_schema: output_schema
+      properties:
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        input_schema:
+          title: Input Schema
+          type: string
+        output_schema:
+          title: Output Schema
+          type: string
+        scopes:
+          items:
+            type: string
+          nullable: true
+          type: array
+      required:
+      - description
+      - input_schema
+      - name
+      - output_schema
+      title: ToolRequest
+    ToolViewModel:
+      description: View model for Tool including its scopes.
+      example:
+        input_schema: input_schema
+        name: name
+        description: description
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        scopes:
+        - name: name
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - name: name
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        output_schema: output_schema
+        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        description:
+          title: Description
+          type: string
+        input_schema:
+          title: Input Schema
+          type: string
+        output_schema:
+          title: Output Schema
+          type: string
+        app_id:
+          format: uuid
+          nullable: true
+          type: string
+        scopes:
+          items:
+            $ref: "#/components/schemas/ScopeViewModelMinimal"
+          title: Scopes
+          type: array
+      required:
+      - app_id
+      - description
+      - id
+      - input_schema
+      - name
+      - output_schema
+      - scopes
+      title: ToolViewModel
+    UserInput:
+      description: User Input model containing the user input prompt.
+      example:
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        tag: tag
+        prompt: prompt
+        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        prompt:
+          title: Prompt
+          type: string
+        created_at:
+          default: 2026-04-16T14:41:52.406186Z
+          format: date-time
+          title: Created At
+          type: string
+        app_id:
+          format: uuid
+          nullable: true
+          type: string
+        tag:
+          nullable: true
+          type: string
+      required:
+      - app_id
+      - prompt
+      - tag
+      title: UserInput
+    ValidationError:
+      example:
+        msg: msg
+        loc:
+        - Location_inner
+        - Location_inner
+        input: ""
+        ctx: "{}"
+        type: type
+      properties:
+        loc:
+          items:
+            $ref: "#/components/schemas/Location_inner"
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+        input:
+          title: Input
+        ctx:
+          title: Context
+          type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    Location_inner:
+      anyOf:
+      - type: string
+      - type: integer
+  securitySchemes:
+    HTTPBearer:
+      scheme: bearer
+      type: http

@@ -27,6 +27,8 @@ from identity_auth_server.core.repositories.multi_agent_system import (
 from identity_auth_server.core.repositories.scope import ScopePostgresRepository, ScopeRepository
 from identity_auth_server.core.repositories.user_input import UserInputPostgresRepository
 from identity_auth_server.database.postgres.postgres import PostgresDB
+from identity_auth_server.k8s.k8s_query_service import K8sQueryService
+from identity_auth_server.k8s.repository import K8sMultiAgentSystemPostgresRepository
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher, TaskToolMatcherFactory
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
 from identity_auth_server.services.app_service import AppService
@@ -34,6 +36,7 @@ from identity_auth_server.services.authorization_server import AuthorizationServ
 from identity_auth_server.services.mas_service import MultiAgentSystemService
 from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.services.scope_service import ScopeService
+from identity_auth_server.services.user_input_service import UserInputService
 from identity_auth_server.telemetry.tracer import Tracer
 from identity_auth_server.telemetry.tracer_repository import TracerPostgresRepository, TracerRepository
 
@@ -166,6 +169,10 @@ class Container:
         return MultiAgentSystemPostgresRepository(session=session)
 
     @staticmethod
+    def get_k8s_mas_repository(session: Annotated[Session, Depends(get_session)]):
+        return K8sMultiAgentSystemPostgresRepository(session=session)
+
+    @staticmethod
     def get_idp_client():
         return KeycloakClient(
             server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
@@ -254,3 +261,16 @@ class Container:
         from identity_auth_server.k8s.k8s_crd_service import K8sCRDService
 
         return K8sCRDService(mas_service, app_service, idp_client)
+
+    @staticmethod
+    def get_user_input_service(
+        user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
+        app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+    ):
+        return UserInputService(user_input_repository, app_repository)
+
+    @staticmethod
+    def get_k8s_query_service(
+        k8s_mas_repository: Annotated[K8sMultiAgentSystemPostgresRepository, Depends(get_k8s_mas_repository)],
+    ):
+        return K8sQueryService(k8s_mas_repository=k8s_mas_repository)

@@ -16,6 +16,7 @@ spec:
     metadata:
       labels:
         {{- include "zta-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
+        sidecar.istio.io/inject: "false"
     spec:
       {{- with .Values.postgresAuth.imagePullSecrets }}
       imagePullSecrets:

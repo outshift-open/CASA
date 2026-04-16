@@ -70,6 +70,9 @@ class AppPostgresRepository(AppRepository):
 
     def get_app_by_id(self, app_id: str) -> App | None:
         """Retrieve an app by its ID."""
+        if app_id == "":
+            return None
+
         try:
             app = self._session.exec(
                 select(App).where(App.id == app_id).options(joinedload(App.tools).joinedload(Tool.scopes))

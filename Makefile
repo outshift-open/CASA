@@ -189,9 +189,15 @@ ui-stop: # Stop the ZTA Explorer UI.
 generate-sdk:
 > @printf "$(YELLOW)Generating the Python SDK for the Auth Server$(NOCOLOR)\n"
 > @printf "$(YELLOW)Make sure the auth server is running first$(NOCOLOR)\n"
-> curl -o openapi.json http://localhost:8000/openapi.json
-> docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g python -o /local/sdk --additional-properties=packageName=identity_auth_sdk
+> docker build -t zta-auth-temp -f deployments/docker/Dockerfile .
+> docker run --rm -d --name zta-auth-temp -p 8000:8000 zta-auth-temp
+> curl --retry-all-errors --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -o openapi.json http://localhost:8000/openapi.json
+> docker stop zta-auth-temp
+> docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g python -o /local/sdk/python --additional-properties=packageName=identity_auth_sdk
+> docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g go -o /local/sdk/go --additional-properties=packageName=api --git-user-id cisco-eti --git-repo-id identity-auth-server/sdk/go --type-mappings DateTime=string
+> docker rmi zta-auth-temp
 > rm openapi.json
+> cd sdk/go && go mod tidy
 .PHONY: generate-sdk
 
 demo-data: # Create demo data in the backend (requires backend to be running).
@@ -296,3 +302,7 @@ mas-helm-upgrade:
 mas-helm-uninstall:
 > helm uninstall zta-mas  --namespace zta-sidecar
 .PHONY: mas-helm-uninstall
+
+ext-auth-generate-mocks:
+> docker run --rm -v $(PWD):/src -w /src/sidecar/ext_auth vektra/mockery:3
+.PHONY: ext-auth-generate-mocks

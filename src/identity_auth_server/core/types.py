@@ -116,6 +116,7 @@ class UserInput(SQLModel, table=True):
     prompt: str
     created_at: datetime = datetime.now(timezone.utc)
     app_id: Optional[UUID] = Field(foreign_key="app.id")
+    tag: Optional[str] = Field(index=True)
 
 
 class AuthorizationServer(SQLModel, table=True):

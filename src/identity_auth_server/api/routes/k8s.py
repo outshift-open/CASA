@@ -1,0 +1,50 @@
+"""API routes for Kubernetes resources."""
+
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
+
+from identity_auth_server.api.dependencies import Container
+from identity_auth_server.core.types import TokenResponse
+from identity_auth_server.k8s.k8s_query_service import CacheTokenLoadRequest, CacheTokenStoreRequest, K8sQueryService
+from identity_auth_server.k8s.view_models import K8sMultiAgentSystemCRDViewModel
+
+router = APIRouter(tags=["Kubernetes Resources"], prefix="/k8s")
+
+
+@router.get(
+    "/namespaces/{namespace}/get_mas_by_app_host",
+    response_model=K8sMultiAgentSystemCRDViewModel,
+    generate_unique_id_function=lambda _: "get_k8s_mas_by_app_host"
+)
+def get_k8s_mas_by_app_host(
+    k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
+    namespace: str,
+    app_host: str,
+) -> K8sMultiAgentSystemCRDViewModel:
+    crd = k8s_query_service.get_mas_by_app_host(namespace, app_host)
+    if not crd:
+        raise HTTPException(status_code=404, detail=f"MultiAgentSystem not found")
+    return crd
+
+
+@router.post("/namespaces/{namespace}/cache/store-token", generate_unique_id_function=lambda _: "cache_store_token")
+def store_token(
+    k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
+    namespace: str,
+    request: CacheTokenStoreRequest
+):
+    return k8s_query_service.store_token(namespace, request)
+
+
+@router.post("/namespaces/{namespace}/cache/load-token", generate_unique_id_function=lambda _: "cache_load_token")
+def load_token(
+    k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
+    namespace: str,
+    request: CacheTokenLoadRequest
+) -> TokenResponse:
+    token = k8s_query_service.load_token(namespace, request)
+    if not token:
+        raise HTTPException(status_code=404, detail=f"Token not found")
+    return token
