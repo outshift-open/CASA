@@ -19,15 +19,11 @@
   </p>
 
   <p>
-    <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12%20|%203.13-blue?logo=python&logoColor=white" alt="Python 3.12+"/></a>
-    <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"/></a>
-    <a href="https://mypy-lang.org/"><img src="https://www.mypy-lang.org/static/mypy_badge.svg" alt="Checked with mypy"/></a>
     <a href="https://kubernetes.io/"><img src="https://img.shields.io/badge/Kubernetes-1.28+-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes"/></a>
     <a href="https://helm.sh/"><img src="https://img.shields.io/badge/Helm-3.x-0F1689?logo=helm&logoColor=white" alt="Helm"/></a>
-    <a href="https://github.com/cisco-eti/identity-auth-server/pkgs/container/identity-auth-server"><img src="https://img.shields.io/badge/GHCR-images-0075D4?logo=docker&logoColor=white" alt="Docker"/></a>
-    <a href="https://www.keycloak.org/"><img src="https://img.shields.io/badge/Keycloak-IdP-4D6D6D?logo=keycloak&logoColor=white" alt="Keycloak"/></a>
     <a href="https://istio.io/"><img src="https://img.shields.io/badge/Istio-Ready-466BB0?logo=istio&logoColor=white" alt="Istio Ready"/></a>
-    <a href="https://cilium.io/"><img src="https://img.shields.io/badge/Cilium-Ready-F8C517?logo=cilium&logoColor=white" alt="Cilium Ready"/></a>
+    <a href="https://cilium.io/"><img src="https://img.shields.io/badge/Cilium-Pending-F8C517?logo=cilium&logoColor=white" alt="Cilium Ready"/></a>
+    <a href="https://www.keycloak.org/"><img src="https://img.shields.io/badge/Keycloak-IdP-4D6D6D?logo=keycloak&logoColor=white" alt="Keycloak"/></a>
     <a href="https://cisco-eti.github.io/identity-auth-server/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github" alt="Docs"/></a>
   </p>
 </div>
