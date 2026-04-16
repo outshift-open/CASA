@@ -1,4 +1,5 @@
 <!-- CI/CD -->
+
 [![pytest](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml)
 [![pre-commit](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml)
 [![Docs](https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml/badge.svg)](https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml)
@@ -7,12 +8,6 @@
 [![Release](https://img.shields.io/github/v/release/cisco-eti/identity-auth-server?include_prereleases&label=release)](https://github.com/cisco-eti/identity-auth-server/releases)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
-[![Stars](https://img.shields.io/github/stars/cisco-eti/identity-auth-server?style=social)](https://github.com/cisco-eti/identity-auth-server/stargazers)
-[![Forks](https://img.shields.io/github/forks/cisco-eti/identity-auth-server?style=social)](https://github.com/cisco-eti/identity-auth-server/network/members)
-[![Issues](https://img.shields.io/github/issues/cisco-eti/identity-auth-server)](https://github.com/cisco-eti/identity-auth-server/issues)
-[![Contributors](https://img.shields.io/github/contributors/cisco-eti/identity-auth-server)](https://github.com/cisco-eti/identity-auth-server/graphs/contributors)
-[![Last Commit](https://img.shields.io/github/last-commit/cisco-eti/identity-auth-server/main)](https://github.com/cisco-eti/identity-auth-server/commits/main)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.28+-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![Helm](https://img.shields.io/badge/Helm-3.x-0F1689?logo=helm&logoColor=white)](https://helm.sh/)
 [![Docker](https://img.shields.io/badge/GHCR-images-0075D4?logo=docker&logoColor=white)](https://github.com/cisco-eti/identity-auth-server/pkgs/container/identity-auth-server)
@@ -106,7 +101,7 @@ graph TB
 | **ZTA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
 | **eBPF layer**      | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
 | **Keycloak**        | Identity provider backing token cryptography                                                                     |
-| **ZTA Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                    |
+| **ZTA Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                   |
 
 ---
 
@@ -245,18 +240,18 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 
 ## Repository Structure
 
-| Path                                      | Description                              |
-| ----------------------------------------- | ---------------------------------------- |
-| `deployments/k8s/helm/zta-control-plane/` | ZTA control plane Helm chart             |
-| `deployments/k8s/crds/`                   | CRD examples and API reference           |
-| `demo/k8s/helm/`                          | Demo MAS Helm chart (agent + MCP server) |
-| `demo/src/agent/`                         | Demo agent source code                   |
-| `demo/src/mcp/`                           | Demo MCP server source code              |
-| `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)          |
-| `src/identity_auth_server/`               | Auth service Python source               |
+| Path                                      | Description                                             |
+| ----------------------------------------- | ------------------------------------------------------- |
+| `deployments/k8s/helm/zta-control-plane/` | ZTA control plane Helm chart                            |
+| `deployments/k8s/crds/`                   | CRD examples and API reference                          |
+| `demo/k8s/helm/`                          | Demo MAS Helm chart (agent + MCP server)                |
+| `demo/src/agent/`                         | Demo agent source code                                  |
+| `demo/src/mcp/`                           | Demo MCP server source code                             |
+| `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)                         |
+| `src/identity_auth_server/`               | Auth service Python source                              |
 | `zta-explorer-ui/`                        | ZTA Explorer UI source (React, read-only observability) |
-| `docs/ui/`                                | Docusaurus documentation portal          |
-| `contrib/wip/it1/`                        | Architecture specs and design documents  |
+| `docs/ui/`                                | Docusaurus documentation portal                         |
+| `contrib/wip/it1/`                        | Architecture specs and design documents                 |
 
 ---
 
