@@ -2,8 +2,9 @@
 
 import json
 import logging
+import os
 
-from dotenv import dotenv_values
+from dotenv import dotenv_values, load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
@@ -41,12 +42,12 @@ class LlmVerifierTaskToolMatcher(TaskToolMatcher):
         """Initialize the verifier matcher."""
         super().__init__()
         self.logger.setLevel(logging.DEBUG)
-        config = dotenv_values(".env")
+        load_dotenv(".env")
         self.openai_client = OpenAI(
-            api_key=config.get("OPENAI_GPT4o_API_JWT_TOKEN"),
-            base_url=config.get("OPENAI_GPT4o_API_BASE_URL"),
+            api_key=os.getenv("OPENAI_GPT4o_API_JWT_TOKEN"),
+            base_url=os.getenv("OPENAI_GPT4o_API_BASE_URL"),
         )
-        self.model_id = config.get("PIPELINE_OPENAI_GPT4o_MODEL_ID")
+        self.model_id = os.getenv("PIPELINE_OPENAI_GPT4o_MODEL_ID")
         self.tool_names = []
         self.tuning = False
 
