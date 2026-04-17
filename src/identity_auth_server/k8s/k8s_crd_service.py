@@ -188,8 +188,12 @@ class K8sCRDService:
             # Ensure the K8sMultiAgentSystemCRD row exists in DB
             k8s_crd = self._k8s_mas_repository.get_k8s_crd_by_mas_id(mas.id) if mas.id is not None else None
             if k8s_crd is None:
-                workload_names = {a.name: a.kubernetes_workload_name for a in request.spec.apps if a.kubernetes_workload_name}
-                k8s_crd = self._build_k8s_crd_record(mas, request.metadata.name, request.metadata.namespace, workload_names)
+                workload_names = {
+                    a.name: a.kubernetes_workload_name for a in request.spec.apps if a.kubernetes_workload_name
+                }
+                k8s_crd = self._build_k8s_crd_record(
+                    mas, request.metadata.name, request.metadata.namespace, workload_names
+                )
                 self._k8s_mas_repository.create_mas(k8s_crd)
 
             # Build CRD response with existing data
@@ -250,7 +254,8 @@ class K8sCRDService:
                 logger.error(f"Failed to create app {app_spec.name}: {e}")
 
         # Persist the K8sMultiAgentSystemCRD record (used by k8s_query_service for host-based lookups)
-        k8s_crd = self._build_k8s_crd_record(mas, request.metadata.name, request.metadata.namespace)
+        workload_names = {a.name: a.kubernetes_workload_name for a in request.spec.apps if a.kubernetes_workload_name}
+        k8s_crd = self._build_k8s_crd_record(mas, request.metadata.name, request.metadata.namespace, workload_names)
         self._k8s_mas_repository.create_mas(k8s_crd)
 
         # Build CRD response
