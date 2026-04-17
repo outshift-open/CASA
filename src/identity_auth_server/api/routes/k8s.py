@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from identity_auth_server.api.dependencies import Container
 from identity_auth_server.core.types import TokenResponse
-from identity_auth_server.k8s.k8s_query_service import CacheTokenLoadRequest, CacheTokenStoreRequest, K8sQueryService
+from identity_auth_server.k8s.k8s_query_service import CacheTokenLoadRequest, CacheTokenStoreRequest, K8sQueryService, LlmCallMappingStoreRequest
+from identity_auth_server.k8s.types import K8sLlmCallMapping
 from identity_auth_server.k8s.view_models import K8sMultiAgentSystemCRDViewModel
 
 router = APIRouter(tags=["Kubernetes Resources"], prefix="/k8s")
@@ -64,3 +65,26 @@ def load_token(
     if not token:
         raise HTTPException(status_code=404, detail=f"Token not found")
     return token
+
+
+@router.post("/namespaces/{namespace}/cache/store-llm-call-mapping", generate_unique_id_function=lambda _: "cache_store_llm_call_mapping")
+def store_llm_call_mapping(
+    k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
+    namespace: str,
+    request: LlmCallMappingStoreRequest,
+) -> K8sLlmCallMapping:
+    call = k8s_query_service.store_llm_call_mapping(namespace, request)
+    if not call:
+        raise HTTPException(status_code=500, detail=f"Error storing the LLM call mapping")
+    return call
+
+
+@router.get("/cache/load-llm-call-mapping/{call_id}", generate_unique_id_function=lambda _: "cache_load_llm_call_mapping")
+def load_llm_call_mapping(
+    k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
+    call_id: str,
+) -> K8sLlmCallMapping:
+    call = k8s_query_service.load_llm_call_mapping(call_id)
+    if not call:
+        raise HTTPException(status_code=404, detail=f"LLM call mapping not found")
+    return call

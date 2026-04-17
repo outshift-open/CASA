@@ -26,7 +26,8 @@ type AppSpec struct {
 	// Type of the application
 	Type AppType `json:"type"`
 	// Base URL of the application
-	BaseUrl string `json:"baseUrl"`
+	BaseUrl AppSpecBaseUrl `json:"baseUrl"`
+	KubernetesWorkloadName NullableString `json:"kubernetesWorkloadName,omitempty"`
 }
 
 type _AppSpec AppSpec
@@ -35,7 +36,7 @@ type _AppSpec AppSpec
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAppSpec(name string, type_ AppType, baseUrl string) *AppSpec {
+func NewAppSpec(name string, type_ AppType, baseUrl AppSpecBaseUrl) *AppSpec {
 	this := AppSpec{}
 	this.Name = name
 	this.Type = type_
@@ -100,9 +101,9 @@ func (o *AppSpec) SetType(v AppType) {
 }
 
 // GetBaseUrl returns the BaseUrl field value
-func (o *AppSpec) GetBaseUrl() string {
+func (o *AppSpec) GetBaseUrl() AppSpecBaseUrl {
 	if o == nil {
-		var ret string
+		var ret AppSpecBaseUrl
 		return ret
 	}
 
@@ -111,7 +112,7 @@ func (o *AppSpec) GetBaseUrl() string {
 
 // GetBaseUrlOk returns a tuple with the BaseUrl field value
 // and a boolean to check if the value has been set.
-func (o *AppSpec) GetBaseUrlOk() (*string, bool) {
+func (o *AppSpec) GetBaseUrlOk() (*AppSpecBaseUrl, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -119,8 +120,50 @@ func (o *AppSpec) GetBaseUrlOk() (*string, bool) {
 }
 
 // SetBaseUrl sets field value
-func (o *AppSpec) SetBaseUrl(v string) {
+func (o *AppSpec) SetBaseUrl(v AppSpecBaseUrl) {
 	o.BaseUrl = v
+}
+
+// GetKubernetesWorkloadName returns the KubernetesWorkloadName field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AppSpec) GetKubernetesWorkloadName() string {
+	if o == nil || IsNil(o.KubernetesWorkloadName.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.KubernetesWorkloadName.Get()
+}
+
+// GetKubernetesWorkloadNameOk returns a tuple with the KubernetesWorkloadName field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AppSpec) GetKubernetesWorkloadNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.KubernetesWorkloadName.Get(), o.KubernetesWorkloadName.IsSet()
+}
+
+// HasKubernetesWorkloadName returns a boolean if a field has been set.
+func (o *AppSpec) HasKubernetesWorkloadName() bool {
+	if o != nil && o.KubernetesWorkloadName.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetKubernetesWorkloadName gets a reference to the given NullableString and assigns it to the KubernetesWorkloadName field.
+func (o *AppSpec) SetKubernetesWorkloadName(v string) {
+	o.KubernetesWorkloadName.Set(&v)
+}
+// SetKubernetesWorkloadNameNil sets the value for KubernetesWorkloadName to be an explicit nil
+func (o *AppSpec) SetKubernetesWorkloadNameNil() {
+	o.KubernetesWorkloadName.Set(nil)
+}
+
+// UnsetKubernetesWorkloadName ensures that no value is present for KubernetesWorkloadName, not even an explicit nil
+func (o *AppSpec) UnsetKubernetesWorkloadName() {
+	o.KubernetesWorkloadName.Unset()
 }
 
 func (o AppSpec) MarshalJSON() ([]byte, error) {
@@ -136,6 +179,9 @@ func (o AppSpec) ToMap() (map[string]interface{}, error) {
 	toSerialize["name"] = o.Name
 	toSerialize["type"] = o.Type
 	toSerialize["baseUrl"] = o.BaseUrl
+	if o.KubernetesWorkloadName.IsSet() {
+		toSerialize["kubernetesWorkloadName"] = o.KubernetesWorkloadName.Get()
+	}
 	return toSerialize, nil
 }
 

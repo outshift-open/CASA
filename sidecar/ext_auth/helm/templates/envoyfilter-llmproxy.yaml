@@ -4,9 +4,9 @@ metadata:
   name: llm-proxy
   namespace: zta-sidecar
 spec:
-  url: oci://626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/traceparent_injector_plugin:2026-04-08-75ec9fa
+  url: oci://626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/llm_proxy_plugin:2026-04-17-f6260f2
   imagePullPolicy: Always
   imagePullSecret: regcred
   phase: AUTHN
   match:
-    - mode: SERVER
+    - mode: CLIENT

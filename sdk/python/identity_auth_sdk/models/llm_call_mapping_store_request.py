@@ -17,22 +17,19 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from identity_auth_sdk.models.app_spec_base_url import AppSpecBaseUrl
-from identity_auth_sdk.models.app_type import AppType
+from pydantic import BaseModel, ConfigDict, StrictStr
+from typing import Any, ClassVar, Dict, List
 from typing import Optional, Set
 from typing_extensions import Self
 
-class AppSpec(BaseModel):
+class LlmCallMappingStoreRequest(BaseModel):
     """
-    Application specification within a MultiAgentSystem.
+    LlmCallMappingStoreRequest
     """ # noqa: E501
-    name: StrictStr = Field(description="Name of the application")
-    type: AppType = Field(description="Type of the application")
-    base_url: AppSpecBaseUrl = Field(description="Base URL of the application", alias="baseUrl")
-    kubernetes_workload_name: Optional[StrictStr] = Field(default=None, alias="kubernetesWorkloadName")
-    __properties: ClassVar[List[str]] = ["name", "type", "baseUrl", "kubernetesWorkloadName"]
+    id: StrictStr
+    trace_id: StrictStr
+    token: StrictStr
+    __properties: ClassVar[List[str]] = ["id", "trace_id", "token"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -52,7 +49,7 @@ class AppSpec(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of AppSpec from a JSON string"""
+        """Create an instance of LlmCallMappingStoreRequest from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,19 +70,11 @@ class AppSpec(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of base_url
-        if self.base_url:
-            _dict['baseUrl'] = self.base_url.to_dict()
-        # set to None if kubernetes_workload_name (nullable) is None
-        # and model_fields_set contains the field
-        if self.kubernetes_workload_name is None and "kubernetes_workload_name" in self.model_fields_set:
-            _dict['kubernetesWorkloadName'] = None
-
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of AppSpec from a dict"""
+        """Create an instance of LlmCallMappingStoreRequest from a dict"""
         if obj is None:
             return None
 
@@ -93,10 +82,9 @@ class AppSpec(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "name": obj.get("name"),
-            "type": obj.get("type"),
-            "baseUrl": AppSpecBaseUrl.from_dict(obj["baseUrl"]) if obj.get("baseUrl") is not None else None,
-            "kubernetesWorkloadName": obj.get("kubernetesWorkloadName")
+            "id": obj.get("id"),
+            "trace_id": obj.get("trace_id"),
+            "token": obj.get("token")
         })
         return _obj
 

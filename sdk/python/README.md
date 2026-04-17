@@ -107,7 +107,9 @@ Class | Method | HTTP request | Description
 *KubernetesCRDsApi* | [**watch_all_mas_k8s_watch_multiagentsystems_get**](docs/KubernetesCRDsApi.md#watch_all_mas_k8s_watch_multiagentsystems_get) | **GET** /k8s/watch/multiagentsystems | Watch All Mas
 *KubernetesCRDsApi* | [**watch_mas_in_namespace_k8s_watch_namespaces_namespace_multiagentsystems_get**](docs/KubernetesCRDsApi.md#watch_mas_in_namespace_k8s_watch_namespaces_namespace_multiagentsystems_get) | **GET** /k8s/watch/namespaces/{namespace}/multiagentsystems | Watch Mas In Namespace
 *KubernetesCRDsApi* | [**watch_policies_in_namespace_k8s_watch_namespaces_namespace_ztapolicies_get**](docs/KubernetesCRDsApi.md#watch_policies_in_namespace_k8s_watch_namespaces_namespace_ztapolicies_get) | **GET** /k8s/watch/namespaces/{namespace}/ztapolicies | Watch Policies In Namespace
+*KubernetesResourcesApi* | [**cache_load_llm_call_mapping**](docs/KubernetesResourcesApi.md#cache_load_llm_call_mapping) | **GET** /k8s/cache/load-llm-call-mapping/{call_id} | Load Llm Call Mapping
 *KubernetesResourcesApi* | [**cache_load_token**](docs/KubernetesResourcesApi.md#cache_load_token) | **POST** /k8s/namespaces/{namespace}/cache/load-token | Load Token
+*KubernetesResourcesApi* | [**cache_store_llm_call_mapping**](docs/KubernetesResourcesApi.md#cache_store_llm_call_mapping) | **POST** /k8s/namespaces/{namespace}/cache/store-llm-call-mapping | Store Llm Call Mapping
 *KubernetesResourcesApi* | [**cache_store_token**](docs/KubernetesResourcesApi.md#cache_store_token) | **POST** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 *KubernetesResourcesApi* | [**get_k8s_mas_by_app_host**](docs/KubernetesResourcesApi.md#get_k8s_mas_by_app_host) | **GET** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 *KubernetesResourcesApi* | [**get_k8s_mas_by_app_workload**](docs/KubernetesResourcesApi.md#get_k8s_mas_by_app_workload) | **GET** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
@@ -137,6 +139,7 @@ Class | Method | HTTP request | Description
  - [AppMetadataResponse](docs/AppMetadataResponse.md)
  - [AppRequest](docs/AppRequest.md)
  - [AppSpec](docs/AppSpec.md)
+ - [AppSpecBaseUrl](docs/AppSpecBaseUrl.md)
  - [AppType](docs/AppType.md)
  - [AppViewModel](docs/AppViewModel.md)
  - [CacheTokenLoadRequest](docs/CacheTokenLoadRequest.md)
@@ -144,12 +147,14 @@ Class | Method | HTTP request | Description
  - [CreateUserInputRequest](docs/CreateUserInputRequest.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [K8sAppSpecViewModel](docs/K8sAppSpecViewModel.md)
+ - [K8sLlmCallMapping](docs/K8sLlmCallMapping.md)
  - [K8sMultiAgentSystemCRDViewModel](docs/K8sMultiAgentSystemCRDViewModel.md)
  - [K8sMultiAgentSystemMetadataViewModel](docs/K8sMultiAgentSystemMetadataViewModel.md)
  - [LLMCallEndedEvent](docs/LLMCallEndedEvent.md)
  - [LLMCallEndedRequest](docs/LLMCallEndedRequest.md)
  - [LLMCallStartedEvent](docs/LLMCallStartedEvent.md)
  - [LLMCallStartedRequest](docs/LLMCallStartedRequest.md)
+ - [LlmCallMappingStoreRequest](docs/LlmCallMappingStoreRequest.md)
  - [LocationInner](docs/LocationInner.md)
  - [MASCreateRequest](docs/MASCreateRequest.md)
  - [MASListResponse](docs/MASListResponse.md)

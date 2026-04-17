@@ -8,6 +8,7 @@ docs/AppCredentials.md
 docs/AppMetadataResponse.md
 docs/AppRequest.md
 docs/AppSpec.md
+docs/AppSpecBaseUrl.md
 docs/AppType.md
 docs/AppViewModel.md
 docs/AppsApi.md
@@ -17,6 +18,7 @@ docs/CacheTokenStoreRequest.md
 docs/CreateUserInputRequest.md
 docs/HTTPValidationError.md
 docs/K8sAppSpecViewModel.md
+docs/K8sLlmCallMapping.md
 docs/K8sMultiAgentSystemCRDViewModel.md
 docs/K8sMultiAgentSystemMetadataViewModel.md
 docs/KubernetesCRDsApi.md
@@ -25,6 +27,7 @@ docs/LLMCallEndedEvent.md
 docs/LLMCallEndedRequest.md
 docs/LLMCallStartedEvent.md
 docs/LLMCallStartedRequest.md
+docs/LlmCallMappingStoreRequest.md
 docs/LocationInner.md
 docs/MASCreateRequest.md
 docs/MASListResponse.md
@@ -78,6 +81,7 @@ identity_auth_sdk/models/app_credentials.py
 identity_auth_sdk/models/app_metadata_response.py
 identity_auth_sdk/models/app_request.py
 identity_auth_sdk/models/app_spec.py
+identity_auth_sdk/models/app_spec_base_url.py
 identity_auth_sdk/models/app_type.py
 identity_auth_sdk/models/app_view_model.py
 identity_auth_sdk/models/cache_token_load_request.py
@@ -85,10 +89,12 @@ identity_auth_sdk/models/cache_token_store_request.py
 identity_auth_sdk/models/create_user_input_request.py
 identity_auth_sdk/models/http_validation_error.py
 identity_auth_sdk/models/k8s_app_spec_view_model.py
+identity_auth_sdk/models/k8s_llm_call_mapping.py
 identity_auth_sdk/models/k8s_multi_agent_system_crd_view_model.py
 identity_auth_sdk/models/k8s_multi_agent_system_metadata_view_model.py
 identity_auth_sdk/models/llm_call_ended_event.py
 identity_auth_sdk/models/llm_call_ended_request.py
+identity_auth_sdk/models/llm_call_mapping_store_request.py
 identity_auth_sdk/models/llm_call_started_event.py
 identity_auth_sdk/models/llm_call_started_request.py
 identity_auth_sdk/models/location_inner.py

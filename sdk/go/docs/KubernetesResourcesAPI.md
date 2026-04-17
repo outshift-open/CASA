@@ -4,11 +4,81 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**CacheLoadLlmCallMapping**](KubernetesResourcesAPI.md#CacheLoadLlmCallMapping) | **Get** /k8s/cache/load-llm-call-mapping/{call_id} | Load Llm Call Mapping
 [**CacheLoadToken**](KubernetesResourcesAPI.md#CacheLoadToken) | **Post** /k8s/namespaces/{namespace}/cache/load-token | Load Token
+[**CacheStoreLlmCallMapping**](KubernetesResourcesAPI.md#CacheStoreLlmCallMapping) | **Post** /k8s/namespaces/{namespace}/cache/store-llm-call-mapping | Store Llm Call Mapping
 [**CacheStoreToken**](KubernetesResourcesAPI.md#CacheStoreToken) | **Post** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 [**GetK8sMasByAppHost**](KubernetesResourcesAPI.md#GetK8sMasByAppHost) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 [**GetK8sMasByAppWorkload**](KubernetesResourcesAPI.md#GetK8sMasByAppWorkload) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
 
+
+
+## CacheLoadLlmCallMapping
+
+> K8sLlmCallMapping CacheLoadLlmCallMapping(ctx, callId).Execute()
+
+Load Llm Call Mapping
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/cisco-eti/identity-auth-server/sdk/go"
+)
+
+func main() {
+	callId := "callId_example" // string | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.KubernetesResourcesAPI.CacheLoadLlmCallMapping(context.Background(), callId).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `KubernetesResourcesAPI.CacheLoadLlmCallMapping``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `CacheLoadLlmCallMapping`: K8sLlmCallMapping
+	fmt.Fprintf(os.Stdout, "Response from `KubernetesResourcesAPI.CacheLoadLlmCallMapping`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**callId** | **string** |  | 
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiCacheLoadLlmCallMappingRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+### Return type
+
+[**K8sLlmCallMapping**](K8sLlmCallMapping.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
 
 
 ## CacheLoadToken
@@ -66,6 +136,76 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**TokenResponse**](TokenResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## CacheStoreLlmCallMapping
+
+> K8sLlmCallMapping CacheStoreLlmCallMapping(ctx, namespace).LlmCallMappingStoreRequest(llmCallMappingStoreRequest).Execute()
+
+Store Llm Call Mapping
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/cisco-eti/identity-auth-server/sdk/go"
+)
+
+func main() {
+	namespace := "namespace_example" // string | 
+	llmCallMappingStoreRequest := *openapiclient.NewLlmCallMappingStoreRequest("Id_example", "TraceId_example", "Token_example") // LlmCallMappingStoreRequest | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.KubernetesResourcesAPI.CacheStoreLlmCallMapping(context.Background(), namespace).LlmCallMappingStoreRequest(llmCallMappingStoreRequest).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `KubernetesResourcesAPI.CacheStoreLlmCallMapping``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `CacheStoreLlmCallMapping`: K8sLlmCallMapping
+	fmt.Fprintf(os.Stdout, "Response from `KubernetesResourcesAPI.CacheStoreLlmCallMapping`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**namespace** | **string** |  | 
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiCacheStoreLlmCallMappingRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+ **llmCallMappingStoreRequest** | [**LlmCallMappingStoreRequest**](LlmCallMappingStoreRequest.md) |  | 
+
+### Return type
+
+[**K8sLlmCallMapping**](K8sLlmCallMapping.md)
 
 ### Authorization
 

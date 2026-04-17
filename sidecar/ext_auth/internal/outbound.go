@@ -83,15 +83,6 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			return nil, fmt.Errorf("outbound: unable to get Kubernetes MultiAgentSystem resource for caller workload %s: %w", callerWorkloadName, err)
 		}
 
-		if strings.EqualFold(host, masCRD.GetLlmHost()) {
-			llmCallID := uuid.NewString()
-
-			// TODO: store the event, you need the JWT too
-			slog.Info(fmt.Sprintf("[GEN] x-litellm-call-id: %s", llmCallID))
-
-			return s.allowWithHeaders(map[string]string{"x-litellm-call-id": llmCallID}), nil
-		}
-
 		var callerToken string
 
 		// get stored JWT of the caller
@@ -115,6 +106,19 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 
 			callerToken = token.AccessToken
 			break
+		}
+
+		if strings.EqualFold(host, masCRD.GetLlmHost()) {
+			llmCallID := uuid.NewString()
+
+			slog.Info(fmt.Sprintf("Generating x-litellm-call-id: %s", llmCallID))
+
+			_, err := s.authSrvClient.StoreLLMCallMapping(ctx, s.namespace, llmCallID, traceID, callerToken)
+			if err != nil {
+				return nil, fmt.Errorf("unable to store LLM call mapping: %w", err)
+			}
+
+			return s.allowWithHeaders(map[string]string{"x-litellm-call-id": llmCallID}), nil
 		}
 
 		for _, appSpec := range masCRD.AppSpecs {

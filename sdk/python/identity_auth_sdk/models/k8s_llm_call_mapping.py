@@ -17,22 +17,25 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from datetime import datetime
+from pydantic import BaseModel, ConfigDict, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from identity_auth_sdk.models.app_spec_base_url import AppSpecBaseUrl
-from identity_auth_sdk.models.app_type import AppType
+from uuid import UUID
 from typing import Optional, Set
 from typing_extensions import Self
 
-class AppSpec(BaseModel):
+class K8sLlmCallMapping(BaseModel):
     """
-    Application specification within a MultiAgentSystem.
+    K8sLlmCallMapping
     """ # noqa: E501
-    name: StrictStr = Field(description="Name of the application")
-    type: AppType = Field(description="Type of the application")
-    base_url: AppSpecBaseUrl = Field(description="Base URL of the application", alias="baseUrl")
-    kubernetes_workload_name: Optional[StrictStr] = Field(default=None, alias="kubernetesWorkloadName")
-    __properties: ClassVar[List[str]] = ["name", "type", "baseUrl", "kubernetesWorkloadName"]
+    id: Optional[UUID] = None
+    namespace: StrictStr
+    trace_id: StrictStr
+    mas_id: Optional[UUID]
+    app_id: Optional[UUID]
+    user_input_id: Optional[UUID]
+    created_at: Optional[datetime] = None
+    __properties: ClassVar[List[str]] = ["id", "namespace", "trace_id", "mas_id", "app_id", "user_input_id", "created_at"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -52,7 +55,7 @@ class AppSpec(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of AppSpec from a JSON string"""
+        """Create an instance of K8sLlmCallMapping from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,19 +76,31 @@ class AppSpec(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of base_url
-        if self.base_url:
-            _dict['baseUrl'] = self.base_url.to_dict()
-        # set to None if kubernetes_workload_name (nullable) is None
+        # set to None if id (nullable) is None
         # and model_fields_set contains the field
-        if self.kubernetes_workload_name is None and "kubernetes_workload_name" in self.model_fields_set:
-            _dict['kubernetesWorkloadName'] = None
+        if self.id is None and "id" in self.model_fields_set:
+            _dict['id'] = None
+
+        # set to None if mas_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.mas_id is None and "mas_id" in self.model_fields_set:
+            _dict['mas_id'] = None
+
+        # set to None if app_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.app_id is None and "app_id" in self.model_fields_set:
+            _dict['app_id'] = None
+
+        # set to None if user_input_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.user_input_id is None and "user_input_id" in self.model_fields_set:
+            _dict['user_input_id'] = None
 
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of AppSpec from a dict"""
+        """Create an instance of K8sLlmCallMapping from a dict"""
         if obj is None:
             return None
 
@@ -93,10 +108,13 @@ class AppSpec(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "name": obj.get("name"),
-            "type": obj.get("type"),
-            "baseUrl": AppSpecBaseUrl.from_dict(obj["baseUrl"]) if obj.get("baseUrl") is not None else None,
-            "kubernetesWorkloadName": obj.get("kubernetesWorkloadName")
+            "id": obj.get("id"),
+            "namespace": obj.get("namespace"),
+            "trace_id": obj.get("trace_id"),
+            "mas_id": obj.get("mas_id"),
+            "app_id": obj.get("app_id"),
+            "user_input_id": obj.get("user_input_id"),
+            "created_at": obj.get("created_at")
         })
         return _obj
 

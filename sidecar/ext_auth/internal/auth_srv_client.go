@@ -18,6 +18,7 @@ type AuthServerClient interface {
 	Token(ctx context.Context, appID, clientID, clientSecret, userInputID string) (string, error)
 	ExchangeToken(ctx context.Context, appID, clientID, clientSecret, subjectToken, mcpServerURL string, tools []string) (string, error)
 	Introspect(ctx context.Context, token string, tools []string) (*identitysdk.TokenIntrospectResponse, error)
+	StoreLLMCallMapping(ctx context.Context, namespace, callID, traceID, token string) (*identitysdk.K8sLlmCallMapping, error)
 }
 
 type authServerClient struct {
@@ -174,6 +175,29 @@ func (c *authServerClient) Introspect(ctx context.Context, token string, tools [
 	if err != nil {
 		slog.Error("Error when calling `AuthorizationServerAPI.Introspect`", "err", err, "http.response", r)
 		return nil, fmt.Errorf("unable to introspect the token: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (c *authServerClient) StoreLLMCallMapping(
+	ctx context.Context,
+	namespace string,
+	callID string,
+	traceID string,
+	token string,
+) (*identitysdk.K8sLlmCallMapping, error) {
+	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.
+		CacheStoreLlmCallMapping(ctx, namespace).
+		LlmCallMappingStoreRequest(identitysdk.LlmCallMappingStoreRequest{
+			Id:      callID,
+			TraceId: traceID,
+			Token:   token,
+		}).
+		Execute()
+	if err != nil {
+		slog.Error("Error when calling `AuthorizationServerAPI.StoreLLMCallMapping`", "err", err, "http.response", r)
+		return nil, fmt.Errorf("unable to store the LLM call mapping: %w", err)
 	}
 
 	return resp, nil

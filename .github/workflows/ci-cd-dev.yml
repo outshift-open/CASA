@@ -6,9 +6,10 @@ name: ZTA Control Plane CI/CD
 on:
   push:
     branches:
-      - "main"
+      - feature/llm_call_trace
   workflow_dispatch:
   workflow_call:
+
 concurrency:
     group: ci-${{ github.ref }}
     cancel-in-progress: true
@@ -88,93 +89,93 @@ jobs:
             ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
             checkout-submodules: true
 
-    call-docker-build-push-ui-explorer:
-        name: Call Docker Build UI Explorer
-        needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+    # call-docker-build-push-ui-explorer:
+    #     name: Call Docker Build UI Explorer
+    #     needs: [checkout]
+    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
 
-        secrets:
-            # Only needed if with:ecr-enabled or with:gar-enabled is true below
-            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-            ghcr-username: ${{ secrets.GHCR_USERNAME }}
-            ghcr-token: ${{ secrets.GHCR_TOKEN }}
-            ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    #     secrets:
+    #         # Only needed if with:ecr-enabled or with:gar-enabled is true below
+    #         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+    #         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+    #         ghcr-username: ${{ secrets.GHCR_USERNAME }}
+    #         ghcr-token: ${{ secrets.GHCR_TOKEN }}
+    #         ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
 
-        with:
-            runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-            ### REQUIRED
-            ### Docker image name
-            image-name: "identity-auth-server-ui"
+    #     with:
+    #         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+    #         ### REQUIRED
+    #         ### Docker image name
+    #         image-name: "identity-auth-server-ui"
 
-            ### path to where docker should copy files into image
-            ### defaults to root of repository (.)
-            context: .
+    #         ### path to where docker should copy files into image
+    #         ### defaults to root of repository (.)
+    #         context: .
 
-            npm-github-registry-enabled: true
-            ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
-            dockerfile: deployments/docker/Dockerfile.ui
-            ### REQUIRED
-            ### ENABLE ONE OR BOTH REGISTRIES
-            ### tell docker where to push.
-            ecr-enabled: true
-            artifactory-devhub-enabled: false
-            ghcr-enabled: true
-            ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
-            checkout-submodules: true
+    #         npm-github-registry-enabled: true
+    #         ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
+    #         dockerfile: deployments/docker/Dockerfile.ui
+    #         ### REQUIRED
+    #         ### ENABLE ONE OR BOTH REGISTRIES
+    #         ### tell docker where to push.
+    #         ecr-enabled: true
+    #         artifactory-devhub-enabled: false
+    #         ghcr-enabled: true
+    #         ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
+    #         checkout-submodules: true
 
-    call-docker-build-push-keycloak:
-        name: Call Docker Build Keycloak
-        needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+    # call-docker-build-push-keycloak:
+    #     name: Call Docker Build Keycloak
+    #     needs: [checkout]
+    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
 
-        secrets:
-            # Only needed if with:ecr-enabled or with:gar-enabled is true below
-            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-            ghcr-username: ${{ secrets.GHCR_USERNAME }}
-            ghcr-token: ${{ secrets.GHCR_TOKEN }}
-            ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    #     secrets:
+    #         # Only needed if with:ecr-enabled or with:gar-enabled is true below
+    #         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+    #         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+    #         ghcr-username: ${{ secrets.GHCR_USERNAME }}
+    #         ghcr-token: ${{ secrets.GHCR_TOKEN }}
+    #         ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
 
-        with:
-            runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-            ### REQUIRED
-            ### Docker image name
-            image-name: "identity-auth-server-keycloak"
+    #     with:
+    #         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+    #         ### REQUIRED
+    #         ### Docker image name
+    #         image-name: "identity-auth-server-keycloak"
 
-            ### path to where docker should copy files into image
-            ### defaults to root of repository (.)
-            context: deployments/docker
+    #         ### path to where docker should copy files into image
+    #         ### defaults to root of repository (.)
+    #         context: deployments/docker
 
-            ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
-            dockerfile: deployments/docker/Dockerfile.keycloak
-            ### REQUIRED
-            ### ENABLE ONE OR BOTH REGISTRIES
-            ### tell docker where to push.
-            ecr-enabled: true
-            artifactory-devhub-enabled: false
-            ghcr-enabled: true
-            ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
-            checkout-submodules: true
+    #         ### Dockerfile alternate name. Default is Dockerfile (relative to context path)
+    #         dockerfile: deployments/docker/Dockerfile.keycloak
+    #         ### REQUIRED
+    #         ### ENABLE ONE OR BOTH REGISTRIES
+    #         ### tell docker where to push.
+    #         ecr-enabled: true
+    #         artifactory-devhub-enabled: false
+    #         ghcr-enabled: true
+    #         ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
+    #         checkout-submodules: true
 
-    call-docker-build-push-operator:
-      name: Call Docker Build ZTA Operator
-      needs: [checkout]
-      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
-      secrets:
-        vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-        vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-        ghcr-username: ${{ secrets.GHCR_USERNAME }}
-        ghcr-token: ${{ secrets.GHCR_TOKEN }}
-        ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
-      with:
-        runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-        image-name: "outshift-zta/zta-operator"
-        context: .
-        dockerfile: deployments/docker/Dockerfile.operator
-        ecr-enabled: true
-        artifactory-devhub-enabled: false
-        ghcr-enabled: false
+    # call-docker-build-push-operator:
+    #   name: Call Docker Build ZTA Operator
+    #   needs: [checkout]
+    #   uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+    #   secrets:
+    #     vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+    #     vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+    #     ghcr-username: ${{ secrets.GHCR_USERNAME }}
+    #     ghcr-token: ${{ secrets.GHCR_TOKEN }}
+    #     ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    #   with:
+    #     runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+    #     image-name: "outshift-zta/zta-operator"
+    #     context: .
+    #     dockerfile: deployments/docker/Dockerfile.operator
+    #     ecr-enabled: true
+    #     artifactory-devhub-enabled: false
+    #     ghcr-enabled: false
 
     call-docker-build-push-wasm:
       name: Call Docker Build traceparent injector WASM plugin
@@ -235,30 +236,30 @@ jobs:
 
     # ################################## Helm Publish #################################
     # #################################################################################
-    call-helm-publish-zta-control-plane:
-        name: Helm publish ZTA Control Plane
-        needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@a71689ba6f8952b319afe5999b1eca0b2b4dc072
-        with:
-            runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-            enable-chartmuseum: true
-            enable-private-ecr: false
-            enable-public-ecr: false
-            checkout-submodules: true
-            chart-path: deployments/k8s/helm/zta-control-plane
-            # override-chart-version: ${{ needs.calculate-tags.outputs.chart_version }}
-            #ecr-public-registry-alias: ${{ vars.ECR_PUBLIC_REGISTRY_ALIAS}}
-        secrets:
-            # GHCR Login for docker build runner
-            ghcr-username: ${{ secrets.GHCR_USERNAME }}
-            ghcr-token: ${{ secrets.GHCR_TOKEN }}
-            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+    # call-helm-publish-zta-control-plane:
+    #     name: Helm publish ZTA Control Plane
+    #     needs: [checkout]
+    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+    #     with:
+    #         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+    #         enable-chartmuseum: true
+    #         enable-private-ecr: false
+    #         enable-public-ecr: false
+    #         checkout-submodules: true
+    #         chart-path: deployments/k8s/helm/zta-control-plane
+    #         # override-chart-version: ${{ needs.calculate-tags.outputs.chart_version }}
+    #         #ecr-public-registry-alias: ${{ vars.ECR_PUBLIC_REGISTRY_ALIAS}}
+    #     secrets:
+    #         # GHCR Login for docker build runner
+    #         ghcr-username: ${{ secrets.GHCR_USERNAME }}
+    #         ghcr-token: ${{ secrets.GHCR_TOKEN }}
+    #         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+    #         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
     # call-helm-publish-ext-authz-middleware:
     #     name: Helm publish ext-authz-middleware
     #     needs: [checkout]
-    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@production
+    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
     #     with:
     #         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
     #         enable-chartmuseum: true
@@ -275,51 +276,51 @@ jobs:
     ################################## Trigger Deployment ###########################
     #################################################################################
 
-    utils:
-        name: Utils
-        needs: [checkout]
-        runs-on: ${{ vars.UBUNTU_RUNNER }}
-        container:
-            image: ${{ vars.DEFAULT_CONTAINER_RUNNER }}
-            options: --user root
-            credentials:
-                username: ${{ secrets.GHCR_USERNAME }}
-                password: ${{ secrets.GHCR_TOKEN }}
-        outputs:
-            image-tag: ${{ steps.tag.outputs.tag }}
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-            - name: Compute tag
-              id: tag
-              run: |
-                  git config --global --add safe.directory '*'
-                  DATE=$(date +'%Y-%m-%d')
-                  SHA=$(git rev-parse --short HEAD)
-                  echo "tag=$DATE-$SHA" >> $GITHUB_OUTPUT
+    # utils:
+    #     name: Utils
+    #     needs: [checkout]
+    #     runs-on: ${{ vars.UBUNTU_RUNNER }}
+    #     container:
+    #         image: ${{ vars.DEFAULT_CONTAINER_RUNNER }}
+    #         options: --user root
+    #         credentials:
+    #             username: ${{ secrets.GHCR_USERNAME }}
+    #             password: ${{ secrets.GHCR_TOKEN }}
+    #     outputs:
+    #         image-tag: ${{ steps.tag.outputs.tag }}
+    #     steps:
+    #         - name: Checkout repository
+    #           uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    #         - name: Compute tag
+    #           id: tag
+    #           run: |
+    #               git config --global --add safe.directory '*'
+    #               DATE=$(date +'%Y-%m-%d')
+    #               SHA=$(git rev-parse --short HEAD)
+    #               echo "tag=$DATE-$SHA" >> $GITHUB_OUTPUT
 
-    # ZTA Control Plane Deployment (Combined)
-    call-trigger-cd-zta-control-plane:
-      name: Trigger CD ZTA Control Plane
-      needs: [
-        call-docker-build-push-auth-service,
-        call-docker-build-push-ui-explorer,
-        call-docker-build-push-keycloak,
-        call-docker-build-push-operator,
-        call-helm-publish-zta-control-plane,
-        utils
-      ]
-      uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
-      with:
-        deployment-repo: "cisco-eti/identity-auth-server-deployment"
-        client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "authService.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "uiExplorer.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "keycloak.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "operator.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
-      secrets:
-        ghcr-username: ${{ secrets.GHCR_USERNAME }}
-        ghcr-token: ${{ secrets.GHCR_TOKEN }}
-        ghcr-org-username: ${{ secrets.GHCR_USERNAME }}
-        ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
-        vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-        vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+    # # ZTA Control Plane Deployment (Combined)
+    # call-trigger-cd-zta-control-plane:
+    #   name: Trigger CD ZTA Control Plane
+    #   needs: [
+    #     call-docker-build-push-auth-service,
+    #     call-docker-build-push-ui-explorer,
+    #     call-docker-build-push-keycloak,
+    #     call-docker-build-push-operator,
+    #     call-helm-publish-zta-control-plane,
+    #     utils
+    #   ]
+    #   uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+    #   with:
+    #     deployment-repo: "cisco-eti/identity-auth-server-deployment"
+    #     client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "authService.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "uiExplorer.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "keycloak.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "operator.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
+    #   secrets:
+    #     ghcr-username: ${{ secrets.GHCR_USERNAME }}
+    #     ghcr-token: ${{ secrets.GHCR_TOKEN }}
+    #     ghcr-org-username: ${{ secrets.GHCR_USERNAME }}
+    #     ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+    #     vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+    #     vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
     # # ZTA (ext-authz-middleware) Deployment
     # call-trigger-cd-extauthz:
@@ -330,7 +331,7 @@ jobs:
     #             call-helm-publish-ext-authz-middleware,
     #             utils,
     #         ]
-    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
+    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
     #     with:
     #         deployment-repo: "cisco-eti/identity-auth-server-deployment"
     #         client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-authz-middleware", "property-path": "image.tag", "deployment-stage": "dev", "default-deployment": true, "value": "${{ needs.utils.outputs.image-tag }}"}'

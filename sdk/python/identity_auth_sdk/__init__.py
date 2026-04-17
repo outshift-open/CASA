@@ -40,6 +40,7 @@ __all__ = [
     "AppMetadataResponse",
     "AppRequest",
     "AppSpec",
+    "AppSpecBaseUrl",
     "AppType",
     "AppViewModel",
     "CacheTokenLoadRequest",
@@ -47,12 +48,14 @@ __all__ = [
     "CreateUserInputRequest",
     "HTTPValidationError",
     "K8sAppSpecViewModel",
+    "K8sLlmCallMapping",
     "K8sMultiAgentSystemCRDViewModel",
     "K8sMultiAgentSystemMetadataViewModel",
     "LLMCallEndedEvent",
     "LLMCallEndedRequest",
     "LLMCallStartedEvent",
     "LLMCallStartedRequest",
+    "LlmCallMappingStoreRequest",
     "LocationInner",
     "MASCreateRequest",
     "MASListResponse",
@@ -110,6 +113,7 @@ from identity_auth_sdk.models.app_credentials import AppCredentials as AppCreden
 from identity_auth_sdk.models.app_metadata_response import AppMetadataResponse as AppMetadataResponse
 from identity_auth_sdk.models.app_request import AppRequest as AppRequest
 from identity_auth_sdk.models.app_spec import AppSpec as AppSpec
+from identity_auth_sdk.models.app_spec_base_url import AppSpecBaseUrl as AppSpecBaseUrl
 from identity_auth_sdk.models.app_type import AppType as AppType
 from identity_auth_sdk.models.app_view_model import AppViewModel as AppViewModel
 from identity_auth_sdk.models.cache_token_load_request import CacheTokenLoadRequest as CacheTokenLoadRequest
@@ -117,12 +121,14 @@ from identity_auth_sdk.models.cache_token_store_request import CacheTokenStoreRe
 from identity_auth_sdk.models.create_user_input_request import CreateUserInputRequest as CreateUserInputRequest
 from identity_auth_sdk.models.http_validation_error import HTTPValidationError as HTTPValidationError
 from identity_auth_sdk.models.k8s_app_spec_view_model import K8sAppSpecViewModel as K8sAppSpecViewModel
+from identity_auth_sdk.models.k8s_llm_call_mapping import K8sLlmCallMapping as K8sLlmCallMapping
 from identity_auth_sdk.models.k8s_multi_agent_system_crd_view_model import K8sMultiAgentSystemCRDViewModel as K8sMultiAgentSystemCRDViewModel
 from identity_auth_sdk.models.k8s_multi_agent_system_metadata_view_model import K8sMultiAgentSystemMetadataViewModel as K8sMultiAgentSystemMetadataViewModel
 from identity_auth_sdk.models.llm_call_ended_event import LLMCallEndedEvent as LLMCallEndedEvent
 from identity_auth_sdk.models.llm_call_ended_request import LLMCallEndedRequest as LLMCallEndedRequest
 from identity_auth_sdk.models.llm_call_started_event import LLMCallStartedEvent as LLMCallStartedEvent
 from identity_auth_sdk.models.llm_call_started_request import LLMCallStartedRequest as LLMCallStartedRequest
+from identity_auth_sdk.models.llm_call_mapping_store_request import LlmCallMappingStoreRequest as LlmCallMappingStoreRequest
 from identity_auth_sdk.models.location_inner import LocationInner as LocationInner
 from identity_auth_sdk.models.mas_create_request import MASCreateRequest as MASCreateRequest
 from identity_auth_sdk.models.mas_list_response import MASListResponse as MASListResponse
