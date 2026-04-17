@@ -21,3 +21,6 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.istio.io"]
+    resources: ["serviceentries", "destinationrules"]
+    verbs: ["get", "create", "update", "patch", "delete"]
