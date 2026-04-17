@@ -334,7 +334,7 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 	}
 
 	se := &unstructured.Unstructured{}
-	se.SetAPIVersion("networking.istio.io/v1")
+	se.SetAPIVersion("networking.istio.io/v1beta1")
 	se.SetKind("ServiceEntry")
 	se.SetName(seName)
 	se.SetNamespace(mas.Namespace)
@@ -356,7 +356,7 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 	}
 
 	dr := &unstructured.Unstructured{}
-	dr.SetAPIVersion("networking.istio.io/v1")
+	dr.SetAPIVersion("networking.istio.io/v1beta1")
 	dr.SetKind("DestinationRule")
 	dr.SetName(drName)
 	dr.SetNamespace(mas.Namespace)
@@ -384,7 +384,7 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 
 func (r *MultiAgentSystemReconciler) deleteIstioResources(ctx context.Context, mas *MultiAgentSystem) error {
 	se := &unstructured.Unstructured{}
-	se.SetAPIVersion("networking.istio.io/v1")
+	se.SetAPIVersion("networking.istio.io/v1beta1")
 	se.SetKind("ServiceEntry")
 	se.SetName(mas.Name + "-llm-srv-entry")
 	se.SetNamespace(mas.Namespace)
@@ -393,7 +393,7 @@ func (r *MultiAgentSystemReconciler) deleteIstioResources(ctx context.Context, m
 	}
 
 	dr := &unstructured.Unstructured{}
-	dr.SetAPIVersion("networking.istio.io/v1")
+	dr.SetAPIVersion("networking.istio.io/v1beta1")
 	dr.SetKind("DestinationRule")
 	dr.SetName(mas.Name + "-llm-dr")
 	dr.SetNamespace(mas.Namespace)
