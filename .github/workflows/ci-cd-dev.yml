@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - "main"
-      - "PYRA-641-dynamically-create-service-entry-and-destination-rule-at-mas-creation"
   workflow_dispatch:
   workflow_call:
 concurrency:
