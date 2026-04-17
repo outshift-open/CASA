@@ -1,4 +1,5 @@
 use cfg_if::cfg_if;
+use log::info;
 use log::warn;
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
@@ -34,6 +35,12 @@ impl Context for LlmCall {}
 
 impl HttpContext for LlmCall {
     fn on_http_request_headers(&mut self, _: usize, _: bool) -> Action {
+        let path = self.get_http_request_header(":path").unwrap_or_default();
+        warn!("path = {}", path);
+
+        // if path.contains("chat/completions") {
+        //     self.dispatch_http_call(upstream, headers, body, trailers, timeout)
+        // }
         // let existing = self.get_http_request_header(LITELLM_CALL_ID_HEADER);
         // if existing.is_none() {
         //     match generate_uuid() {
@@ -41,7 +48,7 @@ impl HttpContext for LlmCall {
         //             self.add_http_request_header(LITELLM_CALL_ID_HEADER, &id);
         //             self.litellm_call_id = Some(id);
         //         }
-        //         None => info!("Could not generate a {} value", LITELLM_CALL_ID_HEADER)
+        //         None => warn!("Could not generate a {} value", LITELLM_CALL_ID_HEADER)
         //     }
         // }
 
@@ -51,7 +58,8 @@ impl HttpContext for LlmCall {
     fn on_http_response_headers(&mut self, _: usize, _: bool) -> Action {
         let maybe_call_id = self.get_http_response_header(LITELLM_CALL_ID_HEADER);
         if let Some(call_id) = maybe_call_id {
-            warn!("{} = {}", LITELLM_CALL_ID_HEADER, call_id);
+            self.litellm_call_id = Some(call_id.clone());
+            warn!("{} = {}", LITELLM_CALL_ID_HEADER, call_id.clone());
         }
 
         Action::Continue
@@ -81,14 +89,14 @@ impl HttpContext for LlmCall {
     }
 }
 
-// fn generate_uuid() -> Option<String> {
-//     cfg_if! {
-//         if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
-//             info!("wasm32_unknow doesn't support getrandom");
-//             return None;
-//         } else {
-//             let id = Uuid::new_v4();
-//             Some(id.to_string())
-//         }
-//     }
-// }
+fn generate_uuid() -> Option<String> {
+    cfg_if! {
+        if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
+            info!("wasm32_unknow doesn't support getrandom");
+            return None;
+        } else {
+            let id = Uuid::new_v4();
+            Some(id.to_string())
+        }
+    }
+}
