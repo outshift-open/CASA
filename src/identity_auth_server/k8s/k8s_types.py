@@ -25,12 +25,31 @@ class MASPhase(str, Enum):
     FAILED = "Failed"
 
 
+class AppSpecBaseUrl(BaseModel):
+    """Base URL split into host and scheme, matching the CRD schema."""
+
+    host: str = Field(description="Host (and optional port) of the URL, e.g. my-app:8080")
+    scheme: str = Field(description="URL scheme: http or https")
+
+    def to_url(self) -> str:
+        """Reconstruct the full URL string."""
+        return f"{self.scheme}://{self.host}"
+
+    class Config:
+        """Pydantic model configuration."""
+
+        populate_by_name = True
+
+
 class AppSpec(BaseModel):
     """Application specification within a MultiAgentSystem."""
 
     name: str = Field(description="Name of the application")
     type: AppType = Field(description="Type of the application")
-    base_url: str = Field(description="Base URL of the application", alias="baseUrl")
+    base_url: "AppSpecBaseUrl" = Field(description="Base URL of the application", alias="baseUrl")
+    kubernetes_workload_name: Optional[str] = Field(
+        default=None, description="Name of the Kubernetes workload running the app", alias="kubernetesWorkloadName"
+    )
 
     class Config:
         """Pydantic model configuration."""
