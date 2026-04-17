@@ -11,6 +11,7 @@ from identity_auth_server.core.types import AppType, MultiAgentSystem, ToolCheck
 from identity_auth_server.k8s.k8s_types import (
     AppCredentials,
     AppSpec,
+    AppSpecBaseUrl,
     MASCreateRequest,
     MASPhase,
     MASStatusUpdateRequest,
@@ -81,7 +82,14 @@ class K8sCRDService:
         apps = self._app_service.get_mas_apps(str(mas.id))
 
         # Build app specs
-        app_specs = [AppSpec(name=app.name, type=AppType(app.type), base_url=app.base_url) for app in apps]
+        app_specs = [
+            AppSpec(
+                name=app.name,
+                type=AppType(app.type),
+                base_url=AppSpecBaseUrl(host=urlparse(app.base_url).netloc, scheme=urlparse(app.base_url).scheme),
+            )
+            for app in apps
+        ]
 
         # Build status
         status = MultiAgentSystemStatus(
@@ -111,6 +119,7 @@ class K8sCRDService:
         mas: MultiAgentSystem,
         k8s_name: str,
         namespace: str,
+        workload_names: Optional[dict] = None,
     ) -> K8sMultiAgentSystemCRD:
         """Build K8sMultiAgentSystemCRD SQLModel record linked to an existing MAS."""
         apps = self._app_service.get_mas_apps(str(mas.id))
@@ -134,6 +143,7 @@ class K8sCRDService:
                     url_scheme=parsed.scheme,
                     app_id=app.id,
                     mas_crd_id=crd_id,
+                    kubernetes_workload_name=(workload_names or {}).get(app.name),
                 )
             )
 
@@ -178,7 +188,8 @@ class K8sCRDService:
             # Ensure the K8sMultiAgentSystemCRD row exists in DB
             k8s_crd = self._k8s_mas_repository.get_k8s_crd_by_mas_id(mas.id) if mas.id is not None else None
             if k8s_crd is None:
-                k8s_crd = self._build_k8s_crd_record(mas, request.metadata.name, request.metadata.namespace)
+                workload_names = {a.name: a.kubernetes_workload_name for a in request.spec.apps if a.kubernetes_workload_name}
+                k8s_crd = self._build_k8s_crd_record(mas, request.metadata.name, request.metadata.namespace, workload_names)
                 self._k8s_mas_repository.create_mas(k8s_crd)
 
             # Build CRD response with existing data
@@ -216,7 +227,7 @@ class K8sCRDService:
                 app = self._app_service.create_app(
                     AppRequest(
                         name=app_spec.name,
-                        base_url=app_spec.base_url,
+                        base_url=app_spec.base_url.to_url(),
                         mas_id=str(mas.id),
                         type=self._convert_app_type(app_spec.type),
                     )
@@ -290,7 +301,7 @@ class K8sCRDService:
                 app = self._app_service.create_app(
                     AppRequest(
                         name=app_spec.name,
-                        base_url=app_spec.base_url,
+                        base_url=app_spec.base_url.to_url(),
                         mas_id=str(mas.id),
                         type=self._convert_app_type(app_spec.type),
                     )

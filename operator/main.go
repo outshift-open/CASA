@@ -30,10 +30,16 @@ const (
 
 // ── CRD types ────────────────────────────────────────────────────────────────
 
+type BaseURL struct {
+	Host   string `json:"host"`
+	Scheme string `json:"scheme"`
+}
+
 type AppSpec struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	BaseURL string `json:"baseUrl"`
+	Name                   string  `json:"name"`
+	Type                   string  `json:"type"`
+	BaseURL                BaseURL `json:"baseUrl"`
+	KubernetesWorkloadName string  `json:"kubernetesWorkloadName"`
 }
 
 type MASSpec struct {
