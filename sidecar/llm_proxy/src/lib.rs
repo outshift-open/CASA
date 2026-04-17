@@ -96,7 +96,7 @@ impl HttpContext for LlmCall {
             warn!("{} = {}", LITELLM_CALL_ID_HEADER, call_id.clone());
 
             let path = format!(
-                "/cache/load-llm-call-mapping/{}",
+                "/k8s/cache/load-llm-call-mapping/{}",
                 self.litellm_call_id.as_deref().unwrap_or("")
             );
 
