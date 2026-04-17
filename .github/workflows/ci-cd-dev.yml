@@ -199,7 +199,7 @@ jobs:
     call-docker-build-push-llm-proxy-wasm:
       name: Call Docker Build LLM proxy WASM plugin
       needs: [checkout]
-      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
       secrets:
         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
