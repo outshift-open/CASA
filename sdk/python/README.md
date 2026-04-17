@@ -110,6 +110,7 @@ Class | Method | HTTP request | Description
 *KubernetesResourcesApi* | [**cache_load_token**](docs/KubernetesResourcesApi.md#cache_load_token) | **POST** /k8s/namespaces/{namespace}/cache/load-token | Load Token
 *KubernetesResourcesApi* | [**cache_store_token**](docs/KubernetesResourcesApi.md#cache_store_token) | **POST** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 *KubernetesResourcesApi* | [**get_k8s_mas_by_app_host**](docs/KubernetesResourcesApi.md#get_k8s_mas_by_app_host) | **GET** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
+*KubernetesResourcesApi* | [**get_k8s_mas_by_app_workload**](docs/KubernetesResourcesApi.md#get_k8s_mas_by_app_workload) | **GET** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
 *MultiAgentSystemsApi* | [**bind_apps_mas_mas_id_bind_apps_post**](docs/MultiAgentSystemsApi.md#bind_apps_mas_mas_id_bind_apps_post) | **POST** /mas/{mas_id}/bind_apps | Bind Apps
 *MultiAgentSystemsApi* | [**create_mas_mas_put**](docs/MultiAgentSystemsApi.md#create_mas_mas_put) | **PUT** /mas | Create Mas
 *MultiAgentSystemsApi* | [**delete_mas_mas_mas_id_delete**](docs/MultiAgentSystemsApi.md#delete_mas_mas_mas_id_delete) | **DELETE** /mas/{mas_id} | Delete Mas

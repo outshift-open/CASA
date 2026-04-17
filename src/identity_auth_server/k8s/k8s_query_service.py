@@ -37,6 +37,12 @@ class K8sQueryService:
             return None
         return K8sMultiAgentSystemCRDViewModel.model_validate(mas)
 
+    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> Optional[K8sMultiAgentSystemCRDViewModel]:
+        mas = self._k8s_mas_repository.get_mas_by_workload_name(namespace, workload_name)
+        if mas is None:
+            return None
+        return K8sMultiAgentSystemCRDViewModel.model_validate(mas)
+
     def store_token(self, namespace: str, request: CacheTokenStoreRequest) -> K8sTokenCache:
         token = K8sTokenCache(
             namespace=namespace,

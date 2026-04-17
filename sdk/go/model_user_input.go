@@ -37,7 +37,7 @@ type _UserInput UserInput
 func NewUserInput(prompt string, appId NullableString, tag NullableString) *UserInput {
 	this := UserInput{}
 	this.Prompt = prompt
-	var createdAt string = "2026-04-16T14:41:52.406186Z"
+	var createdAt string = "2026-04-17T10:07:07.911633Z"
 	this.CreatedAt = &createdAt
 	this.AppId = appId
 	this.Tag = tag
@@ -49,7 +49,7 @@ func NewUserInput(prompt string, appId NullableString, tag NullableString) *User
 // but it doesn't guarantee that properties required by API are set
 func NewUserInputWithDefaults() *UserInput {
 	this := UserInput{}
-	var createdAt string = "2026-04-16T14:41:52.406186Z"
+	var createdAt string = "2026-04-17T10:07:07.911633Z"
 	this.CreatedAt = &createdAt
 	return &this
 }

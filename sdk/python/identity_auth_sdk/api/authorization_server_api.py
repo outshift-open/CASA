@@ -568,6 +568,7 @@ class AuthorizationServerApi:
     ) -> TokenIntrospectResponse:
         """Introspect
 
+        Introspect a token and evaluate it against the requested tools.
 
         :param token: (required)
         :type token: str
@@ -639,6 +640,7 @@ class AuthorizationServerApi:
     ) -> ApiResponse[TokenIntrospectResponse]:
         """Introspect
 
+        Introspect a token and evaluate it against the requested tools.
 
         :param token: (required)
         :type token: str
@@ -710,6 +712,7 @@ class AuthorizationServerApi:
     ) -> RESTResponseType:
         """Introspect
 
+        Introspect a token and evaluate it against the requested tools.
 
         :param token: (required)
         :type token: str

@@ -149,6 +149,8 @@ No authorization required
 
 Introspect
 
+
+
 ### Example
 
 ```go

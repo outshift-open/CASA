@@ -29,9 +29,10 @@ class MultiAgentSystemSpecOutput(BaseModel):
     Specification for MultiAgentSystem CRD.
     """ # noqa: E501
     name: StrictStr = Field(description="Display name of the Multi-Agent System")
+    authorization_server: Optional[StrictStr] = Field(default='', description="Keycloak realm name for this MAS", alias="authorizationServer")
     enabled_tool_checks: Optional[List[ToolCheckType]] = Field(default=None, description="List of enabled tool check types", alias="enabledToolChecks")
     apps: Optional[List[AppSpec]] = Field(default=None, description="List of applications in this MAS")
-    __properties: ClassVar[List[str]] = ["name", "enabledToolChecks", "apps"]
+    __properties: ClassVar[List[str]] = ["name", "authorizationServer", "enabledToolChecks", "apps"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -92,6 +93,7 @@ class MultiAgentSystemSpecOutput(BaseModel):
 
         _obj = cls.model_validate({
             "name": obj.get("name"),
+            "authorizationServer": obj.get("authorizationServer") if obj.get("authorizationServer") is not None else '',
             "enabledToolChecks": obj.get("enabledToolChecks"),
             "apps": [AppSpec.from_dict(_item) for _item in obj["apps"]] if obj.get("apps") is not None else None
         })

@@ -18,6 +18,10 @@ class K8sMultiAgentSystemRepository(ABC):
         """get_mas_by_app_host."""
 
     @abstractmethod
+    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> Optional[K8sMultiAgentSystemCRD]:
+        """get_mas_by_workload_name"""
+
+    @abstractmethod
     def store_token(self, token: K8sTokenCache) -> K8sTokenCache:
         """Store a token in the cache"""
 
@@ -34,7 +38,7 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
         self._session = session
 
     def get_mas_by_app_host(self, namespace: str, app_host: str) -> Optional[K8sMultiAgentSystemCRD]:
-        """Retrieve an app by its ID."""
+        """Retrieve a MAS by app host."""
         try:
             crd = self._session.exec(
                 select(K8sMultiAgentSystemCRD)
@@ -45,6 +49,19 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
             return crd.first()
         except Exception as e:
             raise Exception(f"Error retrieving MAS with app url '{app_host}': {e}") from e
+
+    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> Optional[K8sMultiAgentSystemCRD]:
+        """Retrieve a MAS by app workload name."""
+        try:
+            crd = self._session.exec(
+                select(K8sMultiAgentSystemCRD)
+                .join(K8sAppSpec)
+                .where(K8sAppSpec.kubernetes_workload_name == workload_name)
+                .where(K8sMultiAgentSystemCRD.namespace == namespace)
+            )
+            return crd.first()
+        except Exception as e:
+            raise Exception(f"Error retrieving MAS with app Kubernetes workload name '{workload_name}': {e}") from e
 
     def store_token(self, token: K8sTokenCache) -> K8sTokenCache:
         """Store a token in the cache"""

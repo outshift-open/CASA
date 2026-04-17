@@ -148,6 +148,8 @@ No authorization required
 
 Introspect
 
+Introspect a token and evaluate it against the requested tools.
+
 ### Example
 
 

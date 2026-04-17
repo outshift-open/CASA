@@ -47,6 +47,7 @@ class K8sMultiAgentSystemCRDViewModel(BaseModel):
     mas_metadata: Optional[K8sMultiAgentSystemMetadataViewModel] = None
     name: str
     enabled_tool_checks: Optional[ToolCheckFlags]
+    llm_host: Optional[str]
     app_specs: List[K8sAppSpecViewModel] = []
     mas_id: Optional[UUID] = None
 

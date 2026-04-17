@@ -259,6 +259,8 @@ func (r ApiIntrospectRequest) Execute() (*TokenIntrospectResponse, *http.Respons
 /*
 Introspect Introspect
 
+Introspect a token and evaluate it against the requested tools.
+
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiIntrospectRequest
 */

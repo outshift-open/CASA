@@ -286,6 +286,80 @@ func (_c *AuthServerClient_GetK8SMultiAgentSystemByAppHost_Call) RunAndReturn(ru
 	return _c
 }
 
+// GetK8SMultiAgentSystemByWorkloadName provides a mock function for the type AuthServerClient
+func (_mock *AuthServerClient) GetK8SMultiAgentSystemByWorkloadName(ctx context.Context, namespace string, appWorkload string) (*api.K8sMultiAgentSystemCRDViewModel, error) {
+	ret := _mock.Called(ctx, namespace, appWorkload)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetK8SMultiAgentSystemByWorkloadName")
+	}
+
+	var r0 *api.K8sMultiAgentSystemCRDViewModel
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*api.K8sMultiAgentSystemCRDViewModel, error)); ok {
+		return returnFunc(ctx, namespace, appWorkload)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *api.K8sMultiAgentSystemCRDViewModel); ok {
+		r0 = returnFunc(ctx, namespace, appWorkload)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*api.K8sMultiAgentSystemCRDViewModel)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, namespace, appWorkload)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetK8SMultiAgentSystemByWorkloadName'
+type AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call struct {
+	*mock.Call
+}
+
+// GetK8SMultiAgentSystemByWorkloadName is a helper method to define mock.On call
+//   - ctx context.Context
+//   - namespace string
+//   - appWorkload string
+func (_e *AuthServerClient_Expecter) GetK8SMultiAgentSystemByWorkloadName(ctx interface{}, namespace interface{}, appWorkload interface{}) *AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call {
+	return &AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call{Call: _e.mock.On("GetK8SMultiAgentSystemByWorkloadName", ctx, namespace, appWorkload)}
+}
+
+func (_c *AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call) Run(run func(ctx context.Context, namespace string, appWorkload string)) *AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call) Return(k8sMultiAgentSystemCRDViewModel *api.K8sMultiAgentSystemCRDViewModel, err error) *AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call {
+	_c.Call.Return(k8sMultiAgentSystemCRDViewModel, err)
+	return _c
+}
+
+func (_c *AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call) RunAndReturn(run func(ctx context.Context, namespace string, appWorkload string) (*api.K8sMultiAgentSystemCRDViewModel, error)) *AuthServerClient_GetK8SMultiAgentSystemByWorkloadName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Introspect provides a mock function for the type AuthServerClient
 func (_mock *AuthServerClient) Introspect(ctx context.Context, token string, tools []string) (*api.TokenIntrospectResponse, error) {
 	ret := _mock.Called(ctx, token, tools)

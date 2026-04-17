@@ -29,6 +29,22 @@ def get_k8s_mas_by_app_host(
     return crd
 
 
+@router.get(
+    "/namespaces/{namespace}/get_mas_by_app_workload",
+    response_model=K8sMultiAgentSystemCRDViewModel,
+    generate_unique_id_function=lambda _: "get_k8s_mas_by_app_workload"
+)
+def get_k8s_mas_by_app_workload(
+    k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
+    namespace: str,
+    app_workload: str,
+) -> K8sMultiAgentSystemCRDViewModel:
+    crd = k8s_query_service.get_mas_by_workload_name(namespace, app_workload)
+    if not crd:
+        raise HTTPException(status_code=404, detail=f"MultiAgentSystem not found")
+    return crd
+
+
 @router.post("/namespaces/{namespace}/cache/store-token", generate_unique_id_function=lambda _: "cache_store_token")
 def store_token(
     k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
