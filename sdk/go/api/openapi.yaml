@@ -121,6 +121,7 @@ paths:
       - Authorization Server
   /oauth2/introspect:
     post:
+      description: Introspect a token and evaluate it against the requested tools.
       operationId: introspect
       requestBody:
         content:
@@ -1215,6 +1216,42 @@ paths:
       summary: Get K8S Mas By App Host
       tags:
       - Kubernetes Resources
+  /k8s/namespaces/{namespace}/get_mas_by_app_workload:
+    get:
+      operationId: get_k8s_mas_by_app_workload
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: app_workload
+        required: true
+        schema:
+          title: App Workload
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/K8sMultiAgentSystemCRDViewModel"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get K8S Mas By App Workload
+      tags:
+      - Kubernetes Resources
   /k8s/namespaces/{namespace}/cache/store-token:
     post:
       operationId: cache_store_token
@@ -1690,6 +1727,7 @@ components:
       description: View model for a complete MultiAgentSystem CRD.
       example:
         enabled_tool_checks: ""
+        llm_host: llm_host
         mas_metadata: ""
         kind: kind
         mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
@@ -1741,6 +1779,9 @@ components:
           allOf:
           - $ref: "#/components/schemas/ToolCheckFlags"
           nullable: true
+        llm_host:
+          nullable: true
+          type: string
         app_specs:
           default: []
           items:
@@ -1755,6 +1796,7 @@ components:
       - api_version
       - enabled_tool_checks
       - kind
+      - llm_host
       - name
       - namespace
       title: K8sMultiAgentSystemCRDViewModel
@@ -1939,6 +1981,7 @@ components:
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
+          authorizationServer: ""
           name: name
           apps:
           - baseUrl: baseUrl
@@ -1978,6 +2021,7 @@ components:
             enabledToolChecks:
             - DETERMINISTIC_TOOL_SELECTED
             - DETERMINISTIC_TOOL_SELECTED
+            authorizationServer: ""
             name: name
             apps:
             - baseUrl: baseUrl
@@ -2003,6 +2047,7 @@ components:
             enabledToolChecks:
             - DETERMINISTIC_TOOL_SELECTED
             - DETERMINISTIC_TOOL_SELECTED
+            authorizationServer: ""
             name: name
             apps:
             - baseUrl: baseUrl
@@ -2071,6 +2116,7 @@ components:
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
+          authorizationServer: ""
           name: name
           apps:
           - baseUrl: baseUrl
@@ -2118,7 +2164,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-16T14:41:52.404913Z
+          default: 2026-04-17T10:07:07.910100Z
           format: date-time
           title: Created At
           type: string
@@ -2161,6 +2207,7 @@ components:
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
+          authorizationServer: ""
           name: name
           apps:
           - baseUrl: baseUrl
@@ -2267,6 +2314,7 @@ components:
         enabledToolChecks:
         - DETERMINISTIC_TOOL_SELECTED
         - DETERMINISTIC_TOOL_SELECTED
+        authorizationServer: ""
         name: name
         apps:
         - baseUrl: baseUrl
@@ -2279,6 +2327,11 @@ components:
         name:
           description: Display name of the Multi-Agent System
           title: Name
+          type: string
+        authorizationServer:
+          default: ""
+          description: Keycloak realm name for this MAS
+          title: Authorizationserver
           type: string
         enabledToolChecks:
           description: List of enabled tool check types
@@ -2301,6 +2354,7 @@ components:
         enabledToolChecks:
         - DETERMINISTIC_TOOL_SELECTED
         - DETERMINISTIC_TOOL_SELECTED
+        authorizationServer: ""
         name: name
         apps:
         - baseUrl: baseUrl
@@ -2313,6 +2367,11 @@ components:
         name:
           description: Display name of the Multi-Agent System
           title: Name
+          type: string
+        authorizationServer:
+          default: ""
+          description: Keycloak realm name for this MAS
+          title: Authorizationserver
           type: string
         enabledToolChecks:
           description: List of enabled tool check types
@@ -2359,7 +2418,7 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-16T14:41:53.280298Z
+          default: 2026-04-17T10:07:09.647911Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -2754,7 +2813,7 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-16T14:41:52.406186Z
+          default: 2026-04-17T10:07:07.911633Z
           format: date-time
           title: Created At
           type: string

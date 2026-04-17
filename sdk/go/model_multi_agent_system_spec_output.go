@@ -23,6 +23,8 @@ var _ MappedNullable = &MultiAgentSystemSpecOutput{}
 type MultiAgentSystemSpecOutput struct {
 	// Display name of the Multi-Agent System
 	Name string `json:"name"`
+	// Keycloak realm name for this MAS
+	AuthorizationServer *string `json:"authorizationServer,omitempty"`
 	// List of enabled tool check types
 	EnabledToolChecks []ToolCheckType `json:"enabledToolChecks,omitempty"`
 	// List of applications in this MAS
@@ -38,6 +40,8 @@ type _MultiAgentSystemSpecOutput MultiAgentSystemSpecOutput
 func NewMultiAgentSystemSpecOutput(name string) *MultiAgentSystemSpecOutput {
 	this := MultiAgentSystemSpecOutput{}
 	this.Name = name
+	var authorizationServer string = ""
+	this.AuthorizationServer = &authorizationServer
 	return &this
 }
 
@@ -46,6 +50,8 @@ func NewMultiAgentSystemSpecOutput(name string) *MultiAgentSystemSpecOutput {
 // but it doesn't guarantee that properties required by API are set
 func NewMultiAgentSystemSpecOutputWithDefaults() *MultiAgentSystemSpecOutput {
 	this := MultiAgentSystemSpecOutput{}
+	var authorizationServer string = ""
+	this.AuthorizationServer = &authorizationServer
 	return &this
 }
 
@@ -71,6 +77,38 @@ func (o *MultiAgentSystemSpecOutput) GetNameOk() (*string, bool) {
 // SetName sets field value
 func (o *MultiAgentSystemSpecOutput) SetName(v string) {
 	o.Name = v
+}
+
+// GetAuthorizationServer returns the AuthorizationServer field value if set, zero value otherwise.
+func (o *MultiAgentSystemSpecOutput) GetAuthorizationServer() string {
+	if o == nil || IsNil(o.AuthorizationServer) {
+		var ret string
+		return ret
+	}
+	return *o.AuthorizationServer
+}
+
+// GetAuthorizationServerOk returns a tuple with the AuthorizationServer field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *MultiAgentSystemSpecOutput) GetAuthorizationServerOk() (*string, bool) {
+	if o == nil || IsNil(o.AuthorizationServer) {
+		return nil, false
+	}
+	return o.AuthorizationServer, true
+}
+
+// HasAuthorizationServer returns a boolean if a field has been set.
+func (o *MultiAgentSystemSpecOutput) HasAuthorizationServer() bool {
+	if o != nil && !IsNil(o.AuthorizationServer) {
+		return true
+	}
+
+	return false
+}
+
+// SetAuthorizationServer gets a reference to the given string and assigns it to the AuthorizationServer field.
+func (o *MultiAgentSystemSpecOutput) SetAuthorizationServer(v string) {
+	o.AuthorizationServer = &v
 }
 
 // GetEnabledToolChecks returns the EnabledToolChecks field value if set, zero value otherwise.
@@ -148,6 +186,9 @@ func (o MultiAgentSystemSpecOutput) MarshalJSON() ([]byte, error) {
 func (o MultiAgentSystemSpecOutput) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
+	if !IsNil(o.AuthorizationServer) {
+		toSerialize["authorizationServer"] = o.AuthorizationServer
+	}
 	if !IsNil(o.EnabledToolChecks) {
 		toSerialize["enabledToolChecks"] = o.EnabledToolChecks
 	}

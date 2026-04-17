@@ -28,6 +28,7 @@ type K8sMultiAgentSystemCRDViewModel struct {
 	MasMetadata NullableK8sMultiAgentSystemMetadataViewModel `json:"mas_metadata,omitempty"`
 	Name string `json:"name"`
 	EnabledToolChecks NullableToolCheckFlags `json:"enabled_tool_checks"`
+	LlmHost NullableString `json:"llm_host"`
 	AppSpecs []K8sAppSpecViewModel `json:"app_specs,omitempty"`
 	MasId NullableString `json:"mas_id,omitempty"`
 }
@@ -38,13 +39,14 @@ type _K8sMultiAgentSystemCRDViewModel K8sMultiAgentSystemCRDViewModel
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks NullableToolCheckFlags) *K8sMultiAgentSystemCRDViewModel {
+func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks NullableToolCheckFlags, llmHost NullableString) *K8sMultiAgentSystemCRDViewModel {
 	this := K8sMultiAgentSystemCRDViewModel{}
 	this.ApiVersion = apiVersion
 	this.Kind = kind
 	this.Namespace = namespace
 	this.Name = name
 	this.EnabledToolChecks = enabledToolChecks
+	this.LlmHost = llmHost
 	return &this
 }
 
@@ -262,6 +264,32 @@ func (o *K8sMultiAgentSystemCRDViewModel) SetEnabledToolChecks(v ToolCheckFlags)
 	o.EnabledToolChecks.Set(&v)
 }
 
+// GetLlmHost returns the LlmHost field value
+// If the value is explicit nil, the zero value for string will be returned
+func (o *K8sMultiAgentSystemCRDViewModel) GetLlmHost() string {
+	if o == nil || o.LlmHost.Get() == nil {
+		var ret string
+		return ret
+	}
+
+	return *o.LlmHost.Get()
+}
+
+// GetLlmHostOk returns a tuple with the LlmHost field value
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *K8sMultiAgentSystemCRDViewModel) GetLlmHostOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.LlmHost.Get(), o.LlmHost.IsSet()
+}
+
+// SetLlmHost sets field value
+func (o *K8sMultiAgentSystemCRDViewModel) SetLlmHost(v string) {
+	o.LlmHost.Set(&v)
+}
+
 // GetAppSpecs returns the AppSpecs field value if set, zero value otherwise.
 func (o *K8sMultiAgentSystemCRDViewModel) GetAppSpecs() []K8sAppSpecViewModel {
 	if o == nil || IsNil(o.AppSpecs) {
@@ -357,6 +385,7 @@ func (o K8sMultiAgentSystemCRDViewModel) ToMap() (map[string]interface{}, error)
 	}
 	toSerialize["name"] = o.Name
 	toSerialize["enabled_tool_checks"] = o.EnabledToolChecks.Get()
+	toSerialize["llm_host"] = o.LlmHost.Get()
 	if !IsNil(o.AppSpecs) {
 		toSerialize["app_specs"] = o.AppSpecs
 	}
@@ -376,6 +405,7 @@ func (o *K8sMultiAgentSystemCRDViewModel) UnmarshalJSON(data []byte) (err error)
 		"namespace",
 		"name",
 		"enabled_tool_checks",
+		"llm_host",
 	}
 
 	allProperties := make(map[string]interface{})

@@ -7,6 +7,7 @@ Specification for MultiAgentSystem CRD.
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** | Display name of the Multi-Agent System | 
+**authorization_server** | **str** | Keycloak realm name for this MAS | [optional] [default to '']
 **enabled_tool_checks** | [**List[ToolCheckType]**](ToolCheckType.md) | List of enabled tool check types | [optional] 
 **apps** | [**List[AppSpec]**](AppSpec.md) | List of applications in this MAS | [optional] 
 

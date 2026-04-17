@@ -13,6 +13,7 @@ import (
 	api "github.com/cisco-eti/identity-auth-server/sdk/go"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -74,13 +75,21 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			return nil, errors.New("unable to find WORKLOAD_NAME in peer metadata")
 		}
 
-		slog.Info(fmt.Sprintf("Caller workload name = %s", callerWorkloadName))
+		slog.Info(fmt.Sprintf("Host = %s, caller workload name = %s", host, callerWorkloadName))
 
-		// TODO: use the workload name of the caller to fetch the MAS, because MCP servers can be shared between MASes
-		masCRD, err := s.authSrvClient.GetK8SMultiAgentSystemByAppHost(ctx, s.namespace, host)
+		masCRD, err := s.authSrvClient.GetK8SMultiAgentSystemByWorkloadName(ctx, s.namespace, callerWorkloadName)
 		if err != nil {
-			slog.Error(fmt.Sprintf("Unable to get Kubernetes MultiAgentSystem resource for host %s", host), "err", err)
-			return nil, fmt.Errorf("outbound: unable to get Kubernetes MultiAgentSystem resource for host %s: %w", host, err)
+			slog.Error(fmt.Sprintf("Unable to get Kubernetes MultiAgentSystem resource for caller workload %s", callerWorkloadName), "err", err)
+			return nil, fmt.Errorf("outbound: unable to get Kubernetes MultiAgentSystem resource for caller workload %s: %w", callerWorkloadName, err)
+		}
+
+		if strings.EqualFold(host, masCRD.GetLlmHost()) {
+			llmCallID := uuid.NewString()
+
+			// TODO: store the event, you need the JWT too
+			slog.Info(fmt.Sprintf("[GEN] x-litellm-call-id: %s", llmCallID))
+
+			return s.allowWithHeaders(map[string]string{"x-litellm-call-id": llmCallID}), nil
 		}
 
 		var callerToken string
@@ -236,13 +245,17 @@ func (*OutboundExtAuthService) decodePeerMetadata(v string) (map[string]any, err
 	return s.AsMap(), nil
 }
 
-func (*OutboundExtAuthService) allow(jwt string) *authv3.CheckResponse {
-	headers := []*corev3.HeaderValueOption{}
-	if jwt != "" {
-		headers = append(headers, &corev3.HeaderValueOption{
+func (s *OutboundExtAuthService) allow(jwt string) *authv3.CheckResponse {
+	return s.allowWithHeaders(map[string]string{"Authorization": fmt.Sprintf("Bearer %s", jwt)})
+}
+
+func (*OutboundExtAuthService) allowWithHeaders(headers map[string]string) *authv3.CheckResponse {
+	hvOptions := []*corev3.HeaderValueOption{}
+	for k, v := range headers {
+		hvOptions = append(hvOptions, &corev3.HeaderValueOption{
 			Header: &corev3.HeaderValue{
-				Key:   "Authorization",
-				Value: fmt.Sprintf("Bearer %s", jwt),
+				Key:   k,
+				Value: v,
 			},
 		})
 	}
@@ -250,7 +263,7 @@ func (*OutboundExtAuthService) allow(jwt string) *authv3.CheckResponse {
 	return &authv3.CheckResponse{
 		HttpResponse: &authv3.CheckResponse_OkResponse{
 			OkResponse: &authv3.OkHttpResponse{
-				Headers: headers,
+				Headers: hvOptions,
 			},
 		},
 		Status: &status.Status{Code: int32(codes.OK)},

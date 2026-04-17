@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **MasMetadata** | Pointer to [**NullableK8sMultiAgentSystemMetadataViewModel**](K8sMultiAgentSystemMetadataViewModel.md) |  | [optional] 
 **Name** | **string** |  | 
 **EnabledToolChecks** | [**NullableToolCheckFlags**](ToolCheckFlags.md) |  | 
+**LlmHost** | **NullableString** |  | 
 **AppSpecs** | Pointer to [**[]K8sAppSpecViewModel**](K8sAppSpecViewModel.md) |  | [optional] [default to {}]
 **MasId** | Pointer to **NullableString** |  | [optional] 
 
@@ -18,7 +19,7 @@ Name | Type | Description | Notes
 
 ### NewK8sMultiAgentSystemCRDViewModel
 
-`func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks NullableToolCheckFlags, ) *K8sMultiAgentSystemCRDViewModel`
+`func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks NullableToolCheckFlags, llmHost NullableString, ) *K8sMultiAgentSystemCRDViewModel`
 
 NewK8sMultiAgentSystemCRDViewModel instantiates a new K8sMultiAgentSystemCRDViewModel object
 This constructor will assign default values to properties that have it defined,
@@ -213,6 +214,36 @@ SetEnabledToolChecks sets EnabledToolChecks field to given value.
 `func (o *K8sMultiAgentSystemCRDViewModel) UnsetEnabledToolChecks()`
 
 UnsetEnabledToolChecks ensures that no value is present for EnabledToolChecks, not even an explicit nil
+### GetLlmHost
+
+`func (o *K8sMultiAgentSystemCRDViewModel) GetLlmHost() string`
+
+GetLlmHost returns the LlmHost field if non-nil, zero value otherwise.
+
+### GetLlmHostOk
+
+`func (o *K8sMultiAgentSystemCRDViewModel) GetLlmHostOk() (*string, bool)`
+
+GetLlmHostOk returns a tuple with the LlmHost field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetLlmHost
+
+`func (o *K8sMultiAgentSystemCRDViewModel) SetLlmHost(v string)`
+
+SetLlmHost sets LlmHost field to given value.
+
+
+### SetLlmHostNil
+
+`func (o *K8sMultiAgentSystemCRDViewModel) SetLlmHostNil(b bool)`
+
+ SetLlmHostNil sets the value for LlmHost to be an explicit nil
+
+### UnsetLlmHost
+`func (o *K8sMultiAgentSystemCRDViewModel) UnsetLlmHost()`
+
+UnsetLlmHost ensures that no value is present for LlmHost, not even an explicit nil
 ### GetAppSpecs
 
 `func (o *K8sMultiAgentSystemCRDViewModel) GetAppSpecs() []K8sAppSpecViewModel`

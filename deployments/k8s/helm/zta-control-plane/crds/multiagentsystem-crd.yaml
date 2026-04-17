@@ -39,6 +39,9 @@ spec:
                   - DETERMINISTIC_TOOL_SELECTED
                   - DETERMINISTIC_LLM_SELECTED_TOOLS
                   - AI_POWERED_TOOL_MATCH
+              llm_host:
+                type: string
+                description: "The host of the LLM endpoint used by the MAS"
               apps:
                 type: array
                 description: "List of applications in this Multi-Agent System"
@@ -49,6 +52,7 @@ spec:
                   - type
                   - baseUrl
                   - kubernetesWorkloadName
+                  - llm_host
                   properties:
                     name:
                       type: string

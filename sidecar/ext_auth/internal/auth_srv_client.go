@@ -11,6 +11,7 @@ import (
 
 type AuthServerClient interface {
 	GetK8SMultiAgentSystemByAppHost(ctx context.Context, namespace, appHost string) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error)
+	GetK8SMultiAgentSystemByWorkloadName(ctx context.Context, namespace, appWorkload string) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error)
 	LoadTokenFromCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, tool *string) (*identitysdk.TokenResponse, error)
 	StoreTokenInCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, token string, tool *string) error
 	CreateUserInput(ctx context.Context, appID, prompt, tag string) (string, error)
@@ -38,6 +39,21 @@ func (c *authServerClient) GetK8SMultiAgentSystemByAppHost(
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sMasByAppHost(ctx, namespace).AppHost(appHost).Execute()
 	if err != nil {
 		slog.Error("Error calling `KubernetesResourcesAPI.GetK8sMasByAppHost`", "err", err, "http.response", r)
+		return nil, fmt.Errorf("unable to fetch K8S MAS: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (c *authServerClient) GetK8SMultiAgentSystemByWorkloadName(
+	ctx context.Context,
+	namespace string,
+	appWorkload string,
+) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error) {
+	// TODO: KubernetesResourcesAPI.GetK8sMasByAppHost` err="3 is not a valid ToolCheckFlags"
+	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sMasByAppWorkload(ctx, namespace).AppWorkload(appWorkload).Execute()
+	if err != nil {
+		slog.Error("Error calling `KubernetesResourcesAPI.GetK8SMultiAgentSystemByWorkloadName`", "err", err, "http.response", r)
 		return nil, fmt.Errorf("unable to fetch K8S MAS: %w", err)
 	}
 

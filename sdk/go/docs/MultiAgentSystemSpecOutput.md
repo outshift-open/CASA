@@ -5,6 +5,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | Display name of the Multi-Agent System | 
+**AuthorizationServer** | Pointer to **string** | Keycloak realm name for this MAS | [optional] [default to ""]
 **EnabledToolChecks** | Pointer to [**[]ToolCheckType**](ToolCheckType.md) | List of enabled tool check types | [optional] 
 **Apps** | Pointer to [**[]AppSpec**](AppSpec.md) | List of applications in this MAS | [optional] 
 
@@ -46,6 +47,31 @@ and a boolean to check if the value has been set.
 
 SetName sets Name field to given value.
 
+
+### GetAuthorizationServer
+
+`func (o *MultiAgentSystemSpecOutput) GetAuthorizationServer() string`
+
+GetAuthorizationServer returns the AuthorizationServer field if non-nil, zero value otherwise.
+
+### GetAuthorizationServerOk
+
+`func (o *MultiAgentSystemSpecOutput) GetAuthorizationServerOk() (*string, bool)`
+
+GetAuthorizationServerOk returns a tuple with the AuthorizationServer field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetAuthorizationServer
+
+`func (o *MultiAgentSystemSpecOutput) SetAuthorizationServer(v string)`
+
+SetAuthorizationServer sets AuthorizationServer field to given value.
+
+### HasAuthorizationServer
+
+`func (o *MultiAgentSystemSpecOutput) HasAuthorizationServer() bool`
+
+HasAuthorizationServer returns a boolean if a field has been set.
 
 ### GetEnabledToolChecks
 

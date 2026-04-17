@@ -1,0 +1,32 @@
+[package]
+publish = false
+name = "llm-proxy"
+version = "0.0.1"
+description = "Proxy-Wasm plugin that tracks LLM calls and informs the auth server about them."
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+cfg-if = "1.0"
+log = "0.4"
+hex = "0.4"
+proxy-wasm = "0.2"
+
+[dependencies.uuid]
+version = "1.23.1"
+# Lets you generate random UUIDs
+features = [
+    "v4",
+]
+
+[target.'cfg(not(all(target_arch = "wasm32", target_os = "unknown")))'.dependencies]
+getrandom = "0.4"
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1
+panic = "abort"
+strip = "debuginfo"
