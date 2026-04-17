@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
@@ -47,6 +48,7 @@ type MASSpec struct {
 	AuthorizationServer string    `json:"authorizationServer"`
 	EnabledToolChecks   []string  `json:"enabledToolChecks,omitempty"`
 	Apps                []AppSpec `json:"apps,omitempty"`
+	LLMHost             string    `json:"llm_host,omitempty"`
 }
 
 type MASStatus struct {
@@ -150,6 +152,12 @@ func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Req
 				// Continue anyway - secrets might already be gone
 			}
 
+			// Delete Istio egress resources
+			if err := r.deleteIstioResources(ctx, mas); err != nil {
+				log.Error(err, "failed to delete Istio resources")
+				// Continue anyway
+			}
+
 			// Then delete from auth-service
 			if err := r.deleteFromAuthService(ctx, mas); err != nil {
 				log.Error(err, "failed to delete MAS from auth-service")
@@ -189,6 +197,12 @@ func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			log.Error(patchErr, "failed to patch status to Failed")
 		}
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	// Create Istio egress resources for LLM endpoint
+	if err := r.createIstioResources(ctx, mas); err != nil {
+		log.Error(err, "failed to create Istio resources")
+		// Non-fatal: don't block the reconcile
 	}
 
 	if patchErr := r.patchStatus(ctx, mas, "Active", appsReady, fmt.Sprintf("Registered %d apps", appsReady)); patchErr != nil {
@@ -302,6 +316,90 @@ func (r *MultiAgentSystemReconciler) deleteSecrets(ctx context.Context, mas *Mul
 		if err != nil && !errors.IsNotFound(err) {
 			return fmt.Errorf("failed to delete secret %s: %w", secret.Name, err)
 		}
+	}
+
+	return nil
+}
+
+func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, mas *MultiAgentSystem) error {
+	if mas.Spec.LLMHost == "" {
+		return nil
+	}
+
+	name := mas.Name + "-llm-ext"
+	labels := map[string]string{
+		"app.kubernetes.io/managed-by": "zta-operator",
+		"zta.io/mas-name":              mas.Name,
+	}
+
+	se := &unstructured.Unstructured{}
+	se.SetAPIVersion("networking.istio.io/v1")
+	se.SetKind("ServiceEntry")
+	se.SetName(name)
+	se.SetNamespace(mas.Namespace)
+	se.SetLabels(labels)
+	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, se, func() error {
+		se.Object["spec"] = map[string]interface{}{
+			"hosts":      []interface{}{mas.Spec.LLMHost},
+			"resolution": "DNS",
+			"location":   "MESH_EXTERNAL",
+			"ports": []interface{}{
+				map[string]interface{}{"number": int64(80), "name": "http", "protocol": "HTTP", "targetPort": int64(443)},
+				map[string]interface{}{"number": int64(443), "name": "https", "protocol": "HTTPS"},
+			},
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create/update ServiceEntry: %w", err)
+	}
+
+	dr := &unstructured.Unstructured{}
+	dr.SetAPIVersion("networking.istio.io/v1")
+	dr.SetKind("DestinationRule")
+	dr.SetName(name)
+	dr.SetNamespace(mas.Namespace)
+	dr.SetLabels(labels)
+	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, dr, func() error {
+		dr.Object["spec"] = map[string]interface{}{
+			"host": mas.Spec.LLMHost,
+			"trafficPolicy": map[string]interface{}{
+				"portLevelSettings": []interface{}{
+					map[string]interface{}{
+						"port": map[string]interface{}{"number": int64(80)},
+						"tls":  map[string]interface{}{"mode": "SIMPLE"},
+					},
+				},
+			},
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create/update DestinationRule: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MultiAgentSystemReconciler) deleteIstioResources(ctx context.Context, mas *MultiAgentSystem) error {
+	name := mas.Name + "-llm-ext"
+
+	se := &unstructured.Unstructured{}
+	se.SetAPIVersion("networking.istio.io/v1")
+	se.SetKind("ServiceEntry")
+	se.SetName(name)
+	se.SetNamespace(mas.Namespace)
+	if err := r.Client.Delete(ctx, se); err != nil && !errors.IsNotFound(err) {
+		return fmt.Errorf("failed to delete ServiceEntry: %w", err)
+	}
+
+	dr := &unstructured.Unstructured{}
+	dr.SetAPIVersion("networking.istio.io/v1")
+	dr.SetKind("DestinationRule")
+	dr.SetName(name)
+	dr.SetNamespace(mas.Namespace)
+	if err := r.Client.Delete(ctx, dr); err != nil && !errors.IsNotFound(err) {
+		return fmt.Errorf("failed to delete DestinationRule: %w", err)
 	}
 
 	return nil
