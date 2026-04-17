@@ -52,11 +52,11 @@ type MASSpec struct {
 }
 
 type MASStatus struct {
-	Phase        string            `json:"phase,omitempty"`
-	AppsReady    int               `json:"appsReady,omitempty"`
-	LastSyncTime string            `json:"lastSyncTime,omitempty"`
-	Message      string            `json:"message,omitempty"`
-	Credentials  []AppCredentials  `json:"credentials,omitempty"`
+	Phase        string           `json:"phase,omitempty"`
+	AppsReady    int              `json:"appsReady,omitempty"`
+	LastSyncTime string           `json:"lastSyncTime,omitempty"`
+	Message      string           `json:"message,omitempty"`
+	Credentials  []AppCredentials `json:"credentials,omitempty"`
 }
 
 type MultiAgentSystem struct {
@@ -326,7 +326,8 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 		return nil
 	}
 
-	name := mas.Name + "-llm-ext"
+	seName := mas.Name + "-llm-srv-entry"
+	drName := mas.Name + "-llm-dr"
 	labels := map[string]string{
 		"app.kubernetes.io/managed-by": "zta-operator",
 		"zta.io/mas-name":              mas.Name,
@@ -335,7 +336,7 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 	se := &unstructured.Unstructured{}
 	se.SetAPIVersion("networking.istio.io/v1")
 	se.SetKind("ServiceEntry")
-	se.SetName(name)
+	se.SetName(seName)
 	se.SetNamespace(mas.Namespace)
 	se.SetLabels(labels)
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, se, func() error {
@@ -357,7 +358,7 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 	dr := &unstructured.Unstructured{}
 	dr.SetAPIVersion("networking.istio.io/v1")
 	dr.SetKind("DestinationRule")
-	dr.SetName(name)
+	dr.SetName(drName)
 	dr.SetNamespace(mas.Namespace)
 	dr.SetLabels(labels)
 	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, dr, func() error {
@@ -382,12 +383,10 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 }
 
 func (r *MultiAgentSystemReconciler) deleteIstioResources(ctx context.Context, mas *MultiAgentSystem) error {
-	name := mas.Name + "-llm-ext"
-
 	se := &unstructured.Unstructured{}
 	se.SetAPIVersion("networking.istio.io/v1")
 	se.SetKind("ServiceEntry")
-	se.SetName(name)
+	se.SetName(mas.Name + "-llm-srv-entry")
 	se.SetNamespace(mas.Namespace)
 	if err := r.Client.Delete(ctx, se); err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("failed to delete ServiceEntry: %w", err)
@@ -396,7 +395,7 @@ func (r *MultiAgentSystemReconciler) deleteIstioResources(ctx context.Context, m
 	dr := &unstructured.Unstructured{}
 	dr.SetAPIVersion("networking.istio.io/v1")
 	dr.SetKind("DestinationRule")
-	dr.SetName(name)
+	dr.SetName(mas.Name + "-llm-dr")
 	dr.SetNamespace(mas.Namespace)
 	if err := r.Client.Delete(ctx, dr); err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("failed to delete DestinationRule: %w", err)

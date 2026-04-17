@@ -52,7 +52,6 @@ spec:
                   - type
                   - baseUrl
                   - kubernetesWorkloadName
-                  - llm_host
                   properties:
                     name:
                       type: string
