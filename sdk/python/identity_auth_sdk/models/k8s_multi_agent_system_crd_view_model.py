@@ -37,9 +37,10 @@ class K8sMultiAgentSystemCRDViewModel(BaseModel):
     mas_metadata: Optional[K8sMultiAgentSystemMetadataViewModel] = None
     name: StrictStr
     enabled_tool_checks: Optional[ToolCheckFlags]
+    llm_host: Optional[StrictStr]
     app_specs: Optional[List[K8sAppSpecViewModel]] = None
     mas_id: Optional[UUID] = None
-    __properties: ClassVar[List[str]] = ["id", "api_version", "kind", "namespace", "mas_metadata", "name", "enabled_tool_checks", "app_specs", "mas_id"]
+    __properties: ClassVar[List[str]] = ["id", "api_version", "kind", "namespace", "mas_metadata", "name", "enabled_tool_checks", "llm_host", "app_specs", "mas_id"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -105,6 +106,11 @@ class K8sMultiAgentSystemCRDViewModel(BaseModel):
         if self.enabled_tool_checks is None and "enabled_tool_checks" in self.model_fields_set:
             _dict['enabled_tool_checks'] = None
 
+        # set to None if llm_host (nullable) is None
+        # and model_fields_set contains the field
+        if self.llm_host is None and "llm_host" in self.model_fields_set:
+            _dict['llm_host'] = None
+
         # set to None if mas_id (nullable) is None
         # and model_fields_set contains the field
         if self.mas_id is None and "mas_id" in self.model_fields_set:
@@ -129,6 +135,7 @@ class K8sMultiAgentSystemCRDViewModel(BaseModel):
             "mas_metadata": K8sMultiAgentSystemMetadataViewModel.from_dict(obj["mas_metadata"]) if obj.get("mas_metadata") is not None else None,
             "name": obj.get("name"),
             "enabled_tool_checks": obj.get("enabled_tool_checks"),
+            "llm_host": obj.get("llm_host"),
             "app_specs": [K8sAppSpecViewModel.from_dict(_item) for _item in obj["app_specs"]] if obj.get("app_specs") is not None else None,
             "mas_id": obj.get("mas_id")
         })

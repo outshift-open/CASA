@@ -62,6 +62,7 @@ class K8sMultiAgentSystemCRD(SQLModel, table=True):
         | ToolCheckFlags.AI_POWERED_TOOL_MATCH,
         sa_column=Column(Integer, nullable=False),
     )
+    llm_host: Optional[str] = Field(default=None)
     app_specs: List[K8sAppSpec] = Relationship(back_populates="mas_crd")
     mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
 
