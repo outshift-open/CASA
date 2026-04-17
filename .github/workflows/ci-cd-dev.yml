@@ -220,7 +220,7 @@ jobs:
     call-helm-publish-zta-control-plane:
         name: Helm publish ZTA Control Plane
         needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@production
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@a71689ba6f8952b319afe5999b1eca0b2b4dc072
         with:
             runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
             enable-chartmuseum: true
