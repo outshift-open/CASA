@@ -1,5 +1,5 @@
 use cfg_if::cfg_if;
-use log::info;
+use log::warn;
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
 use uuid::Uuid;
@@ -51,7 +51,7 @@ impl HttpContext for LlmCall {
     fn on_http_response_headers(&mut self, _: usize, _: bool) -> Action {
         let maybe_call_id = self.get_http_response_header(LITELLM_CALL_ID_HEADER);
         if let Some(call_id) = maybe_call_id {
-            info!("{} = {}", LITELLM_CALL_ID_HEADER, call_id);
+            warn!("{} = {}", LITELLM_CALL_ID_HEADER, call_id);
         }
 
         Action::Continue
@@ -70,25 +70,25 @@ impl HttpContext for LlmCall {
 
         if let Some(body_bytes) = self.get_http_response_body(0, body_size) {
             let body_str = String::from_utf8(body_bytes).unwrap();
-            info!("LITELLM response body = {}", body_str);
+            warn!("LITELLM response body = {}", body_str);
         }
 
         Action::Continue
     }
 
     fn on_log(&mut self) {
-        info!("#{} completed.", self.context_id);
+        warn!("#{} completed.", self.context_id);
     }
 }
 
-fn generate_uuid() -> Option<String> {
-    cfg_if! {
-        if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
-            info!("wasm32_unknow doesn't support getrandom");
-            return None;
-        } else {
-            let id = Uuid::new_v4();
-            Some(id.to_string())
-        }
-    }
-}
+// fn generate_uuid() -> Option<String> {
+//     cfg_if! {
+//         if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
+//             info!("wasm32_unknow doesn't support getrandom");
+//             return None;
+//         } else {
+//             let id = Uuid::new_v4();
+//             Some(id.to_string())
+//         }
+//     }
+// }
