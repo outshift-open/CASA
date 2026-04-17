@@ -87,6 +87,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			llmCallID := uuid.NewString()
 
 			// TODO: store the event, you need the JWT too
+			slog.Info(fmt.Sprintf("[GEN] x-litellm-call-id: %s", llmCallID))
 
 			return s.allowWithHeaders(map[string]string{"x-litellm-call-id": llmCallID}), nil
 		}

@@ -35,8 +35,8 @@ impl Context for LlmCall {}
 
 impl HttpContext for LlmCall {
     fn on_http_request_headers(&mut self, _: usize, _: bool) -> Action {
-        let path = self.get_http_request_header(":path").unwrap_or_default();
-        warn!("path = {}", path);
+        // let path = self.get_http_request_header(":path").unwrap_or_default();
+        // warn!("path = {}", path);
 
         // if path.contains("chat/completions") {
         //     self.dispatch_http_call(upstream, headers, body, trailers, timeout)
