@@ -54,7 +54,7 @@ jobs:
     call-docker-build-push-auth-service:
         name: Call Docker Build Auth Service
         needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
 
         secrets:
             # Only needed if with:ecr-enabled or with:gar-enabled is true below
@@ -89,7 +89,7 @@ jobs:
     call-docker-build-push-ui-explorer:
         name: Call Docker Build UI Explorer
         needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
 
         secrets:
             # Only needed if with:ecr-enabled or with:gar-enabled is true below
@@ -124,7 +124,7 @@ jobs:
     call-docker-build-push-keycloak:
         name: Call Docker Build Keycloak
         needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
 
         secrets:
             # Only needed if with:ecr-enabled or with:gar-enabled is true below
@@ -158,7 +158,7 @@ jobs:
     call-docker-build-push-operator:
       name: Call Docker Build ZTA Operator
       needs: [checkout]
-      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
       secrets:
         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
@@ -177,7 +177,7 @@ jobs:
     call-docker-build-push-wasm:
       name: Call Docker Build traceparent injector WASM plugin
       needs: [checkout]
-      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
       secrets:
         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
@@ -196,7 +196,7 @@ jobs:
     call-docker-build-push-llm-proxy-wasm:
       name: Call Docker Build LLM proxy WASM plugin
       needs: [checkout]
-      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+      uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
       secrets:
         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
@@ -215,7 +215,7 @@ jobs:
     call-docker-build-push-ext-auth-service:
         name: Call Docker Build ext-auth service
         needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
         secrets:
             vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
             vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
@@ -236,7 +236,7 @@ jobs:
     call-helm-publish-zta-control-plane:
         name: Helm publish ZTA Control Plane
         needs: [checkout]
-        uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@production
         with:
             runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
             enable-chartmuseum: true
@@ -256,7 +256,7 @@ jobs:
     # call-helm-publish-ext-authz-middleware:
     #     name: Helm publish ext-authz-middleware
     #     needs: [checkout]
-    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@production
     #     with:
     #         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
     #         enable-chartmuseum: true
@@ -307,7 +307,7 @@ jobs:
         call-helm-publish-zta-control-plane,
         utils
       ]
-      uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+      uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
       with:
         deployment-repo: "cisco-eti/identity-auth-server-deployment"
         client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "authService.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "uiExplorer.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "keycloak.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "operator.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
@@ -328,7 +328,7 @@ jobs:
     #             call-helm-publish-ext-authz-middleware,
     #             utils,
     #         ]
-    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@0d0f1bd069fa3ad2fbe8f966aa2a1dc12dd56f76
+    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
     #     with:
     #         deployment-repo: "cisco-eti/identity-auth-server-deployment"
     #         client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-authz-middleware", "property-path": "image.tag", "deployment-stage": "dev", "default-deployment": true, "value": "${{ needs.utils.outputs.image-tag }}"}'
