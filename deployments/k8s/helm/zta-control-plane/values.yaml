@@ -48,6 +48,28 @@ authService:
     jwtToken:
     modelId:
     pipelineModelId:
+  externalSecrets:
+    enabled: false
+    secretStoreName: ""
+    secretStoreKind: ClusterSecretStore
+    data: []
+    # Example:
+    # - secretKey: db-password
+    #   remoteRef:
+    #     key: dev/zta-control-plane
+    #     property: db-password
+    # - secretKey: idp-admin-password
+    #   remoteRef:
+    #     key: dev/zta-control-plane
+    #     property: idp-admin-password
+    # - secretKey: openai-api-base-url
+    #   remoteRef:
+    #     key: dev/zta-control-plane
+    #     property: openai-api-base-url
+    # - secretKey: openai-api-jwt-token
+    #   remoteRef:
+    #     key: dev/zta-control-plane
+    #     property: openai-api-jwt-token
 
 # ─── UI Explorer ─────────────────────────────────────────────────────────────
 uiExplorer:
