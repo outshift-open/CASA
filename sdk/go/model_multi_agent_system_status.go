@@ -38,7 +38,7 @@ func NewMultiAgentSystemStatus() *MultiAgentSystemStatus {
 	this.Phase = &phase
 	var appsReady int32 = 0
 	this.AppsReady = &appsReady
-	var lastSyncTime string = "2026-04-19T19:23:57.788428Z"
+	var lastSyncTime string = "2026-04-19T20:37:20.844802Z"
 	this.LastSyncTime = &lastSyncTime
 	return &this
 }
@@ -52,7 +52,7 @@ func NewMultiAgentSystemStatusWithDefaults() *MultiAgentSystemStatus {
 	this.Phase = &phase
 	var appsReady int32 = 0
 	this.AppsReady = &appsReady
-	var lastSyncTime string = "2026-04-19T19:23:57.788428Z"
+	var lastSyncTime string = "2026-04-19T20:37:20.844802Z"
 	this.LastSyncTime = &lastSyncTime
 	return &this
 }

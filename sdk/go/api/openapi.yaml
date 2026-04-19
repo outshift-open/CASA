@@ -1839,6 +1839,7 @@ components:
         created_at: 2000-01-23T04:56:07.000+00:00
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        token: token
       properties:
         id:
           format: uuid
@@ -1862,8 +1863,11 @@ components:
           format: uuid
           nullable: true
           type: string
+        token:
+          nullable: true
+          type: string
         created_at:
-          default: 2026-04-19T19:23:57.728397Z
+          default: 2026-04-19T20:37:20.784641Z
           format: date-time
           title: Created At
           type: string
@@ -2362,7 +2366,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-19T19:23:57.218466Z
+          default: 2026-04-19T20:37:20.274477Z
           format: date-time
           title: Created At
           type: string
@@ -2622,7 +2626,7 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-19T19:23:57.788428Z
+          default: 2026-04-19T20:37:20.844802Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -3017,7 +3021,7 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-19T19:23:57.219596Z
+          default: 2026-04-19T20:37:20.275677Z
           format: date-time
           title: Created At
           type: string

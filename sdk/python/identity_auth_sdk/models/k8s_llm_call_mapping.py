@@ -34,8 +34,9 @@ class K8sLlmCallMapping(BaseModel):
     mas_id: Optional[UUID]
     app_id: Optional[UUID]
     user_input_id: Optional[UUID]
+    token: Optional[StrictStr] = None
     created_at: Optional[datetime] = None
-    __properties: ClassVar[List[str]] = ["id", "namespace", "trace_id", "mas_id", "app_id", "user_input_id", "created_at"]
+    __properties: ClassVar[List[str]] = ["id", "namespace", "trace_id", "mas_id", "app_id", "user_input_id", "token", "created_at"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -96,6 +97,11 @@ class K8sLlmCallMapping(BaseModel):
         if self.user_input_id is None and "user_input_id" in self.model_fields_set:
             _dict['user_input_id'] = None
 
+        # set to None if token (nullable) is None
+        # and model_fields_set contains the field
+        if self.token is None and "token" in self.model_fields_set:
+            _dict['token'] = None
+
         return _dict
 
     @classmethod
@@ -114,6 +120,7 @@ class K8sLlmCallMapping(BaseModel):
             "mas_id": obj.get("mas_id"),
             "app_id": obj.get("app_id"),
             "user_input_id": obj.get("user_input_id"),
+            "token": obj.get("token"),
             "created_at": obj.get("created_at")
         })
         return _obj

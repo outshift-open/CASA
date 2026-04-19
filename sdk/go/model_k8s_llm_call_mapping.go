@@ -27,6 +27,7 @@ type K8sLlmCallMapping struct {
 	MasId NullableString `json:"mas_id"`
 	AppId NullableString `json:"app_id"`
 	UserInputId NullableString `json:"user_input_id"`
+	Token NullableString `json:"token,omitempty"`
 	CreatedAt *string `json:"created_at,omitempty"`
 }
 
@@ -43,7 +44,7 @@ func NewK8sLlmCallMapping(namespace string, traceId string, masId NullableString
 	this.MasId = masId
 	this.AppId = appId
 	this.UserInputId = userInputId
-	var createdAt string = "2026-04-19T19:23:57.728397Z"
+	var createdAt string = "2026-04-19T20:37:20.784641Z"
 	this.CreatedAt = &createdAt
 	return &this
 }
@@ -53,7 +54,7 @@ func NewK8sLlmCallMapping(namespace string, traceId string, masId NullableString
 // but it doesn't guarantee that properties required by API are set
 func NewK8sLlmCallMappingWithDefaults() *K8sLlmCallMapping {
 	this := K8sLlmCallMapping{}
-	var createdAt string = "2026-04-19T19:23:57.728397Z"
+	var createdAt string = "2026-04-19T20:37:20.784641Z"
 	this.CreatedAt = &createdAt
 	return &this
 }
@@ -226,6 +227,48 @@ func (o *K8sLlmCallMapping) SetUserInputId(v string) {
 	o.UserInputId.Set(&v)
 }
 
+// GetToken returns the Token field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *K8sLlmCallMapping) GetToken() string {
+	if o == nil || IsNil(o.Token.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Token.Get()
+}
+
+// GetTokenOk returns a tuple with the Token field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *K8sLlmCallMapping) GetTokenOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Token.Get(), o.Token.IsSet()
+}
+
+// HasToken returns a boolean if a field has been set.
+func (o *K8sLlmCallMapping) HasToken() bool {
+	if o != nil && o.Token.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetToken gets a reference to the given NullableString and assigns it to the Token field.
+func (o *K8sLlmCallMapping) SetToken(v string) {
+	o.Token.Set(&v)
+}
+// SetTokenNil sets the value for Token to be an explicit nil
+func (o *K8sLlmCallMapping) SetTokenNil() {
+	o.Token.Set(nil)
+}
+
+// UnsetToken ensures that no value is present for Token, not even an explicit nil
+func (o *K8sLlmCallMapping) UnsetToken() {
+	o.Token.Unset()
+}
+
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
 func (o *K8sLlmCallMapping) GetCreatedAt() string {
 	if o == nil || IsNil(o.CreatedAt) {
@@ -276,6 +319,9 @@ func (o K8sLlmCallMapping) ToMap() (map[string]interface{}, error) {
 	toSerialize["mas_id"] = o.MasId.Get()
 	toSerialize["app_id"] = o.AppId.Get()
 	toSerialize["user_input_id"] = o.UserInputId.Get()
+	if o.Token.IsSet() {
+		toSerialize["token"] = o.Token.Get()
+	}
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
 	}

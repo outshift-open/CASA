@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **EnabledToolChecks** | Pointer to [**NullableToolCheckFlags**](ToolCheckFlags.md) |  | [optional] 
 **AuthorizationServerId** | **NullableString** |  | 
 **Namespace** | **NullableString** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T19:23:57.218466Z"]
+**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T20:37:20.274477Z"]
 
 ## Methods
 

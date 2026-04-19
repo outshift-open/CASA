@@ -10,7 +10,8 @@ Name | Type | Description | Notes
 **MasId** | **NullableString** |  | 
 **AppId** | **NullableString** |  | 
 **UserInputId** | **NullableString** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T19:23:57.728397Z"]
+**Token** | Pointer to **NullableString** |  | [optional] 
+**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T20:37:20.784641Z"]
 
 ## Methods
 
@@ -196,6 +197,41 @@ SetUserInputId sets UserInputId field to given value.
 `func (o *K8sLlmCallMapping) UnsetUserInputId()`
 
 UnsetUserInputId ensures that no value is present for UserInputId, not even an explicit nil
+### GetToken
+
+`func (o *K8sLlmCallMapping) GetToken() string`
+
+GetToken returns the Token field if non-nil, zero value otherwise.
+
+### GetTokenOk
+
+`func (o *K8sLlmCallMapping) GetTokenOk() (*string, bool)`
+
+GetTokenOk returns a tuple with the Token field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetToken
+
+`func (o *K8sLlmCallMapping) SetToken(v string)`
+
+SetToken sets Token field to given value.
+
+### HasToken
+
+`func (o *K8sLlmCallMapping) HasToken() bool`
+
+HasToken returns a boolean if a field has been set.
+
+### SetTokenNil
+
+`func (o *K8sLlmCallMapping) SetTokenNil(b bool)`
+
+ SetTokenNil sets the value for Token to be an explicit nil
+
+### UnsetToken
+`func (o *K8sLlmCallMapping) UnsetToken()`
+
+UnsetToken ensures that no value is present for Token, not even an explicit nil
 ### GetCreatedAt
 
 `func (o *K8sLlmCallMapping) GetCreatedAt() string`

@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **mas_id** | **UUID** |  | 
 **app_id** | **UUID** |  | 
 **user_input_id** | **UUID** |  | 
+**token** | **str** |  | [optional] 
 **created_at** | **datetime** |  | [optional] 
 
 ## Example
