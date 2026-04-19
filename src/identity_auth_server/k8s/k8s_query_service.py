@@ -95,6 +95,7 @@ class K8sQueryService:
         if token is None or not token.active:
             raise Exception("Invalid token.")
 
+        # don't store the whole token, store a reference instead (ID for example)
         call = K8sLlmCallMapping(
             id=request.id,
             app_id=token.app_id,
@@ -102,6 +103,7 @@ class K8sQueryService:
             namespace=namespace,
             trace_id=request.trace_id,
             user_input_id=token.user_input_id,
+            token=request.token,
         )
         return self._k8s_mas_repository.store_llm_call_mapping(call)
 
@@ -125,7 +127,7 @@ class K8sQueryService:
         event = LLMCallEndedEvent(
             app_id=str(mapping.app_id),
             call_id=request.call_id,
-            token="",
+            token=mapping.token,
             user_input_id=str(mapping.user_input_id),
             mas_id=str(mapping.mas_id),
             response=content,

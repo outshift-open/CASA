@@ -96,4 +96,5 @@ class K8sLlmCallMapping(SQLModel, table=True):
     mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
     app_id: Optional[UUID] = Field(foreign_key="app.id")
     user_input_id: Optional[UUID] = Field(foreign_key="userinput.id")
+    token: Optional[str] = Field(default=None)
     created_at: datetime = datetime.now(timezone.utc)
