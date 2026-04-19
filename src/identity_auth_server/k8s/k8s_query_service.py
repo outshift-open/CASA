@@ -123,16 +123,17 @@ class K8sQueryService:
             content = self._get_content_from_litellm_response(resp)
 
         event = LLMCallEndedEvent(
-            app_id=mapping.app_id,
+            app_id=str(mapping.app_id),
             call_id=request.call_id,
             token="",
-            user_input_id=mapping.user_input_id,
-            mas_id=mapping.mas_id,
+            user_input_id=str(mapping.user_input_id),
+            mas_id=str(mapping.mas_id),
             response=content,
             tools=tools,
         )
 
         self._tracer.record_event(event)
+        return event
 
     def _get_tools_from_litellm_response(self, response: Dict) -> Optional[str]:
         if "choices" in response and len(response["choices"]) > 0:
