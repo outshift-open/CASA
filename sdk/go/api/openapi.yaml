@@ -1863,7 +1863,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-19T12:23:07.600025Z
+          default: 2026-04-19T19:23:57.728397Z
           format: date-time
           title: Created At
           type: string
@@ -1877,7 +1877,9 @@ components:
     K8sMultiAgentSystemCRDViewModel:
       description: View model for a complete MultiAgentSystem CRD.
       example:
-        enabled_tool_checks: ""
+        enabled_tool_checks:
+        - enabled_tool_checks
+        - enabled_tool_checks
         llm_host: llm_host
         mas_metadata: ""
         kind: kind
@@ -1927,9 +1929,10 @@ components:
           title: Name
           type: string
         enabled_tool_checks:
-          allOf:
-          - $ref: "#/components/schemas/ToolCheckFlags"
+          items:
+            type: string
           nullable: true
+          type: array
         llm_host:
           nullable: true
           type: string
@@ -2359,7 +2362,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-19T12:23:07.051938Z
+          default: 2026-04-19T19:23:57.218466Z
           format: date-time
           title: Created At
           type: string
@@ -2619,7 +2622,7 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-19T12:23:07.660887Z
+          default: 2026-04-19T19:23:57.788428Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -3014,7 +3017,7 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-19T12:23:07.053141Z
+          default: 2026-04-19T19:23:57.219596Z
           format: date-time
           title: Created At
           type: string

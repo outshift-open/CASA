@@ -22,7 +22,6 @@ from typing import Any, ClassVar, Dict, List, Optional
 from uuid import UUID
 from identity_auth_sdk.models.k8s_app_spec_view_model import K8sAppSpecViewModel
 from identity_auth_sdk.models.k8s_multi_agent_system_metadata_view_model import K8sMultiAgentSystemMetadataViewModel
-from identity_auth_sdk.models.tool_check_flags import ToolCheckFlags
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -36,7 +35,7 @@ class K8sMultiAgentSystemCRDViewModel(BaseModel):
     namespace: StrictStr
     mas_metadata: Optional[K8sMultiAgentSystemMetadataViewModel] = None
     name: StrictStr
-    enabled_tool_checks: Optional[ToolCheckFlags]
+    enabled_tool_checks: Optional[List[StrictStr]]
     llm_host: Optional[StrictStr]
     app_specs: Optional[List[K8sAppSpecViewModel]] = None
     mas_id: Optional[UUID] = None

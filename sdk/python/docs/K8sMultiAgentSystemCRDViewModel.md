@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 **namespace** | **str** |  | 
 **mas_metadata** | [**K8sMultiAgentSystemMetadataViewModel**](K8sMultiAgentSystemMetadataViewModel.md) |  | [optional] 
 **name** | **str** |  | 
-**enabled_tool_checks** | [**ToolCheckFlags**](ToolCheckFlags.md) |  | 
+**enabled_tool_checks** | **List[str]** |  | 
 **llm_host** | **str** |  | 
 **app_specs** | [**List[K8sAppSpecViewModel]**](K8sAppSpecViewModel.md) |  | [optional] [default to []]
 **mas_id** | **UUID** |  | [optional] 
