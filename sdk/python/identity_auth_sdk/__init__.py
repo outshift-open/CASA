@@ -52,6 +52,7 @@ __all__ = [
     "K8sMultiAgentSystemCRDViewModel",
     "K8sMultiAgentSystemMetadataViewModel",
     "LLMCallEndedEvent",
+    "LLMCallEndedKubernetesRequest",
     "LLMCallEndedRequest",
     "LLMCallStartedEvent",
     "LLMCallStartedRequest",
@@ -125,6 +126,7 @@ from identity_auth_sdk.models.k8s_llm_call_mapping import K8sLlmCallMapping as K
 from identity_auth_sdk.models.k8s_multi_agent_system_crd_view_model import K8sMultiAgentSystemCRDViewModel as K8sMultiAgentSystemCRDViewModel
 from identity_auth_sdk.models.k8s_multi_agent_system_metadata_view_model import K8sMultiAgentSystemMetadataViewModel as K8sMultiAgentSystemMetadataViewModel
 from identity_auth_sdk.models.llm_call_ended_event import LLMCallEndedEvent as LLMCallEndedEvent
+from identity_auth_sdk.models.llm_call_ended_kubernetes_request import LLMCallEndedKubernetesRequest as LLMCallEndedKubernetesRequest
 from identity_auth_sdk.models.llm_call_ended_request import LLMCallEndedRequest as LLMCallEndedRequest
 from identity_auth_sdk.models.llm_call_started_event import LLMCallStartedEvent as LLMCallStartedEvent
 from identity_auth_sdk.models.llm_call_started_request import LLMCallStartedRequest as LLMCallStartedRequest

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use log::error;
-use log::info;
+// use log::info;
 use log::warn;
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
@@ -79,6 +79,7 @@ impl Context for LlmCall {
                 self.resume_http_response();
             }
             Some(PendingAuthSrvCall::StoreLlmCallEndEvent) => {
+                warn!("LlmCallEndEvent stored");
                 self.resume_http_response();
             }
             None => {
@@ -100,7 +101,7 @@ impl HttpContext for LlmCall {
                 self.litellm_call_id.as_deref().unwrap_or("")
             );
 
-            let token = self
+            let ret_token = self
                 .dispatch_http_call(
                     "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
                     vec![
@@ -115,7 +116,7 @@ impl HttpContext for LlmCall {
                 )
                 .unwrap();
 
-            self.pending.insert(token, PendingAuthSrvCall::GetLlmCallMapping);
+            self.pending.insert(ret_token, PendingAuthSrvCall::GetLlmCallMapping);
 
             return Action::Pause;
         }
@@ -137,6 +138,27 @@ impl HttpContext for LlmCall {
         if let Some(body_bytes) = self.get_http_response_body(0, body_size) {
             let body_str = String::from_utf8(body_bytes).unwrap();
             warn!("LITELLM response body = {}", body_str);
+
+            let trace_body = format!("{{\"call_id\": \"{}\", \"response\": \"{}\"}}", self.litellm_call_id.as_deref().unwrap(), body_str);
+
+            let ret_token = self
+                .dispatch_http_call(
+                    "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
+                    vec![
+                        (":method", "POST"),
+                        (":path", "/k8s/trace/llm/call_end"),
+                        (":authority", "zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000"),
+                        ("content-type", "application/json"),
+                    ],
+                    Some(trace_body.as_bytes()),
+                    vec![],
+                    Duration::from_secs(5),
+                )
+                .unwrap();
+
+            self.pending.insert(ret_token, PendingAuthSrvCall::StoreLlmCallEndEvent);
+
+            return Action::Pause;
         }
 
         Action::Continue

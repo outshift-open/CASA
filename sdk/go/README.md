@@ -106,6 +106,7 @@ Class | Method | HTTP request | Description
 *KubernetesResourcesAPI* | [**CacheStoreToken**](docs/KubernetesResourcesAPI.md#cachestoretoken) | **Post** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 *KubernetesResourcesAPI* | [**GetK8sMasByAppHost**](docs/KubernetesResourcesAPI.md#getk8smasbyapphost) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 *KubernetesResourcesAPI* | [**GetK8sMasByAppWorkload**](docs/KubernetesResourcesAPI.md#getk8smasbyappworkload) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
+*KubernetesResourcesAPI* | [**K8sTraceLlmCallEnd**](docs/KubernetesResourcesAPI.md#k8stracellmcallend) | **Post** /k8s/trace/llm/call_end | K8S Trace Llm Call End
 *MultiAgentSystemsAPI* | [**BindAppsMasMasIdBindAppsPost**](docs/MultiAgentSystemsAPI.md#bindappsmasmasidbindappspost) | **Post** /mas/{mas_id}/bind_apps | Bind Apps
 *MultiAgentSystemsAPI* | [**CreateMasMasPut**](docs/MultiAgentSystemsAPI.md#createmasmasput) | **Put** /mas | Create Mas
 *MultiAgentSystemsAPI* | [**DeleteMasMasMasIdDelete**](docs/MultiAgentSystemsAPI.md#deletemasmasmasiddelete) | **Delete** /mas/{mas_id} | Delete Mas
@@ -144,6 +145,7 @@ Class | Method | HTTP request | Description
  - [K8sMultiAgentSystemCRDViewModel](docs/K8sMultiAgentSystemCRDViewModel.md)
  - [K8sMultiAgentSystemMetadataViewModel](docs/K8sMultiAgentSystemMetadataViewModel.md)
  - [LLMCallEndedEvent](docs/LLMCallEndedEvent.md)
+ - [LLMCallEndedKubernetesRequest](docs/LLMCallEndedKubernetesRequest.md)
  - [LLMCallEndedRequest](docs/LLMCallEndedRequest.md)
  - [LLMCallStartedEvent](docs/LLMCallStartedEvent.md)
  - [LLMCallStartedRequest](docs/LLMCallStartedRequest.md)

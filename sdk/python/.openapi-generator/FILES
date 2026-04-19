@@ -24,6 +24,7 @@ docs/K8sMultiAgentSystemMetadataViewModel.md
 docs/KubernetesCRDsApi.md
 docs/KubernetesResourcesApi.md
 docs/LLMCallEndedEvent.md
+docs/LLMCallEndedKubernetesRequest.md
 docs/LLMCallEndedRequest.md
 docs/LLMCallStartedEvent.md
 docs/LLMCallStartedRequest.md
@@ -93,6 +94,7 @@ identity_auth_sdk/models/k8s_llm_call_mapping.py
 identity_auth_sdk/models/k8s_multi_agent_system_crd_view_model.py
 identity_auth_sdk/models/k8s_multi_agent_system_metadata_view_model.py
 identity_auth_sdk/models/llm_call_ended_event.py
+identity_auth_sdk/models/llm_call_ended_kubernetes_request.py
 identity_auth_sdk/models/llm_call_ended_request.py
 identity_auth_sdk/models/llm_call_mapping_store_request.py
 identity_auth_sdk/models/llm_call_started_event.py
@@ -133,4 +135,5 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
+test/test_llm_call_ended_kubernetes_request.py
 tox.ini

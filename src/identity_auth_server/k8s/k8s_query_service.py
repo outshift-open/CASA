@@ -1,14 +1,16 @@
+import json
 import logging
-from typing import Optional
-from uuid import UUID
+from typing import Dict, Optional
 
 from pydantic import BaseModel
 
+from identity_auth_server.core.events import LLMCallEndedEvent
 from identity_auth_server.core.types import AppType, TokenResponse
 from identity_auth_server.k8s.repository import K8sMultiAgentSystemRepository
 from identity_auth_server.k8s.types import K8sLlmCallMapping, K8sTokenCache
 from identity_auth_server.k8s.view_models import K8sMultiAgentSystemCRDViewModel
 from identity_auth_server.services.authorization_server import AuthorizationServerService
+from identity_auth_server.telemetry.tracer import Tracer
 
 
 logger = logging.getLogger(__name__)
@@ -35,10 +37,23 @@ class LlmCallMappingStoreRequest(BaseModel):
     token: str
 
 
+class LLMCallEndedKubernetesRequest(BaseModel):
+    """Request body for recording the end of an LLM call."""
+
+    call_id: str
+    response: str
+
+
 class K8sQueryService:
-    def __init__(self, k8s_mas_repository: K8sMultiAgentSystemRepository, auth_service: AuthorizationServerService):
+    def __init__(
+        self,
+        k8s_mas_repository: K8sMultiAgentSystemRepository,
+        auth_service: AuthorizationServerService,
+        tracer: Tracer,
+    ):
         self._k8s_mas_repository = k8s_mas_repository
         self._auth_service = auth_service
+        self._tracer = tracer
 
     def get_mas_by_app_host(self, namespace: str, app_host: str) -> Optional[K8sMultiAgentSystemCRDViewModel]:
         mas = self._k8s_mas_repository.get_mas_by_app_host(namespace, app_host)
@@ -92,3 +107,46 @@ class K8sQueryService:
 
     def load_llm_call_mapping(self, call_id: str) -> K8sLlmCallMapping:
         return self._k8s_mas_repository.load_llm_call_mapping(call_id)
+
+    def trace_llm_call_end(self, request: LLMCallEndedKubernetesRequest) -> LLMCallEndedEvent:
+        """Record the end of an LLM call for the authenticated agent."""
+        mapping = self._k8s_mas_repository.load_llm_call_mapping(request.call_id)
+        if mapping is None:
+            raise Exception("Invalid call ID")
+
+        tools: Optional[str] = None
+        content: str = ""
+
+        if request.response != "":
+            resp = json.loads(request.response)
+            tools = self._get_tools_from_litellm_response(resp)
+            content = self._get_content_from_litellm_response(resp)
+
+        event = LLMCallEndedEvent(
+            app_id=mapping.app_id,
+            call_id=request.call_id,
+            token="",
+            user_input_id=mapping.user_input_id,
+            mas_id=mapping.mas_id,
+            response=content,
+            tools=tools,
+        )
+
+        self._tracer.record_event(event)
+
+    def _get_tools_from_litellm_response(self, response: Dict) -> Optional[str]:
+        if "choices" in response and len(response["choices"]) > 0:
+            choice = response["choices"][0]
+            if "message" in choice and "tool_calls" in choice["message"]:
+                tools = [f"name='{tool["function"]["name"]}'" for tool in choice["message"]["tool_calls"]]
+                return json.dumps(tools)
+        return None
+
+    def _get_content_from_litellm_response(self, response: Dict) -> str:
+        if "choices" in response and len(response["choices"]) > 0:
+            choice = response["choices"][0]
+            if "message" in choice and "content" in choice["message"]:
+                content = choice["message"]["content"]
+                if content:
+                    return content
+        return ""

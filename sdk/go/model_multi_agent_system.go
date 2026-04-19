@@ -41,7 +41,7 @@ func NewMultiAgentSystem(name string, authorizationServerId NullableString, name
 	this.Name = name
 	this.AuthorizationServerId = authorizationServerId
 	this.Namespace = namespace
-	var createdAt string = "2026-04-17T16:09:55.477936Z"
+	var createdAt string = "2026-04-19T12:23:07.051938Z"
 	this.CreatedAt = &createdAt
 	return &this
 }
@@ -51,7 +51,7 @@ func NewMultiAgentSystem(name string, authorizationServerId NullableString, name
 // but it doesn't guarantee that properties required by API are set
 func NewMultiAgentSystemWithDefaults() *MultiAgentSystem {
 	this := MultiAgentSystem{}
-	var createdAt string = "2026-04-17T16:09:55.477936Z"
+	var createdAt string = "2026-04-19T12:23:07.051938Z"
 	this.CreatedAt = &createdAt
 	return &this
 }

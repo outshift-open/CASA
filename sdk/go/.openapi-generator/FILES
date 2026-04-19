@@ -33,6 +33,7 @@ docs/K8sMultiAgentSystemMetadataViewModel.md
 docs/KubernetesCRDsAPI.md
 docs/KubernetesResourcesAPI.md
 docs/LLMCallEndedEvent.md
+docs/LLMCallEndedKubernetesRequest.md
 docs/LLMCallEndedRequest.md
 docs/LLMCallStartedEvent.md
 docs/LLMCallStartedRequest.md
@@ -89,6 +90,7 @@ model_k8s_llm_call_mapping.go
 model_k8s_multi_agent_system_crd_view_model.go
 model_k8s_multi_agent_system_metadata_view_model.go
 model_llm_call_ended_event.go
+model_llm_call_ended_kubernetes_request.go
 model_llm_call_ended_request.go
 model_llm_call_mapping_store_request.go
 model_llm_call_started_event.go

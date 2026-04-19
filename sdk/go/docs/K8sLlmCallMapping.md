@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **MasId** | **NullableString** |  | 
 **AppId** | **NullableString** |  | 
 **UserInputId** | **NullableString** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-17T16:09:56.424880Z"]
+**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T12:23:07.600025Z"]
 
 ## Methods
 

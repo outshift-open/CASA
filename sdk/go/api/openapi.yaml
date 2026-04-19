@@ -1381,6 +1381,32 @@ paths:
       summary: Load Llm Call Mapping
       tags:
       - Kubernetes Resources
+  /k8s/trace/llm/call_end:
+    post:
+      description: Record the end of an LLM call for the authenticated agent.
+      operationId: k8s_trace_llm_call_end
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LLMCallEndedKubernetesRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LLMCallEndedEvent"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: K8S Trace Llm Call End
+      tags:
+      - Kubernetes Resources
 components:
   schemas:
     ActorClaim:
@@ -1837,7 +1863,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-17T16:09:56.424880Z
+          default: 2026-04-19T12:23:07.600025Z
           format: date-time
           title: Created At
           type: string
@@ -2000,6 +2026,22 @@ components:
       - tools
       - user_input_id
       title: LLMCallEndedEvent
+    LLMCallEndedKubernetesRequest:
+      description: Request body for recording the end of an LLM call.
+      example:
+        response: response
+        call_id: call_id
+      properties:
+        call_id:
+          title: Call Id
+          type: string
+        response:
+          title: Response
+          type: string
+      required:
+      - call_id
+      - response
+      title: LLMCallEndedKubernetesRequest
     LLMCallEndedRequest:
       description: Request body for recording the end of an LLM call.
       example:
@@ -2317,7 +2359,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-17T16:09:55.477936Z
+          default: 2026-04-19T12:23:07.051938Z
           format: date-time
           title: Created At
           type: string
@@ -2577,7 +2619,7 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-17T16:09:56.530131Z
+          default: 2026-04-19T12:23:07.660887Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -2972,7 +3014,7 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-17T16:09:55.480219Z
+          default: 2026-04-19T12:23:07.053141Z
           format: date-time
           title: Created At
           type: string

@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**CacheStoreToken**](KubernetesResourcesAPI.md#CacheStoreToken) | **Post** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 [**GetK8sMasByAppHost**](KubernetesResourcesAPI.md#GetK8sMasByAppHost) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 [**GetK8sMasByAppWorkload**](KubernetesResourcesAPI.md#GetK8sMasByAppWorkload) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
+[**K8sTraceLlmCallEnd**](KubernetesResourcesAPI.md#K8sTraceLlmCallEnd) | **Post** /k8s/trace/llm/call_end | K8S Trace Llm Call End
 
 
 
@@ -424,6 +425,72 @@ No authorization required
 ### HTTP request headers
 
 - **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## K8sTraceLlmCallEnd
+
+> LLMCallEndedEvent K8sTraceLlmCallEnd(ctx).LLMCallEndedKubernetesRequest(lLMCallEndedKubernetesRequest).Execute()
+
+K8S Trace Llm Call End
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/cisco-eti/identity-auth-server/sdk/go"
+)
+
+func main() {
+	lLMCallEndedKubernetesRequest := *openapiclient.NewLLMCallEndedKubernetesRequest("CallId_example", "Response_example") // LLMCallEndedKubernetesRequest | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.KubernetesResourcesAPI.K8sTraceLlmCallEnd(context.Background()).LLMCallEndedKubernetesRequest(lLMCallEndedKubernetesRequest).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `KubernetesResourcesAPI.K8sTraceLlmCallEnd``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `K8sTraceLlmCallEnd`: LLMCallEndedEvent
+	fmt.Fprintf(os.Stdout, "Response from `KubernetesResourcesAPI.K8sTraceLlmCallEnd`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiK8sTraceLlmCallEndRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **lLMCallEndedKubernetesRequest** | [**LLMCallEndedKubernetesRequest**](LLMCallEndedKubernetesRequest.md) |  | 
+
+### Return type
+
+[**LLMCallEndedEvent**](LLMCallEndedEvent.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: application/json
 - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)

@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**cache_store_token**](KubernetesResourcesApi.md#cache_store_token) | **POST** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 [**get_k8s_mas_by_app_host**](KubernetesResourcesApi.md#get_k8s_mas_by_app_host) | **GET** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 [**get_k8s_mas_by_app_workload**](KubernetesResourcesApi.md#get_k8s_mas_by_app_workload) | **GET** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
+[**k8s_trace_llm_call_end**](KubernetesResourcesApi.md#k8s_trace_llm_call_end) | **POST** /k8s/trace/llm/call_end | K8S Trace Llm Call End
 
 
 # **cache_load_llm_call_mapping**
@@ -415,6 +416,76 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **k8s_trace_llm_call_end**
+> LLMCallEndedEvent k8s_trace_llm_call_end(llm_call_ended_kubernetes_request)
+
+K8S Trace Llm Call End
+
+Record the end of an LLM call for the authenticated agent.
+
+### Example
+
+
+```python
+import identity_auth_sdk
+from identity_auth_sdk.models.llm_call_ended_event import LLMCallEndedEvent
+from identity_auth_sdk.models.llm_call_ended_kubernetes_request import LLMCallEndedKubernetesRequest
+from identity_auth_sdk.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = identity_auth_sdk.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with identity_auth_sdk.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = identity_auth_sdk.KubernetesResourcesApi(api_client)
+    llm_call_ended_kubernetes_request = identity_auth_sdk.LLMCallEndedKubernetesRequest() # LLMCallEndedKubernetesRequest | 
+
+    try:
+        # K8S Trace Llm Call End
+        api_response = api_instance.k8s_trace_llm_call_end(llm_call_ended_kubernetes_request)
+        print("The response of KubernetesResourcesApi->k8s_trace_llm_call_end:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling KubernetesResourcesApi->k8s_trace_llm_call_end: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **llm_call_ended_kubernetes_request** | [**LLMCallEndedKubernetesRequest**](LLMCallEndedKubernetesRequest.md)|  | 
+
+### Return type
+
+[**LLMCallEndedEvent**](LLMCallEndedEvent.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 ### HTTP response details

@@ -3,13 +3,16 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 
 from identity_auth_server.api.dependencies import Container
+from identity_auth_server.core.events import LLMCallEndedEvent
 from identity_auth_server.core.types import TokenResponse
-from identity_auth_server.k8s.k8s_query_service import CacheTokenLoadRequest, CacheTokenStoreRequest, K8sQueryService, LlmCallMappingStoreRequest
+from identity_auth_server.k8s.k8s_query_service import CacheTokenLoadRequest, CacheTokenStoreRequest, K8sQueryService, LLMCallEndedKubernetesRequest, LlmCallMappingStoreRequest
 from identity_auth_server.k8s.types import K8sLlmCallMapping
 from identity_auth_server.k8s.view_models import K8sMultiAgentSystemCRDViewModel
+
 
 router = APIRouter(tags=["Kubernetes Resources"], prefix="/k8s")
 
@@ -88,3 +91,38 @@ def load_llm_call_mapping(
     if not call:
         raise HTTPException(status_code=404, detail=f"LLM call mapping not found")
     return call
+
+
+# @router.post("/trace/llm/call_start", generate_unique_id_function=lambda _: "trace_llm_call_start")
+# def trace_llm_call_start(
+#     tracer: Annotated[Tracer, Depends(Container.get_tracer)],
+#     auth_server: Annotated[AuthorizationServerService, Depends(Container.get_authorization_service)],
+#     jwt: Annotated[HTTPAuthorizationCredentials, Depends(jwt_security)],
+#     request: LLMCallStartedRequest,
+# ) -> LLMCallStartedEvent:
+#     """Record the start of an LLM call for the authenticated agent."""
+#     token = auth_server.introspect_token(jwt.credentials)
+#     if token is None or not token.active:
+#         raise credentials_exception
+
+#     event = LLMCallStartedEvent(
+#         app_id=token.app_id,
+#         call_id=request.call_id,
+#         token=jwt.credentials,
+#         user_input_id=token.user_input_id,
+#         mas_id=token.mas_id,
+#         prompt=request.prompt,
+#         tools=request.tools,
+#     )
+
+#     tracer.record_event(event)
+#     return event
+
+
+@router.post("/trace/llm/call_end", generate_unique_id_function=lambda _: "k8s_trace_llm_call_end")
+def k8s_trace_llm_call_end(
+    k8s_query_service: Annotated[K8sQueryService, Depends(Container.get_k8s_query_service)],
+    request: LLMCallEndedKubernetesRequest,
+) -> LLMCallEndedEvent:
+    """Record the end of an LLM call for the authenticated agent."""
+    return k8s_query_service.trace_llm_call_end(request)
