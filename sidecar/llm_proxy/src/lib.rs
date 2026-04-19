@@ -6,6 +6,7 @@ use log::error;
 use log::warn;
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
+use serde_json::json;
 use serde_json::Value;
 
 const LITELLM_CALL_ID_HEADER: &str = "x-litellm-call-id";
@@ -48,7 +49,8 @@ impl Context for LlmCall {
     fn on_http_call_response(&mut self, token_id: u32, _: usize, body_size: usize, _: usize) {
         let call = self.pending.remove(&token_id);
 
-        let status_code = self.get_http_call_response_headers()
+        let status_code = self
+            .get_http_call_response_headers()
             .iter()
             .find(|(k, _)| k == ":status")
             .and_then(|(_, v)| v.parse::<u16>().ok())
@@ -65,10 +67,12 @@ impl Context for LlmCall {
                         Ok(json) => {
                             if let Some(app_id) = json.get("app_id").and_then(|v| v.as_str()) {
                                 warn!("app_id = {}", app_id);
-                            } 
-                            if let Some(user_input_id) = json.get("user_input_id").and_then(|v| v.as_str()) {
+                            }
+                            if let Some(user_input_id) =
+                                json.get("user_input_id").and_then(|v| v.as_str())
+                            {
                                 warn!("user_input_id = {}", user_input_id);
-                            } 
+                            }
                         }
                         Err(err) => {
                             error!("error parsing json {}", err);
@@ -139,28 +143,39 @@ impl HttpContext for LlmCall {
             let body_str = String::from_utf8(body_bytes).unwrap();
             warn!("LITELLM response body = {}", body_str);
 
-            let response = body_str.replace("\"", "\\\"");
-            let trace_body = format!("{{\"call_id\": \"{}\", \"response\": \"{}\"}}", self.litellm_call_id.as_deref().unwrap(), response);
-            warn!("sending event payload = {}", trace_body);
+            let trace_body = json!({
+                "call_id": self.litellm_call_id.as_deref().unwrap(),
+                "response": body_str,
+            });
 
-            let ret_token = self
-                .dispatch_http_call(
-                    "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
-                    vec![
-                        (":method", "POST"),
-                        (":path", "/k8s/trace/llm/call_end"),
-                        (":authority", "zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000"),
-                        ("content-type", "application/json"),
-                    ],
-                    Some(trace_body.as_bytes()),
-                    vec![],
-                    Duration::from_secs(5),
-                )
-                .unwrap();
+            match serde_json::to_vec(&trace_body) {
+                Ok(payload) => {
+                    warn!("sending event payload = {}", trace_body);
 
-            self.pending.insert(ret_token, PendingAuthSrvCall::StoreLlmCallEndEvent);
+                    let ret_token = self
+                        .dispatch_http_call(
+                            "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
+                            vec![
+                                (":method", "POST"),
+                                (":path", "/k8s/trace/llm/call_end"),
+                                (":authority", "zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000"),
+                                ("content-type", "application/json"),
+                            ],
+                            Some(&payload),
+                            vec![],
+                            Duration::from_secs(5),
+                        )
+                        .unwrap();
 
-            return Action::Pause;
+                    self.pending
+                        .insert(ret_token, PendingAuthSrvCall::StoreLlmCallEndEvent);
+
+                    return Action::Pause;
+                }
+                Err(err) => {
+                    error!("error serializing trace_body to json {}", err);
+                }
+            }
         }
 
         Action::Continue
