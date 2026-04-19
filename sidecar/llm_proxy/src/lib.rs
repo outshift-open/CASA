@@ -96,29 +96,29 @@ impl HttpContext for LlmCall {
             self.litellm_call_id = Some(call_id.clone());
             warn!("{} = {}", LITELLM_CALL_ID_HEADER, call_id.clone());
 
-            let path = format!(
-                "/k8s/cache/load-llm-call-mapping/{}",
-                self.litellm_call_id.as_deref().unwrap_or("")
-            );
+            // let path = format!(
+            //     "/k8s/cache/load-llm-call-mapping/{}",
+            //     self.litellm_call_id.as_deref().unwrap_or("")
+            // );
 
-            let ret_token = self
-                .dispatch_http_call(
-                    "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
-                    vec![
-                        (":method", "GET"),
-                        (":path", &path),
-                        (":authority", "zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000"),
-                        ("content-type", "application/json"),
-                    ],
-                    None,
-                    vec![],
-                    Duration::from_secs(5),
-                )
-                .unwrap();
+            // let ret_token = self
+            //     .dispatch_http_call(
+            //         "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
+            //         vec![
+            //             (":method", "GET"),
+            //             (":path", &path),
+            //             (":authority", "zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000"),
+            //             ("content-type", "application/json"),
+            //         ],
+            //         None,
+            //         vec![],
+            //         Duration::from_secs(5),
+            //     )
+            //     .unwrap();
 
-            self.pending.insert(ret_token, PendingAuthSrvCall::GetLlmCallMapping);
+            // self.pending.insert(ret_token, PendingAuthSrvCall::GetLlmCallMapping);
 
-            return Action::Pause;
+            // return Action::Pause;
         }
 
         Action::Continue
@@ -139,7 +139,9 @@ impl HttpContext for LlmCall {
             let body_str = String::from_utf8(body_bytes).unwrap();
             warn!("LITELLM response body = {}", body_str);
 
-            let trace_body = format!("{{\"call_id\": \"{}\", \"response\": \"{}\"}}", self.litellm_call_id.as_deref().unwrap(), body_str);
+            let response = body_str.replace("\"", "\\\"");
+            let trace_body = format!("{{\"call_id\": \"{}\", \"response\": \"{}\"}}", self.litellm_call_id.as_deref().unwrap(), response);
+            warn!("sending event payload = {}", trace_body);
 
             let ret_token = self
                 .dispatch_http_call(
