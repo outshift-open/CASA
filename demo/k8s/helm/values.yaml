@@ -32,22 +32,44 @@ mcp:
     suffix: ''
   tagversion: 2026-04-20-513f685
 
-chatUi:
-  docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
-    image: outshift-zta/chat-ui
-  tagversion: 2026-04-20-513f685
-  agentUrl: /safe-agent
-  ingress:
-    enabled: true
-    className: "nginx"
-    apiDomainName: "dev.outshift.ai"
-    domainPrefix: "zta-demo"
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
+chatUis:
+  - name: safe
+    docker:
+      registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+      image: outshift-zta/chat-ui
+    tagversion: 2026-04-20-513f685
+    agentUrl: /safe-agent
+    ingress:
+      enabled: true
+      className: "nginx"
+      apiDomainName: "dev.outshift.ai"
+      domainPrefix: "zta-demo-safe"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+  - name: compromised
+    docker:
+      registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+      image: outshift-zta/chat-ui
+    tagversion: 2026-04-20-513f685
+    agentUrl: /compromised-agent
+    ingress:
+      enabled: true
+      className: "nginx"
+      apiDomainName: "dev.outshift.ai"
+      domainPrefix: "zta-demo-compromised"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
 
-mas:
-  name: "ZTA Demo"
+masSafe:
+  name: "ZTA Demo Safe"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: litellm.prod.outshift.ai
+
+masCompromised:
+  name: "ZTA Demo Compromised"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
   llm_host: litellm.prod.outshift.ai

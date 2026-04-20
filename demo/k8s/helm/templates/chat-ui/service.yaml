@@ -1,17 +1,21 @@
+{{- $root := . }}
+{{- range .Values.chatUis }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-chat-ui
-  namespace: {{ .Release.Namespace }}
+  name: {{ $root.Release.Name }}-chat-ui-{{ .name }}
+  namespace: {{ $root.Release.Namespace }}
   labels:
-    app: {{ .Release.Name }}-chat-ui
+    app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
     component: demo
 spec:
   type: ClusterIP
   selector:
-    app: {{ .Release.Name }}-chat-ui
+    app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
   ports:
     - name: http
       protocol: TCP
       port: 80
       targetPort: http
+{{- end }}

@@ -1,33 +1,37 @@
-{{- if .Values.chatUi.ingress.enabled }}
+{{- $root := . }}
+{{- range .Values.chatUis }}
+{{- if .ingress.enabled }}
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Release.Name }}-chat-ui
-  namespace: {{ .Release.Namespace }}
+  name: {{ $root.Release.Name }}-chat-ui-{{ .name }}
+  namespace: {{ $root.Release.Namespace }}
   labels:
-    app: {{ .Release.Name }}-chat-ui
+    app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
     component: demo
-  {{- if .Values.chatUi.ingress.annotations }}
+  {{- if .ingress.annotations }}
   annotations:
-    {{- range $key, $value := .Values.chatUi.ingress.annotations }}
-    {{ $key }}: {{ tpl $value $ | quote }}
+    {{- range $key, $value := .ingress.annotations }}
+    {{ $key }}: {{ tpl $value $root | quote }}
     {{- end }}
   {{- end }}
 spec:
-  ingressClassName: {{ .Values.chatUi.ingress.className }}
+  ingressClassName: {{ .ingress.className }}
   tls:
   - hosts:
-    - "{{ .Values.chatUi.ingress.domainPrefix }}.{{ .Values.chatUi.ingress.apiDomainName }}"
-    secretName: "{{ .Release.Name }}-chat-ui-tls"
+    - "{{ .ingress.domainPrefix }}.{{ .ingress.apiDomainName }}"
+    secretName: "{{ $root.Release.Name }}-chat-ui-{{ .name }}-tls"
   rules:
-  - host: "{{ .Values.chatUi.ingress.domainPrefix }}.{{ .Values.chatUi.ingress.apiDomainName }}"
+  - host: "{{ .ingress.domainPrefix }}.{{ .ingress.apiDomainName }}"
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ .Release.Name }}-chat-ui
+            name: {{ $root.Release.Name }}-chat-ui-{{ .name }}
             port:
               number: 80
+{{- end }}
 {{- end }}

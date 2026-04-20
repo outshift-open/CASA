@@ -1,30 +1,33 @@
+{{- $root := . }}
+{{- range .Values.chatUis }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-chat-ui
-  namespace: {{ .Release.Namespace }}
+  name: {{ $root.Release.Name }}-chat-ui-{{ .name }}
+  namespace: {{ $root.Release.Namespace }}
   labels:
-    app: {{ .Release.Name }}-chat-ui
+    app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
     component: demo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-chat-ui
+      app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-chat-ui
+        app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
     spec:
       imagePullSecrets:
         - name: regcred
       containers:
         - name: chat-ui
-          image: {{ .Values.chatUi.docker.registry }}/{{ .Values.chatUi.docker.image }}:{{ .Values.chatUi.tagversion }}
+          image: {{ .docker.registry }}/{{ .docker.image }}:{{ .tagversion }}
           imagePullPolicy: Always
           env:
             - name: AGENT_URL
-              value: {{ .Values.chatUi.agentUrl | quote }}
+              value: {{ .agentUrl | quote }}
           ports:
             - name: http
               containerPort: 80
@@ -55,4 +58,5 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: {{ .Release.Name }}-chat-ui-nginx
+            name: {{ $root.Release.Name }}-chat-ui-nginx
+{{- end }}
