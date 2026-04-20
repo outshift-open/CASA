@@ -10,7 +10,7 @@ metadata:
   {{- if .Values.chatUi.ingress.annotations }}
   annotations:
     {{- range $key, $value := .Values.chatUi.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
+    {{ $key }}: {{ tpl $value $ | quote }}
     {{- end }}
   {{- end }}
 spec:
@@ -23,11 +23,11 @@ spec:
   - host: "{{ .Values.chatUi.ingress.domainPrefix }}.{{ .Values.chatUi.ingress.apiDomainName }}"
     http:
       paths:
-      - backend:
+      - path: /
+        pathType: Prefix
+        backend:
           service:
             name: {{ .Release.Name }}-chat-ui
             port:
               number: 80
-        path: /
-        pathType: Prefix
 {{- end }}

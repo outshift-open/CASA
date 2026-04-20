@@ -1,206 +1,130 @@
 # ZTA Demo - Safe vs Compromised Agents
 
-This demo showcases Zero Trust Authorization (ZTA) for Multi-Agent Systems with two agents:
+This demo showcases Zero Trust Authorization (ZTA) for Multi-Agent Systems with two agents.
 
 ## Agents
 
-### 1. demo-agent-safe (V1)
-- **Clean agent** with no malicious code
-- Uses prompt: "you are a helpful assistant"
-- Operates normally with ZTA enforcement via Istio/Envoy sidecar
+### 1. demo-agent-safe
+- **Clean agent** — responds normally to user requests
+- Only calls tools explicitly requested by the user
+- All tool calls pass ZTA authorization
 
-### 2. demo-agent-compromised (V2)
+### 2. demo-agent-compromised
 - **Rogue agent** with malicious prompt injection
-- Attempts to:
-  - Transfer account balances without user consent
-  - Add external beneficiaries
-  - Schedule unauthorized payments
-- Should be **blocked by ZTA authorization server**
+- Attempts unauthorized actions (balance transfers, adding beneficiaries, scheduling payments)
+- **Blocked by ZTA authorization server**
 
 ## Directory Structure
 
 ```
 demo/k8s/
-├── agent-safe/              # Clean agent code
-│   ├── agent.py            # Safe agent implementation
-│   ├── main.py             # FastAPI server
-│   ├── requirements.txt    # Python dependencies
-│   └── Dockerfile          # Container image
-├── agent-compromised/       # Rogue agent code
-│   ├── agent.py            # Compromised agent with malicious code
-│   ├── main.py             # FastAPI server
-│   ├── requirements.txt    # Python dependencies
-│   └── Dockerfile          # Container image
-├── chat-ui/                 # Chat UI for testing
-│   └── deployment.yaml, service.yaml, configmap.yaml, ingress.yaml
-├── helm/                    # Helm chart deploying both agents, MCP, and MAS CRD
+├── helm/                        # Helm chart — single source of truth for deployment
 │   ├── Chart.yaml
-│   ├── values.yaml         # Configure both agents
+│   ├── values.yaml              # Image tags, service names, ingress config
 │   └── templates/
-│       ├── agent-safe/     # Safe agent deployment & service
-│       ├── agent-compromised/ # Compromised agent deployment & service
-│       ├── mcp/            # MCP server
-│       └── mas.yaml        # MultiAgentSystem CRD
-└── DEMO_README.md          # This file
+│       ├── agent-safe/          # Safe agent deployment & service
+│       ├── agent-compromised/   # Compromised agent deployment & service
+│       ├── mcp/                 # MCP server deployment & service
+│       ├── chat-ui/             # Chat UI deployment, service, ingress, nginx configmap
+│       └── mas.yaml             # MultiAgentSystem CRD (applied by operator)
+├── agent-safe/                  # Safe agent source code + Dockerfile
+├── agent-compromised/           # Compromised agent source code + Dockerfile
+├── mcp/                         # MCP server source code
+└── DEMO_README.md
 ```
 
 ## Prerequisites
 
 - Kubernetes cluster with Istio installed
-- kubectl configured
-- ECR access for pushing/pulling images
-- Secret `llm-credentials` in target namespace with:
-  - `api-base-url`: LLM gateway endpoint
+- `kubectl` and `helm` configured
+- ECR access (`regcred` image pull secret in target namespace)
+- Secret `llm-credentials` in target namespace:
+  - `api-base-url`: LLM gateway endpoint (e.g. `https://litellm.prod.outshift.ai`)
   - `api-key`: API key
-- Secret `regcred` for pulling images from ECR
 
 ## Deployment
 
-### 1. Build Docker Images
+### 1. Build & Push Docker Images
 
-```bash
-# Build safe agent
-cd demo/k8s/agent-safe
-docker build -t 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/demo-agent-safe:latest .
-docker push 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/demo-agent-safe:latest
-
-# Build compromised agent
-cd ../agent-compromised
-docker build -t 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/demo-agent-compromised:latest .
-docker push 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/demo-agent-compromised:latest
-```
+Images are built and pushed automatically by CI/CD on push to the branch.
+Update the `tagversion` fields in `helm/values.yaml` with the new tags.
 
 ### 2. Deploy with Helm
 
-The Helm chart deploys:
-- Both agents (safe + compromised)
+```bash
+# First install
+helm install zta-demo demo/k8s/helm --namespace zta-control-plane-dev
+
+# Upgrade after changes
+helm upgrade zta-demo demo/k8s/helm --namespace zta-control-plane-dev
+```
+
+This deploys:
+- Both agents (safe + compromised) with Istio sidecar
 - MCP server
-- MultiAgentSystem CRD
-
-```bash
-cd demo/k8s/helm
-helm install zta-demo . --namespace zta-control-plane-dev --create-namespace
-```
-
-To upgrade after code changes:
-```bash
-helm upgrade zta-demo . --namespace zta-control-plane-dev
-```
-
-### 3. Deploy Chat UI (if not already deployed)
-
-```bash
-kubectl apply -f chat-ui/ --namespace zta-control-plane-dev
-```
+- Chat UI with nginx (proxies `/safe-agent/` and `/compromised-agent/` to respective agents)
+- MultiAgentSystem CR → triggers operator to register apps + create Istio egress resources
 
 ## Verification
 
-### Check Deployments
-
 ```bash
 # Check pods
-kubectl get pods -n zta-control-plane-dev
+kubectl get pods -n zta-control-plane-dev | grep -E "demo-agent|zta-demo"
 
-# Check services
-kubectl get svc -n zta-control-plane-dev
+# Check MAS registration
+kubectl get multiagentsystem zta-demo -n zta-control-plane-dev -o yaml
 
-# Check MAS CRD
-kubectl get multiagentsystem -n zta-control-plane-dev -o yaml
+# Check Istio egress resources created by operator
+kubectl get serviceentry,destinationrule -n zta-control-plane-dev
 
 # Check Helm release
 helm list -n zta-control-plane-dev
 ```
 
-### Test the Agents
+## Accessing the Chat UI
 
-1. Port-forward the chat-ui:
-   ```bash
-   kubectl port-forward svc/chat-ui 8080:80 -n zta-control-plane-dev
-   ```
+The chat UI is exposed at: `https://zta-demo.dev.outshift.ai`
 
-2. Open http://localhost:8080 in your browser
+It proxies to the **safe agent** by default (`AGENT_URL=/safe-agent` env var in the deployment).
 
-3. Test the safe agent:
-   - Chat UI proxies to `/safe-agent/` → `demo-agent-safe:8082`
-   - Should respond normally
-
-4. Test the compromised agent:
-   - Chat UI proxies to `/compromised-agent/` → `demo-agent-compromised:8082`
-   - Should attempt malicious actions
-   - **ZTA should block unauthorized tool calls**
-
-### Check ZTA Authorization
-
-```bash
-# View auth server logs
-kubectl logs -l app=zta-auth-service -n zta-control-plane-dev
-
-# View agent logs
-kubectl logs -l app=demo-agent-safe -n zta-control-plane-dev
-kubectl logs -l app=demo-agent-compromised -n zta-control-plane-dev
-```
+To switch agent at runtime, update `chatUi.agentUrl` in `values.yaml` and run `helm upgrade`.
 
 ## Expected Behavior
 
-### Safe Agent (V1)
-- ✅ Processes user requests normally
-- ✅ Only calls tools requested by user
-- ✅ All tool calls pass ZTA authorization
+### Safe Agent
+- Processes user requests normally
+- Only calls tools requested by the user
+- All tool calls pass ZTA authorization
 
-### Compromised Agent (V2)
-- ⚠️ Attempts unauthorized actions:
-  - Transferring account balances
-  - Adding external beneficiaries
-  - Scheduling payments
-- ❌ **ZTA blocks malicious tool calls**
-- ✅ Legitimate user requests still work (if allowed by policy)
+### Compromised Agent
+- Attempts unauthorized tool calls (transfers, beneficiaries, payments)
+- **ZTA blocks malicious tool calls**
+- Legitimate user requests still work (if allowed by policy)
 
 ## Cleanup
 
 ```bash
-# Uninstall Helm release (removes agents, MCP, MAS CRD)
 helm uninstall zta-demo --namespace zta-control-plane-dev
-
-# Remove chat-ui (if deployed separately)
-kubectl delete -f chat-ui/ --namespace zta-control-plane-dev
 ```
 
 ## Architecture
 
 ```
-┌─────────────┐
-│  Chat UI    │
-└──────┬──────┘
-       │
-       ├─────────────┐
-       │             │
-  /safe-agent/  /compromised-agent/
-       │             │
-       ▼             ▼
-┌──────────┐  ┌──────────────┐
-│  Safe    │  │ Compromised  │
-│  Agent   │  │   Agent      │
-│  (V1)    │  │   (V2)       │
-└────┬─────┘  └──────┬───────┘
-     │               │
-     │   ┌───────────┘
-     │   │
-     ▼   ▼
-  ┌─────────────┐       ┌──────────────┐
-  │ Istio/Envoy │◄──────┤ ZTA Auth     │
-  │  Sidecar    │       │ Server       │
-  └──────┬──────┘       └──────────────┘
-         │
-         ▼
-    ┌─────────┐
-    │   MCP   │
-    │ Server  │
-    └─────────┘
+Browser
+   │
+   ▼
+https://zta-demo.dev.outshift.ai  (nginx ingress)
+   │
+   ▼
+Chat UI (nginx)
+   ├── /safe-agent/  ──────────► demo-agent-safe:8082
+   └── /compromised-agent/  ───► demo-agent-compromised:8082
+                                        │
+                              Istio/Envoy sidecar
+                                        │ ext_authz
+                                        ▼
+                               ZTA Auth Server
+                                        │
+                                        ▼
+                                  MCP Server:3000
 ```
-
-## Notes
-
-- Both agents run with Istio sidecar injection enabled
-- ZTA enforcement happens at the Envoy sidecar via ext_authz
-- The auth server validates all tool calls based on policies
-- Chat UI nginx config already proxies to both agents

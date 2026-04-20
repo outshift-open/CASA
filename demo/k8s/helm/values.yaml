@@ -8,7 +8,7 @@ agentSafe:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-safe
     suffix: ''
-  tagversion: 2026-04-20-7ea4f19
+  tagversion: 2026-04-20-513f685
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 agentCompromised:
@@ -19,7 +19,7 @@ agentCompromised:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-compromised
     suffix: ''
-  tagversion: 2026-04-20-7ea4f19
+  tagversion: 2026-04-20-513f685
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
@@ -30,13 +30,13 @@ mcp:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
-  tagversion: 2026-04-20-7ea4f19
+  tagversion: 2026-04-20-513f685
 
 chatUi:
   docker:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/chat-ui
-  tagversion: 2026-04-20-7ea4f19
+  tagversion: 2026-04-20-513f685
   agentUrl: /safe-agent
   ingress:
     enabled: true
