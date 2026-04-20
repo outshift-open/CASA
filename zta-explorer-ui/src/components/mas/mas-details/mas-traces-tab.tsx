@@ -11,12 +11,10 @@ import {
     Brain,
     BrainCircuit,
     ArrowUpDown,
-    RefreshCw,
     Download
 } from 'lucide-react';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Badge} from '@/components/ui/badge';
-import {Button} from '@/components/ui/button';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {toast} from 'sonner';
@@ -42,6 +40,15 @@ const BLOCKING_REASON_LABELS: Record<BlockingReason, string> = {
     tool_parameters_mismatch: 'Params mismatch',
     modified_mcp_tool_defs: 'Modified tool defs',
     insufficient_scope: 'Insufficient scope'
+};
+
+const BLOCKING_REASON_DESCRIPTIONS: Partial<Record<BlockingReason, string>> = {
+    no_llm_calls_made_by_app: 'The app made no LLM calls before requesting tool access',
+    tool_not_selected_by_llm: 'Requested MCP Server Tool was not selected by the LLM',
+    tool_intent_mismatch: "MCP Server Tool choice doesn't match the intention of original input",
+    tool_parameters_mismatch: 'Requested MCP Server Tool Parameters are different from those selected by the LLM',
+    modified_mcp_tool_defs: 'The LLM received modified MCP Server Tool Definitions',
+    insufficient_scope: 'Token does not have the required scope for this tool'
 };
 
 function parseToolsList(raw: string[] | string | null | undefined): string[] {
@@ -146,7 +153,7 @@ function EventTimestamp({createdAt}: {createdAt: string}) {
         minute: '2-digit',
         second: '2-digit'
     });
-    return <span className="ml-auto pl-3 text-[10px] text-muted-foreground/60 flex-shrink-0 tabular-nums">{time}</span>;
+    return <span className="ml-auto pl-3 text-[11px] text-muted-foreground/60 flex-shrink-0 tabular-nums">{time}</span>;
 }
 
 // Only hide internal/base fields
@@ -227,7 +234,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
     if (event_type === 'TokenIssuedEvent') {
         icon = <Zap className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                 <span className="font-medium text-foreground">Token issued</span>
                 {event.app_id && (
                     <>
@@ -237,7 +244,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                 )}
                 {event.prompt && (
                     <>
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide ml-1">
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
                             Task:
                         </span>
                         <span className="text-foreground/70">"{event.prompt}"</span>
@@ -249,7 +256,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         const tools = parseToolsList(event.tools);
         icon = <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                 <span className="font-medium text-foreground">Token exchanged</span>
                 {event.subject_app_id && (
                     <>
@@ -276,7 +283,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         borderClass = 'border-blue-500/30';
         icon = <Brain className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                 <span className="font-medium text-foreground">
                     LLM call {index !== undefined ? `#${index + 1}` : ''}
                 </span>
@@ -299,7 +306,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         borderClass = 'border-blue-500/30';
         icon = <BrainCircuit className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                 <span className="font-medium text-foreground">LLM responded</span>
                 {selectedTools.length > 0 ? (
                     <>
@@ -314,6 +321,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
     } else if (event_type === 'MCPCallStartedEvent') {
         const blocked = event.blocked;
         const reason = event.blocking_reason ? BLOCKING_REASON_LABELS[event.blocking_reason] : null;
+        const reasonDescription = event.blocking_reason ? BLOCKING_REASON_DESCRIPTIONS[event.blocking_reason] : null;
         borderClass = blocked ? 'border-destructive/40' : 'border-green-500/40';
         icon = blocked ? (
             <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 flex-shrink-0" />
@@ -321,7 +329,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
             <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 flex-shrink-0" />
         );
         summary = (
-            <div className="text-xs flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
+            <div className="text-[13px] flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
                 <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px]">{event.tool ?? '—'}</code>
                 {(event.caller_app_id || event.callee_app_id) && (
                     <span className="text-muted-foreground flex items-center gap-1">
@@ -332,9 +340,18 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                 )}
                 {blocked ? (
                     <>
-                        <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
-                            Denied{reason ? ` · ${reason}` : ''}
-                        </Badge>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Badge variant="destructive" className="text-[10px] h-4 px-1.5 cursor-default">
+                                    Denied{reason ? ` · ${reason}` : ''}
+                                </Badge>
+                            </TooltipTrigger>
+                            {reasonDescription && (
+                                <TooltipContent>
+                                    <p className="text-center">{reasonDescription}</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
                         {event.blocking_type && (
                             <Badge
                                 variant="outline"
@@ -481,8 +498,8 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [sortAsc, setSortAsc] = useState(false);
-    const {data, isLoading, refetch} = useTraces(masId, page, pageSize);
-    const {data: appsData} = useMASApps(masId);
+    const {data, isLoading} = useTraces(masId, page, pageSize, false, true);
+    const {data: appsData} = useMASApps(masId, true);
 
     const appNames: AppNames = useMemo(() => {
         if (!appsData) return {};
@@ -524,47 +541,28 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
-                {data && data.total > 0 ? (
-                    <span className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">{data.total}</span>{' '}
-                        {data.total === 1 ? 'session' : 'sessions'} total
-                    </span>
-                ) : (
-                    <span />
-                )}
-                <div className="flex items-center gap-4">
-                    <button
-                        type="button"
-                        onClick={() => setSortAsc((v) => !v)}
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    >
-                        <ArrowUpDown className="h-3.5 w-3.5" />
-                        {sortAsc ? 'Oldest first' : 'Newest first'}
-                    </button>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-7 w-7 cursor-pointer"
-                                aria-label="Refresh traces"
-                                onClick={async () => {
-                                    try {
-                                        await refetch();
-                                        toast.success('Traces refreshed');
-                                    } catch {
-                                        toast.error('Failed to refresh traces');
-                                    }
-                                }}
-                            >
-                                <RefreshCw className="h-3.5 w-3.5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Refresh traces</p>
-                        </TooltipContent>
-                    </Tooltip>
+                <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="gap-1.5 border-red-500/30 text-red-400 bg-red-500/10">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                        </span>
+                        Live
+                    </Badge>
+                    {data && data.total > 0 && (
+                        <Badge variant="outline">
+                            {data.total} {data.total === 1 ? 'session' : 'sessions'}
+                        </Badge>
+                    )}
                 </div>
+                <button
+                    type="button"
+                    onClick={() => setSortAsc((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                >
+                    <ArrowUpDown className="h-3.5 w-3.5" />
+                    {sortAsc ? 'Oldest first' : 'Newest first'}
+                </button>
             </div>
 
             {sessions.map((session) => (

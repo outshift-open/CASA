@@ -18,14 +18,17 @@ class Tracer:
         """Persist an event to the trace store."""
         self._tracer_repository.store_event(event)
 
-    def get_traces(self, page: int, page_size: int, mas_id: Optional[UUID] = None) -> TraceList:
+    def get_traces(
+        self, page: int, page_size: int, mas_id: Optional[UUID] = None, fetch_all: bool = False
+    ) -> TraceList:
         """Retrieve all traces in a paginated fashion."""
-        if page < 1:
-            raise ValueError("page must be greater than 0")
-        if page_size < 1:
-            raise ValueError("page_size must be greater than 0")
+        if not fetch_all:
+            if page < 1:
+                raise ValueError("page must be greater than 0")
+            if page_size < 1:
+                raise ValueError("page_size must be greater than 0")
 
-        return self._tracer_repository.get_all(page, page_size, mas_id=mas_id)
+        return self._tracer_repository.get_all(page, page_size, mas_id=mas_id, fetch_all=fetch_all)
 
     def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
         """Return all traces for a given user input filtered by event type."""
