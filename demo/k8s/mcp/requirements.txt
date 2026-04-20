@@ -1,2 +1,5 @@
 fastapi[standard]>=0.116.1
 fastmcp
+uvicorn==0.39.0; python_version < "3.10"
+uvicorn==0.41.0; python_version >= "3.10"
+uvloop==0.22.1

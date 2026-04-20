@@ -13,7 +13,6 @@ import (
 	api "github.com/cisco-eti/identity-auth-server/sdk/go"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
-	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
@@ -331,18 +330,7 @@ func (*OutboundExtAuthService) allowWithHeaders(headers map[string]string) *auth
 func (*OutboundExtAuthService) deny() *authv3.CheckResponse {
 	return &authv3.CheckResponse{
 		HttpResponse: &authv3.CheckResponse_DeniedResponse{
-			DeniedResponse: &authv3.DeniedHttpResponse{
-				Status: &typev3.HttpStatus{Code: typev3.StatusCode_Forbidden},
-				Headers: []*corev3.HeaderValueOption{
-					{
-						Header: &corev3.HeaderValue{
-							Key:   "Content-Type",
-							Value: "application/json",
-						},
-					},
-				},
-				Body: `{"error": "Forbidden", "message": "You are not allowed to call this tool."}`,
-			},
+			DeniedResponse: &authv3.DeniedHttpResponse{},
 		},
 		Status: &status.Status{Code: int32(codes.Unauthenticated)},
 	}
