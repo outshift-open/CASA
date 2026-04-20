@@ -79,7 +79,7 @@ func (c *authServerClient) LoadTokenFromCache(
 		}).
 		Execute()
 	if err != nil {
-		if r.StatusCode == http.StatusNotFound {
+		if r != nil && r.StatusCode == http.StatusNotFound {
 			return nil, nil
 		}
 
