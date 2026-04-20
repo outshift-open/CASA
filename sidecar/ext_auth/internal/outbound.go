@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -53,7 +52,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 		tp, err := ParseTraceParent(tpv)
 		if err != nil {
 			slog.Error("Failed to parse the traceparent header", "context", filterCtx, "err", err)
-			return nil, err
+			// return nil, err
+			return s.deny(), nil
 		}
 
 		traceID := hex.EncodeToString(tp.TraceID[:])
@@ -66,18 +66,21 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 		peerMetadata, err := s.decodePeerMetadata(httpReq.Headers["x-envoy-peer-metadata"])
 		if err != nil {
 			slog.Error("Failed to decode peer metadata", "context", filterCtx, "trace_id", traceID, "err", err)
-			return nil, fmt.Errorf("outbound: unable to decode peer metadata: %w", err)
+			// return nil, fmt.Errorf("outbound: unable to decode peer metadata: %w", err)
+			return s.deny(), nil
 		}
 
 		callerWorkloadName, found, err := unstructured.NestedString(peerMetadata, "WORKLOAD_NAME")
 		if err != nil {
 			slog.Error("Failed to get workload name from peer metadata", "context", filterCtx, "trace_id", traceID, "err", err)
-			return nil, fmt.Errorf("unable to get workload name from peer metadata: %w", err)
+			// return nil, fmt.Errorf("unable to get workload name from peer metadata: %w", err)
+			return s.deny(), nil
 		}
 
 		if !found {
 			slog.Error("No workload found in peer metadata", "context", filterCtx, "trace_id", traceID)
-			return nil, errors.New("unable to find WORKLOAD_NAME in peer metadata")
+			// return nil, errors.New("unable to find WORKLOAD_NAME in peer metadata")
+			return s.deny(), nil
 		}
 
 		slog.Info(fmt.Sprintf("Host = %s, caller workload name = %s", host, callerWorkloadName), "context", filterCtx, "trace_id", traceID)
@@ -90,7 +93,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				"trace_id", traceID,
 				"err", err,
 			)
-			return nil, fmt.Errorf("outbound: unable to get Kubernetes MultiAgentSystem resource for caller workload %s: %w", callerWorkloadName, err)
+			// return nil, fmt.Errorf("outbound: unable to get Kubernetes MultiAgentSystem resource for caller workload %s: %w", callerWorkloadName, err)
+			return s.deny(), nil
 		}
 
 		var callerToken string
@@ -105,7 +109,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			token, err := s.authSrvClient.LoadTokenFromCache(ctx, s.namespace, traceID, appSpec.UrlHost, appSpec.Type, nil)
 			if err != nil {
 				slog.Error(fmt.Sprintf("Unable to fetch cached tokens for host %s with trace id %s", appSpec.UrlHost, traceID), "err", err)
-				return nil, fmt.Errorf("outbound: unable to fetch cached tokens for host %s with trace id %s: %w", appSpec.UrlHost, traceID, err)
+				// return nil, fmt.Errorf("outbound: unable to fetch cached tokens for host %s with trace id %s: %w", appSpec.UrlHost, traceID, err)
+				return s.deny(), nil
 			}
 
 			if token == nil || token.AccessToken == "" {
@@ -136,7 +141,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 
 			_, err := s.authSrvClient.StoreLLMCallMapping(ctx, s.namespace, llmCallID, traceID, callerToken)
 			if err != nil {
-				return nil, fmt.Errorf("unable to store LLM call mapping: %w", err)
+				// return nil, fmt.Errorf("unable to store LLM call mapping: %w", err)
+				return s.deny(), nil
 			}
 
 			return s.allowWithHeaders(map[string]string{"x-litellm-call-id": llmCallID}), nil
@@ -172,7 +178,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					nil,
 				)
 				if err != nil {
-					return nil, fmt.Errorf("outbound: unable to exchange token for agent: %w", err)
+					// return nil, fmt.Errorf("outbound: unable to exchange token for agent: %w", err)
+					return s.deny(), nil
 				}
 
 				if accessToken == "" {
@@ -189,7 +196,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				toolName, err := GetMCPToolFromRequest(httpReq.Body)
 				if err != nil {
 					slog.Error("Failed to get MCP tool name from request", "err", err)
-					return nil, fmt.Errorf("outbound: unable to get MCP tool name from request: %w", err)
+					// return nil, fmt.Errorf("outbound: unable to get MCP tool name from request: %w", err)
+					return s.deny(), nil
 				}
 
 				if toolName == "" {
@@ -202,12 +210,14 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				mcpURL, err := url.Parse(fmt.Sprintf("%s://%s/mcp", appSpec.UrlScheme, appSpec.UrlHost))
 				if err != nil {
 					slog.Error("Failed to construct MCP server URL", "context", filterCtx, "trace_id", traceID, "err", err)
-					return nil, fmt.Errorf("unable to construct MCP server URL: %w", err)
+					// return nil, fmt.Errorf("unable to construct MCP server URL: %w", err)
+					return s.deny(), nil
 				}
 
 				clientCreds, err := s.getClientCredentials(ctx, appSpec.GetAppId())
 				if err != nil {
-					return nil, err
+					// return nil, err
+					return s.deny(), nil
 				}
 
 				if clientCreds == nil {
@@ -224,7 +234,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					[]string{toolName},
 				)
 				if err != nil {
-					return nil, fmt.Errorf("outbound: unable to exchange token for agent: %w", err)
+					// return nil, fmt.Errorf("outbound: unable to exchange token for agent: %w", err)
+					return s.deny(), nil
 				}
 
 				if accessToken == "" {
@@ -248,7 +259,8 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					associatedTool,
 				)
 				if err != nil {
-					return nil, fmt.Errorf("outbound: unable to store token: %w", err)
+					// return nil, fmt.Errorf("outbound: unable to store token: %w", err)
+					return s.deny(), nil
 				}
 
 				slog.Info("Call allowed", "context", filterCtx, "trace_id", traceID, "tool_name", associatedTool)

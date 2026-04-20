@@ -48,7 +48,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 		tp, err := ParseTraceParent(tpv)
 		if err != nil {
 			slog.Error("Failed to parse the traceparent header", "err", err)
-			return nil, err
+			// return nil, err
+			return s.deny(), nil
 		}
 
 		// Step 1. get the trace ID
@@ -64,7 +65,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 		masCRD, err := s.authSrvClient.GetK8SMultiAgentSystemByAppHost(ctx, s.namespace, host)
 		if err != nil {
 			slog.Error(fmt.Sprintf("Unable to get Kubernetes MultiAgentSystem resource for host %s", host), "err", err)
-			return nil, fmt.Errorf("inbound: unable to get Kubernetes MultiAgentSystem resource for host %s: %w", host, err)
+			// return nil, fmt.Errorf("inbound: unable to get Kubernetes MultiAgentSystem resource for host %s: %w", host, err)
+			return s.deny(), nil
 		}
 
 		for _, appSpec := range masCRD.AppSpecs {
@@ -87,7 +89,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 				if existingAccessToken == "" {
 					err := s.loadStoredToken(ctx, traceID, appSpec.UrlHost, appSpec.Type, nil, &existingAccessToken)
 					if err != nil {
-						return nil, err
+						// return nil, err
+						return s.deny(), nil
 					}
 				}
 
@@ -104,26 +107,30 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 					err := jp.Parse(appSpec.GetPromptFieldJsonPath())
 					if err != nil {
 						slog.Error("Error parsing the prompt JSON path", "err", err)
-						return nil, fmt.Errorf("inbound: unable to parse prompt JSON path: %w", err)
+						// return nil, fmt.Errorf("inbound: unable to parse prompt JSON path: %w", err)
+						return s.deny(), nil
 					}
 
 					var body any
 					err = json.Unmarshal([]byte(httpReq.Body), &body)
 					if err != nil {
 						slog.Error("Failed to unmarshal the HTTP request body", "err", err)
-						return nil, fmt.Errorf("inbound: unable to unmarshal the HTTP request body: %w", err)
+						// return nil, fmt.Errorf("inbound: unable to unmarshal the HTTP request body: %w", err)
+						return s.deny(), nil
 					}
 
 					var buf bytes.Buffer
 					err = jp.Execute(&buf, body)
 					if err != nil {
 						slog.Error("Failed to find the prompt using the JSON path", "err", err)
-						return nil, fmt.Errorf("inbound: unable to find the prompt with the JSON path: %w", err)
+						// return nil, fmt.Errorf("inbound: unable to find the prompt with the JSON path: %w", err)
+						return s.deny(), nil
 					}
 
 					userInputID, err := s.authSrvClient.CreateUserInput(ctx, appSpec.GetAppId(), buf.String(), traceID)
 					if err != nil {
-						return nil, fmt.Errorf("inbound: unable to create user input during Check: %w", err)
+						// return nil, fmt.Errorf("inbound: unable to create user input during Check: %w", err)
+						return s.deny(), nil
 					}
 
 					slog.Info(fmt.Sprintf("User input %s created for trace_id %s", userInputID, traceID))
@@ -131,7 +138,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 					clientCreds, err := s.k8sService.GetAppCredentials(ctx, appSpec.GetAppId())
 					if err != nil {
 						slog.Error(fmt.Sprintf("Failed to fetch client credentials for app %s", appSpec.GetAppId()), "err", err)
-						return nil, fmt.Errorf("unable to fetch client credentials for app %s: %w", appSpec.GetAppId(), err)
+						// return nil, fmt.Errorf("unable to fetch client credentials for app %s: %w", appSpec.GetAppId(), err)
+						return s.deny(), nil
 					}
 
 					if clientCreds == nil {
@@ -148,7 +156,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 						userInputID,
 					)
 					if err != nil {
-						return nil, fmt.Errorf("inbound: unable to generate token: %w", err)
+						// return nil, fmt.Errorf("inbound: unable to generate token: %w", err)
+						return s.deny(), nil
 					}
 
 					slog.Info("Access token generated", "token", accessToken)
@@ -163,7 +172,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 						nil,
 					)
 					if err != nil {
-						return nil, fmt.Errorf("inbound: unable to store token: %w", err)
+						// return nil, fmt.Errorf("inbound: unable to store token: %w", err)
+						return s.deny(), nil
 					}
 
 					break
@@ -177,7 +187,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 				toolName, err := GetMCPToolFromRequest(httpReq.Body)
 				if err != nil {
 					slog.Error("Failed to get MCP tool name from request", "err", err)
-					return nil, fmt.Errorf("inbound: unable to get MCP tool name from request: %w", err)
+					// return nil, fmt.Errorf("inbound: unable to get MCP tool name from request: %w", err)
+					return s.deny(), nil
 				}
 
 				if toolName == "" {
@@ -187,7 +198,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 				if existingAccessToken == "" {
 					err := s.loadStoredToken(ctx, traceID, appSpec.UrlHost, appSpec.Type, &toolName, &existingAccessToken)
 					if err != nil {
-						return nil, err
+						// return nil, err
+						return s.deny(), nil
 					}
 				}
 
@@ -230,7 +242,8 @@ func (s *InboundExtAuthService) validateToken(ctx context.Context, token string,
 	introspectResp, err := s.authSrvClient.Introspect(ctx, token, tools)
 	if err != nil {
 		slog.Error("Failed to call token introspection endpoint", "err", err)
-		return nil, fmt.Errorf("inbound: unable to call token introspection endpoint: %w", err)
+		// return nil, fmt.Errorf("inbound: unable to call token introspection endpoint: %w", err)
+		return s.deny(), nil
 	}
 
 	if introspectResp == nil || !introspectResp.Active {
