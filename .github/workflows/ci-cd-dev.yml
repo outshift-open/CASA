@@ -6,7 +6,7 @@ name: ZTA Control Plane CI/CD
 on:
   push:
     branches:
-      - feature/llm_call_trace
+      - main
   workflow_dispatch:
   workflow_call:
 
