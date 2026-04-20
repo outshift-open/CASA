@@ -124,4 +124,4 @@ select = ["D", "I", "F", "N", "NPY", "RUF"]
 convention = "google"
 
 [tool.uv.workspace]
-members = ["sdk"]
+members = ["sdk/python"]

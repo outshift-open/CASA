@@ -95,10 +95,11 @@ def get_traces(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     mas_id: Optional[UUID] = Query(None),
+    all: bool = Query(False),
 ):
     """Retrieve paginated traces for all source app calls."""
     try:
-        return tracer.get_traces(page, page_size, mas_id=mas_id)
+        return tracer.get_traces(page, page_size, mas_id=mas_id, fetch_all=all)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     # except Exception as exc:
