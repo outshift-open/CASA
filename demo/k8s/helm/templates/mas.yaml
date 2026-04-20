@@ -1,18 +1,45 @@
 apiVersion: zta.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .Release.Name }}-safe
   namespace: {{ .Release.Namespace }}
 spec:
-  name: {{ .Values.mas.name }}
-  enabledToolChecks: {{ toYaml .Values.mas.enabledToolChecks | nindent 4 }}
+  name: {{ .Values.masSafe.name }}
+  enabledToolChecks: {{ toYaml .Values.masSafe.enabledToolChecks | nindent 4 }}
+  llm_host: {{ .Values.masSafe.llm_host }}
   apps:
     - name: {{ .Values.agentSafe.serviceName }}
       type: agent
-      baseUrl: http://{{ .Values.agentSafe.serviceName }}:{{ .Values.agentSafe.servicePort }}
-    - name: {{ .Values.agentCompromised.serviceName }}
-      type: agent
-      baseUrl: http://{{ .Values.agentCompromised.serviceName }}:{{ .Values.agentCompromised.servicePort }}
+      baseUrl:
+        host: {{ .Values.agentSafe.serviceName }}:{{ .Values.agentSafe.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.agentSafe.serviceName }}
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
-      baseUrl: http://{{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+      baseUrl:
+        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
+---
+apiVersion: zta.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: {{ .Release.Name }}-compromised
+  namespace: {{ .Release.Namespace }}
+spec:
+  name: {{ .Values.masCompromised.name }}
+  enabledToolChecks: {{ toYaml .Values.masCompromised.enabledToolChecks | nindent 4 }}
+  llm_host: {{ .Values.masCompromised.llm_host }}
+  apps:
+    - name: {{ .Values.agentCompromised.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.agentCompromised.serviceName }}:{{ .Values.agentCompromised.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.agentCompromised.serviceName }}
+    - name: {{ .Values.mcp.serviceName }}
+      type: mcp_server
+      baseUrl:
+        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.mcp.serviceName }}

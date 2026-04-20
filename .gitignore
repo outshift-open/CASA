@@ -291,3 +291,7 @@ demo/workshop/llm/config.yaml
 **/charts/*.tgz
 
 **/out
+demo/k8s/helm/values-test.yaml
+
+.claude/
+.bruno/
