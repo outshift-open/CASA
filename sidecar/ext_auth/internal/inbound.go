@@ -11,6 +11,7 @@ import (
 
 	authapi "github.com/cisco-eti/identity-auth-server/sdk/go"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"k8s.io/client-go/util/jsonpath"
@@ -18,7 +19,7 @@ import (
 
 const (
 	traceParentHeader = "traceparent"
-	inFilterLogCtx    = "INBOUND"
+	inCtxField        = "INBOUND"
 )
 
 type InboundExtAuthService struct {
@@ -45,33 +46,35 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 	httpReq := attrs.GetRequest().GetHttp()
 	headers := httpReq.GetHeaders()
 
+	checkID := uuid.NewString()
+
 	if tpv, ok := headers[traceParentHeader]; ok {
 		tp, err := ParseTraceParent(tpv)
 		if err != nil {
-			slog.Error("Failed to parse the traceparent header", "context", inFilterLogCtx, "err", err)
-			// return nil, err
+			slog.Error("Failed to parse the traceparent header", CheckCtxField, inCtxField, "err", err, CheckIdField, checkID)
+
 			return s.deny(), nil
 		}
 
 		traceID := hex.EncodeToString(tp.TraceID[:])
-		slog.Info("[IN]", "traceID", traceID)
-
 		host := httpReq.Host
 
 		masCRD, err := s.authSrvClient.GetK8SMultiAgentSystemByAppHost(ctx, s.namespace, host)
 		if err != nil {
 			slog.Error(
 				fmt.Sprintf("Unable to get Kubernetes MultiAgentSystem resource for host %s", host),
-				"context",
-				inFilterLogCtx,
-				"trace_id",
+				CheckCtxField,
+				inCtxField,
+				TraceIdField,
 				traceID,
 				"host",
 				host,
 				"err",
 				err,
+				CheckIdField,
+				checkID,
 			)
-			// return nil, fmt.Errorf("inbound: unable to get Kubernetes MultiAgentSystem resource for host %s: %w", host, err)
+
 			return s.deny(), nil
 		}
 
@@ -80,80 +83,59 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 				continue
 			}
 
-			// var existingAccessToken string
-
-			// slog.Info("[IN]", "headers", headers)
-
-			// if authHeader, ok := headers["authorization"]; ok {
-			// 	if strings.HasPrefix(authHeader, "Bearer ") {
-			// 		slog.Info("Found access token in HTTP header", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-			// 		existingAccessToken = strings.Replace(authHeader, "Bearer ", "", -1)
-			// 	}
-			// }
-
 			// The app host must be configured correctly by the user for this to work
 			switch appSpec.Type {
 			case authapi.AGENT:
-				slog.Info("Checking Agent call", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+				slog.Info("Checking Agent call", CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 
-				// if existingAccessToken == "" {
-
-				// }
-				slog.Info("Loading stored token", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
 				existingAccessToken, err := s.loadStoredToken(ctx, headers, traceID, appSpec.UrlHost, appSpec.Type, nil)
 				if err != nil {
 					return s.deny(), nil
 				}
 
 				if existingAccessToken != "" {
-					slog.Info("Validating access token for Agent", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+					slog.Info("Validating access token for Agent", CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 
 					return s.validateToken(ctx, existingAccessToken, []string{}, traceID)
 				}
 
-				// TODO: only to when it comes to CLIENT
 				if appSpec.GetPromptFieldJsonPath() != "" {
 					jp := jsonpath.New("")
 					err := jp.Parse(appSpec.GetPromptFieldJsonPath())
 					if err != nil {
-						slog.Error("Error parsing the prompt JSON path", "err", err, "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-						// return nil, fmt.Errorf("inbound: unable to parse prompt JSON path: %w", err)
+						slog.Error("Error parsing the prompt JSON path", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 						return s.deny(), nil
 					}
 
 					var body any
 					err = json.Unmarshal([]byte(httpReq.Body), &body)
 					if err != nil {
-						slog.Error("Failed to unmarshal the HTTP request body", "err", err, "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-						// return nil, fmt.Errorf("inbound: unable to unmarshal the HTTP request body: %w", err)
+						slog.Error("Failed to unmarshal the HTTP request body", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 						return s.deny(), nil
 					}
 
 					var buf bytes.Buffer
 					err = jp.Execute(&buf, body)
 					if err != nil {
-						slog.Error("Failed to find the prompt using the JSON path", "err", err, "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-						// return nil, fmt.Errorf("inbound: unable to find the prompt with the JSON path: %w", err)
+						slog.Error("Failed to find the prompt using the JSON path", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 						return s.deny(), nil
 					}
 
 					userInputID, err := s.authSrvClient.CreateUserInput(ctx, appSpec.GetAppId(), buf.String(), traceID)
 					if err != nil {
-						// return nil, fmt.Errorf("inbound: unable to create user input during Check: %w", err)
 						return s.deny(), nil
 					}
 
-					slog.Info(fmt.Sprintf("User input %s created for trace_id %s", userInputID, traceID))
+					slog.Info(fmt.Sprintf("User input %s created for trace_id %s", userInputID, traceID), CheckIdField, checkID)
 
 					clientCreds, err := s.k8sService.GetAppCredentials(ctx, appSpec.GetAppId())
 					if err != nil {
-						slog.Error(fmt.Sprintf("Failed to fetch client credentials for app %s", appSpec.GetAppId()), "err", err, "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-						// return nil, fmt.Errorf("unable to fetch client credentials for app %s: %w", appSpec.GetAppId(), err)
+						slog.Error(fmt.Sprintf("Failed to fetch client credentials for app %s", appSpec.GetAppId()), "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 						return s.deny(), nil
 					}
 
 					if clientCreds == nil {
-						slog.Warn(fmt.Sprintf("No client credentials for app %s", appSpec.GetAppId()), "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+						slog.Warn(fmt.Sprintf("No client credentials for app %s", appSpec.GetAppId()), CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 						return s.deny(), nil
 					}
 
@@ -165,11 +147,10 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 						userInputID,
 					)
 					if err != nil {
-						// return nil, fmt.Errorf("inbound: unable to generate token: %w", err)
 						return s.deny(), nil
 					}
 
-					slog.Info("Access token generated", "token", accessToken, "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+					slog.Info("Access token generated", "token", accessToken, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 
 					err = s.authSrvClient.StoreTokenInCache(
 						ctx,
@@ -181,22 +162,20 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 						nil,
 					)
 					if err != nil {
-						// return nil, fmt.Errorf("inbound: unable to store token: %w", err)
 						return s.deny(), nil
 					}
 
 					return s.allow(), nil
 				}
 			case authapi.MCP_SERVER:
-				slog.Info("Checking MCP server call", "context", inFilterLogCtx, "trace_id", traceID, "host", host, "method", httpReq.Method, "path", httpReq.Path)
+				slog.Info("Checking MCP server call", CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, "method", httpReq.Method, "path", httpReq.Path, CheckIdField, checkID)
 				if httpReq.Body == "" {
 					return s.allow(), nil
 				}
 
 				toolName, err := GetMCPToolFromRequest(httpReq.Body)
 				if err != nil {
-					slog.Error("Failed to get MCP tool name from request", "err", err, "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-					// return nil, fmt.Errorf("inbound: unable to get MCP tool name from request: %w", err)
+					slog.Error("Failed to get MCP tool name from request", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 					return s.deny(), nil
 				}
 
@@ -204,11 +183,6 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 					return s.allow(), nil
 				}
 
-				// if existingAccessToken == "" {
-
-				// }
-
-				slog.Info("Loading stored token", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
 				existingAccessToken, err := s.loadStoredToken(ctx, headers, traceID, appSpec.UrlHost, appSpec.Type, &toolName)
 				if err != nil {
 					return s.deny(), nil
@@ -218,14 +192,14 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 					return s.deny(), nil
 				}
 
-				slog.Info("Validating tool call", "tool", toolName, "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+				slog.Info("Validating tool call", "tool", toolName, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 
 				return s.validateToken(ctx, existingAccessToken, []string{toolName}, traceID)
 			}
 		}
 	}
 
-	slog.Info("Call allowed", "context", outFilterLogCtx)
+	slog.Info("Call allowed", CheckCtxField, outCtxField, CheckIdField, checkID)
 	return s.allow(), nil
 }
 
@@ -236,11 +210,13 @@ func (s *InboundExtAuthService) loadStoredToken(
 	appType authapi.AppType,
 	tool *string,
 ) (string, error) {
+	slog.Info("Loading stored token", CheckCtxField, inCtxField, TraceIdField, traceID, "host", appHost, "tool", DerefStr(tool))
+
 	// Check first in the headers
 	if authHeader, ok := headers["authorization"]; ok {
 		if strings.HasPrefix(authHeader, "Bearer ") {
-			slog.Info("Found access token in HTTP header", "context", inFilterLogCtx, "trace_id", traceID, "host", appHost)
-			return strings.Replace(authHeader, "Bearer ", "", -1), nil
+			slog.Info("Found access token in HTTP header", CheckCtxField, inCtxField, TraceIdField, traceID, "host", appHost)
+			return strings.ReplaceAll(authHeader, "Bearer ", ""), nil
 		}
 	}
 
@@ -262,18 +238,19 @@ func (s *InboundExtAuthService) loadStoredToken(
 func (s *InboundExtAuthService) validateToken(ctx context.Context, token string, tools []string, traceID string) (*authv3.CheckResponse, error) {
 	introspectResp, err := s.authSrvClient.Introspect(ctx, token, tools)
 	if err != nil {
-		slog.Error("Failed to call token introspection endpoint", "err", err, "context", inFilterLogCtx, "trace_id", traceID, "tools", tools)
-		// return nil, fmt.Errorf("inbound: unable to call token introspection endpoint: %w", err)
-		slog.Info("Call denied", "context", inFilterLogCtx, "trace_id", traceID, "tools", tools)
+		slog.Error("Failed to call token introspection endpoint", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "tools", tools)
+
 		return s.deny(), nil
 	}
 
 	if introspectResp == nil || !introspectResp.Active {
-		slog.Info("Call denied, token not active", "context", inFilterLogCtx, "trace_id", traceID, "tools", tools)
+		slog.Info("Call denied, token not active", CheckCtxField, inCtxField, TraceIdField, traceID, "tools", tools)
+
 		return s.deny(), nil
 	}
 
-	slog.Info("Call allowed", "context", inFilterLogCtx, "trace_id", traceID, "tools", tools)
+	slog.Info("Call allowed", CheckCtxField, inCtxField, TraceIdField, traceID, "tools", tools)
+
 	return s.allow(), nil
 }
 
