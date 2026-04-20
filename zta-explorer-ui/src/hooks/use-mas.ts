@@ -16,12 +16,13 @@ export const useMASById = (id: string) => {
     });
 };
 
-export const useMASApps = (masId: string) => {
+export const useMASApps = (masId: string, live = false) => {
     return useQuery({
         queryKey: ['mas', masId, 'apps'],
         queryFn: () => masService.getMASApps(masId),
         enabled: !!masId,
-        refetchOnMount: 'always'
+        refetchOnMount: 'always',
+        refetchInterval: live ? 1000 : false
     });
 };
 

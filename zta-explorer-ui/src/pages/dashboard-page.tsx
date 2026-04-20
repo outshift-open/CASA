@@ -2,7 +2,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
-import {Shield, Lock, AppWindow, Network, Tags, RefreshCw} from 'lucide-react';
+import {Shield, Lock, AppWindow, Network, Tags, RefreshCw, HelpCircle} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
 import {useScopes} from '@/hooks/use-scopes';
@@ -31,6 +31,15 @@ const BLOCKING_REASON_LABELS: Record<BlockingReason, string> = {
     tool_parameters_mismatch: 'Params mismatch',
     modified_mcp_tool_defs: 'Modified tool defs',
     insufficient_scope: 'Insufficient scope'
+};
+
+const BLOCKING_REASON_DESCRIPTIONS: Partial<Record<BlockingReason, string>> = {
+    no_llm_calls_made_by_app: 'The app made no LLM calls before requesting tool access',
+    tool_not_selected_by_llm: 'Requested MCP Server Tool was not selected by the LLM',
+    tool_intent_mismatch: "MCP Server Tool choice doesn't match the intention of original input",
+    tool_parameters_mismatch: 'Requested MCP Server Tool Parameters are different from those selected by the LLM',
+    modified_mcp_tool_defs: 'The LLM received modified MCP Server Tool Definitions',
+    insufficient_scope: 'Token does not have the required scope for this tool'
 };
 
 const CHART_TOOLTIP_STYLE = {
@@ -139,7 +148,7 @@ export function DashboardPage() {
         isLoading: tracesLoading,
         dataUpdatedAt: tracesUpdatedAt,
         refetch: refetchTraces
-    } = useTraces();
+    } = useTraces(undefined, 1, 100, true);
 
     const isRefreshing = isLoading || masLoading || scopesLoading || tracesLoading;
 
@@ -183,6 +192,7 @@ export function DashboardPage() {
         const blockReasons = Object.entries(reasonCounts)
             .map(([reason, count]) => ({
                 name: BLOCKING_REASON_LABELS[reason as BlockingReason] ?? reason,
+                description: BLOCKING_REASON_DESCRIPTIONS[reason as BlockingReason] ?? '',
                 count
             }))
             .sort((a, b) => b.count - a.count);
@@ -271,7 +281,10 @@ export function DashboardPage() {
 
             {/* Stat cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="cursor-pointer hover:bg-accent transition-colors" onClick={() => navigate('/mas')}>
+                <Card
+                    className="cursor-pointer hover:bg-accent transition-colors gap-4"
+                    onClick={() => navigate('/mas')}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Multi-Agent Systems</CardTitle>
                         <Network className="h-4 w-4 text-muted-foreground" />
@@ -289,7 +302,7 @@ export function DashboardPage() {
                 </Card>
 
                 <Card
-                    className="cursor-pointer hover:bg-accent transition-colors"
+                    className="cursor-pointer hover:bg-accent transition-colors gap-4"
                     onClick={() => navigate('/agentic-services')}
                 >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -308,7 +321,10 @@ export function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="cursor-pointer hover:bg-accent transition-colors" onClick={() => navigate('/scopes')}>
+                <Card
+                    className="cursor-pointer hover:bg-accent transition-colors gap-4"
+                    onClick={() => navigate('/scopes')}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Scopes</CardTitle>
                         <Tags className="h-4 w-4 text-muted-foreground" />
@@ -325,22 +341,52 @@ export function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Authorization Requests</CardTitle>
-                        <Lock className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-1">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-pointer" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="text-center">
+                                        Agents request tokens via OAuth2 to gain access to MCP tools
+                                    </p>
+                                </TooltipContent>
+                            </Tooltip>
+                            <Lock className="h-4 w-4 text-muted-foreground" />
+                        </div>
                     </CardHeader>
                     <CardContent>
                         {tracesLoading ? (
                             <Skeleton className="h-8 w-16" />
                         ) : (
-                            <div className="text-2xl font-bold">{traceStats.tokenRequests}</div>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="text-2xl font-bold w-fit cursor-default">
+                                        {traceStats.tokenRequests}
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="text-center">Number of OAuth2 tokens issued to agents</p>
+                                </TooltipContent>
+                            </Tooltip>
                         )}
-                        <p className="text-xs text-muted-foreground">
-                            {traceStats.totalMcpCalls > 0
-                                ? `${traceStats.allowed} allowed · ${traceStats.denied} denied`
-                                : 'Token requests issued'}
-                        </p>
+                        {traceStats.totalMcpCalls > 0 ? (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <p className="text-xs text-muted-foreground w-fit cursor-default">
+                                        {traceStats.allowed} allowed · {traceStats.denied} denied
+                                    </p>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="text-center">MCP tool calls allowed vs denied</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">Token requests issued</p>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -437,14 +483,36 @@ export function DashboardPage() {
                                     <YAxis
                                         type="category"
                                         dataKey="name"
-                                        width={140}
+                                        width={180}
                                         tick={{fill: '#ccccdc', fontSize: 11}}
                                         axisLine={false}
                                         tickLine={false}
                                     />
                                     <ChartTooltip
-                                        {...CHART_TOOLTIP_STYLE}
-                                        formatter={(value: number) => [value, 'denied calls']}
+                                        content={({active, payload}) => {
+                                            if (!active || !payload?.length) return null;
+                                            const d = payload[0].payload as {
+                                                name: string;
+                                                description: string;
+                                                count: number;
+                                            };
+                                            return (
+                                                <div
+                                                    style={CHART_TOOLTIP_STYLE.contentStyle}
+                                                    className="px-3 py-2 max-w-[260px]"
+                                                >
+                                                    <p className="font-medium text-[#ccccdc] mb-1">{d.name}</p>
+                                                    {d.description && (
+                                                        <p className="text-[11px] text-[#8b8fa8] mb-1.5 leading-snug">
+                                                            {d.description}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-[#ccccdc]">
+                                                        {d.count} denied {d.count === 1 ? 'call' : 'calls'}
+                                                    </p>
+                                                </div>
+                                            );
+                                        }}
                                     />
                                     <Bar
                                         dataKey="count"
