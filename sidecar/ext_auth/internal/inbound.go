@@ -80,28 +80,29 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 				continue
 			}
 
-			var existingAccessToken string
+			// var existingAccessToken string
 
-			slog.Info("[IN]", "headers", headers)
+			// slog.Info("[IN]", "headers", headers)
 
-			if authHeader, ok := headers["authorization"]; ok {
-				if strings.HasPrefix(authHeader, "Bearer ") {
-					slog.Info("Found access token in HTTP header", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-					existingAccessToken = strings.Replace(authHeader, "Bearer ", "", -1)
-				}
-			}
+			// if authHeader, ok := headers["authorization"]; ok {
+			// 	if strings.HasPrefix(authHeader, "Bearer ") {
+			// 		slog.Info("Found access token in HTTP header", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+			// 		existingAccessToken = strings.Replace(authHeader, "Bearer ", "", -1)
+			// 	}
+			// }
 
 			// The app host must be configured correctly by the user for this to work
-			if appSpec.Type == authapi.AGENT {
+			switch appSpec.Type {
+			case authapi.AGENT:
 				slog.Info("Checking Agent call", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
 
-				if existingAccessToken == "" {
-					slog.Info("Loading stored token", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-					err := s.loadStoredToken(ctx, traceID, appSpec.UrlHost, appSpec.Type, nil, &existingAccessToken)
-					if err != nil {
-						// return nil, err
-						return s.deny(), nil
-					}
+				// if existingAccessToken == "" {
+
+				// }
+				slog.Info("Loading stored token", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+				existingAccessToken, err := s.loadStoredToken(ctx, headers, traceID, appSpec.UrlHost, appSpec.Type, nil)
+				if err != nil {
+					return s.deny(), nil
 				}
 
 				if existingAccessToken != "" {
@@ -184,12 +185,12 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 						return s.deny(), nil
 					}
 
-					break
+					return s.allow(), nil
 				}
-			} else if appSpec.Type == authapi.MCP_SERVER {
-				slog.Info("Checking MCP server call", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+			case authapi.MCP_SERVER:
+				slog.Info("Checking MCP server call", "context", inFilterLogCtx, "trace_id", traceID, "host", host, "method", httpReq.Method, "path", httpReq.Path)
 				if httpReq.Body == "" {
-					continue
+					return s.allow(), nil
 				}
 
 				toolName, err := GetMCPToolFromRequest(httpReq.Body)
@@ -200,16 +201,17 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 				}
 
 				if toolName == "" {
-					continue
+					return s.allow(), nil
 				}
 
-				if existingAccessToken == "" {
-					slog.Info("Loading stored token", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
-					err := s.loadStoredToken(ctx, traceID, appSpec.UrlHost, appSpec.Type, &toolName, &existingAccessToken)
-					if err != nil {
-						// return nil, err
-						return s.deny(), nil
-					}
+				// if existingAccessToken == "" {
+
+				// }
+
+				slog.Info("Loading stored token", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
+				existingAccessToken, err := s.loadStoredToken(ctx, headers, traceID, appSpec.UrlHost, appSpec.Type, &toolName)
+				if err != nil {
+					return s.deny(), nil
 				}
 
 				if existingAccessToken == "" {
@@ -223,28 +225,38 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 		}
 	}
 
+	slog.Info("Call allowed", "context", outFilterLogCtx)
 	return s.allow(), nil
 }
 
 func (s *InboundExtAuthService) loadStoredToken(
 	ctx context.Context,
+	headers map[string]string,
 	traceID, appHost string,
 	appType authapi.AppType,
 	tool *string,
-	accessToken *string,
-) error {
+) (string, error) {
+	// Check first in the headers
+	if authHeader, ok := headers["authorization"]; ok {
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			slog.Info("Found access token in HTTP header", "context", inFilterLogCtx, "trace_id", traceID, "host", appHost)
+			return strings.Replace(authHeader, "Bearer ", "", -1), nil
+		}
+	}
+
+	// Get it from the cache
 	storedToken, err := s.authSrvClient.LoadTokenFromCache(ctx, s.namespace, traceID, appHost, appType, tool)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Unable to fetch cached tokens for host %s with trace id %s", appHost, traceID), "err", err)
-		return fmt.Errorf("inbound: unable to fetch cached tokens for host %s with trace id %s: %w", appHost, traceID, err)
+		return "", fmt.Errorf("inbound: unable to fetch cached tokens for host %s with trace id %s: %w", appHost, traceID, err)
 	}
 
 	if storedToken != nil && storedToken.AccessToken != "" {
 		slog.Info(fmt.Sprintf("Found cached token for host %s with trace id %s", appHost, traceID))
-		*accessToken = storedToken.AccessToken
+		return storedToken.AccessToken, nil
 	}
 
-	return nil
+	return "", nil
 }
 
 func (s *InboundExtAuthService) validateToken(ctx context.Context, token string, tools []string, traceID string) (*authv3.CheckResponse, error) {
