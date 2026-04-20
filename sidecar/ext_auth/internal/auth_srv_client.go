@@ -152,6 +152,7 @@ func (c *authServerClient) ExchangeToken(
 	mcpServerURL string,
 	tools []string,
 ) (string, error) {
+	slog.Info("[TOKEN EXCHANGE]", "client_id", clientID, "client_secret", clientSecret, "subject_token", subjectToken, "mcp_server_url", mcpServerURL, "tools", tools)
 	resp, r, err := c.authSrvClient.AuthorizationServerAPI.TokenExchange(ctx, appID).
 		ClientId(clientID).
 		ClientSecret(clientSecret).
