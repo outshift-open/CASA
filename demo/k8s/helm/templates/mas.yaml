@@ -6,13 +6,23 @@ metadata:
 spec:
   name: {{ .Values.mas.name }}
   enabledToolChecks: {{ toYaml .Values.mas.enabledToolChecks | nindent 4 }}
+  llm_host: {{ .Values.mas.llm_host }}
   apps:
     - name: {{ .Values.agentSafe.serviceName }}
       type: agent
-      baseUrl: http://{{ .Values.agentSafe.serviceName }}:{{ .Values.agentSafe.servicePort }}
+      baseUrl:
+        host: {{ .Values.agentSafe.serviceName }}:{{ .Values.agentSafe.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.agentSafe.serviceName }}
     - name: {{ .Values.agentCompromised.serviceName }}
       type: agent
-      baseUrl: http://{{ .Values.agentCompromised.serviceName }}:{{ .Values.agentCompromised.servicePort }}
+      baseUrl:
+        host: {{ .Values.agentCompromised.serviceName }}:{{ .Values.agentCompromised.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.agentCompromised.serviceName }}
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
-      baseUrl: http://{{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+      baseUrl:
+        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.mcp.serviceName }}

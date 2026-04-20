@@ -1,27 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chat-ui
-  namespace: zta-control-plane-dev
+  name: {{ .Release.Name }}-chat-ui
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: chat-ui
+    app: {{ .Release.Name }}-chat-ui
     component: demo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: chat-ui
+      app: {{ .Release.Name }}-chat-ui
   template:
     metadata:
       labels:
-        app: chat-ui
+        app: {{ .Release.Name }}-chat-ui
     spec:
       imagePullSecrets:
         - name: regcred
       containers:
         - name: chat-ui
-          image: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/chat-ui:2026-04-20-7ea4f19
+          image: {{ .Values.chatUi.docker.registry }}/{{ .Values.chatUi.docker.image }}:{{ .Values.chatUi.tagversion }}
           imagePullPolicy: Always
+          env:
+            - name: AGENT_URL
+              value: {{ .Values.chatUi.agentUrl | quote }}
           ports:
             - name: http
               containerPort: 80
@@ -52,4 +55,4 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: chat-ui-nginx
+            name: {{ .Release.Name }}-chat-ui-nginx

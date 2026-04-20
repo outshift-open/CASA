@@ -8,7 +8,7 @@ agentSafe:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-safe
     suffix: ''
-  tagversion: latest
+  tagversion: 2026-04-20-7ea4f19
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 agentCompromised:
@@ -19,7 +19,7 @@ agentCompromised:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-compromised
     suffix: ''
-  tagversion: latest
+  tagversion: 2026-04-20-7ea4f19
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
@@ -30,9 +30,24 @@ mcp:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
-  tagversion: 2026-03-16-a0d1194
+  tagversion: 2026-04-20-7ea4f19
+
+chatUi:
+  docker:
+    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    image: outshift-zta/chat-ui
+  tagversion: 2026-04-20-7ea4f19
+  agentUrl: /safe-agent
+  ingress:
+    enabled: true
+    className: "nginx"
+    apiDomainName: "dev.outshift.ai"
+    domainPrefix: "zta-demo"
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
 
 mas:
   name: "ZTA Demo"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
+  llm_host: litellm.prod.outshift.ai

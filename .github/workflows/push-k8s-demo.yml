@@ -8,7 +8,7 @@ on:
   push:
     branches:
       - main
-      - feat/add-chat-ui
+      - "PYRA-638-create-demo-apps-for-code-drop-zta"
 
 jobs:
   checkout:

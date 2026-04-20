@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-agent
+  namespace: test-mas
+  labels:
+    app: test-agent
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-agent
+  template:
+    metadata:
+      labels:
+        app: test-agent
+        version: v1
+    spec:
+      containers:
+      - name: agent
+        image: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/k8s-demo-agent:2026-03-16-a0d1194
+        ports:
+        - containerPort: 8082
+          name: http
+        env:
+        - name: OPENAI_API_BASE
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-base-url
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-key
+        - name: MCP_SERVER_URL
+          value: "http://test-mcp:3000/mcp"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-agent
+  namespace: test-mas
+spec:
+  selector:
+    app: test-agent
+  ports:
+  - port: 8082
+    targetPort: 8082
+    name: http

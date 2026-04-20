@@ -7,6 +7,7 @@ spec:
   name: ZTA Demo
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
+  llm_host: litellm.prod.outshift.ai
   apps:
     - name: zta-demo-agent
       type: agent
