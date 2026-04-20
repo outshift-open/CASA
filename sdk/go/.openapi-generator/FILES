@@ -17,6 +17,7 @@ docs/AppCredentials.md
 docs/AppMetadataResponse.md
 docs/AppRequest.md
 docs/AppSpec.md
+docs/AppSpecBaseUrl.md
 docs/AppType.md
 docs/AppViewModel.md
 docs/AppsAPI.md
@@ -26,14 +27,17 @@ docs/CacheTokenStoreRequest.md
 docs/CreateUserInputRequest.md
 docs/HTTPValidationError.md
 docs/K8sAppSpecViewModel.md
+docs/K8sLlmCallMapping.md
 docs/K8sMultiAgentSystemCRDViewModel.md
 docs/K8sMultiAgentSystemMetadataViewModel.md
 docs/KubernetesCRDsAPI.md
 docs/KubernetesResourcesAPI.md
 docs/LLMCallEndedEvent.md
+docs/LLMCallEndedKubernetesRequest.md
 docs/LLMCallEndedRequest.md
 docs/LLMCallStartedEvent.md
 docs/LLMCallStartedRequest.md
+docs/LlmCallMappingStoreRequest.md
 docs/LocationInner.md
 docs/MASCreateRequest.md
 docs/MASListResponse.md
@@ -74,6 +78,7 @@ model_app_credentials.go
 model_app_metadata_response.go
 model_app_request.go
 model_app_spec.go
+model_app_spec_base_url.go
 model_app_type.go
 model_app_view_model.go
 model_cache_token_load_request.go
@@ -81,10 +86,13 @@ model_cache_token_store_request.go
 model_create_user_input_request.go
 model_http_validation_error.go
 model_k8s_app_spec_view_model.go
+model_k8s_llm_call_mapping.go
 model_k8s_multi_agent_system_crd_view_model.go
 model_k8s_multi_agent_system_metadata_view_model.go
 model_llm_call_ended_event.go
+model_llm_call_ended_kubernetes_request.go
 model_llm_call_ended_request.go
+model_llm_call_mapping_store_request.go
 model_llm_call_started_event.go
 model_llm_call_started_request.go
 model_location_inner.go

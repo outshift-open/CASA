@@ -4,6 +4,7 @@ Run from the repository root:
 """
 
 from datetime import datetime
+import os
 
 import uvicorn
 from fastapi import FastAPI
@@ -609,4 +610,6 @@ if __name__ == "__main__":
     print(f"Accounts initialized: {len(banking_data.accounts)}")
     print(f"Total deposits: ${sum(acc['balance'] for acc in banking_data.accounts.values()):,.2f}")
     print("=" * 70 + "\n")
-    uvicorn.run(app, host="0.0.0.0", port=3000)
+    uvicorn_loop = os.environ.get("UVICORN_LOOP", "uvloop")
+    print(f"[boot] UVICORN_LOOP={uvicorn_loop}", flush=True)
+    uvicorn.run(app, host="0.0.0.0", port=3000, loop=uvicorn_loop)

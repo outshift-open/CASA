@@ -10,6 +10,7 @@ from sqlmodel import Session, desc, select
 from identity_auth_server.core.types import AppType
 from identity_auth_server.k8s.types import (
     K8sAppSpec,
+    K8sLlmCallMapping,
     K8sMultiAgentSystemCRD,
     K8sTokenCache,
 )
@@ -47,6 +48,14 @@ class K8sMultiAgentSystemRepository(ABC):
     @abstractmethod
     def delete_mas(self, crd: K8sMultiAgentSystemCRD) -> None:
         """Delete a K8sMultiAgentSystemCRD along with its metadata and app specs."""
+
+    @abstractmethod
+    def store_llm_call_mapping(self, call: K8sLlmCallMapping) -> K8sLlmCallMapping:
+        """Store an LLM call mapping."""
+
+    @abstractmethod
+    def load_llm_call_mapping(self, id: UUID) -> K8sLlmCallMapping:
+        """Load an LLM call mapping by id."""
 
 
 class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
@@ -141,3 +150,19 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
             self._session.delete(crd)
         except Exception as e:
             raise Exception(f"Error deleting K8s CRD: {e}") from e
+
+    def store_llm_call_mapping(self, call: K8sLlmCallMapping) -> K8sLlmCallMapping:
+        """Store an LLM call mapping."""
+        try:
+            self._session.add(call)
+            return call
+        except Exception as e:
+            raise Exception(f"Error storing LLM call mapping: {e}") from e
+
+    def load_llm_call_mapping(self, id: UUID) -> K8sLlmCallMapping:
+        """Load an LLM call mapping by id."""
+        try:
+            result = self._session.exec(select(K8sLlmCallMapping).where(K8sLlmCallMapping.id == id))
+            return result.first()
+        except Exception as e:
+            raise Exception(f"Error fetching LLM call mapping by id '{id}': {e}") from e

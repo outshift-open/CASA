@@ -18,6 +18,7 @@ type AuthServerClient interface {
 	Token(ctx context.Context, appID, clientID, clientSecret, userInputID string) (string, error)
 	ExchangeToken(ctx context.Context, appID, clientID, clientSecret, subjectToken, mcpServerURL string, tools []string) (string, error)
 	Introspect(ctx context.Context, token string, tools []string) (*identitysdk.TokenIntrospectResponse, error)
+	StoreLLMCallMapping(ctx context.Context, namespace, callID, traceID, token string) (*identitysdk.K8sLlmCallMapping, error)
 }
 
 type authServerClient struct {
@@ -35,10 +36,9 @@ func (c *authServerClient) GetK8SMultiAgentSystemByAppHost(
 	namespace string,
 	appHost string,
 ) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error) {
-	// TODO: KubernetesResourcesAPI.GetK8sMasByAppHost` err="3 is not a valid ToolCheckFlags"
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sMasByAppHost(ctx, namespace).AppHost(appHost).Execute()
 	if err != nil {
-		slog.Error("Error calling `KubernetesResourcesAPI.GetK8sMasByAppHost`", "err", err, "http.response", r)
+		c.logError("Error calling `KubernetesResourcesAPI.GetK8sMasByAppHost`", err, r)
 		return nil, fmt.Errorf("unable to fetch K8S MAS: %w", err)
 	}
 
@@ -50,10 +50,9 @@ func (c *authServerClient) GetK8SMultiAgentSystemByWorkloadName(
 	namespace string,
 	appWorkload string,
 ) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error) {
-	// TODO: KubernetesResourcesAPI.GetK8sMasByAppHost` err="3 is not a valid ToolCheckFlags"
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sMasByAppWorkload(ctx, namespace).AppWorkload(appWorkload).Execute()
 	if err != nil {
-		slog.Error("Error calling `KubernetesResourcesAPI.GetK8SMultiAgentSystemByWorkloadName`", "err", err, "http.response", r)
+		c.logError("Error calling `KubernetesResourcesAPI.GetK8SMultiAgentSystemByWorkloadName`", err, r)
 		return nil, fmt.Errorf("unable to fetch K8S MAS: %w", err)
 	}
 
@@ -78,11 +77,11 @@ func (c *authServerClient) LoadTokenFromCache(
 		}).
 		Execute()
 	if err != nil {
-		if r.StatusCode == http.StatusNotFound {
+		if r != nil && r.StatusCode == http.StatusNotFound {
 			return nil, nil
 		}
 
-		slog.Error("Error when calling `KubernetesResourcesAPI.LoadTokenFromCache`", "err", err, "http.response", r)
+		c.logError("Error when calling `KubernetesResourcesAPI.LoadTokenFromCache`", err, r)
 		return nil, fmt.Errorf("unable to load cached token: %w", err)
 	}
 
@@ -109,7 +108,7 @@ func (c *authServerClient) StoreTokenInCache(
 		}).
 		Execute()
 	if err != nil {
-		slog.Error("Error when calling `KubernetesResourcesAPI.StoreTokenInCache`", "err", err, "http.response", r)
+		c.logError("Error when calling `KubernetesResourcesAPI.StoreTokenInCache`", err, r)
 		return fmt.Errorf("unable to store token in cache: %w", err)
 	}
 
@@ -126,7 +125,7 @@ func (c *authServerClient) CreateUserInput(ctx context.Context, appID, prompt, t
 		}).
 		Execute()
 	if err != nil {
-		slog.Error("Error when calling `UserInputsAPI.CreateUserInput`", "err", err, "http.response", r)
+		c.logError("Error when calling `UserInputsAPI.CreateUserInput`", err, r)
 		return "", fmt.Errorf("unable to create user input: %w", err)
 	}
 
@@ -140,7 +139,7 @@ func (c *authServerClient) Token(ctx context.Context, appID, clientID, clientSec
 		UserInputId(userInputID).
 		Execute()
 	if err != nil {
-		slog.Error("Error when calling `AuthorizationServerAPI.Token`", "err", err, "http.response", r)
+		c.logError("Error when calling `AuthorizationServerAPI.Token`", err, r)
 		return "", fmt.Errorf("unable to generate token: %w", err)
 	}
 
@@ -153,6 +152,7 @@ func (c *authServerClient) ExchangeToken(
 	mcpServerURL string,
 	tools []string,
 ) (string, error) {
+	slog.Info("[TOKEN EXCHANGE]", "client_id", clientID, "client_secret", clientSecret, "subject_token", subjectToken, "mcp_server_url", mcpServerURL, "tools", tools)
 	resp, r, err := c.authSrvClient.AuthorizationServerAPI.TokenExchange(ctx, appID).
 		ClientId(clientID).
 		ClientSecret(clientSecret).
@@ -162,7 +162,7 @@ func (c *authServerClient) ExchangeToken(
 		Tools(tools).
 		Execute()
 	if err != nil {
-		slog.Error("Error when calling `AuthorizationServerAPI.TokenExchange`", "err", err, "http.response", r)
+		c.logError("Error when calling `AuthorizationServerAPI.TokenExchange`", err, r)
 		return "", fmt.Errorf("unable to do token exchange: %w", err)
 	}
 
@@ -172,9 +172,41 @@ func (c *authServerClient) ExchangeToken(
 func (c *authServerClient) Introspect(ctx context.Context, token string, tools []string) (*identitysdk.TokenIntrospectResponse, error) {
 	resp, r, err := c.authSrvClient.AuthorizationServerAPI.Introspect(ctx).Token(token).Tools(tools).Execute()
 	if err != nil {
-		slog.Error("Error when calling `AuthorizationServerAPI.Introspect`", "err", err, "http.response", r)
+		c.logError("Error when calling `AuthorizationServerAPI.Introspect`", err, r)
 		return nil, fmt.Errorf("unable to introspect the token: %w", err)
 	}
 
 	return resp, nil
+}
+
+func (c *authServerClient) StoreLLMCallMapping(
+	ctx context.Context,
+	namespace string,
+	callID string,
+	traceID string,
+	token string,
+) (*identitysdk.K8sLlmCallMapping, error) {
+	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.
+		CacheStoreLlmCallMapping(ctx, namespace).
+		LlmCallMappingStoreRequest(identitysdk.LlmCallMappingStoreRequest{
+			Id:      callID,
+			TraceId: traceID,
+			Token:   token,
+		}).
+		Execute()
+	if err != nil {
+		c.logError("Error when calling `AuthorizationServerAPI.StoreLLMCallMapping`", err, r)
+		return nil, fmt.Errorf("unable to store the LLM call mapping: %w", err)
+	}
+
+	return resp, nil
+}
+
+func (c *authServerClient) logError(msg string, err error, r *http.Response) {
+	var statusCode int
+	if r != nil {
+		statusCode = r.StatusCode
+	}
+
+	slog.Error(msg, "err", err, "http.status", statusCode, "http.response", r)
 }

@@ -1,12 +1,12 @@
 replicaCount: 1
 
 image:
-  repository: ""
+  repository:
   pullPolicy: Always
-  tag: ""
+  tag:
 
 imagePullSecrets:
-  - name: regcred
+  - name:
 
 
 # This is for setting Kubernetes Annotations to a Pod.
@@ -67,3 +67,17 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+llm_proxy:
+  image:
+    repository:
+    pullPolicy: Always
+    tag:
+    pullSecret:
+
+traceparent_injector:
+  image:
+    repository:
+    pullPolicy: Always
+    tag:
+    pullSecret:

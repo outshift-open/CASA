@@ -27,7 +27,7 @@ type K8sMultiAgentSystemCRDViewModel struct {
 	Namespace string `json:"namespace"`
 	MasMetadata NullableK8sMultiAgentSystemMetadataViewModel `json:"mas_metadata,omitempty"`
 	Name string `json:"name"`
-	EnabledToolChecks NullableToolCheckFlags `json:"enabled_tool_checks"`
+	EnabledToolChecks []string `json:"enabled_tool_checks"`
 	LlmHost NullableString `json:"llm_host"`
 	AppSpecs []K8sAppSpecViewModel `json:"app_specs,omitempty"`
 	MasId NullableString `json:"mas_id,omitempty"`
@@ -39,7 +39,7 @@ type _K8sMultiAgentSystemCRDViewModel K8sMultiAgentSystemCRDViewModel
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks NullableToolCheckFlags, llmHost NullableString) *K8sMultiAgentSystemCRDViewModel {
+func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks []string, llmHost NullableString) *K8sMultiAgentSystemCRDViewModel {
 	this := K8sMultiAgentSystemCRDViewModel{}
 	this.ApiVersion = apiVersion
 	this.Kind = kind
@@ -239,29 +239,29 @@ func (o *K8sMultiAgentSystemCRDViewModel) SetName(v string) {
 }
 
 // GetEnabledToolChecks returns the EnabledToolChecks field value
-// If the value is explicit nil, the zero value for ToolCheckFlags will be returned
-func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecks() ToolCheckFlags {
-	if o == nil || o.EnabledToolChecks.Get() == nil {
-		var ret ToolCheckFlags
+// If the value is explicit nil, the zero value for []string will be returned
+func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecks() []string {
+	if o == nil {
+		var ret []string
 		return ret
 	}
 
-	return *o.EnabledToolChecks.Get()
+	return o.EnabledToolChecks
 }
 
 // GetEnabledToolChecksOk returns a tuple with the EnabledToolChecks field value
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecksOk() (*ToolCheckFlags, bool) {
-	if o == nil {
+func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecksOk() ([]string, bool) {
+	if o == nil || IsNil(o.EnabledToolChecks) {
 		return nil, false
 	}
-	return o.EnabledToolChecks.Get(), o.EnabledToolChecks.IsSet()
+	return o.EnabledToolChecks, true
 }
 
 // SetEnabledToolChecks sets field value
-func (o *K8sMultiAgentSystemCRDViewModel) SetEnabledToolChecks(v ToolCheckFlags) {
-	o.EnabledToolChecks.Set(&v)
+func (o *K8sMultiAgentSystemCRDViewModel) SetEnabledToolChecks(v []string) {
+	o.EnabledToolChecks = v
 }
 
 // GetLlmHost returns the LlmHost field value
@@ -384,7 +384,9 @@ func (o K8sMultiAgentSystemCRDViewModel) ToMap() (map[string]interface{}, error)
 		toSerialize["mas_metadata"] = o.MasMetadata.Get()
 	}
 	toSerialize["name"] = o.Name
-	toSerialize["enabled_tool_checks"] = o.EnabledToolChecks.Get()
+	if o.EnabledToolChecks != nil {
+		toSerialize["enabled_tool_checks"] = o.EnabledToolChecks
+	}
 	toSerialize["llm_host"] = o.LlmHost.Get()
 	if !IsNil(o.AppSpecs) {
 		toSerialize["app_specs"] = o.AppSpecs

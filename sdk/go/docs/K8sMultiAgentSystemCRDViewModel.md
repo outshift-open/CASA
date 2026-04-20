@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **Namespace** | **string** |  | 
 **MasMetadata** | Pointer to [**NullableK8sMultiAgentSystemMetadataViewModel**](K8sMultiAgentSystemMetadataViewModel.md) |  | [optional] 
 **Name** | **string** |  | 
-**EnabledToolChecks** | [**NullableToolCheckFlags**](ToolCheckFlags.md) |  | 
+**EnabledToolChecks** | **[]string** |  | 
 **LlmHost** | **NullableString** |  | 
 **AppSpecs** | Pointer to [**[]K8sAppSpecViewModel**](K8sAppSpecViewModel.md) |  | [optional] [default to {}]
 **MasId** | Pointer to **NullableString** |  | [optional] 
@@ -19,7 +19,7 @@ Name | Type | Description | Notes
 
 ### NewK8sMultiAgentSystemCRDViewModel
 
-`func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks NullableToolCheckFlags, llmHost NullableString, ) *K8sMultiAgentSystemCRDViewModel`
+`func NewK8sMultiAgentSystemCRDViewModel(apiVersion string, kind string, namespace string, name string, enabledToolChecks []string, llmHost NullableString, ) *K8sMultiAgentSystemCRDViewModel`
 
 NewK8sMultiAgentSystemCRDViewModel instantiates a new K8sMultiAgentSystemCRDViewModel object
 This constructor will assign default values to properties that have it defined,
@@ -186,20 +186,20 @@ SetName sets Name field to given value.
 
 ### GetEnabledToolChecks
 
-`func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecks() ToolCheckFlags`
+`func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecks() []string`
 
 GetEnabledToolChecks returns the EnabledToolChecks field if non-nil, zero value otherwise.
 
 ### GetEnabledToolChecksOk
 
-`func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecksOk() (*ToolCheckFlags, bool)`
+`func (o *K8sMultiAgentSystemCRDViewModel) GetEnabledToolChecksOk() (*[]string, bool)`
 
 GetEnabledToolChecksOk returns a tuple with the EnabledToolChecks field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetEnabledToolChecks
 
-`func (o *K8sMultiAgentSystemCRDViewModel) SetEnabledToolChecks(v ToolCheckFlags)`
+`func (o *K8sMultiAgentSystemCRDViewModel) SetEnabledToolChecks(v []string)`
 
 SetEnabledToolChecks sets EnabledToolChecks field to given value.
 

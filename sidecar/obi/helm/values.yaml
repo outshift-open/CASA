@@ -1,0 +1,70 @@
+podLabels:
+  sidecar.istio.io/inject: "false"
+
+serviceAccount:
+  name: "obi"
+
+image:
+  tag: "v0.8.0"
+  pullPolicy: Always
+
+privileged: true
+
+# securityContext:
+#   privileged: false
+
+extraCapabilities:
+  - NET_ADMIN
+  - SYS_RESOURCE
+  - SYS_ADMIN
+
+volumeMounts:
+  - mountPath: /sys/kernel/security
+    name: kernel-security
+    readOnly: true
+  - name: cgroup
+    mountPath: /sys/fs/cgroup
+  - mountPath: /sys/fs/bpf
+    name: kernel-bpf
+
+volumes:
+  - name: kernel-security
+    hostPath:
+      path: /sys/kernel/security
+      type: Directory
+  - name: cgroup
+    hostPath:
+      path: /sys/fs/cgroup
+  - name: kernel-bpf
+    hostPath:
+      path: /sys/fs/bpf
+      type: Directory
+
+config:
+  data:
+    # Contents of the actual OBI configuration file
+    # open_port: "8082,3000,8391"
+    discovery:
+      instrument:
+        - k8s_pod_name: "zta-demo-*"
+    routes:
+      unmatched: heuristic
+    attributes:
+      kubernetes:
+        enable: true
+    network:
+      enable: true
+    ebpf:
+      track_request_headers: true
+      context_propagation: "all"
+env:
+  OTEL_EBPF_BPF_CONTEXT_PROPAGATION: "all"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-opentelemetry-collector.zta-sidecar.svc.cluster.local:4318" # TODO: we'll see if we can ignore this
+  OTEL_EBPF_BPF_TRACK_REQUEST_HEADERS: "true"
+  OTEL_EBPF_LOG_LEVEL: debug # TODO: change this after testing everything
+  OTEL_EBPF_METRICS_FEATURES: "application,application_span_otel,application_process,application_service_graph,ebpf,application_host"
+  OTEL_EBPF_PROMETHEUS_FEATURES: "application,application_span_otel,application_process,application_service_graph,ebpf,application_host"
+  OTEL_EBPF_BPF_DEBUG: "TRUE" # TODO: disable this after testing everything
+  OTEL_EBPF_TRACE_PRINTER: "text"
+  OTEL_EBPF_NAME_RESOLVER_SOURCES: "dns,k8s"
+  OTEL_EBPF_KUBE_METADATA_ENABLE: "true"

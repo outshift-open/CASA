@@ -1319,6 +1319,94 @@ paths:
       summary: Load Token
       tags:
       - Kubernetes Resources
+  /k8s/namespaces/{namespace}/cache/store-llm-call-mapping:
+    post:
+      operationId: cache_store_llm_call_mapping
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LlmCallMappingStoreRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/K8sLlmCallMapping"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Store Llm Call Mapping
+      tags:
+      - Kubernetes Resources
+  /k8s/cache/load-llm-call-mapping/{call_id}:
+    get:
+      operationId: cache_load_llm_call_mapping
+      parameters:
+      - explode: false
+        in: path
+        name: call_id
+        required: true
+        schema:
+          title: Call Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/K8sLlmCallMapping"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Load Llm Call Mapping
+      tags:
+      - Kubernetes Resources
+  /k8s/trace/llm/call_end:
+    post:
+      description: Record the end of an LLM call for the authenticated agent.
+      operationId: k8s_trace_llm_call_end
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LLMCallEndedKubernetesRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LLMCallEndedEvent"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: K8S Trace Llm Call End
+      tags:
+      - Kubernetes Resources
 components:
   schemas:
     ActorClaim:
@@ -1471,7 +1559,8 @@ components:
     AppSpec:
       description: Application specification within a MultiAgentSystem.
       example:
-        baseUrl: baseUrl
+        kubernetesWorkloadName: kubernetesWorkloadName
+        baseUrl: ""
         name: name
         type: ""
       properties:
@@ -1484,14 +1573,32 @@ components:
           - $ref: "#/components/schemas/AppType"
           description: Type of the application
         baseUrl:
+          allOf:
+          - $ref: "#/components/schemas/AppSpecBaseUrl"
           description: Base URL of the application
-          title: Baseurl
+        kubernetesWorkloadName:
+          nullable: true
           type: string
       required:
       - baseUrl
       - name
       - type
       title: AppSpec
+    AppSpecBaseUrl:
+      description: "Base URL split into host and scheme, matching the CRD schema."
+      properties:
+        host:
+          description: "Host (and optional port) of the URL, e.g. my-app:8080"
+          title: Host
+          type: string
+        scheme:
+          description: "URL scheme: http or https"
+          title: Scheme
+          type: string
+      required:
+      - host
+      - scheme
+      title: AppSpecBaseUrl
     AppType:
       description: Enumeration of app types.
       enum:
@@ -1723,10 +1830,60 @@ components:
       - url_host
       - url_scheme
       title: K8sAppSpecViewModel
+    K8sLlmCallMapping:
+      example:
+        trace_id: trace_id
+        user_input_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        namespace: namespace
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        token: token
+      properties:
+        id:
+          format: uuid
+          nullable: true
+          type: string
+        namespace:
+          title: Namespace
+          type: string
+        trace_id:
+          title: Trace Id
+          type: string
+        mas_id:
+          format: uuid
+          nullable: true
+          type: string
+        app_id:
+          format: uuid
+          nullable: true
+          type: string
+        user_input_id:
+          format: uuid
+          nullable: true
+          type: string
+        token:
+          nullable: true
+          type: string
+        created_at:
+          default: 2026-04-19T20:37:20.784641Z
+          format: date-time
+          title: Created At
+          type: string
+      required:
+      - app_id
+      - mas_id
+      - namespace
+      - trace_id
+      - user_input_id
+      title: K8sLlmCallMapping
     K8sMultiAgentSystemCRDViewModel:
       description: View model for a complete MultiAgentSystem CRD.
       example:
-        enabled_tool_checks: ""
+        enabled_tool_checks:
+        - enabled_tool_checks
+        - enabled_tool_checks
         llm_host: llm_host
         mas_metadata: ""
         kind: kind
@@ -1776,9 +1933,10 @@ components:
           title: Name
           type: string
         enabled_tool_checks:
-          allOf:
-          - $ref: "#/components/schemas/ToolCheckFlags"
+          items:
+            type: string
           nullable: true
+          type: array
         llm_host:
           nullable: true
           type: string
@@ -1875,6 +2033,22 @@ components:
       - tools
       - user_input_id
       title: LLMCallEndedEvent
+    LLMCallEndedKubernetesRequest:
+      description: Request body for recording the end of an LLM call.
+      example:
+        response: response
+        call_id: call_id
+      properties:
+        call_id:
+          title: Call Id
+          type: string
+        response:
+          title: Response
+          type: string
+      required:
+      - call_id
+      - response
+      title: LLMCallEndedKubernetesRequest
     LLMCallEndedRequest:
       description: Request body for recording the end of an LLM call.
       example:
@@ -1964,6 +2138,26 @@ components:
       - call_id
       - prompt
       title: LLMCallStartedRequest
+    LlmCallMappingStoreRequest:
+      example:
+        trace_id: trace_id
+        id: id
+        token: token
+      properties:
+        id:
+          title: Id
+          type: string
+        trace_id:
+          title: Trace Id
+          type: string
+        token:
+          title: Token
+          type: string
+      required:
+      - id
+      - token
+      - trace_id
+      title: LlmCallMappingStoreRequest
     MASCreateRequest:
       description: Request model for creating a MultiAgentSystem via API.
       example:
@@ -1984,10 +2178,12 @@ components:
           authorizationServer: ""
           name: name
           apps:
-          - baseUrl: baseUrl
+          - kubernetesWorkloadName: kubernetesWorkloadName
+            baseUrl: ""
             name: name
             type: ""
-          - baseUrl: baseUrl
+          - kubernetesWorkloadName: kubernetesWorkloadName
+            baseUrl: ""
             name: name
             type: ""
       properties:
@@ -2024,10 +2220,12 @@ components:
             authorizationServer: ""
             name: name
             apps:
-            - baseUrl: baseUrl
+            - kubernetesWorkloadName: kubernetesWorkloadName
+              baseUrl: ""
               name: name
               type: ""
-            - baseUrl: baseUrl
+            - kubernetesWorkloadName: kubernetesWorkloadName
+              baseUrl: ""
               name: name
               type: ""
           status: ""
@@ -2050,10 +2248,12 @@ components:
             authorizationServer: ""
             name: name
             apps:
-            - baseUrl: baseUrl
+            - kubernetesWorkloadName: kubernetesWorkloadName
+              baseUrl: ""
               name: name
               type: ""
-            - baseUrl: baseUrl
+            - kubernetesWorkloadName: kubernetesWorkloadName
+              baseUrl: ""
               name: name
               type: ""
           status: ""
@@ -2119,10 +2319,12 @@ components:
           authorizationServer: ""
           name: name
           apps:
-          - baseUrl: baseUrl
+          - kubernetesWorkloadName: kubernetesWorkloadName
+            baseUrl: ""
             name: name
             type: ""
-          - baseUrl: baseUrl
+          - kubernetesWorkloadName: kubernetesWorkloadName
+            baseUrl: ""
             name: name
             type: ""
       properties:
@@ -2164,7 +2366,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-17T10:07:07.910100Z
+          default: 2026-04-19T20:37:20.274477Z
           format: date-time
           title: Created At
           type: string
@@ -2210,10 +2412,12 @@ components:
           authorizationServer: ""
           name: name
           apps:
-          - baseUrl: baseUrl
+          - kubernetesWorkloadName: kubernetesWorkloadName
+            baseUrl: ""
             name: name
             type: ""
-          - baseUrl: baseUrl
+          - kubernetesWorkloadName: kubernetesWorkloadName
+            baseUrl: ""
             name: name
             type: ""
         status: ""
@@ -2317,10 +2521,12 @@ components:
         authorizationServer: ""
         name: name
         apps:
-        - baseUrl: baseUrl
+        - kubernetesWorkloadName: kubernetesWorkloadName
+          baseUrl: ""
           name: name
           type: ""
-        - baseUrl: baseUrl
+        - kubernetesWorkloadName: kubernetesWorkloadName
+          baseUrl: ""
           name: name
           type: ""
       properties:
@@ -2357,10 +2563,12 @@ components:
         authorizationServer: ""
         name: name
         apps:
-        - baseUrl: baseUrl
+        - kubernetesWorkloadName: kubernetesWorkloadName
+          baseUrl: ""
           name: name
           type: ""
-        - baseUrl: baseUrl
+        - kubernetesWorkloadName: kubernetesWorkloadName
+          baseUrl: ""
           name: name
           type: ""
       properties:
@@ -2418,7 +2626,7 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-17T10:07:09.647911Z
+          default: 2026-04-19T20:37:20.844802Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -2813,7 +3021,7 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-17T10:07:07.911633Z
+          default: 2026-04-19T20:37:20.275677Z
           format: date-time
           title: Created At
           type: string

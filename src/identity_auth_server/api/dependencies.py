@@ -273,5 +273,7 @@ class Container:
     @staticmethod
     def get_k8s_query_service(
         k8s_mas_repository: Annotated[K8sMultiAgentSystemPostgresRepository, Depends(get_k8s_mas_repository)],
+        auth_service: Annotated[AuthorizationServerService, Depends(get_authorization_service)],
+        tracer: Annotated[Tracer, Depends(get_tracer)],
     ):
-        return K8sQueryService(k8s_mas_repository=k8s_mas_repository)
+        return K8sQueryService(k8s_mas_repository=k8s_mas_repository, auth_service=auth_service, tracer=tracer)

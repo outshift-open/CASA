@@ -5,21 +5,21 @@ agentSafe:
   serviceName: demo-agent-safe
   servicePort: 8082
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    registry: ghcr.io
     image: outshift-zta/demo-agent-safe
     suffix: ''
   tagversion: 2026-04-20-513f685
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 agentCompromised:
-  replicas: 1
+  replicas: 3
   serviceName: demo-agent-compromised
   servicePort: 8082
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    registry: ghcr.io
     image: outshift-zta/demo-agent-compromised
     suffix: ''
-  tagversion: 2026-04-20-513f685
+  tagversion: 2026-04-20-e7abf18
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
@@ -27,10 +27,10 @@ mcp:
   serviceName: zta-demo-mcp
   servicePort: 3000
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    registry: ghcr.io
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
-  tagversion: 2026-04-20-513f685
+  tagversion: 2026-04-20-e7abf18
 
 chatUis:
   - name: safe
@@ -73,3 +73,7 @@ masCompromised:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
   llm_host: litellm.prod.outshift.ai
+
+secret:
+  openai_api_base: http://... # The scheme has to be HTTP
+  openai_api_key:

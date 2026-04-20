@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: litellm-ext
+spec:
+  hosts:
+  - litellm.prod.outshift.ai
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
+    targetPort: 443
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+  location: MESH_EXTERNAL
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: litellm.prod.outshift.ai
+spec:
+  host: litellm.prod.outshift.ai
+  trafficPolicy:
+    portLevelSettings:
+      - port:
+          number: 80
+        tls:
+          mode: SIMPLE # initiates HTTPS when access HTTP

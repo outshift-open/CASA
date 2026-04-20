@@ -18,7 +18,8 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
+from identity_auth_sdk.models.app_spec_base_url import AppSpecBaseUrl
 from identity_auth_sdk.models.app_type import AppType
 from typing import Optional, Set
 from typing_extensions import Self
@@ -29,8 +30,9 @@ class AppSpec(BaseModel):
     """ # noqa: E501
     name: StrictStr = Field(description="Name of the application")
     type: AppType = Field(description="Type of the application")
-    base_url: StrictStr = Field(description="Base URL of the application", alias="baseUrl")
-    __properties: ClassVar[List[str]] = ["name", "type", "baseUrl"]
+    base_url: AppSpecBaseUrl = Field(description="Base URL of the application", alias="baseUrl")
+    kubernetes_workload_name: Optional[StrictStr] = Field(default=None, alias="kubernetesWorkloadName")
+    __properties: ClassVar[List[str]] = ["name", "type", "baseUrl", "kubernetesWorkloadName"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -71,6 +73,14 @@ class AppSpec(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of base_url
+        if self.base_url:
+            _dict['baseUrl'] = self.base_url.to_dict()
+        # set to None if kubernetes_workload_name (nullable) is None
+        # and model_fields_set contains the field
+        if self.kubernetes_workload_name is None and "kubernetes_workload_name" in self.model_fields_set:
+            _dict['kubernetesWorkloadName'] = None
+
         return _dict
 
     @classmethod
@@ -85,7 +95,8 @@ class AppSpec(BaseModel):
         _obj = cls.model_validate({
             "name": obj.get("name"),
             "type": obj.get("type"),
-            "baseUrl": obj.get("baseUrl")
+            "baseUrl": AppSpecBaseUrl.from_dict(obj["baseUrl"]) if obj.get("baseUrl") is not None else None,
+            "kubernetesWorkloadName": obj.get("kubernetesWorkloadName")
         })
         return _obj
 

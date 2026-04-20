@@ -85,3 +85,16 @@ class K8sTokenCache(SQLModel, table=True):
     access_token: str = Field()
     tool: Optional[str] = Field(default=None)
     created_at: datetime = datetime.now(timezone.utc)
+
+
+class K8sLlmCallMapping(SQLModel, table=True):
+    __tablename__ = "K8sLlmCallMapping"
+
+    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    namespace: str
+    trace_id: str
+    mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
+    app_id: Optional[UUID] = Field(foreign_key="app.id")
+    user_input_id: Optional[UUID] = Field(foreign_key="userinput.id")
+    token: Optional[str] = Field(default=None)
+    created_at: datetime = datetime.now(timezone.utc)

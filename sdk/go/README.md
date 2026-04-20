@@ -100,10 +100,13 @@ Class | Method | HTTP request | Description
 *KubernetesCRDsAPI* | [**WatchAllMasK8sWatchMultiagentsystemsGet**](docs/KubernetesCRDsAPI.md#watchallmask8swatchmultiagentsystemsget) | **Get** /k8s/watch/multiagentsystems | Watch All Mas
 *KubernetesCRDsAPI* | [**WatchMasInNamespaceK8sWatchNamespacesNamespaceMultiagentsystemsGet**](docs/KubernetesCRDsAPI.md#watchmasinnamespacek8swatchnamespacesnamespacemultiagentsystemsget) | **Get** /k8s/watch/namespaces/{namespace}/multiagentsystems | Watch Mas In Namespace
 *KubernetesCRDsAPI* | [**WatchPoliciesInNamespaceK8sWatchNamespacesNamespaceZtapoliciesGet**](docs/KubernetesCRDsAPI.md#watchpoliciesinnamespacek8swatchnamespacesnamespaceztapoliciesget) | **Get** /k8s/watch/namespaces/{namespace}/ztapolicies | Watch Policies In Namespace
+*KubernetesResourcesAPI* | [**CacheLoadLlmCallMapping**](docs/KubernetesResourcesAPI.md#cacheloadllmcallmapping) | **Get** /k8s/cache/load-llm-call-mapping/{call_id} | Load Llm Call Mapping
 *KubernetesResourcesAPI* | [**CacheLoadToken**](docs/KubernetesResourcesAPI.md#cacheloadtoken) | **Post** /k8s/namespaces/{namespace}/cache/load-token | Load Token
+*KubernetesResourcesAPI* | [**CacheStoreLlmCallMapping**](docs/KubernetesResourcesAPI.md#cachestorellmcallmapping) | **Post** /k8s/namespaces/{namespace}/cache/store-llm-call-mapping | Store Llm Call Mapping
 *KubernetesResourcesAPI* | [**CacheStoreToken**](docs/KubernetesResourcesAPI.md#cachestoretoken) | **Post** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 *KubernetesResourcesAPI* | [**GetK8sMasByAppHost**](docs/KubernetesResourcesAPI.md#getk8smasbyapphost) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 *KubernetesResourcesAPI* | [**GetK8sMasByAppWorkload**](docs/KubernetesResourcesAPI.md#getk8smasbyappworkload) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
+*KubernetesResourcesAPI* | [**K8sTraceLlmCallEnd**](docs/KubernetesResourcesAPI.md#k8stracellmcallend) | **Post** /k8s/trace/llm/call_end | K8S Trace Llm Call End
 *MultiAgentSystemsAPI* | [**BindAppsMasMasIdBindAppsPost**](docs/MultiAgentSystemsAPI.md#bindappsmasmasidbindappspost) | **Post** /mas/{mas_id}/bind_apps | Bind Apps
 *MultiAgentSystemsAPI* | [**CreateMasMasPut**](docs/MultiAgentSystemsAPI.md#createmasmasput) | **Put** /mas | Create Mas
 *MultiAgentSystemsAPI* | [**DeleteMasMasMasIdDelete**](docs/MultiAgentSystemsAPI.md#deletemasmasmasiddelete) | **Delete** /mas/{mas_id} | Delete Mas
@@ -130,6 +133,7 @@ Class | Method | HTTP request | Description
  - [AppMetadataResponse](docs/AppMetadataResponse.md)
  - [AppRequest](docs/AppRequest.md)
  - [AppSpec](docs/AppSpec.md)
+ - [AppSpecBaseUrl](docs/AppSpecBaseUrl.md)
  - [AppType](docs/AppType.md)
  - [AppViewModel](docs/AppViewModel.md)
  - [CacheTokenLoadRequest](docs/CacheTokenLoadRequest.md)
@@ -137,12 +141,15 @@ Class | Method | HTTP request | Description
  - [CreateUserInputRequest](docs/CreateUserInputRequest.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
  - [K8sAppSpecViewModel](docs/K8sAppSpecViewModel.md)
+ - [K8sLlmCallMapping](docs/K8sLlmCallMapping.md)
  - [K8sMultiAgentSystemCRDViewModel](docs/K8sMultiAgentSystemCRDViewModel.md)
  - [K8sMultiAgentSystemMetadataViewModel](docs/K8sMultiAgentSystemMetadataViewModel.md)
  - [LLMCallEndedEvent](docs/LLMCallEndedEvent.md)
+ - [LLMCallEndedKubernetesRequest](docs/LLMCallEndedKubernetesRequest.md)
  - [LLMCallEndedRequest](docs/LLMCallEndedRequest.md)
  - [LLMCallStartedEvent](docs/LLMCallStartedEvent.md)
  - [LLMCallStartedRequest](docs/LLMCallStartedRequest.md)
+ - [LlmCallMappingStoreRequest](docs/LlmCallMappingStoreRequest.md)
  - [LocationInner](docs/LocationInner.md)
  - [MASCreateRequest](docs/MASCreateRequest.md)
  - [MASListResponse](docs/MASListResponse.md)

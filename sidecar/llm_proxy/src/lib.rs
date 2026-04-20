@@ -1,9 +1,11 @@
-use cfg_if::cfg_if;
+use std::collections::HashMap;
+use std::time::Duration;
+
+use log::error;
 use log::info;
-use log::warn;
 use proxy_wasm::traits::*;
 use proxy_wasm::types::*;
-use uuid::Uuid;
+use serde_json::json;
 
 const LITELLM_CALL_ID_HEADER: &str = "x-litellm-call-id";
 
@@ -22,44 +24,56 @@ impl RootContext for HttpHeadersRoot {
     }
 
     fn create_http_context(&self, context_id: u32) -> Option<Box<dyn HttpContext>> {
-        Some(Box::new(LlmCall { context_id: context_id, litellm_call_id: None }))
+        Some(Box::new(LlmCall {
+            context_id: context_id,
+            litellm_call_id: None,
+            pending: HashMap::new(),
+        }))
     }
+}
+
+enum PendingAuthSrvCall {
+    StoreLlmCallEndEvent,
 }
 
 struct LlmCall {
     context_id: u32,
     litellm_call_id: Option<String>,
+    pending: HashMap<u32, PendingAuthSrvCall>,
 }
 
-impl Context for LlmCall {}
+impl Context for LlmCall {
+    fn on_http_call_response(&mut self, token_id: u32, _: usize, _: usize, _: usize) {
+        let call = self.pending.remove(&token_id);
+
+        let status_code = self
+            .get_http_call_response_headers()
+            .iter()
+            .find(|(k, _)| k == ":status")
+            .and_then(|(_, v)| v.parse::<u16>().ok())
+            .unwrap_or(0);
+        if status_code != 200 {
+            self.resume_http_response();
+            return;
+        }
+
+        match call {
+            Some(PendingAuthSrvCall::StoreLlmCallEndEvent) => {
+                info!("LlmCallEndEvent stored");
+                self.resume_http_response();
+            }
+            None => {
+                self.resume_http_response();
+            }
+        }
+    }
+}
 
 impl HttpContext for LlmCall {
-    fn on_http_request_headers(&mut self, _: usize, _: bool) -> Action {
-        // let path = self.get_http_request_header(":path").unwrap_or_default();
-        // warn!("path = {}", path);
-
-        // if path.contains("chat/completions") {
-        //     self.dispatch_http_call(upstream, headers, body, trailers, timeout)
-        // }
-        // let existing = self.get_http_request_header(LITELLM_CALL_ID_HEADER);
-        // if existing.is_none() {
-        //     match generate_uuid() {
-        //         Some(id) => {
-        //             self.add_http_request_header(LITELLM_CALL_ID_HEADER, &id);
-        //             self.litellm_call_id = Some(id);
-        //         }
-        //         None => warn!("Could not generate a {} value", LITELLM_CALL_ID_HEADER)
-        //     }
-        // }
-
-        Action::Continue
-    }
-
     fn on_http_response_headers(&mut self, _: usize, _: bool) -> Action {
         let maybe_call_id = self.get_http_response_header(LITELLM_CALL_ID_HEADER);
         if let Some(call_id) = maybe_call_id {
             self.litellm_call_id = Some(call_id.clone());
-            warn!("{} = {}", LITELLM_CALL_ID_HEADER, call_id.clone());
         }
 
         Action::Continue
@@ -78,25 +92,47 @@ impl HttpContext for LlmCall {
 
         if let Some(body_bytes) = self.get_http_response_body(0, body_size) {
             let body_str = String::from_utf8(body_bytes).unwrap();
-            warn!("LITELLM response body = {}", body_str);
+            info!("LITELLM response body = {}", body_str);
+
+            let trace_body = json!({
+                "call_id": self.litellm_call_id.as_deref().unwrap(),
+                "response": body_str,
+            });
+
+            match serde_json::to_vec(&trace_body) {
+                Ok(payload) => {
+                    info!("sending event payload = {}", trace_body);
+
+                    let ret_token = self
+                        .dispatch_http_call(
+                            "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
+                            vec![
+                                (":method", "POST"),
+                                (":path", "/k8s/trace/llm/call_end"),
+                                (":authority", "zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000"),
+                                ("content-type", "application/json"),
+                            ],
+                            Some(&payload),
+                            vec![],
+                            Duration::from_secs(300),
+                        )
+                        .unwrap();
+
+                    self.pending
+                        .insert(ret_token, PendingAuthSrvCall::StoreLlmCallEndEvent);
+
+                    return Action::Pause;
+                }
+                Err(err) => {
+                    error!("error serializing trace_body to json {}", err);
+                }
+            }
         }
 
         Action::Continue
     }
 
     fn on_log(&mut self) {
-        warn!("#{} completed.", self.context_id);
-    }
-}
-
-fn generate_uuid() -> Option<String> {
-    cfg_if! {
-        if #[cfg(all(target_arch = "wasm32", target_os = "unknown"))] {
-            info!("wasm32_unknow doesn't support getrandom");
-            return None;
-        } else {
-            let id = Uuid::new_v4();
-            Some(id.to_string())
-        }
+        info!("#{} completed.", self.context_id);
     }
 }

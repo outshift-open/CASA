@@ -8,7 +8,8 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** | Name of the application | 
 **type** | [**AppType**](AppType.md) | Type of the application | 
-**base_url** | **str** | Base URL of the application | 
+**base_url** | [**AppSpecBaseUrl**](AppSpecBaseUrl.md) | Base URL of the application | 
+**kubernetes_workload_name** | **str** |  | [optional] 
 
 ## Example
 

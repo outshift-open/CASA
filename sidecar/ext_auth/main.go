@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	identitysdk "github.com/cisco-eti/identity-auth-server/sdk/go"
 	"github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal"
@@ -107,6 +109,8 @@ func newAuthServerClient() *identitysdk.APIClient {
 	config := identitysdk.NewConfiguration()
 	config.Host = os.Getenv("AUTH_SERVER_HOST")
 	config.Scheme = os.Getenv("AUTH_SERVER_SCHEME")
+	config.Debug = true
+	config.HTTPClient = &http.Client{Timeout: 100 * time.Second}
 
 	return identitysdk.NewAPIClient(config)
 }

@@ -1,12 +1,12 @@
 apiVersion: extensions.istio.io/v1alpha1
 kind: WasmPlugin
 metadata:
-  name: llm-proxy
-  namespace: zta-sidecar
+  name: zta-llm-proxy
+  namespace: {{ .Release.Namespace }}
 spec:
-  url: oci://626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/traceparent_injector_plugin:2026-04-08-75ec9fa
-  imagePullPolicy: Always
-  imagePullSecret: regcred
+  url: oci://{{ .Values.llm_proxy.image.repository }}:{{ .Values.llm_proxy.image.tag | default .Chart.AppVersion }}
+  imagePullPolicy: {{ .Values.llm_proxy.image.pullPolicy | default "Always" }}
+  imagePullSecret: {{ .Values.llm_proxy.image.pullSecret }}
   phase: AUTHN
   match:
-    - mode: SERVER
+    - mode: CLIENT

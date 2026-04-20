@@ -526,6 +526,92 @@ func (_c *AuthServerClient_LoadTokenFromCache_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// StoreLLMCallMapping provides a mock function for the type AuthServerClient
+func (_mock *AuthServerClient) StoreLLMCallMapping(ctx context.Context, namespace string, callID string, traceID string, token string) (*api.K8sLlmCallMapping, error) {
+	ret := _mock.Called(ctx, namespace, callID, traceID, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StoreLLMCallMapping")
+	}
+
+	var r0 *api.K8sLlmCallMapping
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (*api.K8sLlmCallMapping, error)); ok {
+		return returnFunc(ctx, namespace, callID, traceID, token)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) *api.K8sLlmCallMapping); ok {
+		r0 = returnFunc(ctx, namespace, callID, traceID, token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*api.K8sLlmCallMapping)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
+		r1 = returnFunc(ctx, namespace, callID, traceID, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// AuthServerClient_StoreLLMCallMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StoreLLMCallMapping'
+type AuthServerClient_StoreLLMCallMapping_Call struct {
+	*mock.Call
+}
+
+// StoreLLMCallMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - namespace string
+//   - callID string
+//   - traceID string
+//   - token string
+func (_e *AuthServerClient_Expecter) StoreLLMCallMapping(ctx interface{}, namespace interface{}, callID interface{}, traceID interface{}, token interface{}) *AuthServerClient_StoreLLMCallMapping_Call {
+	return &AuthServerClient_StoreLLMCallMapping_Call{Call: _e.mock.On("StoreLLMCallMapping", ctx, namespace, callID, traceID, token)}
+}
+
+func (_c *AuthServerClient_StoreLLMCallMapping_Call) Run(run func(ctx context.Context, namespace string, callID string, traceID string, token string)) *AuthServerClient_StoreLLMCallMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *AuthServerClient_StoreLLMCallMapping_Call) Return(k8sLlmCallMapping *api.K8sLlmCallMapping, err error) *AuthServerClient_StoreLLMCallMapping_Call {
+	_c.Call.Return(k8sLlmCallMapping, err)
+	return _c
+}
+
+func (_c *AuthServerClient_StoreLLMCallMapping_Call) RunAndReturn(run func(ctx context.Context, namespace string, callID string, traceID string, token string) (*api.K8sLlmCallMapping, error)) *AuthServerClient_StoreLLMCallMapping_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StoreTokenInCache provides a mock function for the type AuthServerClient
 func (_mock *AuthServerClient) StoreTokenInCache(ctx context.Context, namespace string, traceID string, appHost string, appType api.AppType, token string, tool *string) error {
 	ret := _mock.Called(ctx, namespace, traceID, appHost, appType, token, tool)
