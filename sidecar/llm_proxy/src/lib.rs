@@ -163,7 +163,7 @@ impl HttpContext for LlmCall {
                             ],
                             Some(&payload),
                             vec![],
-                            Duration::from_secs(5),
+                            Duration::from_secs(300),
                         )
                         .unwrap();
 

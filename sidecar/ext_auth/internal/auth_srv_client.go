@@ -36,7 +36,6 @@ func (c *authServerClient) GetK8SMultiAgentSystemByAppHost(
 	namespace string,
 	appHost string,
 ) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error) {
-	// TODO: KubernetesResourcesAPI.GetK8sMasByAppHost` err="3 is not a valid ToolCheckFlags"
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sMasByAppHost(ctx, namespace).AppHost(appHost).Execute()
 	if err != nil {
 		c.logError("Error calling `KubernetesResourcesAPI.GetK8sMasByAppHost`", err, r)
@@ -51,7 +50,6 @@ func (c *authServerClient) GetK8SMultiAgentSystemByWorkloadName(
 	namespace string,
 	appWorkload string,
 ) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error) {
-	// TODO: KubernetesResourcesAPI.GetK8sMasByAppHost` err="3 is not a valid ToolCheckFlags"
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sMasByAppWorkload(ctx, namespace).AppWorkload(appWorkload).Execute()
 	if err != nil {
 		c.logError("Error calling `KubernetesResourcesAPI.GetK8SMultiAgentSystemByWorkloadName`", err, r)
