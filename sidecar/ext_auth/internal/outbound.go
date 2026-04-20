@@ -194,6 +194,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 
 				return s.allow(accessToken), nil
 			} else if appSpec.GetType() == api.MCP_SERVER {
+				slog.Info("Checking MCP server call", "context", outFilterLogCtx, "trace_id", traceID, "host", host, "method", httpReq.Method, "path", httpReq.Path)
 				if httpReq.Body == "" {
 					return s.allow(""), nil
 				}
