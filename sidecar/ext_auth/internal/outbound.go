@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/url"
 	"strings"
+	"time"
 
 	api "github.com/cisco-eti/identity-auth-server/sdk/go"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -47,6 +48,11 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 
 	httpReq := attrs.GetRequest().GetHttp()
 	headers := httpReq.GetHeaders()
+
+	deadline, ok := ctx.Deadline()
+	if ok {
+		slog.Info("[TIMEOUT]", "deadline", deadline, "remaining", time.Until(deadline))
+	}
 
 	if tpv, ok := headers[traceParentHeader]; ok {
 		tp, err := ParseTraceParent(tpv)
