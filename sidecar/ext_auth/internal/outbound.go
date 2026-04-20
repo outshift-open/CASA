@@ -49,10 +49,16 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 	httpReq := attrs.GetRequest().GetHttp()
 	headers := httpReq.GetHeaders()
 
-	deadline, ok := ctx.Deadline()
-	if ok {
-		slog.Info("[TIMEOUT]", "deadline", deadline, "remaining", time.Until(deadline))
-	}
+	start := time.Now()
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			slog.Info("[CTX] authz ctx canceled", "after", time.Since(start), "err", ctx.Err())
+		case <-done:
+		}
+	}()
+	defer close(done)
 
 	if tpv, ok := headers[traceParentHeader]; ok {
 		tp, err := ParseTraceParent(tpv)
