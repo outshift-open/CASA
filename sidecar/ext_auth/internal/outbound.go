@@ -291,7 +291,7 @@ func (*OutboundExtAuthService) decodePeerMetadata(v string) (map[string]any, err
 }
 
 func (s *OutboundExtAuthService) allow(jwt string) *authv3.CheckResponse {
-	return s.allowWithHeaders(map[string]string{"Authorization": fmt.Sprintf("Bearer %s", jwt)})
+	return s.allowWithHeaders(map[string]string{"authorization": fmt.Sprintf("Bearer %s", jwt)})
 }
 
 func (*OutboundExtAuthService) allowWithHeaders(headers map[string]string) *authv3.CheckResponse {

@@ -84,7 +84,7 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 
 			slog.Info("[IN]", "headers", headers)
 
-			if authHeader, ok := headers["Authorization"]; ok {
+			if authHeader, ok := headers["authorization"]; ok {
 				if strings.HasPrefix(authHeader, "Bearer ") {
 					slog.Info("Found access token in HTTP header", "context", inFilterLogCtx, "trace_id", traceID, "host", host)
 					existingAccessToken = strings.Replace(authHeader, "Bearer ", "", 0)
