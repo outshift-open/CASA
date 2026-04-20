@@ -4,7 +4,8 @@ import json
 import logging
 import os
 
-from dotenv import dotenv_values, load_dotenv
+from dotenv import load_dotenv
+import httpx
 from openai import OpenAI
 from pydantic import BaseModel
 
@@ -46,6 +47,7 @@ class LlmVerifierTaskToolMatcher(TaskToolMatcher):
         self.openai_client = OpenAI(
             api_key=os.getenv("OPENAI_GPT4o_API_JWT_TOKEN"),
             base_url=os.getenv("OPENAI_GPT4o_API_BASE_URL"),
+            timeout=httpx.Timeout(30.0, connect=5.0),
         )
         self.model_id = os.getenv("PIPELINE_OPENAI_GPT4o_MODEL_ID")
         self.tool_names = []

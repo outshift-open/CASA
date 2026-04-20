@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	filterCtx = "OUTBOUND"
+	outFilterLogCtx = "OUTBOUND"
 )
 
 type OutboundExtAuthService struct {
@@ -51,7 +51,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 	if tpv, ok := headers[traceParentHeader]; ok {
 		tp, err := ParseTraceParent(tpv)
 		if err != nil {
-			slog.Error("Failed to parse the traceparent header", "context", filterCtx, "err", err)
+			slog.Error("Failed to parse the traceparent header", "context", outFilterLogCtx, "err", err)
 			// return nil, err
 			return s.deny(), nil
 		}
@@ -65,31 +65,31 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 		// x-envoy-peer-metadata could be configured to not be present
 		peerMetadata, err := s.decodePeerMetadata(httpReq.Headers["x-envoy-peer-metadata"])
 		if err != nil {
-			slog.Error("Failed to decode peer metadata", "context", filterCtx, "trace_id", traceID, "err", err)
+			slog.Error("Failed to decode peer metadata", "context", outFilterLogCtx, "trace_id", traceID, "err", err)
 			// return nil, fmt.Errorf("outbound: unable to decode peer metadata: %w", err)
 			return s.deny(), nil
 		}
 
 		callerWorkloadName, found, err := unstructured.NestedString(peerMetadata, "WORKLOAD_NAME")
 		if err != nil {
-			slog.Error("Failed to get workload name from peer metadata", "context", filterCtx, "trace_id", traceID, "err", err)
+			slog.Error("Failed to get workload name from peer metadata", "context", outFilterLogCtx, "trace_id", traceID, "err", err)
 			// return nil, fmt.Errorf("unable to get workload name from peer metadata: %w", err)
 			return s.deny(), nil
 		}
 
 		if !found {
-			slog.Error("No workload found in peer metadata", "context", filterCtx, "trace_id", traceID)
+			slog.Error("No workload found in peer metadata", "context", outFilterLogCtx, "trace_id", traceID)
 			// return nil, errors.New("unable to find WORKLOAD_NAME in peer metadata")
 			return s.deny(), nil
 		}
 
-		slog.Info(fmt.Sprintf("Host = %s, caller workload name = %s", host, callerWorkloadName), "context", filterCtx, "trace_id", traceID)
+		slog.Info(fmt.Sprintf("Host = %s, caller workload name = %s", host, callerWorkloadName), "context", outFilterLogCtx, "trace_id", traceID)
 
 		masCRD, err := s.authSrvClient.GetK8SMultiAgentSystemByWorkloadName(ctx, s.namespace, callerWorkloadName)
 		if err != nil {
 			slog.Error(
 				fmt.Sprintf("Unable to get Kubernetes MultiAgentSystem resource for caller workload %s", callerWorkloadName),
-				"context", filterCtx,
+				"context", outFilterLogCtx,
 				"trace_id", traceID,
 				"err", err,
 			)
@@ -101,7 +101,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 
 		// get stored JWT of the caller
 		for _, appSpec := range masCRD.AppSpecs {
-			slog.Info("Matching caller app", "context", filterCtx, "trace_id", traceID, "src_workload", callerWorkloadName, "workload", appSpec.GetKubernetesWorkloadName())
+			slog.Info("Matching caller app", "context", outFilterLogCtx, "trace_id", traceID, "src_workload", callerWorkloadName, "workload", appSpec.GetKubernetesWorkloadName())
 			if !strings.EqualFold(callerWorkloadName, appSpec.GetKubernetesWorkloadName()) {
 				continue
 			}
@@ -114,14 +114,14 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			}
 
 			if token == nil || token.AccessToken == "" {
-				slog.Info("Call denied, no access token found", "context", filterCtx, "trace_id", traceID)
+				slog.Info("Call denied, no access token found", "context", outFilterLogCtx, "trace_id", traceID)
 				return s.deny(), nil
 			}
 
 			slog.Info(
 				"Found cached access token",
 				"context",
-				filterCtx,
+				outFilterLogCtx,
 				"trace_id",
 				traceID,
 				"workload",
@@ -137,7 +137,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 		if strings.EqualFold(host, masCRD.GetLlmHost()) {
 			llmCallID := uuid.NewString()
 
-			slog.Info(fmt.Sprintf("Generating x-litellm-call-id: %s", llmCallID), "context", filterCtx, "trace_id", traceID)
+			slog.Info(fmt.Sprintf("Generating x-litellm-call-id: %s", llmCallID), "context", outFilterLogCtx, "trace_id", traceID)
 
 			_, err := s.authSrvClient.StoreLLMCallMapping(ctx, s.namespace, llmCallID, traceID, callerToken)
 			if err != nil {
@@ -164,7 +164,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				}
 
 				if clientCreds == nil {
-					slog.Info("Call denied, no client credentials found", "context", filterCtx, "trace_id", traceID)
+					slog.Info("Call denied, no client credentials found", "context", outFilterLogCtx, "trace_id", traceID)
 					return s.deny(), nil
 				}
 
@@ -183,7 +183,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				}
 
 				if accessToken == "" {
-					slog.Info("Call defnied, access token is empty after token exchange [agent->agent]", "context", filterCtx, "trace_id", traceID)
+					slog.Info("Call defnied, access token is empty after token exchange [agent->agent]", "context", outFilterLogCtx, "trace_id", traceID)
 					return s.deny(), nil
 				}
 
@@ -201,15 +201,15 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				}
 
 				if toolName == "" {
-					slog.Info("Call allowed, tool name is empty", "context", filterCtx, "trace_id", traceID)
+					slog.Info("Call allowed, tool name is empty", "context", outFilterLogCtx, "trace_id", traceID)
 					return s.allow(""), nil
 				}
 
-				slog.Info("Found tool name", "tool_name", toolName, "context", filterCtx, "trace_id", traceID)
+				slog.Info("Found tool name", "tool_name", toolName, "context", outFilterLogCtx, "trace_id", traceID)
 
 				mcpURL, err := url.Parse(fmt.Sprintf("%s://%s/mcp", appSpec.UrlScheme, appSpec.UrlHost))
 				if err != nil {
-					slog.Error("Failed to construct MCP server URL", "context", filterCtx, "trace_id", traceID, "err", err)
+					slog.Error("Failed to construct MCP server URL", "context", outFilterLogCtx, "trace_id", traceID, "err", err)
 					// return nil, fmt.Errorf("unable to construct MCP server URL: %w", err)
 					return s.deny(), nil
 				}
@@ -239,7 +239,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				}
 
 				if accessToken == "" {
-					slog.Info("Call defnied, access token is empty after token exchange [agent->MCP]", "context", filterCtx, "trace_id", traceID)
+					slog.Info("Call defnied, access token is empty after token exchange [agent->MCP]", "context", outFilterLogCtx, "trace_id", traceID)
 					return s.deny(), nil
 				}
 
@@ -263,13 +263,13 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					return s.deny(), nil
 				}
 
-				slog.Info("Call allowed", "context", filterCtx, "trace_id", traceID, "tool_name", associatedTool)
+				slog.Info("Call allowed", "context", outFilterLogCtx, "trace_id", traceID, "tool_name", associatedTool)
 				return s.allow(accessToken), nil
 			}
 		}
 	}
 
-	slog.Info("Call allowed", "context", filterCtx)
+	slog.Info("Call allowed", "context", outFilterLogCtx)
 	return s.allow(""), nil
 }
 
