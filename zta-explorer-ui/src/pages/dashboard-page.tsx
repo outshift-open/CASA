@@ -2,10 +2,9 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
-import {Shield, Lock, AppWindow, Network, /*Tags,*/ RefreshCw, HelpCircle} from 'lucide-react';
+import {Shield, Lock, AppWindow, Network, RefreshCw, HelpCircle} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
-// import {useScopes} from '@/hooks/use-scopes';
 import {useTraces} from '@/hooks/use-traces';
 import {useMemo} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -136,13 +135,6 @@ export function DashboardPage() {
         dataUpdatedAt: masUpdatedAt,
         refetch: refetchMAS
     } = useMAS();
-    // const {
-    //     data: scopesData,
-    //     isLoading: scopesLoading,
-    //     error: scopesError,
-    //     dataUpdatedAt: scopesUpdatedAt,
-    //     refetch: refetchScopes
-    // } = useScopes();
     const {
         data: tracesData,
         isLoading: tracesLoading,
@@ -150,11 +142,11 @@ export function DashboardPage() {
         refetch: refetchTraces
     } = useTraces(undefined, 1, 100, true);
 
-    const isRefreshing = isLoading || masLoading || /*scopesLoading ||*/ tracesLoading;
+    const isRefreshing = isLoading || masLoading || tracesLoading;
 
     const handleRefresh = async () => {
         try {
-            await Promise.all([refetchApps(), refetchMAS(), /*refetchScopes(),*/ refetchTraces()]);
+            await Promise.all([refetchApps(), refetchMAS(), refetchTraces()]);
             toast.success('Dashboard refreshed successfully');
         } catch {
             toast.error('Failed to refresh dashboard');
@@ -163,9 +155,8 @@ export function DashboardPage() {
 
     const totalApps = appsData?.total ?? 0;
     const totalMAS = masData?.length ?? 0;
-    // const totalScopes = Array.isArray(scopesData) ? scopesData.length : 0;
 
-    const lastUpdated = Math.max(appsUpdatedAt, masUpdatedAt, /*scopesUpdatedAt,*/ tracesUpdatedAt);
+    const lastUpdated = Math.max(appsUpdatedAt, masUpdatedAt, tracesUpdatedAt);
     const lastUpdatedLabel = lastUpdated
         ? new Date(lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'})
         : null;
@@ -320,26 +311,6 @@ export function DashboardPage() {
                         <p className="text-xs text-muted-foreground">Agents, Clients & MCP Servers</p>
                     </CardContent>
                 </Card>
-
-                {/* <Card
-                    className="cursor-pointer hover:bg-accent transition-colors gap-4"
-                    onClick={() => navigate('/scopes')}
-                >
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Scopes</CardTitle>
-                        <Tags className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {scopesLoading ? (
-                            <Skeleton className="h-8 w-16" />
-                        ) : scopesError ? (
-                            <div className="text-sm text-destructive">Error</div>
-                        ) : (
-                            <div className="text-2xl font-bold">{totalScopes}</div>
-                        )}
-                        <p className="text-xs text-muted-foreground">Authorization scopes</p>
-                    </CardContent>
-                </Card> */}
 
                 <Card className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

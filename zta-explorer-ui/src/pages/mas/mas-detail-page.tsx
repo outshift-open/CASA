@@ -3,8 +3,8 @@ import {useMASById, useMASApps} from '@/hooks/use-mas';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {MASInfoTab, MASAppsTab, /*MASScopesTab,*/ MASTracesTab} from '@/components/mas';
-import {Info, Activity, AppWindow /*Tags*/} from 'lucide-react';
+import {MASInfoTab, MASAppsTab, MASTracesTab} from '@/components/mas';
+import {Info, Activity, AppWindow} from 'lucide-react';
 import {useState} from 'react';
 
 export function MASDetailPage() {
@@ -51,10 +51,6 @@ export function MASDetailPage() {
                                                 <AppWindow className="mr-2 h-4 w-4" />
                                                 Agentic Services
                                             </TabsTrigger>
-                                            {/* <TabsTrigger value="scopes">
-                                                <Tags className="mr-2 h-4 w-4" />
-                                                Scopes
-                                            </TabsTrigger> */}
                                             <TabsTrigger value="traces">
                                                 <Activity className="mr-2 h-4 w-4" />
                                                 Traces
@@ -65,7 +61,6 @@ export function MASDetailPage() {
                                 <CardContent>
                                     {activeTab === 'info' && <MASInfoTab mas={mas} />}
                                     {activeTab === 'apps' && <MASAppsTab mas={mas} />}
-                                    {/* {activeTab === 'scopes' && <MASScopesTab mas={mas} />} */}
                                     {activeTab === 'traces' && <MASTracesTab masId={id || ''} />}
                                 </CardContent>
                             </Card>
