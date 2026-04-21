@@ -15,7 +15,7 @@ spec:
         scheme: http
       kubernetesWorkloadName: {{ .Values.agentSafe.serviceName }}
       httpRequestSchema:
-        promptFieldJsonPath: "$.content"
+        promptFieldJsonPath: "{.content}"
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl:
@@ -40,7 +40,7 @@ spec:
         scheme: http
       kubernetesWorkloadName: {{ .Values.agentCompromised.serviceName }}
       httpRequestSchema:
-        promptFieldJsonPath: "$.content"
+        promptFieldJsonPath: "{.content}"
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl:
@@ -48,4 +48,4 @@ spec:
         scheme: http
       kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
       httpRequestSchema:
-        promptFieldJsonPath: "$.content"
+        promptFieldJsonPath: "{.content}"
