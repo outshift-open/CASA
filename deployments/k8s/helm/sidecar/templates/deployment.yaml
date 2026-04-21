@@ -49,9 +49,9 @@ spec:
               protocol: TCP
           env:
             - name: AUTH_SERVER_HOST
-              value: zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000
+              value: {{ .Values.authServerHost }}
             - name: AUTH_SERVER_SCHEME
-              value: http
+              value: {{ .Values.authServerScheme | default "http" }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
