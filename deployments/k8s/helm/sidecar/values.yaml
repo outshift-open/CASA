@@ -69,6 +69,7 @@ tolerations: []
 affinity: {}
 
 authServerHost: ""
+authServerPort: "8000"
 authServerScheme: "http"
 
 llm_proxy:
