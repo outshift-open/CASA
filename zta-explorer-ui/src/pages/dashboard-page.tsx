@@ -2,10 +2,10 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
-import {Shield, Lock, AppWindow, Network, Tags, RefreshCw, HelpCircle} from 'lucide-react';
+import {Shield, Lock, AppWindow, Network, /*Tags,*/ RefreshCw, HelpCircle} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
-import {useScopes} from '@/hooks/use-scopes';
+// import {useScopes} from '@/hooks/use-scopes';
 import {useTraces} from '@/hooks/use-traces';
 import {useMemo} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -136,13 +136,13 @@ export function DashboardPage() {
         dataUpdatedAt: masUpdatedAt,
         refetch: refetchMAS
     } = useMAS();
-    const {
-        data: scopesData,
-        isLoading: scopesLoading,
-        error: scopesError,
-        dataUpdatedAt: scopesUpdatedAt,
-        refetch: refetchScopes
-    } = useScopes();
+    // const {
+    //     data: scopesData,
+    //     isLoading: scopesLoading,
+    //     error: scopesError,
+    //     dataUpdatedAt: scopesUpdatedAt,
+    //     refetch: refetchScopes
+    // } = useScopes();
     const {
         data: tracesData,
         isLoading: tracesLoading,
@@ -150,11 +150,11 @@ export function DashboardPage() {
         refetch: refetchTraces
     } = useTraces(undefined, 1, 100, true);
 
-    const isRefreshing = isLoading || masLoading || scopesLoading || tracesLoading;
+    const isRefreshing = isLoading || masLoading || /*scopesLoading ||*/ tracesLoading;
 
     const handleRefresh = async () => {
         try {
-            await Promise.all([refetchApps(), refetchMAS(), refetchScopes(), refetchTraces()]);
+            await Promise.all([refetchApps(), refetchMAS(), /*refetchScopes(),*/ refetchTraces()]);
             toast.success('Dashboard refreshed successfully');
         } catch {
             toast.error('Failed to refresh dashboard');
@@ -163,9 +163,9 @@ export function DashboardPage() {
 
     const totalApps = appsData?.total ?? 0;
     const totalMAS = masData?.length ?? 0;
-    const totalScopes = Array.isArray(scopesData) ? scopesData.length : 0;
+    // const totalScopes = Array.isArray(scopesData) ? scopesData.length : 0;
 
-    const lastUpdated = Math.max(appsUpdatedAt, masUpdatedAt, scopesUpdatedAt, tracesUpdatedAt);
+    const lastUpdated = Math.max(appsUpdatedAt, masUpdatedAt, /*scopesUpdatedAt,*/ tracesUpdatedAt);
     const lastUpdatedLabel = lastUpdated
         ? new Date(lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'})
         : null;
@@ -280,7 +280,7 @@ export function DashboardPage() {
             </div>
 
             {/* Stat cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card
                     className="cursor-pointer hover:bg-accent transition-colors gap-4"
                     onClick={() => navigate('/mas')}
@@ -321,7 +321,7 @@ export function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card
+                {/* <Card
                     className="cursor-pointer hover:bg-accent transition-colors gap-4"
                     onClick={() => navigate('/scopes')}
                 >
@@ -339,7 +339,7 @@ export function DashboardPage() {
                         )}
                         <p className="text-xs text-muted-foreground">Authorization scopes</p>
                     </CardContent>
-                </Card>
+                </Card> */}
 
                 <Card className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

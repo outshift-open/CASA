@@ -7,8 +7,8 @@ import {ApplicationsPage} from '@/pages/apps/applications-page';
 import {AppDetailPage} from '@/pages/apps/app-detail-page';
 import {MASPage} from '@/pages/mas/mas-page';
 import {MASDetailPage} from '@/pages/mas/mas-detail-page';
-import {ScopesPage} from '@/pages/scopes/scopes-page';
-import {ScopeDetailPage} from '@/pages/scopes/scope-detail-page';
+// import {ScopesPage} from '@/pages/scopes/scopes-page';
+// import {ScopeDetailPage} from '@/pages/scopes/scope-detail-page';
 import {SettingsPage} from '@/pages/settings-page';
 import {NotFoundPage} from '@/pages/not-found-page';
 import {Toaster} from '@/components/ui/sonner';
@@ -35,8 +35,8 @@ function App() {
                                 <Route path="/agentic-services/:id" element={<AppDetailPage />} />
                                 <Route path="/mas" element={<MASPage />} />
                                 <Route path="/mas/:id" element={<MASDetailPage />} />
-                                <Route path="/scopes" element={<ScopesPage />} />
-                                <Route path="/scopes/:id" element={<ScopeDetailPage />} />
+                                {/* <Route path="/scopes" element={<ScopesPage />} /> */}
+                                {/* <Route path="/scopes/:id" element={<ScopeDetailPage />} /> */}
                                 <Route path="/settings" element={<SettingsPage />} />
                                 <Route path="*" element={<NotFoundPage />} />
                             </Routes>
