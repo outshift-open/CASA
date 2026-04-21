@@ -1,14 +1,14 @@
 namespace: zta-control-plane-dev
 
 agentSafe:
-  replicas: 1
+  replicas: 3
   serviceName: demo-agent-safe
   servicePort: 8082
   docker:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-safe
     suffix: ''
-  tagversion: 2026-04-21-16539f4
+  tagversion: 2026-04-21-71896da
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 agentCompromised:
@@ -19,7 +19,7 @@ agentCompromised:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-compromised
     suffix: ''
-  tagversion: 2026-04-21-16539f4
+  tagversion: 2026-04-21-71896da
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
@@ -30,7 +30,7 @@ mcp:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
-  tagversion: 2026-04-21-16539f4
+  tagversion: 2026-04-21-71896da
 
 chatUis:
   - name: safe

@@ -14,14 +14,14 @@ spec:
         host: {{ .Values.agentSafe.serviceName }}:{{ .Values.agentSafe.servicePort }}
         scheme: http
       kubernetesWorkloadName: {{ .Values.agentSafe.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "$.content"
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl:
         host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
         scheme: http
       kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
-      httpRequestSchema:
-        promptFieldJsonPath: "{.content}"
 ---
 apiVersion: zta.io/v1alpha1
 kind: MultiAgentSystem
@@ -39,6 +39,8 @@ spec:
         host: {{ .Values.agentCompromised.serviceName }}:{{ .Values.agentCompromised.servicePort }}
         scheme: http
       kubernetesWorkloadName: {{ .Values.agentCompromised.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "$.content"
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl:
@@ -46,4 +48,4 @@ spec:
         scheme: http
       kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
       httpRequestSchema:
-        promptFieldJsonPath: "{.content}"
+        promptFieldJsonPath: "$.content"
