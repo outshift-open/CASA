@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - "PYRA-643-refactor-all-helm-charts-for-zta-middleware-deployment-repo"
 
 jobs:
   checkout:
