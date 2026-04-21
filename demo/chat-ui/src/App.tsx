@@ -46,32 +46,42 @@ export default function App() {
       content: text,
       timestamp: new Date(),
     }
-    setMessages((prev) => [...prev, userMsg])
+    const nextMessages = [...messages, userMsg]
+    setMessages(nextMessages)
     setLoading(true)
 
     try {
       const res = await fetch(`${AGENT_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: text }),
+        body: JSON.stringify({
+          conversation: {
+            messages: nextMessages.map(({ role, content }) => ({
+              role: role === 'agent' ? 'assistant' : role,
+              content,
+            })),
+          },
+        }),
       })
 
       if (!res.ok) throw new Error(`Agent returned ${res.status}`)
 
-      const data = (await res.json()) as { response: string }
+      const data = (await res.json()) as { response: string; conversation?: { messages: unknown[] } }
       const agentMsg: Message = {
         id: nextId(),
         role: 'agent',
         content: data.response,
+        conversation: data.conversation,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, agentMsg])
     } catch (err) {
+      setMessages(messages)
       setError(err instanceof Error ? err.message : 'Failed to reach agent')
     } finally {
       setLoading(false)
     }
-  }, [input, loading])
+  }, [input, loading, messages])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

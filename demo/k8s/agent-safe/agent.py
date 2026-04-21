@@ -45,4 +45,12 @@ class Agent:
         )
         response = await agent.ainvoke({"messages": messages})
 
-        return response.get("messages")[-1].content
+        all_messages = response.get("messages", [])
+        serialized = []
+        for msg in all_messages:
+            if msg.type == "ai" and not (hasattr(msg, "tool_calls") and msg.tool_calls):
+                serialized.append({"role": "assistant", "content": msg.content or ""})
+            elif msg.type == "human":
+                serialized.append({"role": "user", "content": msg.content or ""})
+
+        return all_messages[-1].content, serialized
