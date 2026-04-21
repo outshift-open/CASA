@@ -88,5 +88,7 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
             if not mas:
                 raise ValueError(f"MultiAgentSystem with name '{name}' in namespace '{namespace}' not found")
             return mas
+        except ValueError:
+            raise
         except Exception as e:
             raise Exception(f"Error retrieving MAS by name and namespace: {e}") from e
