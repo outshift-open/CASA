@@ -24,10 +24,19 @@ impl RootContext for HttpHeadersRoot {
     }
 
     fn create_http_context(&self, context_id: u32) -> Option<Box<dyn HttpContext>> {
+        let auth_srv_host =
+            std::env::var("AUTH_SERVER_HOST").unwrap_or_else(|_| "localhost".to_string());
+        let auth_srv_port = std::env::var("AUTH_SERVER_PORT")
+            .ok()
+            .and_then(|v| v.parse::<u16>().ok())
+            .unwrap_or(8000);
+
         Some(Box::new(LlmCall {
             context_id: context_id,
             litellm_call_id: None,
             pending: HashMap::new(),
+            auth_server_host: auth_srv_host,
+            auth_server_port: auth_srv_port,
         }))
     }
 }
@@ -40,6 +49,8 @@ struct LlmCall {
     context_id: u32,
     litellm_call_id: Option<String>,
     pending: HashMap<u32, PendingAuthSrvCall>,
+    auth_server_host: String,
+    auth_server_port: u16,
 }
 
 impl Context for LlmCall {
@@ -105,11 +116,11 @@ impl HttpContext for LlmCall {
 
                     let ret_token = self
                         .dispatch_http_call(
-                            "outbound|8000||zta-control-plane-auth-service.zta-sidecar.svc.cluster.local",
+                            format!("outbound|{}||{}", self.auth_server_port, self.auth_server_host).as_str(),
                             vec![
                                 (":method", "POST"),
                                 (":path", "/k8s/trace/llm/call_end"),
-                                (":authority", "zta-control-plane-auth-service.zta-sidecar.svc.cluster.local:8000"),
+                                (":authority", format!("{}:{}", self.auth_server_host, self.auth_server_port).as_str()),
                                 ("content-type", "application/json"),
                             ],
                             Some(&payload),
