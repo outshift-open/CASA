@@ -214,6 +214,7 @@ opentelemetry-ebpf-instrumentation:
       discovery:
         instrument:
           - k8s_pod_name: "zta-demo-*"
+          - k8s_pod_name: "demo-agent-*"
       routes:
         unmatched: heuristic
       attributes:
