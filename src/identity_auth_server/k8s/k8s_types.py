@@ -92,6 +92,7 @@ class MultiAgentSystemSpec(BaseModel):
         alias="enabledToolChecks",
     )
     apps: List[AppSpec] = Field(default_factory=list, description="List of applications in this MAS")
+    llm_host: Optional[str] = Field(default=None, description="LLM proxy host for outbound LLM call tracking")
 
     class Config:
         """Pydantic model configuration."""

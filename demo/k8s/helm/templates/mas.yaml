@@ -22,6 +22,8 @@ spec:
         host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
         scheme: http
       kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.content}"
 ---
 apiVersion: zta.io/v1alpha1
 kind: MultiAgentSystem
