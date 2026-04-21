@@ -267,7 +267,7 @@ jobs:
             enable-private-ecr: false
             enable-public-ecr: false
             checkout-submodules: false
-            chart-path: deployments/k8s/helm/zta-control-plane/sidecar
+            chart-path: deployments/k8s/helm/sidecar
         secrets:
             ghcr-username: ${{ secrets.GHCR_USERNAME }}
             ghcr-token: ${{ secrets.GHCR_TOKEN }}
