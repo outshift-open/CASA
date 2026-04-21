@@ -15,4 +15,4 @@ spec:
     - name: AUTH_SERVER_HOST
       value: "TODO: get it from the _helpers.tpl"
     - name: AUTH_SERVER_PORT
-      value: 8000
+      value: "8000"
