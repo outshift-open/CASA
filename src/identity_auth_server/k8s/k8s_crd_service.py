@@ -120,6 +120,7 @@ class K8sCRDService:
         k8s_name: str,
         namespace: str,
         workload_names: Optional[dict] = None,
+        prompt_field_json_paths: Optional[dict] = None,
     ) -> K8sMultiAgentSystemCRD:
         """Build K8sMultiAgentSystemCRD SQLModel record linked to an existing MAS."""
         apps = self._app_service.get_mas_apps(str(mas.id))
@@ -144,6 +145,7 @@ class K8sCRDService:
                     app_id=app.id,
                     mas_crd_id=crd_id,
                     kubernetes_workload_name=(workload_names or {}).get(app.name),
+                    prompt_field_json_path=(prompt_field_json_paths or {}).get(app.name),
                 )
             )
 
@@ -255,7 +257,12 @@ class K8sCRDService:
 
         # Persist the K8sMultiAgentSystemCRD record (used by k8s_query_service for host-based lookups)
         workload_names = {a.name: a.kubernetes_workload_name for a in request.spec.apps if a.kubernetes_workload_name}
-        k8s_crd = self._build_k8s_crd_record(mas, request.metadata.name, request.metadata.namespace, workload_names)
+        prompt_field_json_paths = {
+            a.name: a.http_request_schema.prompt_field_json_path for a in request.spec.apps if a.http_request_schema
+        }
+        k8s_crd = self._build_k8s_crd_record(
+            mas, request.metadata.name, request.metadata.namespace, workload_names, prompt_field_json_paths
+        )
         self._k8s_mas_repository.create_mas(k8s_crd)
 
         # Build CRD response

@@ -41,6 +41,19 @@ class AppSpecBaseUrl(BaseModel):
         populate_by_name = True
 
 
+class HttpRequestSchema(BaseModel):
+    """HTTP request schema for extracting the prompt field."""
+
+    prompt_field_json_path: str = Field(
+        description="JSONPath to the prompt field in the HTTP request body", alias="promptFieldJsonPath"
+    )
+
+    class Config:
+        """Pydantic model configuration."""
+
+        populate_by_name = True
+
+
 class AppSpec(BaseModel):
     """Application specification within a MultiAgentSystem."""
 
@@ -49,6 +62,9 @@ class AppSpec(BaseModel):
     base_url: "AppSpecBaseUrl" = Field(description="Base URL of the application", alias="baseUrl")
     kubernetes_workload_name: Optional[str] = Field(
         default=None, description="Name of the Kubernetes workload running the app", alias="kubernetesWorkloadName"
+    )
+    http_request_schema: Optional[HttpRequestSchema] = Field(
+        default=None, description="HTTP request schema for extracting the prompt field", alias="httpRequestSchema"
     )
 
     class Config:
