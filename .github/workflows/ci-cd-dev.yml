@@ -328,7 +328,9 @@ jobs:
         name: Trigger CD ext-authz-middleware
         needs:
             [
-                call-docker-build-push-extauthz,
+                call-docker-build-push-wasm,
+                call-docker-build-push-llm-proxy-wasm,
+                call-docker-build-push-ext-auth-service,
                 call-helm-publish-ext-authz-middleware,
                 utils,
             ]
