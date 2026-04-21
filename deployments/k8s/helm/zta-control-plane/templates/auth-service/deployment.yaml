@@ -72,6 +72,18 @@ spec:
               value: {{ .Values.authService.openai.modelId | quote }}
             - name: PIPELINE_OPENAI_GPT4o_MODEL_ID
               value: {{ .Values.authService.openai.pipelineModelId | quote }}
+            - name: LLM_API_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: llm-api-base-url
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: llm-api-key
+            - name: LLM_MODEL_ID
+              value: {{ .Values.authService.openai.modelId | quote }}
           readinessProbe:
             tcpSocket:
               port: 8000
