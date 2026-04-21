@@ -5,7 +5,7 @@ from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, desc, select
+from sqlmodel import Session, delete, desc, select
 
 from identity_auth_server.core.types import AppType
 from identity_auth_server.k8s.types import (
@@ -155,8 +155,7 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
     def delete_mas(self, crd: K8sMultiAgentSystemCRD) -> None:
         """Delete a K8sMultiAgentSystemCRD along with its metadata and app specs."""
         try:
-            for app_spec in crd.app_specs:
-                self._session.delete(app_spec)
+            self._session.exec(delete(K8sAppSpec).where(K8sAppSpec.mas_crd_id == crd.id))
             if crd.mas_metadata:
                 self._session.delete(crd.mas_metadata)
             self._session.delete(crd)
