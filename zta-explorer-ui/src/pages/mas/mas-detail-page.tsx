@@ -4,7 +4,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {MASInfoTab, MASAppsTab, MASTracesTab} from '@/components/mas';
-import {Info, Activity, AppWindow} from 'lucide-react';
+import {Info, Activity, AppWindow, Tags} from 'lucide-react';
 import {useState} from 'react';
 
 export function MASDetailPage() {
@@ -50,6 +50,14 @@ export function MASDetailPage() {
                                             <TabsTrigger value="apps">
                                                 <AppWindow className="mr-2 h-4 w-4" />
                                                 Agentic Services
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="scopes"
+                                                disabled
+                                                className="opacity-40 cursor-not-allowed"
+                                            >
+                                                <Tags className="mr-2 h-4 w-4" />
+                                                Scopes
                                             </TabsTrigger>
                                             <TabsTrigger value="traces">
                                                 <Activity className="mr-2 h-4 w-4" />

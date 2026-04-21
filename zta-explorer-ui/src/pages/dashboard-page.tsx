@@ -2,7 +2,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
-import {Shield, Lock, AppWindow, Network, RefreshCw, HelpCircle} from 'lucide-react';
+import {Shield, Lock, AppWindow, Network, Tags, RefreshCw, HelpCircle} from 'lucide-react';
 import {useApps} from '@/hooks/use-apps';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
@@ -271,7 +271,7 @@ export function DashboardPage() {
             </div>
 
             {/* Stat cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card
                     className="cursor-pointer hover:bg-accent transition-colors gap-4"
                     onClick={() => navigate('/mas')}
@@ -309,6 +309,17 @@ export function DashboardPage() {
                             <div className="text-2xl font-bold">{totalApps}</div>
                         )}
                         <p className="text-xs text-muted-foreground">Agents, Clients & MCP Servers</p>
+                    </CardContent>
+                </Card>
+
+                <Card className="gap-4 opacity-50 cursor-not-allowed">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Scopes</CardTitle>
+                        <Tags className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-muted-foreground">—</div>
+                        <p className="text-xs text-muted-foreground">Coming soon</p>
                     </CardContent>
                 </Card>
 

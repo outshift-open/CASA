@@ -1,5 +1,4 @@
 import {useMASApps, useUpdateMAS} from '@/hooks/use-mas';
-import {useMASScopes} from '@/hooks/use-scopes';
 import {Button} from '@/components/ui/button';
 import {Switch} from '@/components/ui/switch';
 import {Bot, AppWindow, Server, Tags, Copy, Download, Wrench, ShieldCheck, ShieldOff} from 'lucide-react';
@@ -68,7 +67,6 @@ interface MASInfoTabProps {
 
 export function MASInfoTab({mas}: MASInfoTabProps) {
     const {data: apps} = useMASApps(mas.id);
-    const {data: scopes} = useMASScopes(mas.id);
     const {mutate: updateMAS, isPending} = useUpdateMAS(mas.id);
 
     const stats = useMemo(() => {
@@ -198,12 +196,12 @@ export function MASInfoTab({mas}: MASInfoTabProps) {
                     <p className="text-2xl font-bold">{stats.totalTools}</p>
                 </div>
 
-                <div className="flex flex-col gap-1 p-3 rounded-lg border bg-card">
+                <div className="flex flex-col gap-1 p-3 rounded-lg border bg-card opacity-50">
                     <div className="flex items-center justify-between">
                         <p className="text-xs text-muted-foreground">Scopes</p>
                         <Tags className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <p className="text-2xl font-bold">{scopes?.length ?? 0}</p>
+                    <p className="text-sm text-muted-foreground">Coming soon</p>
                 </div>
             </div>
 

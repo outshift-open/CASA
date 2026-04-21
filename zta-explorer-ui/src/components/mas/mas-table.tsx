@@ -6,13 +6,11 @@ import {Input} from '@/components/ui/input';
 import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
 import {MASDataTable} from './mas-data-table';
 import {createMASColumns} from './mas-columns';
-import {RefreshCw, LayoutGrid, List, Network, AppWindow, Tags, AlertCircle, Loader2, Search} from 'lucide-react';
+import {RefreshCw, LayoutGrid, List, Network, AppWindow, AlertCircle, Loader2, Search} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import type {MAS} from '@/types/mas.types';
 import type {App} from '@/types/app.types';
-import type {Scope} from '@/types/scope.types';
 import {masService} from '@/services/mas.service';
-import {scopeService} from '@/services/scope.service';
 
 interface MASTableProps {
     data: MAS[];
@@ -26,16 +24,13 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
     const [view, setView] = useState<'table' | 'grid'>('table');
     const [search, setSearch] = useState('');
     const [masApps, setMasApps] = useState<Record<string, App[]>>({});
-    const [masScopes, setMasScopes] = useState<Record<string, Scope[]>>({});
     const [countsLoading, setCountsLoading] = useState<Record<string, boolean>>({});
     const [countsError, setCountsError] = useState<Record<string, boolean>>({});
 
-    // Fetch apps and scopes for each MAS
     useEffect(() => {
         if (!data || data.length === 0) return;
 
         const fetchData = async () => {
-            // Initialize loading state for all MAS
             const loadingState: Record<string, boolean> = {};
             data.forEach((mas) => {
                 loadingState[mas.id] = true;
@@ -43,29 +38,22 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
             setCountsLoading(loadingState);
 
             const appsData: Record<string, App[]> = {};
-            const scopesData: Record<string, Scope[]> = {};
             const errors: Record<string, boolean> = {};
             const loading: Record<string, boolean> = {};
 
             for (const mas of data) {
                 try {
-                    const [apps, scopes] = await Promise.all([
-                        masService.getMASApps(mas.id),
-                        scopeService.getMASScopes(mas.id)
-                    ]);
+                    const apps = await masService.getMASApps(mas.id);
                     appsData[mas.id] = apps;
-                    scopesData[mas.id] = scopes;
                     errors[mas.id] = false;
                 } catch {
                     appsData[mas.id] = [];
-                    scopesData[mas.id] = [];
                     errors[mas.id] = true;
                 }
                 loading[mas.id] = false;
             }
 
             setMasApps(appsData);
-            setMasScopes(scopesData);
             setCountsError(errors);
             setCountsLoading(loading);
         };
@@ -74,8 +62,8 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
     }, [data]);
 
     const columns = useMemo(
-        () => createMASColumns(navigate, masApps, masScopes, countsLoading, countsError),
-        [navigate, masApps, masScopes, countsLoading, countsError]
+        () => createMASColumns(navigate, masApps, countsLoading, countsError),
+        [navigate, masApps, countsLoading, countsError]
     );
     const filteredData = search
         ? data.filter(
@@ -148,7 +136,6 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {filteredData.map((mas) => {
                                 const apps = masApps[mas.id] ?? [];
-                                const scopes = masScopes[mas.id] ?? [];
                                 const loading = countsLoading[mas.id];
                                 const hasError = countsError[mas.id];
                                 return (
@@ -177,10 +164,6 @@ export function MASTable({data, total, isLoading, onRefresh}: MASTableProps) {
                                                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                             <AppWindow className="h-3 w-3" />
                                                             <span>{apps.length}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                            <Tags className="h-3 w-3" />
-                                                            <span>{scopes.length}</span>
                                                         </div>
                                                     </>
                                                 )}

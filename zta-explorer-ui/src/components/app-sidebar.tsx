@@ -11,7 +11,8 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
-    Network
+    Network,
+    Tags
 } from 'lucide-react';
 import {NavLink} from 'react-router-dom';
 
@@ -113,6 +114,16 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         ))}
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                tooltip="Scopes (coming soon)"
+                                disabled
+                                className="opacity-40 cursor-not-allowed"
+                            >
+                                <Tags />
+                                <span>Scopes</span>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
