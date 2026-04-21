@@ -31,7 +31,12 @@ func main() {
 		os.Exit(-1)
 	}
 
-	namespace := "zta-sidecar"
+	namespace := os.Getenv("K8S_NAMESPACE")
+	if namespace == "" {
+		logger.Error("K8S_NAMESPACE is not set", slog.Any("err", err))
+		os.Exit(-1)
+	}
+
 	k8sService := internal.NewKubernetesService(k8sDynClient, k8sClientset, namespace)
 	authSrvClient := internal.NewAuthServerClient(newAuthServerClient())
 

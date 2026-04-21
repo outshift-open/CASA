@@ -52,6 +52,8 @@ spec:
               value: {{ .Values.authServerHost }}
             - name: AUTH_SERVER_SCHEME
               value: {{ .Values.authServerScheme | default "http" }}
+            - name: K8S_NAMESPACE
+              value: {{ .Release.Namespace }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
