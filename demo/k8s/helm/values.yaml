@@ -60,6 +60,10 @@ chatUis:
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
 
+llmCredentials:
+  apiBaseUrl: ""
+  apiKey: ""
+
 masSafe:
   name: "ZTA Demo Safe"
   enabledToolChecks:
