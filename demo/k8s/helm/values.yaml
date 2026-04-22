@@ -37,7 +37,7 @@ chatUis:
     docker:
       registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
       image: outshift-zta/chat-ui
-    tagversion: 2026-04-20-513f685
+    tagversion: 2026-04-22-7c71381
     agentUrl: /safe-agent
     ingress:
       enabled: true
@@ -50,7 +50,7 @@ chatUis:
     docker:
       registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
       image: outshift-zta/chat-ui
-    tagversion: 2026-04-20-513f685
+    tagversion: 2026-04-22-7c71381
     agentUrl: /compromised-agent
     ingress:
       enabled: true
