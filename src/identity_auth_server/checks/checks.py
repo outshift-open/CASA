@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from identity_auth_server.checks.base import BaseToolCheck, CheckResult, Payload
 from identity_auth_server.core.events import MCPToolBlockingReason, MCPToolBlockingType
 from identity_auth_server.core.types import ToolCheckFlags
+from identity_auth_server.pipelines.conversation.tbac_components import TaskToToolMatcher, TaskToolMatcherInput
 from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
 from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
 
@@ -48,24 +49,33 @@ class ToolIntentAICheck(BaseToolCheck):
 
     flag = ToolCheckFlags.AI_POWERED_TOOL_MATCH
 
-    def __init__(self, task_tool_matcher: TaskToolMatcher):
+    # def __init__(self, task_tool_matcher: TaskToolMatcher, task_tool_matcher: TaskToToolMatcher):
+    def __init__(self, task_tool_matcher: TaskToToolMatcher):
         """Initialize with a task-tool matcher."""
         self.task_tool_matcher = task_tool_matcher
 
     def is_satisfied(self, payload: Payload):
         """Check if the tool matches the user's intent using AI."""
         check_result = CheckResult(satisfied=True)
-        match = self.task_tool_matcher.match(
-            TaskToolMatchInput(
+
+        tool_description: str = ""
+        for tool in payload.mcp_server.tools:
+            if tool.name == payload.requested_tool:
+                tool_description = tool.description
+                break
+
+        match = self.task_tool_matcher.match_task_to_tool(
+            TaskToolMatcherInput(
                 task=payload.user_input.prompt,
-                requested_tool=payload.requested_tool,
-                mcp_server=payload.mcp_server,
+                tool_name=payload.requested_tool,
+                tool_description=tool_description,
             )
         )
-        if not match.task_tool_match:
+        if not match.appropriate:
             # TODO: store them for caching purposes?
             check_result.satisfied = False
             check_result.blocking_type = MCPToolBlockingType.AI_POWERED
             check_result.blocking_reason = MCPToolBlockingReason.TOOL_INTENT_MISMATCH
+            check_result.reasoning = match.reasoning
 
         return check_result

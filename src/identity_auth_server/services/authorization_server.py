@@ -32,6 +32,7 @@ from identity_auth_server.core.types import (
     ToolCheckFlags,
     UserInput,
 )
+from identity_auth_server.pipelines.conversation.tbac_components import TaskExtractor
 from identity_auth_server.services.mcp_discover import McpDiscoverService
 from identity_auth_server.telemetry.tracer import Tracer
 
@@ -95,6 +96,7 @@ class AuthorizationServerService:
         user_input_repository: UserInputRepository,
         tracer: Tracer,
         tool_check_factory: ToolCheckFactory,
+        task_extractor: TaskExtractor,
     ):
         """Store the backing session repository, keycloak manager, and client repository."""
         self.authorization_server_repository = authorization_server_repository
@@ -104,6 +106,7 @@ class AuthorizationServerService:
         self.user_input_repository = user_input_repository
         self.tracer = tracer
         self.tool_check_factory = tool_check_factory
+        self.task_extractor = task_extractor
 
     def generate_token_oauth(self, app_id: str, request: TokenRequest) -> TokenResponse:
         """Generate a new token with client_credential grant type for a trusted App (Clients)."""
@@ -118,11 +121,22 @@ class AuthorizationServerService:
             raise Exception(f"App {app_id} has no authorization server configured.")
 
         user_input: UserInput = None
+        task: str | None = None
         if request.user_input and request.user_input != "":
+            try:
+                task = self.task_extractor.extract_task(request.user_input)
+                if task is None:
+                    logger.error("task is none, fallbacking to the whole conversation")
+            except Exception as e:
+                logger.error(f"failed to extract the task from the conversation, fallbacking to the whole conversation: {e}")
+
+            if task is None:
+                task = request.user_input
+
             # store the user initial prompt
             user_input = self.user_input_repository.create(
                 UserInput(
-                    prompt=request.user_input,
+                    prompt=task,
                     app_id=app.id,
                 )
             )
@@ -161,7 +175,6 @@ class AuthorizationServerService:
 
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
-        print(f"[TOKEN_EXCHANGE] subject_token = {request.subject_token}")
         subject_token = self._introspect_token(token=request.subject_token)
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id if subject_token.app_id else "")
         if subject_app is None:

@@ -29,8 +29,7 @@ from identity_auth_server.core.repositories.user_input import UserInputPostgresR
 from identity_auth_server.database.postgres.postgres import PostgresDB
 from identity_auth_server.k8s.k8s_query_service import K8sQueryService
 from identity_auth_server.k8s.repository import K8sMultiAgentSystemPostgresRepository
-from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher, TaskToolMatcherFactory
-from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatcherType
+from identity_auth_server.pipelines.conversation.tbac_components import TaskExtractor, TaskToToolMatcher
 from identity_auth_server.services.app_service import AppService
 from identity_auth_server.services.authorization_server import AuthorizationServerService
 from identity_auth_server.services.mas_service import MultiAgentSystemService
@@ -138,9 +137,8 @@ class Container:
         on_exit_callback=exit_session,
     )
 
-    def provide_task_tool_matcher(self: Provider[TaskToolMatcher]):
-        factory = TaskToolMatcherFactory()
-        return factory.create(TaskToolMatcherType.LLM_VERIFIER)
+    def provide_task_tool_matcher(self: Provider[TaskToToolMatcher]):
+        return TaskToToolMatcher(model_id=os.getenv("LLM_MODEL_ID", ""))
 
     get_task_tool_matcher = singleton(factory=provide_task_tool_matcher)
 
@@ -189,7 +187,7 @@ class Container:
         return Tracer(tracer_repository=tracer_repository)
 
     @staticmethod
-    def get_tool_check_factory(task_tool_matcher: Annotated[TaskToolMatcher, Depends(get_task_tool_matcher)]):
+    def get_tool_check_factory(task_tool_matcher: Annotated[TaskToToolMatcher, Depends(get_task_tool_matcher)]):
         return ToolCheckFactory(
             checks=[
                 ToolSelectedDeterministicCheck(),
@@ -197,6 +195,10 @@ class Container:
                 ToolIntentAICheck(task_tool_matcher),
             ]
         )
+
+    @staticmethod
+    def get_task_extractor():
+        return TaskExtractor(model_id=os.getenv("LLM_MODEL_ID", ""))
 
     @staticmethod
     def get_authorization_service(
@@ -207,6 +209,7 @@ class Container:
         user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
         tracer: Annotated[Tracer, Depends(get_tracer)],
         tool_check_factory: Annotated[ToolCheckFactory, Depends(get_tool_check_factory)],
+        task_extractor: Annotated[TaskExtractor, Depends(get_task_extractor)],
     ):
         return AuthorizationServerService(
             authorization_server_repository,
@@ -216,6 +219,7 @@ class Container:
             user_input_repository=user_input_repository,
             tracer=tracer,
             tool_check_factory=tool_check_factory,
+            task_extractor=task_extractor,
         )
 
     @staticmethod
@@ -267,8 +271,9 @@ class Container:
     def get_user_input_service(
         user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
         app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        task_extractor: Annotated[TaskExtractor, Depends(get_task_extractor)],
     ):
-        return UserInputService(user_input_repository, app_repository)
+        return UserInputService(user_input_repository, app_repository, task_extractor)
 
     @staticmethod
     def get_k8s_query_service(

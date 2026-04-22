@@ -26,6 +26,7 @@ class CheckResult(BaseModel):
     satisfied: bool = True
     blocking_type: Optional[MCPToolBlockingType] = None
     blocking_reason: Optional[MCPToolBlockingReason] = None
+    reasoning: Optional[str] = None
 
 
 class BaseToolCheck(ABC):
