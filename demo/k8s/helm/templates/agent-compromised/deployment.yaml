@@ -36,13 +36,13 @@ spec:
         - name: OPENAI_API_BASE
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-secret
-              key: OPENAI_API_BASE
+              name: llm-credentials
+              key: api-base-url
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-secret
-              key: OPENAI_API_KEY
+              name: llm-credentials
+              key: api-key
         - name: MCP_SERVER_URL
           value: "{{ .Values.agentCompromised.mcp_server_url }}"
         resources:

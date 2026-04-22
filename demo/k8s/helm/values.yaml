@@ -8,7 +8,7 @@ agentSafe:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-safe
     suffix: ''
-  tagversion: 2026-04-21-71896da
+  tagversion: 2026-04-22-d7b6dce
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 agentCompromised:
@@ -19,7 +19,7 @@ agentCompromised:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-compromised
     suffix: ''
-  tagversion: 2026-04-21-71896da
+  tagversion: 2026-04-22-d7b6dce
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
@@ -30,7 +30,7 @@ mcp:
     registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
-  tagversion: 2026-04-21-71896da
+  tagversion: 2026-04-22-d7b6dce
 
 chatUis:
   - name: safe
@@ -73,7 +73,3 @@ masCompromised:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
   llm_host: litellm.prod.outshift.ai
-
-secret:
-  openai_api_base: http://... # The scheme has to be HTTP
-  openai_api_key:
