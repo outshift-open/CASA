@@ -355,9 +355,9 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
                         {event.blocking_type && (
                             <Badge
                                 variant="outline"
-                                className={`text-[9px] h-4 px-1.5 font-medium ${event.blocking_type === 'AI_POWERED' ? 'border-purple-500/50 text-purple-400' : 'border-orange-500/50 text-orange-400'}`}
+                                className={`text-[9px] h-4 px-1.5 font-medium ${event.blocking_type === 'AI_POWERED' ? 'border-sky-500/50 text-sky-400' : 'border-orange-500/50 text-orange-400'}`}
                             >
-                                {event.blocking_type === 'AI_POWERED' ? 'AI' : 'DETERMINISTIC'}
+                                {event.blocking_type === 'AI_POWERED' ? 'SEMANTIC' : 'DETERMINISTIC'}
                             </Badge>
                         )}
                     </>

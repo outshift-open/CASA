@@ -230,7 +230,7 @@ export function DashboardPage() {
         () =>
             [
                 {name: 'Deterministic', value: traceStats.deterministicBlocks, color: '#f97316'},
-                {name: 'AI-Powered', value: traceStats.aiBlocks, color: '#a855f7'}
+                {name: 'Semantic', value: traceStats.aiBlocks, color: '#38bdf8'}
             ].filter((d) => d.value > 0),
         [traceStats]
     );
@@ -410,7 +410,7 @@ export function DashboardPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Deny Type</CardTitle>
-                        <CardDescription>Deterministic vs AI-powered denies</CardDescription>
+                        <CardDescription>Deterministic vs semantic denies</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <DonutChart
