@@ -138,7 +138,11 @@ class Container:
     )
 
     def provide_task_tool_matcher(self: Provider[TaskToToolMatcher]):
-        return TaskToToolMatcher(model_id=os.getenv("LLM_MODEL_ID", ""))
+        return TaskToToolMatcher(
+            base_url=os.getenv("LLM_API_BASE"),
+            api_key=os.getenv("LLM_API_KEY"),
+            model_id=os.getenv("LLM_MODEL_ID", ""),
+        )
 
     get_task_tool_matcher = singleton(factory=provide_task_tool_matcher)
 
@@ -198,7 +202,11 @@ class Container:
 
     @staticmethod
     def get_task_extractor():
-        return TaskExtractor(model_id=os.getenv("LLM_MODEL_ID", ""))
+        return TaskExtractor(
+            base_url=os.getenv("LLM_API_BASE"),
+            api_key=os.getenv("LLM_API_KEY"),
+            model_id=os.getenv("LLM_MODEL_ID", ""),
+        )
 
     @staticmethod
     def get_authorization_service(
