@@ -1,4 +1,5 @@
 import uvicorn
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -38,4 +39,6 @@ async def chat_with_agent(request_body: ChatRequest, request: Request):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8082)
+    uvicorn_loop = os.environ.get("UVICORN_LOOP", "uvloop")
+    print(f"[boot] UVICORN_LOOP={uvicorn_loop}", flush=True)
+    uvicorn.run(app, host="0.0.0.0", port=8082, loop=uvicorn_loop)

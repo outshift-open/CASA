@@ -1,8 +1,8 @@
+import os
+
 from openai import OpenAI
 from pydantic import BaseModel
 import copy
-
-from dotenv import dotenv_values, find_dotenv
 
 
 TASK_EXTRACTION_PROMPT = """You are a request synthesizer.
@@ -55,13 +55,12 @@ class TaskToolMatcherOutput(BaseModel):
 
 
 class TaskExtractor:
-    def __init__(self, model_id: str):
-        config = dotenv_values(find_dotenv())
+    def __init__(self, base_url: str, api_key: str, model_id: str):
         self.model_id = model_id
         self.system_prompt = TASK_EXTRACTION_PROMPT
         self.openai_client = OpenAI(
-            base_url=config.get("LLM_API_BASE"),
-            api_key=config.get("LLM_API_KEY"),
+            base_url=base_url,
+            api_key=api_key,
             )
     def format_input(self, sample: dict) -> str:
         raw_conversation_blob = sample["request"]["conversation"]["messages"]
@@ -95,13 +94,12 @@ class TaskExtractor:
 
 
 class TaskToToolMatcher:
-    def __init__(self, model_id: str):
-        config = dotenv_values(find_dotenv())
+    def __init__(self, base_url: str, api_key: str, model_id: str):
         self.model_id = model_id
         self.system_prompt = MATCHER_SYS_PROMPT
         self.openai_client = OpenAI(
-            base_url=config.get("LLM_API_BASE"),
-            api_key=config.get("LLM_API_KEY"),
+            base_url=base_url,
+            api_key=api_key,
             )
 
     def _build_user_prompt(self, task, tool_name, tool_description) -> str:

@@ -1,0 +1,12 @@
+dependencies:
+- name: opentelemetry-ebpf-instrumentation
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.7.1
+- name: opentelemetry-collector
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.147.1
+- name: jaeger
+  repository: https://jaegertracing.github.io/helm-charts
+  version: 4.6.0
+digest: sha256:dd95416d33a2ac9d416b091bb1d281a763e0500e3a1a30669684fdfd9d1013e4
+generated: "2026-04-21T14:16:34.500594+02:00"

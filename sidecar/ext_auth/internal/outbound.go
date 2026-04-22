@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -96,49 +97,17 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			return s.deny(), nil
 		}
 
-		var callerToken string
-
-		// get stored JWT of the caller
-		for _, appSpec := range masCRD.AppSpecs {
-			slog.Info("Matching caller app", CheckCtxField, outCtxField, TraceIdField, traceID, "src_workload", callerWorkloadName, "workload", appSpec.GetKubernetesWorkloadName(), CheckIdField, checkID)
-			if !strings.EqualFold(callerWorkloadName, appSpec.GetKubernetesWorkloadName()) {
-				continue
-			}
-
-			token, err := s.authSrvClient.LoadTokenFromCache(ctx, s.namespace, traceID, appSpec.UrlHost, appSpec.Type, nil)
-			if err != nil {
-				slog.Error(fmt.Sprintf("Unable to fetch cached tokens for host %s with trace id %s", appSpec.UrlHost, traceID), "err", err, CheckIdField, checkID)
-				return s.deny(), nil
-			}
-
-			if token == nil || token.AccessToken == "" {
-				slog.Info("Call denied, no access token found", CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
-				return s.deny(), nil
-			}
-
-			slog.Info(
-				"Found cached access token",
-				CheckCtxField,
-				outCtxField,
-				TraceIdField,
-				traceID,
-				"workload",
-				appSpec.GetKubernetesWorkloadName(),
-				"token",
-				token.AccessToken,
-				CheckIdField, checkID,
-			)
-
-			callerToken = token.AccessToken
-			break
-		}
-
 		if strings.EqualFold(host, masCRD.GetLlmHost()) {
 			llmCallID := uuid.NewString()
 
 			slog.Info(fmt.Sprintf("Generating x-litellm-call-id: %s", llmCallID), CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
 
-			_, err := s.authSrvClient.StoreLLMCallMapping(ctx, s.namespace, llmCallID, traceID, callerToken)
+			callerToken, err := s.getCallerToken(ctx, masCRD, callerWorkloadName, traceID, checkID)
+			if err != nil {
+				return s.deny(), nil
+			}
+
+			_, err = s.authSrvClient.StoreLLMCallMapping(ctx, s.namespace, llmCallID, traceID, callerToken)
 			if err != nil {
 				return s.deny(), nil
 			}
@@ -156,6 +125,11 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			var associatedTool *string
 
 			if appSpec.GetType() == api.AGENT {
+				callerToken, err := s.getCallerToken(ctx, masCRD, callerWorkloadName, traceID, checkID)
+				if err != nil {
+					return s.deny(), nil
+				}
+
 				clientCreds, err := s.getClientCredentials(ctx, appSpec.GetAppId())
 				if err != nil {
 					return s.deny(), nil
@@ -204,6 +178,11 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				}
 
 				slog.Info("Found tool name", "tool_name", toolName, CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
+
+				callerToken, err := s.getCallerToken(ctx, masCRD, callerWorkloadName, traceID, checkID)
+				if err != nil {
+					return s.deny(), nil
+				}
 
 				mcpURL, err := url.Parse(fmt.Sprintf("%s://%s/mcp", appSpec.UrlScheme, appSpec.UrlHost))
 				if err != nil {
@@ -321,6 +300,48 @@ func (*OutboundExtAuthService) deny() *authv3.CheckResponse {
 		},
 		Status: &status.Status{Code: int32(codes.Unauthenticated)},
 	}
+}
+
+func (s *OutboundExtAuthService) getCallerToken(
+	ctx context.Context,
+	masCRD *api.K8sMultiAgentSystemCRDViewModel,
+	callerWorkloadName, traceID, checkID string,
+) (string, error) {
+	for _, appSpec := range masCRD.AppSpecs {
+		slog.Info("Matching caller app", CheckCtxField, outCtxField, TraceIdField, traceID, "src_workload", callerWorkloadName, "workload", appSpec.GetKubernetesWorkloadName(), CheckIdField, checkID)
+		if !strings.EqualFold(callerWorkloadName, appSpec.GetKubernetesWorkloadName()) {
+			continue
+		}
+
+		token, err := s.authSrvClient.LoadTokenFromCache(ctx, s.namespace, traceID, appSpec.UrlHost, appSpec.Type, nil)
+		if err != nil {
+			slog.Error(fmt.Sprintf("Unable to fetch cached tokens for host %s with trace id %s", appSpec.UrlHost, traceID), "err", err, CheckIdField, checkID)
+			return "", err
+		}
+
+		if token == nil || token.AccessToken == "" {
+			slog.Info("Call denied, no access token found", CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
+			return "", errors.New("no access token found")
+		}
+
+		slog.Info(
+			"Found cached access token",
+			CheckCtxField,
+			outCtxField,
+			TraceIdField,
+			traceID,
+			"workload",
+			appSpec.GetKubernetesWorkloadName(),
+			"token",
+			token.AccessToken,
+			CheckIdField, checkID,
+		)
+
+		return token.AccessToken, nil
+	}
+
+	slog.Info("Call denied, no caller workload found", CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
+	return "", errors.New("no caller workload found")
 }
 
 func (s *OutboundExtAuthService) getClientCredentials(ctx context.Context, appID string) (*AppClientCredential, error) {

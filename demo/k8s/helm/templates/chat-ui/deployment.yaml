@@ -18,6 +18,7 @@ spec:
     metadata:
       labels:
         app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
+        sidecar.istio.io/inject: "false"
     spec:
       imagePullSecrets:
         - name: regcred

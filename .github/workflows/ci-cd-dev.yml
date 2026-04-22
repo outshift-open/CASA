@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - "PYRA-643-refactor-all-helm-charts-for-zta-middleware-deployment-repo"
   workflow_dispatch:
   workflow_call:
 
@@ -256,22 +257,22 @@ jobs:
             vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
             vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
-    # call-helm-publish-ext-authz-middleware:
-    #     name: Helm publish ext-authz-middleware
-    #     needs: [checkout]
-    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@production
-    #     with:
-    #         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-    #         enable-chartmuseum: true
-    #         enable-private-ecr: false
-    #         enable-public-ecr: false
-    #         checkout-submodules: false
-    #         chart-path: ext_authz_middleware/helm/ext-authz-middleware
-    #     secrets:
-    #         ghcr-username: ${{ secrets.GHCR_USERNAME }}
-    #         ghcr-token: ${{ secrets.GHCR_TOKEN }}
-    #         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-    #         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+    call-helm-publish-ext-authz-middleware:
+        name: Helm publish ext-authz-middleware
+        needs: [checkout]
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@production
+        with:
+            runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+            enable-chartmuseum: true
+            enable-private-ecr: false
+            enable-public-ecr: false
+            checkout-submodules: false
+            chart-path: deployments/k8s/helm/sidecar
+        secrets:
+            ghcr-username: ${{ secrets.GHCR_USERNAME }}
+            ghcr-token: ${{ secrets.GHCR_TOKEN }}
+            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
     ################################## Trigger Deployment ###########################
     #################################################################################
@@ -322,23 +323,25 @@ jobs:
         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
-    # # ZTA (ext-authz-middleware) Deployment
-    # call-trigger-cd-extauthz:
-    #     name: Trigger CD ext-authz-middleware
-    #     needs:
-    #         [
-    #             call-docker-build-push-extauthz,
-    #             call-helm-publish-ext-authz-middleware,
-    #             utils,
-    #         ]
-    #     uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
-    #     with:
-    #         deployment-repo: "cisco-eti/identity-auth-server-deployment"
-    #         client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-authz-middleware", "property-path": "image.tag", "deployment-stage": "dev", "default-deployment": true, "value": "${{ needs.utils.outputs.image-tag }}"}'
-    #     secrets:
-    #         ghcr-username: ${{ secrets.GHCR_USERNAME }}
-    #         ghcr-token: ${{ secrets.GHCR_TOKEN }}
-    #         ghcr-org-username: ${{ secrets.GHCR_USERNAME }}
-    #         ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
-    #         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-    #         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+    # ZTA (ext-authz-middleware) Deployment
+    call-trigger-cd-extauthz:
+        name: Trigger CD ext-authz-middleware
+        needs:
+            [
+                call-docker-build-push-wasm,
+                call-docker-build-push-llm-proxy-wasm,
+                call-docker-build-push-ext-auth-service,
+                call-helm-publish-ext-authz-middleware,
+                utils,
+            ]
+        uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@production
+        with:
+            deployment-repo: "cisco-eti/identity-auth-server-deployment"
+            client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-authz-middleware", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "llm_proxy.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "traceparent_injector.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
+        secrets:
+            ghcr-username: ${{ secrets.GHCR_USERNAME }}
+            ghcr-token: ${{ secrets.GHCR_TOKEN }}
+            ghcr-org-username: ${{ secrets.GHCR_USERNAME }}
+            ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}

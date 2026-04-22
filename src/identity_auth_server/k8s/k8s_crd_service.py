@@ -120,6 +120,8 @@ class K8sCRDService:
         k8s_name: str,
         namespace: str,
         workload_names: Optional[dict] = None,
+        prompt_field_json_paths: Optional[dict] = None,
+        llm_host: Optional[str] = None,
     ) -> K8sMultiAgentSystemCRD:
         """Build K8sMultiAgentSystemCRD SQLModel record linked to an existing MAS."""
         apps = self._app_service.get_mas_apps(str(mas.id))
@@ -144,6 +146,7 @@ class K8sCRDService:
                     app_id=app.id,
                     mas_crd_id=crd_id,
                     kubernetes_workload_name=(workload_names or {}).get(app.name),
+                    prompt_field_json_path=(prompt_field_json_paths or {}).get(app.name),
                 )
             )
 
@@ -153,6 +156,7 @@ class K8sCRDService:
             name=mas.name,
             enabled_tool_checks=mas.enabled_tool_checks,
             mas_id=mas.id,
+            llm_host=llm_host,
         )
         crd.mas_metadata = metadata
         crd.app_specs = app_specs
@@ -187,14 +191,31 @@ class K8sCRDService:
 
             # Ensure the K8sMultiAgentSystemCRD row exists in DB
             k8s_crd = self._k8s_mas_repository.get_k8s_crd_by_mas_id(mas.id) if mas.id is not None else None
+            prompt_field_json_paths = {
+                a.name: a.http_request_schema.prompt_field_json_path for a in request.spec.apps if a.http_request_schema
+            }
             if k8s_crd is None:
                 workload_names = {
                     a.name: a.kubernetes_workload_name for a in request.spec.apps if a.kubernetes_workload_name
                 }
                 k8s_crd = self._build_k8s_crd_record(
-                    mas, request.metadata.name, request.metadata.namespace, workload_names
+                    mas,
+                    request.metadata.name,
+                    request.metadata.namespace,
+                    workload_names,
+                    prompt_field_json_paths,
+                    request.spec.llm_host,
                 )
                 self._k8s_mas_repository.create_mas(k8s_crd)
+            else:
+                # Update prompt_field_json_path on existing app specs
+                for app_spec in k8s_crd.app_specs:
+                    if app_spec.name in prompt_field_json_paths:
+                        app_spec.prompt_field_json_path = prompt_field_json_paths[app_spec.name]
+                        self._k8s_mas_repository.update_app_spec(app_spec)
+                # Update llm_host if changed
+                if k8s_crd.llm_host != request.spec.llm_host:
+                    k8s_crd.llm_host = request.spec.llm_host
 
             # Build CRD response with existing data
             crd = self._mas_to_crd(mas, namespace=request.metadata.namespace)
@@ -255,7 +276,17 @@ class K8sCRDService:
 
         # Persist the K8sMultiAgentSystemCRD record (used by k8s_query_service for host-based lookups)
         workload_names = {a.name: a.kubernetes_workload_name for a in request.spec.apps if a.kubernetes_workload_name}
-        k8s_crd = self._build_k8s_crd_record(mas, request.metadata.name, request.metadata.namespace, workload_names)
+        prompt_field_json_paths = {
+            a.name: a.http_request_schema.prompt_field_json_path for a in request.spec.apps if a.http_request_schema
+        }
+        k8s_crd = self._build_k8s_crd_record(
+            mas,
+            request.metadata.name,
+            request.metadata.namespace,
+            workload_names,
+            prompt_field_json_paths,
+            request.spec.llm_host,
+        )
         self._k8s_mas_repository.create_mas(k8s_crd)
 
         # Build CRD response

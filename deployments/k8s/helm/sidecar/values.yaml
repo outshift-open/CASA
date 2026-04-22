@@ -1,0 +1,240 @@
+replicaCount: 1
+
+image:
+  repository:
+  pullPolicy: Always
+  tag:
+
+imagePullSecrets:
+  - name:
+
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels:
+  sidecar.istio.io/inject: "false"
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+  # - name: foo
+  #   secret:
+  #     secretName: mysecret
+  #     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+authServerHost: ""
+authServerPort: "8000"
+authServerScheme: "http"
+
+llm_proxy:
+  image:
+    repository:
+    pullPolicy: Always
+    tag:
+    pullSecret:
+
+traceparent_injector:
+  image:
+    repository:
+    pullPolicy: Always
+    tag:
+    pullSecret:
+
+# ── OpenTelemetry Collector subchart ──────────────────────────────────────────
+otelcollector:
+  fullnameOverride: otel-collector-opentelemetry-collector
+  mode: deployment
+  podLabels:
+    sidecar.istio.io/inject: "false"
+  image:
+    repository: "otel/opentelemetry-collector-k8s"
+  config:
+    exporters:
+      otlp:
+        endpoint: jaeger:4317
+        tls:
+          insecure: true
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    receivers:
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:14250
+          thrift_http:
+            endpoint: ${env:MY_POD_IP}:14268
+          thrift_compact:
+            endpoint: ${env:MY_POD_IP}:6831
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        traces:
+          exporters:
+            - otlp
+          processors:
+            - batch
+          receivers:
+            - otlp
+            - jaeger
+
+# ── Jaeger subchart ────────────────────────────────────────────────────────────
+jaeger:
+  fullnameOverride: jaeger
+  jaeger:
+    podLabels:
+      sidecar.istio.io/inject: "false"
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      hosts:
+        - zta-jaeger.dev.outshift.ai
+      pathType: Prefix
+      tls:
+        - hosts:
+            - zta-jaeger.dev.outshift.ai
+          secretName: jaeger-tls
+  collector:
+    enabled: true
+    podLabels:
+      sidecar.istio.io/inject: "false"
+  query:
+    enabled: true
+    podLabels:
+      sidecar.istio.io/inject: "false"
+  agent:
+    enabled: true
+    podLabels:
+      sidecar.istio.io/inject: "false"
+  allInOne:
+    enabled: false
+  storage:
+    type: memory
+  ingester:
+    enabled: false
+
+opentelemetry-ebpf-instrumentation:
+  podLabels:
+    sidecar.istio.io/inject: "false"
+
+  serviceAccount:
+    name: "obi"
+
+  image:
+    tag: "v0.8.0"
+    pullPolicy: Always
+
+  privileged: true
+
+  extraCapabilities:
+    - NET_ADMIN
+    - SYS_RESOURCE
+    - SYS_ADMIN
+
+  volumeMounts:
+    - mountPath: /sys/kernel/security
+      name: kernel-security
+      readOnly: true
+    - name: cgroup
+      mountPath: /sys/fs/cgroup
+    - mountPath: /sys/fs/bpf
+      name: kernel-bpf
+
+  volumes:
+    - name: kernel-security
+      hostPath:
+        path: /sys/kernel/security
+        type: Directory
+    - name: cgroup
+      hostPath:
+        path: /sys/fs/cgroup
+    - name: kernel-bpf
+      hostPath:
+        path: /sys/fs/bpf
+        type: Directory
+
+  config:
+    data:
+      # Contents of the actual OBI configuration file
+      # open_port: "8082,3000,8391"
+      discovery:
+        instrument:
+          - k8s_pod_name: "zta-demo-*"
+          - k8s_pod_name: "demo-agent-*"
+      routes:
+        unmatched: heuristic
+      attributes:
+        kubernetes:
+          enable: true
+      network:
+        enable: true
+      ebpf:
+        track_request_headers: true
+        context_propagation: "all"
+
+  env:
+    OTEL_EBPF_BPF_CONTEXT_PROPAGATION: "all"
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-opentelemetry-collector.zta-control-plane-dev.svc.cluster.local:4318" # TODO: we'll see if we can ignore this
+    OTEL_EBPF_BPF_TRACK_REQUEST_HEADERS: "true"
+    OTEL_EBPF_LOG_LEVEL: debug # TODO: change this after testing everything
+    OTEL_EBPF_METRICS_FEATURES: "application,application_span_otel,application_process,application_service_graph,ebpf,application_host"
+    OTEL_EBPF_PROMETHEUS_FEATURES: "application,application_span_otel,application_process,application_service_graph,ebpf,application_host"
+    OTEL_EBPF_BPF_DEBUG: "TRUE" # TODO: disable this after testing everything
+    OTEL_EBPF_TRACE_PRINTER: "text"
+    OTEL_EBPF_NAME_RESOLVER_SOURCES: "dns,k8s"
+    OTEL_EBPF_KUBE_METADATA_ENABLE: "true"

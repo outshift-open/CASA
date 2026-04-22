@@ -36,11 +36,16 @@ type BaseURL struct {
 	Scheme string `json:"scheme"`
 }
 
+type HttpRequestSchema struct {
+	PromptFieldJsonPath string `json:"promptFieldJsonPath"`
+}
+
 type AppSpec struct {
-	Name                   string  `json:"name"`
-	Type                   string  `json:"type"`
-	BaseURL                BaseURL `json:"baseUrl"`
-	KubernetesWorkloadName string  `json:"kubernetesWorkloadName"`
+	Name                   string             `json:"name"`
+	Type                   string             `json:"type"`
+	BaseURL                BaseURL            `json:"baseUrl"`
+	KubernetesWorkloadName string             `json:"kubernetesWorkloadName"`
+	HttpRequestSchema      *HttpRequestSchema `json:"httpRequestSchema,omitempty"`
 }
 
 type MASSpec struct {

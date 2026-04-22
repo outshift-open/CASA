@@ -5,7 +5,7 @@ from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, desc, select
+from sqlmodel import Session, delete, desc, select
 
 from identity_auth_server.core.types import AppType
 from identity_auth_server.k8s.types import (
@@ -25,7 +25,7 @@ class K8sMultiAgentSystemRepository(ABC):
 
     @abstractmethod
     def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> Optional[K8sMultiAgentSystemCRD]:
-        """get_mas_by_workload_name"""
+        """get_mas_by_workload_name."""
 
     @abstractmethod
     def store_token(self, token: K8sTokenCache) -> K8sTokenCache:
@@ -44,6 +44,10 @@ class K8sMultiAgentSystemRepository(ABC):
     @abstractmethod
     def get_k8s_crd_by_mas_id(self, mas_id: UUID) -> Optional[K8sMultiAgentSystemCRD]:
         """Retrieve a K8sMultiAgentSystemCRD by its linked MultiAgentSystem id."""
+
+    @abstractmethod
+    def update_app_spec(self, app_spec: K8sAppSpec) -> K8sAppSpec:
+        """Update an existing K8sAppSpec record."""
 
     @abstractmethod
     def delete_mas(self, crd: K8sMultiAgentSystemCRD) -> None:
@@ -140,11 +144,18 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
         except Exception as e:
             raise Exception(f"Error retrieving K8s CRD by mas_id '{mas_id}': {e}") from e
 
+    def update_app_spec(self, app_spec: K8sAppSpec) -> K8sAppSpec:
+        """Update an existing K8sAppSpec record."""
+        try:
+            self._session.add(app_spec)
+            return app_spec
+        except Exception as e:
+            raise Exception(f"Error updating K8sAppSpec: {e}") from e
+
     def delete_mas(self, crd: K8sMultiAgentSystemCRD) -> None:
         """Delete a K8sMultiAgentSystemCRD along with its metadata and app specs."""
         try:
-            for app_spec in crd.app_specs:
-                self._session.delete(app_spec)
+            self._session.exec(delete(K8sAppSpec).where(K8sAppSpec.mas_crd_id == crd.id))
             if crd.mas_metadata:
                 self._session.delete(crd.mas_metadata)
             self._session.delete(crd)

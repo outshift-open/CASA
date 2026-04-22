@@ -1,14 +1,14 @@
 namespace: zta-control-plane-dev
 
 agentSafe:
-  replicas: 1
+  replicas: 3
   serviceName: demo-agent-safe
   servicePort: 8082
   docker:
-    registry: ghcr.io
+    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-safe
     suffix: ''
-  tagversion: 2026-04-20-513f685
+  tagversion: 2026-04-22-d7b6dce
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 agentCompromised:
@@ -16,10 +16,10 @@ agentCompromised:
   serviceName: demo-agent-compromised
   servicePort: 8082
   docker:
-    registry: ghcr.io
+    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/demo-agent-compromised
     suffix: ''
-  tagversion: 2026-04-20-e7abf18
+  tagversion: 2026-04-22-d7b6dce
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
@@ -27,17 +27,17 @@ mcp:
   serviceName: zta-demo-mcp
   servicePort: 3000
   docker:
-    registry: ghcr.io
+    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
     image: outshift-zta/k8s-demo-mcp
     suffix: ''
-  tagversion: 2026-04-20-e7abf18
+  tagversion: 2026-04-22-d7b6dce
 
 chatUis:
   - name: safe
     docker:
       registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
       image: outshift-zta/chat-ui
-    tagversion: 2026-04-20-513f685
+    tagversion: 2026-04-22-7c71381
     agentUrl: /safe-agent
     ingress:
       enabled: true
@@ -50,7 +50,7 @@ chatUis:
     docker:
       registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
       image: outshift-zta/chat-ui
-    tagversion: 2026-04-20-513f685
+    tagversion: 2026-04-22-7c71381
     agentUrl: /compromised-agent
     ingress:
       enabled: true
@@ -59,6 +59,10 @@ chatUis:
       domainPrefix: "zta-demo-compromised"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
+
+llmCredentials:
+  apiBaseUrl: ""
+  apiKey: ""
 
 masSafe:
   name: "ZTA Demo Safe"
@@ -73,7 +77,3 @@ masCompromised:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
   llm_host: litellm.prod.outshift.ai
-
-secret:
-  openai_api_base: http://... # The scheme has to be HTTP
-  openai_api_key:
