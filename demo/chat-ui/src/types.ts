@@ -3,5 +3,6 @@ export interface Message {
   role: 'user' | 'agent'
   content: string
   conversation?: { messages: unknown[] }
+  error?: boolean
   timestamp: Date
 }

@@ -36,8 +36,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
         >
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
         </div>
-        <span className="text-[11px] text-muted-foreground px-1">
-          {formatTime(message.timestamp)}
+        <span className="text-[11px] px-1 flex items-center gap-1">
+          {message.error && <span className="text-danger">Failed to send</span>}
+          <span className="text-muted-foreground">{formatTime(message.timestamp)}</span>
         </span>
       </div>
     </div>

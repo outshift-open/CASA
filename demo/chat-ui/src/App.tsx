@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
+import { Send, RotateCcw } from 'lucide-react'
 import { ChatMessage } from '@/components/ChatMessage'
 import { TypingIndicator } from '@/components/TypingIndicator'
 import { Button } from '@/components/ui/button'
@@ -7,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { Message } from '@/types'
 import { AGENT_URL } from '@/config'
+import { sendChat } from '@/api/chat'
+import type { ChatMessage as ApiChatMessage } from '@/api/chat'
 
 let messageCounter = 0
 function nextId() {
@@ -16,16 +19,31 @@ function nextId() {
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  const mutation = useMutation({
+    mutationFn: ({ apiMessages }: { apiMessages: ApiChatMessage[]; snapshot: Message[] }) =>
+      sendChat(apiMessages),
+    onSuccess: (data, { snapshot }) => {
+      const agentMsg: Message = {
+        id: nextId(),
+        role: 'agent',
+        content: data.response,
+        conversation: data.conversation,
+        timestamp: new Date(),
+      }
+      setMessages([...snapshot, agentMsg])
+    },
+    onError: (_, { snapshot }) => {
+      setMessages(snapshot.map((m, i) => i === snapshot.length - 1 ? { ...m, error: true } : m))
+    },
+  })
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading])
+  }, [messages, mutation.isPending])
 
-  // Auto-resize textarea up to 160px
   useEffect(() => {
     const el = textareaRef.current
     if (!el) return
@@ -33,12 +51,11 @@ export default function App() {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`
   }, [input])
 
-  const sendMessage = useCallback(async () => {
+  const sendMessage = useCallback(() => {
     const text = input.trim()
-    if (!text || loading) return
+    if (!text || mutation.isPending) return
 
     setInput('')
-    setError(null)
 
     const userMsg: Message = {
       id: nextId(),
@@ -48,46 +65,22 @@ export default function App() {
     }
     const nextMessages = [...messages, userMsg]
     setMessages(nextMessages)
-    setLoading(true)
 
-    try {
-      const res = await fetch(`${AGENT_URL}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversation: {
-            messages: nextMessages.map(({ role, content }) => ({
-              role: role === 'agent' ? 'assistant' : role,
-              content,
-            })),
-          },
-        }),
-      })
+    const apiMessages: ApiChatMessage[] = nextMessages
+      .filter((m) => !m.error)
+      .map(({ role, content }) => ({
+        role: role === 'agent' ? 'assistant' : role,
+        content,
+      }))
 
-      if (!res.ok) throw new Error(`Agent returned ${res.status}`)
-
-      const data = (await res.json()) as { response: string; conversation?: { messages: unknown[] } }
-      const agentMsg: Message = {
-        id: nextId(),
-        role: 'agent',
-        content: data.response,
-        conversation: data.conversation,
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, agentMsg])
-    } catch (err) {
-      setMessages(messages)
-      setError(err instanceof Error ? err.message : 'Failed to reach agent')
-    } finally {
-      setLoading(false)
-    }
-  }, [input, loading, messages])
+    mutation.mutate({ apiMessages, snapshot: nextMessages })
+  }, [input, mutation, messages])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
-        void sendMessage()
+        sendMessage()
       }
     },
     [sendMessage]
@@ -95,19 +88,27 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      {/* Header */}
       <header className="shrink-0 flex items-center justify-between border-b border-border bg-white/80 backdrop-blur px-6 py-4 z-10">
         <div>
           <h1 className="text-lg font-semibold text-foreground tracking-tight">ZTA Chat Demo</h1>
           <p className="text-xs text-muted-foreground font-mono mt-0.5">{AGENT_URL}/chat</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-safe-muted px-3 py-1.5 text-xs font-medium text-safe">
-          <span className="inline-block h-2 w-2 rounded-full bg-safe shrink-0" />
-          ZTA authorization enforced
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg bg-safe-muted px-3 py-1.5 text-xs font-medium text-safe">
+            <span className="inline-block h-2 w-2 rounded-full bg-safe shrink-0" />
+            ZTA authorization enforced
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => { setMessages([]); setInput('') }}
+            title="Clear conversation"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
         </div>
       </header>
 
-      {/* Messages */}
       <ScrollArea className="flex-1 min-h-0">
         <div className="mx-auto max-w-2xl flex flex-col gap-4 px-6 py-6">
           {messages.length === 0 && (
@@ -125,19 +126,12 @@ export default function App() {
             <ChatMessage key={msg.id} message={msg} />
           ))}
 
-          {loading && <TypingIndicator />}
-
-          {error && (
-            <div className="rounded-lg border border-danger/30 bg-danger-muted px-4 py-3 text-sm text-danger animate-fade-in">
-              {error}
-            </div>
-          )}
+          {mutation.isPending && <TypingIndicator />}
 
           <div ref={bottomRef} />
         </div>
       </ScrollArea>
 
-      {/* Input */}
       <footer className="shrink-0 border-t border-border bg-white/80 backdrop-blur px-6 py-4">
         <div className="mx-auto max-w-2xl flex items-end gap-3">
           <Textarea
@@ -147,12 +141,12 @@ export default function App() {
             onKeyDown={handleKeyDown}
             placeholder="Send a message… (Enter to send, Shift+Enter for newline)"
             rows={1}
-            disabled={loading}
+            disabled={mutation.isPending}
             className="flex-1 transition-[border-color,box-shadow] focus-visible:ring-safe/40"
           />
           <Button
-            onClick={() => void sendMessage()}
-            disabled={!input.trim() || loading}
+            onClick={sendMessage}
+            disabled={!input.trim() || mutation.isPending}
             variant="safe"
             size="icon"
           >
