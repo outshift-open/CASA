@@ -10,6 +10,8 @@ import type { Message } from '@/types'
 import { AGENT_URL } from '@/config'
 import { sendChat } from '@/api/chat'
 import type { ChatMessage as ApiChatMessage } from '@/api/chat'
+import { toast } from 'sonner'
+import { Tooltip } from '@/components/ui/tooltip'
 
 let messageCounter = 0
 function nextId() {
@@ -91,34 +93,55 @@ export default function App() {
       <header className="shrink-0 flex items-center justify-between border-b border-border bg-white/80 backdrop-blur px-6 py-4 z-10">
         <div>
           <h1 className="text-lg font-semibold text-foreground tracking-tight">ZTA Chat Demo</h1>
-          <p className="text-xs text-muted-foreground font-mono mt-0.5">{AGENT_URL}/chat</p>
+          <p className="text-xs text-slate-400 font-mono mt-0.5">{AGENT_URL}/chat</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 rounded-lg bg-safe-muted px-3 py-1.5 text-xs font-medium text-safe">
             <span className="inline-block h-2 w-2 rounded-full bg-safe shrink-0" />
             ZTA authorization enforced
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => { setMessages([]); setInput('') }}
-            title="Clear conversation"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+          <Tooltip content="Clear conversation">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => { setMessages([]); setInput(''); toast.success('Conversation cleared') }}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </Tooltip>
         </div>
       </header>
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="mx-auto max-w-2xl flex flex-col gap-4 px-6 py-6">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl bg-safe-muted">
-                🛡️
+            <div className="flex flex-col items-center justify-center py-16 text-center gap-6">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl bg-safe-muted">
+                🏦
               </div>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Chat with the agent. All tool calls are verified by ZTA.
-              </p>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-xl font-semibold text-foreground">Welcome to the <span className="text-safe">Finance Agent</span></h2>
+                <p className="text-sm text-slate-500 max-w-sm">
+                  This agent has access to your banking tools. Every tool call is authorized by ZTA before execution.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 w-full max-w-sm">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Try asking</p>
+                {[
+                  'What is my account balance?',
+                  'Show me my savings accounts',
+                  'Transfer $100 to my savings',
+                ].map((prompt) => (
+                  <button
+                    key={prompt}
+                    onClick={() => setInput(prompt)}
+                    className="text-left text-sm px-4 py-2.5 rounded-xl border border-border bg-white hover:bg-safe-muted hover:border-safe/40 text-slate-700 transition-colors"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
