@@ -72,8 +72,6 @@ jobs:
       github-app-id: ${{ secrets.GHA_APP_ID }}
       github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
-      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
       image-name: "outshift-zta/demo-agent-safe"
@@ -92,8 +90,6 @@ jobs:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
       github-app-id: ${{ secrets.GHA_APP_ID }}
-      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
       github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
@@ -116,8 +112,6 @@ jobs:
       github-app-id: ${{ secrets.GHA_APP_ID }}
       github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
-      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
       image-name: "outshift-zta/k8s-demo-mcp"
@@ -136,8 +130,6 @@ jobs:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
       github-app-id: ${{ secrets.GHA_APP_ID }}
-      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
       github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
