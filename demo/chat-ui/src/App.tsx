@@ -10,6 +10,8 @@ import type { Message } from '@/types'
 import { AGENT_URL } from '@/config'
 import { sendChat } from '@/api/chat'
 import type { ChatMessage as ApiChatMessage } from '@/api/chat'
+import { toast } from 'sonner'
+import { Tooltip } from '@/components/ui/tooltip'
 
 let messageCounter = 0
 function nextId() {
@@ -98,14 +100,16 @@ export default function App() {
             <span className="inline-block h-2 w-2 rounded-full bg-safe shrink-0" />
             ZTA authorization enforced
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => { setMessages([]); setInput('') }}
-            title="Clear conversation"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+          <Tooltip content="Clear conversation">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => { setMessages([]); setInput(''); toast.success('Conversation cleared') }}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </Tooltip>
         </div>
       </header>
 
