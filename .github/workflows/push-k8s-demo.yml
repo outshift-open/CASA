@@ -65,13 +65,15 @@ jobs:
   docker-build-push-agent-safe:
     name: Build & Push demo agent (safe)
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-      ghcr-username: ${{ secrets.GHCR_USERNAME }}
-      ghcr-token: ${{ secrets.GHCR_TOKEN }}
-      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+      github-app-id: ${{ secrets.GHA_APP_ID }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
       image-name: "outshift-zta/demo-agent-safe"
@@ -85,13 +87,15 @@ jobs:
   docker-build-push-agent-compromised:
     name: Build & Push demo agent (compromised)
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-      ghcr-username: ${{ secrets.GHCR_USERNAME }}
-      ghcr-token: ${{ secrets.GHCR_TOKEN }}
-      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+      github-app-id: ${{ secrets.GHA_APP_ID }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
       image-name: "outshift-zta/demo-agent-compromised"
@@ -105,13 +109,15 @@ jobs:
   docker-build-push-k8s-mcp:
     name: Build & Push k8s demo mcp
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-      ghcr-username: ${{ secrets.GHCR_USERNAME }}
-      ghcr-token: ${{ secrets.GHCR_TOKEN }}
-      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+      github-app-id: ${{ secrets.GHA_APP_ID }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
       image-name: "outshift-zta/k8s-demo-mcp"
@@ -125,13 +131,15 @@ jobs:
   docker-build-push-chat-ui:
     name: Build & Push chat UI
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@production
+    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-      ghcr-username: ${{ secrets.GHCR_USERNAME }}
-      ghcr-token: ${{ secrets.GHCR_TOKEN }}
-      ghcr-org-token: ${{ secrets.GHCR_TOKEN }}
+      github-app-id: ${{ secrets.GHA_APP_ID }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
+      github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+      caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
       image-name: "outshift-zta/chat-ui"
