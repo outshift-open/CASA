@@ -1,6 +1,7 @@
 """PostgreSQL implementation of AppRepository."""
 
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from typing import List
 
 from sqlalchemy.exc import IntegrityError
@@ -75,7 +76,10 @@ class AppPostgresRepository(AppRepository):
 
         try:
             app = self._session.exec(
-                select(App).where(App.id == app_id).options(joinedload(App.tools).joinedload(Tool.scopes))
+                select(App)
+                .where(App.id == app_id)
+                .where(App.deleted_at == None)
+                .options(joinedload(App.tools).joinedload(Tool.scopes))
             )
             return app.first()
         except Exception as e:
@@ -84,7 +88,7 @@ class AppPostgresRepository(AppRepository):
     def get_all_apps(self) -> List[App]:
         """Retrieve all apps."""
         try:
-            apps = self._session.exec(select(App).options(joinedload(App.mas))).all()
+            apps = self._session.exec(select(App).where(App.deleted_at == None).options(joinedload(App.mas))).all()
             return list(apps)
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
@@ -92,15 +96,18 @@ class AppPostgresRepository(AppRepository):
     def get_mas_apps(self, mas_id):
         """Retrieve all apps in a MAS."""
         try:
-            apps = self._session.exec(select(App).where(App.mas_id == mas_id).options(joinedload(App.mas))).all()
+            apps = self._session.exec(
+                select(App).where(App.mas_id == mas_id).where(App.deleted_at == None).options(joinedload(App.mas))
+            ).all()
             return list(apps)
         except Exception as e:
             raise Exception(f"Error retrieving apps: {e}") from e
 
     def delete_app(self, app: App) -> None:
-        """Delete an app."""
+        """Soft-delete an app by setting deleted_at."""
         try:
-            self._session.delete(app)
+            app.deleted_at = datetime.now(timezone.utc)
+            self._session.add(app)
         except Exception as e:
             raise Exception(f"Error deleting app with id '{app.id}': {e}") from e
 

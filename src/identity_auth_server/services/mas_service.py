@@ -110,7 +110,9 @@ class MultiAgentSystemService:
         if not mas:
             raise ValueError(f"MAS with id {id} not found")
 
-        for app in mas.apps:
+        # Use repository query instead of mas.apps relationship to respect soft-delete filter
+        apps = self._app_repository.get_mas_apps(str(mas.id))
+        for app in apps:
             self._app_repository.delete_app(app)
 
         # deleting the mas means deleting the auth server for now
