@@ -31,14 +31,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
             'max-w-[520px] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm',
             isUser
               ? 'rounded-br-sm bg-primary text-primary-foreground'
-              : 'rounded-bl-sm bg-white border border-border text-foreground'
+              : 'rounded-bl-sm bg-white border border-border text-slate-800'
           )}
         >
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
         </div>
         <span className="text-[11px] px-1 flex items-center gap-1">
           {message.error && <span className="text-danger">Failed to send</span>}
-          <span className="text-muted-foreground">{formatTime(message.timestamp)}</span>
+          <span className="text-slate-400">{formatTime(message.timestamp)}</span>
         </span>
       </div>
     </div>
