@@ -88,13 +88,8 @@ Class | Method | HTTP request | Description
 *AuthorizationServerAPI* | [**Introspect**](docs/AuthorizationServerAPI.md#introspect) | **Post** /oauth2/introspect | Introspect
 *AuthorizationServerAPI* | [**Token**](docs/AuthorizationServerAPI.md#token) | **Post** /{app_id}/oauth2/token | Token
 *AuthorizationServerAPI* | [**TokenExchange**](docs/AuthorizationServerAPI.md#tokenexchange) | **Post** /{app_id}/oauth2/token_exchange | Token Exchange
-*KubernetesCRDsAPI* | [**CreateMasCrdK8sNamespacesNamespaceMasPost**](docs/KubernetesCRDsAPI.md#createmascrdk8snamespacesnamespacemaspost) | **Post** /k8s/namespaces/{namespace}/mas | Create Mas Crd
-*KubernetesCRDsAPI* | [**DeleteMasCrdK8sNamespacesNamespaceMasNameDelete**](docs/KubernetesCRDsAPI.md#deletemascrdk8snamespacesnamespacemasnamedelete) | **Delete** /k8s/namespaces/{namespace}/mas/{name} | Delete Mas Crd
-*KubernetesCRDsAPI* | [**GetMasCrdK8sNamespacesNamespaceMasMasIdGet**](docs/KubernetesCRDsAPI.md#getmascrdk8snamespacesnamespacemasmasidget) | **Get** /k8s/namespaces/{namespace}/mas/{mas_id} | Get Mas Crd
-*KubernetesCRDsAPI* | [**ListAllMasCrdsK8sMasGet**](docs/KubernetesCRDsAPI.md#listallmascrdsk8smasget) | **Get** /k8s/mas | List All Mas Crds
-*KubernetesCRDsAPI* | [**ListMasCrdsInNamespaceK8sNamespacesNamespaceMasGet**](docs/KubernetesCRDsAPI.md#listmascrdsinnamespacek8snamespacesnamespacemasget) | **Get** /k8s/namespaces/{namespace}/mas | List Mas Crds In Namespace
-*KubernetesCRDsAPI* | [**UpdateMasCrdK8sNamespacesNamespaceMasNamePut**](docs/KubernetesCRDsAPI.md#updatemascrdk8snamespacesnamespacemasnameput) | **Put** /k8s/namespaces/{namespace}/mas/{name} | Update Mas Crd
-*KubernetesCRDsAPI* | [**UpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatch**](docs/KubernetesCRDsAPI.md#updatemasstatusk8snamespacesnamespacemasnamestatuspatch) | **Patch** /k8s/namespaces/{namespace}/mas/{name}/status | Update Mas Status
+*KubernetesCRDsAPI* | [**CreateMasCrd**](docs/KubernetesCRDsAPI.md#createmascrd) | **Post** /k8s/namespaces/{namespace}/mas | Create Mas Crd
+*KubernetesCRDsAPI* | [**DeleteMasCrd**](docs/KubernetesCRDsAPI.md#deletemascrd) | **Delete** /k8s/namespaces/{namespace}/mas/{name} | Delete Mas Crd
 *KubernetesResourcesAPI* | [**CacheLoadLlmCallMapping**](docs/KubernetesResourcesAPI.md#cacheloadllmcallmapping) | **Get** /k8s/cache/load-llm-call-mapping/{call_id} | Load Llm Call Mapping
 *KubernetesResourcesAPI* | [**CacheLoadToken**](docs/KubernetesResourcesAPI.md#cacheloadtoken) | **Post** /k8s/namespaces/{namespace}/cache/load-token | Load Token
 *KubernetesResourcesAPI* | [**CacheStoreLlmCallMapping**](docs/KubernetesResourcesAPI.md#cachestorellmcallmapping) | **Post** /k8s/namespaces/{namespace}/cache/store-llm-call-mapping | Store Llm Call Mapping
@@ -148,10 +143,7 @@ Class | Method | HTTP request | Description
  - [LlmCallMappingStoreRequest](docs/LlmCallMappingStoreRequest.md)
  - [LocationInner](docs/LocationInner.md)
  - [MASCreateRequest](docs/MASCreateRequest.md)
- - [MASListResponse](docs/MASListResponse.md)
  - [MASPhase](docs/MASPhase.md)
- - [MASStatusUpdateRequest](docs/MASStatusUpdateRequest.md)
- - [MASUpdateRequest](docs/MASUpdateRequest.md)
  - [MultiAgentSystem](docs/MultiAgentSystem.md)
  - [MultiAgentSystemAppsBindingRequest](docs/MultiAgentSystemAppsBindingRequest.md)
  - [MultiAgentSystemCRD](docs/MultiAgentSystemCRD.md)
