@@ -3,11 +3,11 @@
 import json
 import logging
 import re
-from typing import Any, Dict, List, Optional, Self
+from typing import List, Optional, Self
 from urllib.parse import urlparse
 
 import jwt
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 from identity_auth_server.checks.base import Payload
 from identity_auth_server.checks.factory import ToolCheckFactory
@@ -51,7 +51,7 @@ class TokenRequest(BaseModel):
     @model_validator(mode="after")
     def validate_user_input(self) -> Self:
         if (not self.user_input or self.user_input == "") and (not self.user_input_id or self.user_input_id == ""):
-            raise ValueError(f"Either user_input or user_input_id must be provided.")
+            raise ValueError("Either user_input or user_input_id must be provided.")
         return self
 
 
@@ -120,7 +120,7 @@ class AuthorizationServerService:
         if app.mas.authorization_server is None:
             raise Exception(f"App {app_id} has no authorization server configured.")
 
-        user_input: UserInput = None
+        user_input: UserInput | None = None
         task: str | None = None
         if request.user_input and request.user_input != "":
             try:
@@ -128,7 +128,9 @@ class AuthorizationServerService:
                 if task is None:
                     logger.error("task is none, fallbacking to the whole conversation")
             except Exception as e:
-                logger.error(f"failed to extract the task from the conversation, fallbacking to the whole conversation: {e}")
+                logger.error(
+                    f"failed to extract the task from the conversation, fallbacking to the whole conversation: {e}"
+                )
 
             if task is None:
                 task = request.user_input

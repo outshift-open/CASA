@@ -1,9 +1,7 @@
-import os
+import copy
 
 from openai import OpenAI
 from pydantic import BaseModel
-import copy
-
 
 TASK_EXTRACTION_PROMPT = """You are a request synthesizer.
 Your job is to convert a conversation — which may be a single message or a multi-turn
@@ -40,12 +38,14 @@ Respond in JSON with "reasoning" and "appropriate".
 MAX_OUTPUT_TOKENS = 1024
 REQUEST_TIMEOUT_SECONDS = 45
 
+
 class TaskToolMatcherInput(BaseModel):
     """Input for the task-tool matcher."""
 
     task: str
     tool_name: str
     tool_description: str
+
 
 class TaskToolMatcherOutput(BaseModel):
     """Output from the task-tool matcher."""
@@ -61,11 +61,12 @@ class TaskExtractor:
         self.openai_client = OpenAI(
             base_url=base_url,
             api_key=api_key,
-            )
+        )
+
     def format_input(self, sample: dict) -> str:
         raw_conversation_blob = sample["request"]["conversation"]["messages"]
         # considering only the first tool call
-        tool_blob_id = sample["metadata"]["request"]["conversation"]["tool_call_locations"][0]-1
+        tool_blob_id = sample["metadata"]["request"]["conversation"]["tool_call_locations"][0] - 1
         conversation_blob = copy.deepcopy(raw_conversation_blob[:tool_blob_id])
         # print(f"--- Conversation blob for item ID {sample.get('id', 'N/A')}:\n{conversation_blob}\n--- End of blob ---")
         # strip out all the 'tool_calls': None from the conversation blob
@@ -77,13 +78,13 @@ class TaskExtractor:
         # summarize the conversation blob into a user prompt
         try:
             raw_response = self.openai_client.chat.completions.create(
-            model=self.model_id,
-            messages=[
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": conversation},
-            ],
-            max_tokens=MAX_OUTPUT_TOKENS,
-            timeout=REQUEST_TIMEOUT_SECONDS,
+                model=self.model_id,
+                messages=[
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": conversation},
+                ],
+                max_tokens=MAX_OUTPUT_TOKENS,
+                timeout=REQUEST_TIMEOUT_SECONDS,
             )
             extracted_task = raw_response.choices[0].message.content
             # print(f"Extracted task: {extracted_task}\n--- End of extracted task ---")
@@ -100,7 +101,7 @@ class TaskToToolMatcher:
         self.openai_client = OpenAI(
             base_url=base_url,
             api_key=api_key,
-            )
+        )
 
     def _build_user_prompt(self, task, tool_name, tool_description) -> str:
         """Build the evaluation prompt for a single example."""
@@ -113,7 +114,7 @@ Description: {tool_description}
 """
 
     def format_input(self, sample: dict, extracted_task: str | None) -> TaskToolMatcherInput:
-        if not extracted_task: # simple task to tool matching
+        if not extracted_task:  # simple task to tool matching
             task = sample["request"]["task"]
         else:
             task = extracted_task

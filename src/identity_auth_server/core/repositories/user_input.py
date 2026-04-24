@@ -46,7 +46,7 @@ class UserInputPostgresRepository(UserInputRepository):
     def get_by_tag(self, tag: str) -> UserInput:
         """Get a UserInput by tag."""
         try:
-            statement = select(UserInput).where(UserInput.tag == tag).order_by(UserInput.created_at.desc())
+            statement = select(UserInput).where(UserInput.tag == tag).order_by(UserInput.created_at.desc())  # type: ignore[attr-defined]
             user_input = self._session.exec(statement).first()
             return user_input
         except Exception as e:

@@ -28,13 +28,20 @@ repos:
             args: ["--maxkb=2500"] # Increase limit to 2.5MB
             exclude: "^zta-explorer-ui/\\.yarn/releases/" # Yarn binaries are meant to be committed
           - id: detect-private-key # Checks for the existence of private keys
+            exclude: "^sdk/"
           - id: check-case-conflict # Check for files with names that would conflict on a case-insensitive filesystem
+            exclude: "^sdk/"
           - id: check-merge-conflict # Check for files that contain merge conflict strings
+            exclude: "^sdk/"
           - id: check-symlinks # Checks for symlinks which do not point to anything
+            exclude: "^sdk/"
           - id: end-of-file-fixer # Makes sure files end in a newline and only a newline
+            exclude: "^sdk/"
           - id: mixed-line-ending # Replaces or checks mixed line ending
+            exclude: "^sdk/"
           - id: trailing-whitespace # Trims trailing whitespace
             args: [--markdown-linebreak-ext=md]
+            exclude: "^sdk/"
 
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.12.7

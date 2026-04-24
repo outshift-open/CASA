@@ -4,8 +4,8 @@ import json
 import logging
 import os
 
-from dotenv import load_dotenv
 import httpx
+from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
