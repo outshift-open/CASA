@@ -1,10 +1,10 @@
-"""Service layer for managing Kubernetes CRD resources (MultiAgentSystem and ZTAPolicy)."""
+"""Service layer for managing Kubernetes CRD resources (MultiAgentSystem)."""
 
 import logging
 from datetime import datetime, timezone
 from typing import List, Optional
 from urllib.parse import urlparse
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from identity_auth_server.core.idp.idp_client import IdpClient
 from identity_auth_server.core.types import AppType, MultiAgentSystem, ToolCheckFlags
@@ -14,8 +14,6 @@ from identity_auth_server.k8s.k8s_types import (
     AppSpecBaseUrl,
     MASCreateRequest,
     MASPhase,
-    MASStatusUpdateRequest,
-    MASUpdateRequest,
     MultiAgentSystemCRD,
     MultiAgentSystemMetadata,
     MultiAgentSystemSpec,
@@ -28,7 +26,6 @@ from identity_auth_server.services.app_service import AppRequest, AppService
 from identity_auth_server.services.mas_service import (
     MultiAgentSystemCreateRequest,
     MultiAgentSystemService,
-    MultiAgentSystemUpdateRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -302,78 +299,14 @@ class K8sCRDService:
 
         return crd
 
-    def get_mas_crd(self, namespace: str, mas_id: str) -> Optional[MultiAgentSystemCRD]:
-        """Get a MultiAgentSystem CRD by namespace and name."""
-        mas = self._mas_service.get_mas_by_id(mas_id)
-        crd = self._mas_to_crd(mas, namespace)
-        return crd
-
-    def list_mas_crds(self, namespace: Optional[str] = None) -> List[MultiAgentSystemCRD]:
-        """List all MultiAgentSystem CRDs, optionally filtered by namespace."""
-        all_mas = self._mas_service.get_all_mas()
-        crds = []
-
-        for mas in all_mas:
-            ns = namespace or "default"
-            if mas.namespace == ns:
-                crd = self._mas_to_crd(mas, ns)
-                crds.append(crd)
-
-        return crds
-
-    def update_mas_crd(self, namespace: str, name: str, request: MASUpdateRequest) -> MultiAgentSystemCRD:
-        """Update a MultiAgentSystem CRD spec."""
-        # Convert name to UUID
-        mas_id = self._mas_service.get_id_by_name(name, namespace)
-
-        mas = self._mas_service.update_mas(mas_id, MultiAgentSystemUpdateRequest(name=request.spec.name))
-
-        existing_apps = self._app_service.get_mas_apps(mas_id)
-        for app in existing_apps:
-            self._app_service.delete_app(str(app.id))
-
-        for app_spec in request.spec.apps:
-            try:
-                app = self._app_service.create_app(
-                    AppRequest(
-                        name=app_spec.name,
-                        base_url=app_spec.base_url.to_url(),
-                        mas_id=str(mas.id),
-                        type=self._convert_app_type(app_spec.type),
-                    )
-                )
-            except Exception as e:
-                logger.error(f"Failed to create app {app_spec.name}: {e}")
-
-        crd = self._mas_to_crd(mas, namespace)
-
-        return crd
-
-    def update_mas_status(self, namespace: str, name: str, request: MASStatusUpdateRequest) -> MultiAgentSystemCRD:
-        """Update the status of a MultiAgentSystem CRD (typically called by operator)."""
-        existing_crd = self.get_mas_crd(namespace, name)
-        if not existing_crd:
-            raise ValueError(f"MultiAgentSystem {namespace}/{name} not found")
-
-        # Update status
-        existing_crd.status = request.status
-
-        return existing_crd
-
     def delete_mas_crd(self, namespace: str, name: str) -> None:
         """Delete a MultiAgentSystem CRD by namespace and name."""
-        # Convert name to UUID
-        mas_id = self._mas_service.get_id_by_name(name, namespace)
-
-        # Look up the MAS CRD
-        mas_crd = self.get_mas_crd(namespace, mas_id)
-        if not mas_crd or not mas_crd.metadata.uid:
+        mas = self._mas_service.get_mas_by_name(name, namespace)
+        if not mas or not mas.id:
             raise ValueError(f"MultiAgentSystem {namespace}/{name} not found")
 
-        # Delete the K8sMultiAgentSystemCRD row (and its metadata/app_specs) from DB
-        k8s_crd = self._k8s_mas_repository.get_k8s_crd_by_mas_id(UUID(mas_crd.metadata.uid))
-        if k8s_crd is not None:
-            self._k8s_mas_repository.delete_mas(k8s_crd)
+        mas_crd = self._k8s_mas_repository.get_k8s_crd_by_mas_id(mas.id)
+        if mas_crd:
+            self._k8s_mas_repository.delete_mas(mas_crd)
 
-        # Delete by UUID
-        self._mas_service.delete_mas(mas_crd.metadata.uid)
+        self._mas_service.delete_mas(mas.id)

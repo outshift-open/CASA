@@ -724,41 +724,13 @@ paths:
       tags:
       - Scopes
   /k8s/namespaces/{namespace}/mas:
-    get:
-      description: List all MultiAgentSystem CRDs in a specific namespace.
-      operationId: list_mas_crds_in_namespace_k8s_namespaces__namespace__mas_get
-      parameters:
-      - explode: false
-        in: path
-        name: namespace
-        required: true
-        schema:
-          title: Namespace
-          type: string
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MASListResponse"
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: List Mas Crds In Namespace
-      tags:
-      - Kubernetes CRDs
     post:
       description: |-
         Create a new MultiAgentSystem CRD.
 
         This endpoint is used by kubectl or Kubernetes operators to create a new
         Multi-Agent System through the CRD API.
-      operationId: create_mas_crd_k8s_namespaces__namespace__mas_post
+      operationId: create_mas_crd
       parameters:
       - explode: false
         in: path
@@ -790,78 +762,10 @@ paths:
       summary: Create Mas Crd
       tags:
       - Kubernetes CRDs
-  /k8s/namespaces/{namespace}/mas/{mas_id}:
-    get:
-      description: Get a MultiAgentSystem CRD by namespace and name.
-      operationId: get_mas_crd_k8s_namespaces__namespace__mas__mas_id__get
-      parameters:
-      - explode: false
-        in: path
-        name: namespace
-        required: true
-        schema:
-          title: Namespace
-          type: string
-        style: simple
-      - explode: false
-        in: path
-        name: mas_id
-        required: true
-        schema:
-          title: Mas Id
-          type: string
-        style: simple
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MultiAgentSystemCRD"
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: Get Mas Crd
-      tags:
-      - Kubernetes CRDs
-  /k8s/mas:
-    get:
-      description: List all MultiAgentSystem CRDs across all namespaces or filtered
-        by namespace.
-      operationId: list_all_mas_crds_k8s_mas_get
-      parameters:
-      - description: Filter by namespace
-        explode: true
-        in: query
-        name: namespace
-        required: false
-        schema:
-          nullable: true
-          type: string
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MASListResponse"
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: List All Mas Crds
-      tags:
-      - Kubernetes CRDs
   /k8s/namespaces/{namespace}/mas/{name}:
     delete:
       description: Delete a MultiAgentSystem CRD.
-      operationId: delete_mas_crd_k8s_namespaces__namespace__mas__name__delete
+      operationId: delete_mas_crd
       parameters:
       - explode: false
         in: path
@@ -889,91 +793,6 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
           description: Validation Error
       summary: Delete Mas Crd
-      tags:
-      - Kubernetes CRDs
-    put:
-      description: Update a MultiAgentSystem CRD spec.
-      operationId: update_mas_crd_k8s_namespaces__namespace__mas__name__put
-      parameters:
-      - explode: false
-        in: path
-        name: namespace
-        required: true
-        schema:
-          title: Namespace
-          type: string
-        style: simple
-      - explode: false
-        in: path
-        name: name
-        required: true
-        schema:
-          title: Name
-          type: string
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MASUpdateRequest"
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MultiAgentSystemCRD"
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: Update Mas Crd
-      tags:
-      - Kubernetes CRDs
-  /k8s/namespaces/{namespace}/mas/{name}/status:
-    patch:
-      description: Update a MultiAgentSystem CRD status (typically called by operator).
-      operationId: update_mas_status_k8s_namespaces__namespace__mas__name__status_patch
-      parameters:
-      - explode: false
-        in: path
-        name: namespace
-        required: true
-        schema:
-          title: Namespace
-          type: string
-        style: simple
-      - explode: false
-        in: path
-        name: name
-        required: true
-        schema:
-          title: Name
-          type: string
-        style: simple
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MASStatusUpdateRequest"
-        required: true
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MultiAgentSystemCRD"
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: Update Mas Status
       tags:
       - Kubernetes CRDs
   /user-inputs:
@@ -1283,12 +1102,6 @@ components:
       title: ActorClaim
     AppCredentials:
       description: OAuth2 credentials for an application.
-      example:
-        secretName: secretName
-        clientId: clientId
-        appName: appName
-        appId: appId
-        clientSecret: clientSecret
       properties:
         appName:
           description: Name of the application
@@ -2041,7 +1854,6 @@ components:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
           llm_host: llm_host
-          authorizationServer: ""
           name: name
           apps:
           - kubernetesWorkloadName: kubernetesWorkloadName
@@ -2063,93 +1875,6 @@ components:
       - metadata
       - spec
       title: MASCreateRequest
-    MASListResponse:
-      description: Response model for listing MultiAgentSystems.
-      example:
-        apiVersion: zta.io/v1alpha1
-        kind: MultiAgentSystemList
-        items:
-        - metadata:
-            generation: 0
-            uid: uid
-            resourceVersion: resourceVersion
-            name: name
-            namespace: namespace
-            annotations:
-              key: ""
-            labels:
-              key: ""
-          apiVersion: zta.io/v1alpha1
-          kind: MultiAgentSystem
-          spec:
-            enabledToolChecks:
-            - DETERMINISTIC_TOOL_SELECTED
-            - DETERMINISTIC_TOOL_SELECTED
-            llm_host: llm_host
-            authorizationServer: ""
-            name: name
-            apps:
-            - kubernetesWorkloadName: kubernetesWorkloadName
-              baseUrl: ""
-              name: name
-              httpRequestSchema: ""
-              type: ""
-            - kubernetesWorkloadName: kubernetesWorkloadName
-              baseUrl: ""
-              name: name
-              httpRequestSchema: ""
-              type: ""
-          status: ""
-        - metadata:
-            generation: 0
-            uid: uid
-            resourceVersion: resourceVersion
-            name: name
-            namespace: namespace
-            annotations:
-              key: ""
-            labels:
-              key: ""
-          apiVersion: zta.io/v1alpha1
-          kind: MultiAgentSystem
-          spec:
-            enabledToolChecks:
-            - DETERMINISTIC_TOOL_SELECTED
-            - DETERMINISTIC_TOOL_SELECTED
-            llm_host: llm_host
-            authorizationServer: ""
-            name: name
-            apps:
-            - kubernetesWorkloadName: kubernetesWorkloadName
-              baseUrl: ""
-              name: name
-              httpRequestSchema: ""
-              type: ""
-            - kubernetesWorkloadName: kubernetesWorkloadName
-              baseUrl: ""
-              name: name
-              httpRequestSchema: ""
-              type: ""
-          status: ""
-      properties:
-        apiVersion:
-          default: zta.io/v1alpha1
-          title: Apiversion
-          type: string
-        kind:
-          default: MultiAgentSystemList
-          enum:
-          - MultiAgentSystemList
-          title: Kind
-          type: string
-        items:
-          items:
-            $ref: "#/components/schemas/MultiAgentSystemCRD"
-          title: Items
-          type: array
-      required:
-      - items
-      title: MASListResponse
     MASPhase:
       description: Phase of MAS resource lifecycle.
       enum:
@@ -2158,58 +1883,6 @@ components:
       - Failed
       title: MASPhase
       type: string
-    MASStatusUpdateRequest:
-      description: Request model for updating MAS status (used by operator).
-      example:
-        status:
-          phase: ""
-          credentials:
-          - secretName: secretName
-            clientId: clientId
-            appName: appName
-            appId: appId
-            clientSecret: clientSecret
-          - secretName: secretName
-            clientId: clientId
-            appName: appName
-            appId: appId
-            clientSecret: clientSecret
-          last_sync_time: 2000-01-23T04:56:07.000+00:00
-          appsReady: 0
-          message: message
-      properties:
-        status:
-          $ref: "#/components/schemas/MultiAgentSystemStatus"
-      required:
-      - status
-      title: MASStatusUpdateRequest
-    MASUpdateRequest:
-      description: Request model for updating a MultiAgentSystem via API.
-      example:
-        spec:
-          enabledToolChecks:
-          - DETERMINISTIC_TOOL_SELECTED
-          - DETERMINISTIC_TOOL_SELECTED
-          llm_host: llm_host
-          authorizationServer: ""
-          name: name
-          apps:
-          - kubernetesWorkloadName: kubernetesWorkloadName
-            baseUrl: ""
-            name: name
-            httpRequestSchema: ""
-            type: ""
-          - kubernetesWorkloadName: kubernetesWorkloadName
-            baseUrl: ""
-            name: name
-            httpRequestSchema: ""
-            type: ""
-      properties:
-        spec:
-          $ref: "#/components/schemas/MultiAgentSystemSpec"
-      required:
-      - spec
-      title: MASUpdateRequest
     MultiAgentSystem:
       description: "An entity describing a multi agent system, which is a set of apps."
       example:
@@ -2291,7 +1964,6 @@ components:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
           llm_host: llm_host
-          authorizationServer: ""
           name: name
           apps:
           - kubernetesWorkloadName: kubernetesWorkloadName
@@ -2403,7 +2075,6 @@ components:
         - DETERMINISTIC_TOOL_SELECTED
         - DETERMINISTIC_TOOL_SELECTED
         llm_host: llm_host
-        authorizationServer: ""
         name: name
         apps:
         - kubernetesWorkloadName: kubernetesWorkloadName
@@ -2420,11 +2091,6 @@ components:
         name:
           description: Display name of the Multi-Agent System
           title: Name
-          type: string
-        authorizationServer:
-          default: ""
-          description: Keycloak realm name for this MAS
-          title: Authorizationserver
           type: string
         enabledToolChecks:
           description: List of enabled tool check types
@@ -2446,22 +2112,6 @@ components:
       title: MultiAgentSystemSpec
     MultiAgentSystemStatus:
       description: Status of MultiAgentSystem CRD.
-      example:
-        phase: ""
-        credentials:
-        - secretName: secretName
-          clientId: clientId
-          appName: appName
-          appId: appId
-          clientSecret: clientSecret
-        - secretName: secretName
-          clientId: clientId
-          appName: appName
-          appId: appId
-          clientSecret: clientSecret
-        last_sync_time: 2000-01-23T04:56:07.000+00:00
-        appsReady: 0
-        message: message
       properties:
         phase:
           allOf:

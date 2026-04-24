@@ -42,10 +42,7 @@ docs/LLMCallStartedRequest.md
 docs/LlmCallMappingStoreRequest.md
 docs/LocationInner.md
 docs/MASCreateRequest.md
-docs/MASListResponse.md
 docs/MASPhase.md
-docs/MASStatusUpdateRequest.md
-docs/MASUpdateRequest.md
 docs/MultiAgentSystem.md
 docs/MultiAgentSystemAppsBindingRequest.md
 docs/MultiAgentSystemCRD.md
@@ -99,10 +96,7 @@ model_llm_call_started_event.go
 model_llm_call_started_request.go
 model_location_inner.go
 model_mas_create_request.go
-model_mas_list_response.go
 model_mas_phase.go
-model_mas_status_update_request.go
-model_mas_update_request.go
 model_multi_agent_system.go
 model_multi_agent_system_apps_binding_request.go
 model_multi_agent_system_crd.go

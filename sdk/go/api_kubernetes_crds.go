@@ -23,24 +23,24 @@ import (
 // KubernetesCRDsAPIService KubernetesCRDsAPI service
 type KubernetesCRDsAPIService service
 
-type ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest struct {
+type ApiCreateMasCrdRequest struct {
 	ctx context.Context
 	ApiService *KubernetesCRDsAPIService
 	namespace string
 	mASCreateRequest *MASCreateRequest
 }
 
-func (r ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest) MASCreateRequest(mASCreateRequest MASCreateRequest) ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest {
+func (r ApiCreateMasCrdRequest) MASCreateRequest(mASCreateRequest MASCreateRequest) ApiCreateMasCrdRequest {
 	r.mASCreateRequest = &mASCreateRequest
 	return r
 }
 
-func (r ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest) Execute() (*MultiAgentSystemCRD, *http.Response, error) {
-	return r.ApiService.CreateMasCrdK8sNamespacesNamespaceMasPostExecute(r)
+func (r ApiCreateMasCrdRequest) Execute() (*MultiAgentSystemCRD, *http.Response, error) {
+	return r.ApiService.CreateMasCrdExecute(r)
 }
 
 /*
-CreateMasCrdK8sNamespacesNamespaceMasPost Create Mas Crd
+CreateMasCrd Create Mas Crd
 
 Create a new MultiAgentSystem CRD.
 
@@ -49,10 +49,10 @@ Multi-Agent System through the CRD API.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param namespace
- @return ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest
+ @return ApiCreateMasCrdRequest
 */
-func (a *KubernetesCRDsAPIService) CreateMasCrdK8sNamespacesNamespaceMasPost(ctx context.Context, namespace string) ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest {
-	return ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest{
+func (a *KubernetesCRDsAPIService) CreateMasCrd(ctx context.Context, namespace string) ApiCreateMasCrdRequest {
+	return ApiCreateMasCrdRequest{
 		ApiService: a,
 		ctx: ctx,
 		namespace: namespace,
@@ -61,7 +61,7 @@ func (a *KubernetesCRDsAPIService) CreateMasCrdK8sNamespacesNamespaceMasPost(ctx
 
 // Execute executes the request
 //  @return MultiAgentSystemCRD
-func (a *KubernetesCRDsAPIService) CreateMasCrdK8sNamespacesNamespaceMasPostExecute(r ApiCreateMasCrdK8sNamespacesNamespaceMasPostRequest) (*MultiAgentSystemCRD, *http.Response, error) {
+func (a *KubernetesCRDsAPIService) CreateMasCrdExecute(r ApiCreateMasCrdRequest) (*MultiAgentSystemCRD, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodPost
 		localVarPostBody     interface{}
@@ -69,7 +69,7 @@ func (a *KubernetesCRDsAPIService) CreateMasCrdK8sNamespacesNamespaceMasPostExec
 		localVarReturnValue  *MultiAgentSystemCRD
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.CreateMasCrdK8sNamespacesNamespaceMasPost")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.CreateMasCrd")
 	if err != nil {
 		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -150,29 +150,29 @@ func (a *KubernetesCRDsAPIService) CreateMasCrdK8sNamespacesNamespaceMasPostExec
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
-type ApiDeleteMasCrdK8sNamespacesNamespaceMasNameDeleteRequest struct {
+type ApiDeleteMasCrdRequest struct {
 	ctx context.Context
 	ApiService *KubernetesCRDsAPIService
 	namespace string
 	name string
 }
 
-func (r ApiDeleteMasCrdK8sNamespacesNamespaceMasNameDeleteRequest) Execute() (*http.Response, error) {
-	return r.ApiService.DeleteMasCrdK8sNamespacesNamespaceMasNameDeleteExecute(r)
+func (r ApiDeleteMasCrdRequest) Execute() (*http.Response, error) {
+	return r.ApiService.DeleteMasCrdExecute(r)
 }
 
 /*
-DeleteMasCrdK8sNamespacesNamespaceMasNameDelete Delete Mas Crd
+DeleteMasCrd Delete Mas Crd
 
 Delete a MultiAgentSystem CRD.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param namespace
  @param name
- @return ApiDeleteMasCrdK8sNamespacesNamespaceMasNameDeleteRequest
+ @return ApiDeleteMasCrdRequest
 */
-func (a *KubernetesCRDsAPIService) DeleteMasCrdK8sNamespacesNamespaceMasNameDelete(ctx context.Context, namespace string, name string) ApiDeleteMasCrdK8sNamespacesNamespaceMasNameDeleteRequest {
-	return ApiDeleteMasCrdK8sNamespacesNamespaceMasNameDeleteRequest{
+func (a *KubernetesCRDsAPIService) DeleteMasCrd(ctx context.Context, namespace string, name string) ApiDeleteMasCrdRequest {
+	return ApiDeleteMasCrdRequest{
 		ApiService: a,
 		ctx: ctx,
 		namespace: namespace,
@@ -181,14 +181,14 @@ func (a *KubernetesCRDsAPIService) DeleteMasCrdK8sNamespacesNamespaceMasNameDele
 }
 
 // Execute executes the request
-func (a *KubernetesCRDsAPIService) DeleteMasCrdK8sNamespacesNamespaceMasNameDeleteExecute(r ApiDeleteMasCrdK8sNamespacesNamespaceMasNameDeleteRequest) (*http.Response, error) {
+func (a *KubernetesCRDsAPIService) DeleteMasCrdExecute(r ApiDeleteMasCrdRequest) (*http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodDelete
 		localVarPostBody     interface{}
 		formFiles            []formFile
 	)
 
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.DeleteMasCrdK8sNamespacesNamespaceMasNameDelete")
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.DeleteMasCrd")
 	if err != nil {
 		return nil, &GenericOpenAPIError{error: err.Error()}
 	}
@@ -254,609 +254,4 @@ func (a *KubernetesCRDsAPIService) DeleteMasCrdK8sNamespacesNamespaceMasNameDele
 	}
 
 	return localVarHTTPResponse, nil
-}
-
-type ApiGetMasCrdK8sNamespacesNamespaceMasMasIdGetRequest struct {
-	ctx context.Context
-	ApiService *KubernetesCRDsAPIService
-	namespace string
-	masId string
-}
-
-func (r ApiGetMasCrdK8sNamespacesNamespaceMasMasIdGetRequest) Execute() (*MultiAgentSystemCRD, *http.Response, error) {
-	return r.ApiService.GetMasCrdK8sNamespacesNamespaceMasMasIdGetExecute(r)
-}
-
-/*
-GetMasCrdK8sNamespacesNamespaceMasMasIdGet Get Mas Crd
-
-Get a MultiAgentSystem CRD by namespace and name.
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param namespace
- @param masId
- @return ApiGetMasCrdK8sNamespacesNamespaceMasMasIdGetRequest
-*/
-func (a *KubernetesCRDsAPIService) GetMasCrdK8sNamespacesNamespaceMasMasIdGet(ctx context.Context, namespace string, masId string) ApiGetMasCrdK8sNamespacesNamespaceMasMasIdGetRequest {
-	return ApiGetMasCrdK8sNamespacesNamespaceMasMasIdGetRequest{
-		ApiService: a,
-		ctx: ctx,
-		namespace: namespace,
-		masId: masId,
-	}
-}
-
-// Execute executes the request
-//  @return MultiAgentSystemCRD
-func (a *KubernetesCRDsAPIService) GetMasCrdK8sNamespacesNamespaceMasMasIdGetExecute(r ApiGetMasCrdK8sNamespacesNamespaceMasMasIdGetRequest) (*MultiAgentSystemCRD, *http.Response, error) {
-	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *MultiAgentSystemCRD
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.GetMasCrdK8sNamespacesNamespaceMasMasIdGet")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/k8s/namespaces/{namespace}/mas/{mas_id}"
-	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", url.PathEscape(parameterValueToString(r.namespace, "namespace")), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"mas_id"+"}", url.PathEscape(parameterValueToString(r.masId, "masId")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 422 {
-			var v HTTPValidationError
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type ApiListAllMasCrdsK8sMasGetRequest struct {
-	ctx context.Context
-	ApiService *KubernetesCRDsAPIService
-	namespace *string
-}
-
-// Filter by namespace
-func (r ApiListAllMasCrdsK8sMasGetRequest) Namespace(namespace string) ApiListAllMasCrdsK8sMasGetRequest {
-	r.namespace = &namespace
-	return r
-}
-
-func (r ApiListAllMasCrdsK8sMasGetRequest) Execute() (*MASListResponse, *http.Response, error) {
-	return r.ApiService.ListAllMasCrdsK8sMasGetExecute(r)
-}
-
-/*
-ListAllMasCrdsK8sMasGet List All Mas Crds
-
-List all MultiAgentSystem CRDs across all namespaces or filtered by namespace.
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiListAllMasCrdsK8sMasGetRequest
-*/
-func (a *KubernetesCRDsAPIService) ListAllMasCrdsK8sMasGet(ctx context.Context) ApiListAllMasCrdsK8sMasGetRequest {
-	return ApiListAllMasCrdsK8sMasGetRequest{
-		ApiService: a,
-		ctx: ctx,
-	}
-}
-
-// Execute executes the request
-//  @return MASListResponse
-func (a *KubernetesCRDsAPIService) ListAllMasCrdsK8sMasGetExecute(r ApiListAllMasCrdsK8sMasGetRequest) (*MASListResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *MASListResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.ListAllMasCrdsK8sMasGet")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/k8s/mas"
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	if r.namespace != nil {
-		parameterAddToHeaderOrQuery(localVarQueryParams, "namespace", r.namespace, "form", "")
-	}
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 422 {
-			var v HTTPValidationError
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type ApiListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetRequest struct {
-	ctx context.Context
-	ApiService *KubernetesCRDsAPIService
-	namespace string
-}
-
-func (r ApiListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetRequest) Execute() (*MASListResponse, *http.Response, error) {
-	return r.ApiService.ListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetExecute(r)
-}
-
-/*
-ListMasCrdsInNamespaceK8sNamespacesNamespaceMasGet List Mas Crds In Namespace
-
-List all MultiAgentSystem CRDs in a specific namespace.
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param namespace
- @return ApiListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetRequest
-*/
-func (a *KubernetesCRDsAPIService) ListMasCrdsInNamespaceK8sNamespacesNamespaceMasGet(ctx context.Context, namespace string) ApiListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetRequest {
-	return ApiListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetRequest{
-		ApiService: a,
-		ctx: ctx,
-		namespace: namespace,
-	}
-}
-
-// Execute executes the request
-//  @return MASListResponse
-func (a *KubernetesCRDsAPIService) ListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetExecute(r ApiListMasCrdsInNamespaceK8sNamespacesNamespaceMasGetRequest) (*MASListResponse, *http.Response, error) {
-	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *MASListResponse
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.ListMasCrdsInNamespaceK8sNamespacesNamespaceMasGet")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/k8s/namespaces/{namespace}/mas"
-	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", url.PathEscape(parameterValueToString(r.namespace, "namespace")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 422 {
-			var v HTTPValidationError
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest struct {
-	ctx context.Context
-	ApiService *KubernetesCRDsAPIService
-	namespace string
-	name string
-	mASUpdateRequest *MASUpdateRequest
-}
-
-func (r ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest) MASUpdateRequest(mASUpdateRequest MASUpdateRequest) ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest {
-	r.mASUpdateRequest = &mASUpdateRequest
-	return r
-}
-
-func (r ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest) Execute() (*MultiAgentSystemCRD, *http.Response, error) {
-	return r.ApiService.UpdateMasCrdK8sNamespacesNamespaceMasNamePutExecute(r)
-}
-
-/*
-UpdateMasCrdK8sNamespacesNamespaceMasNamePut Update Mas Crd
-
-Update a MultiAgentSystem CRD spec.
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param namespace
- @param name
- @return ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest
-*/
-func (a *KubernetesCRDsAPIService) UpdateMasCrdK8sNamespacesNamespaceMasNamePut(ctx context.Context, namespace string, name string) ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest {
-	return ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest{
-		ApiService: a,
-		ctx: ctx,
-		namespace: namespace,
-		name: name,
-	}
-}
-
-// Execute executes the request
-//  @return MultiAgentSystemCRD
-func (a *KubernetesCRDsAPIService) UpdateMasCrdK8sNamespacesNamespaceMasNamePutExecute(r ApiUpdateMasCrdK8sNamespacesNamespaceMasNamePutRequest) (*MultiAgentSystemCRD, *http.Response, error) {
-	var (
-		localVarHTTPMethod   = http.MethodPut
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *MultiAgentSystemCRD
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.UpdateMasCrdK8sNamespacesNamespaceMasNamePut")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/k8s/namespaces/{namespace}/mas/{name}"
-	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", url.PathEscape(parameterValueToString(r.namespace, "namespace")), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", url.PathEscape(parameterValueToString(r.name, "name")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-	if r.mASUpdateRequest == nil {
-		return localVarReturnValue, nil, reportError("mASUpdateRequest is required and must be specified")
-	}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	// body params
-	localVarPostBody = r.mASUpdateRequest
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 422 {
-			var v HTTPValidationError
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
-}
-
-type ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest struct {
-	ctx context.Context
-	ApiService *KubernetesCRDsAPIService
-	namespace string
-	name string
-	mASStatusUpdateRequest *MASStatusUpdateRequest
-}
-
-func (r ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest) MASStatusUpdateRequest(mASStatusUpdateRequest MASStatusUpdateRequest) ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest {
-	r.mASStatusUpdateRequest = &mASStatusUpdateRequest
-	return r
-}
-
-func (r ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest) Execute() (*MultiAgentSystemCRD, *http.Response, error) {
-	return r.ApiService.UpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchExecute(r)
-}
-
-/*
-UpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatch Update Mas Status
-
-Update a MultiAgentSystem CRD status (typically called by operator).
-
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param namespace
- @param name
- @return ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest
-*/
-func (a *KubernetesCRDsAPIService) UpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatch(ctx context.Context, namespace string, name string) ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest {
-	return ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest{
-		ApiService: a,
-		ctx: ctx,
-		namespace: namespace,
-		name: name,
-	}
-}
-
-// Execute executes the request
-//  @return MultiAgentSystemCRD
-func (a *KubernetesCRDsAPIService) UpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchExecute(r ApiUpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatchRequest) (*MultiAgentSystemCRD, *http.Response, error) {
-	var (
-		localVarHTTPMethod   = http.MethodPatch
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *MultiAgentSystemCRD
-	)
-
-	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.UpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatch")
-	if err != nil {
-		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
-	}
-
-	localVarPath := localBasePath + "/k8s/namespaces/{namespace}/mas/{name}/status"
-	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", url.PathEscape(parameterValueToString(r.namespace, "namespace")), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", url.PathEscape(parameterValueToString(r.name, "name")), -1)
-
-	localVarHeaderParams := make(map[string]string)
-	localVarQueryParams := url.Values{}
-	localVarFormParams := url.Values{}
-	if r.mASStatusUpdateRequest == nil {
-		return localVarReturnValue, nil, reportError("mASStatusUpdateRequest is required and must be specified")
-	}
-
-	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{"application/json"}
-
-	// set Content-Type header
-	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
-	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
-	}
-
-	// to determine the Accept header
-	localVarHTTPHeaderAccepts := []string{"application/json"}
-
-	// set Accept header
-	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
-	if localVarHTTPHeaderAccept != "" {
-		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
-	}
-	// body params
-	localVarPostBody = r.mASStatusUpdateRequest
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
-	if err != nil {
-		return localVarReturnValue, nil, err
-	}
-
-	localVarHTTPResponse, err := a.client.callAPI(req)
-	if err != nil || localVarHTTPResponse == nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
-	localVarHTTPResponse.Body.Close()
-	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
-	if err != nil {
-		return localVarReturnValue, localVarHTTPResponse, err
-	}
-
-	if localVarHTTPResponse.StatusCode >= 300 {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
-		}
-		if localVarHTTPResponse.StatusCode == 422 {
-			var v HTTPValidationError
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-	if err != nil {
-		newErr := &GenericOpenAPIError{
-			body:  localVarBody,
-			error: err.Error(),
-		}
-		return localVarReturnValue, localVarHTTPResponse, newErr
-	}
-
-	return localVarReturnValue, localVarHTTPResponse, nil
 }

@@ -133,7 +133,6 @@ class MultiAgentSystemService:
         """Get a Multi Agent System by ID."""
         return self._mas_repository.get_by_id(id)
 
-    def get_id_by_name(self, name: str, namespace: str) -> str:
+    def get_mas_by_name(self, name: str, namespace: str) -> MultiAgentSystem:
         """Get MAS ID by name and namespace."""
-        mas = self._mas_repository.get_by_name_and_namespace(name, namespace)
-        return str(mas.id)
+        return self._mas_repository.get_by_name_and_namespace(name, namespace)
