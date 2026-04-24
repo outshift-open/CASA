@@ -1,25 +1,25 @@
-namespace: zta-control-plane-dev
+namespace: zta-demo
 
 agentSafe:
-  replicas: 3
+  replicas: 1
   serviceName: demo-agent-safe
   servicePort: 8082
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
-    image: outshift-zta/demo-agent-safe
+    registry: ""
+    image: demo-agent-safe
     suffix: ''
-  tagversion: 2026-04-22-d7b6dce
+  tagversion: latest
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 agentCompromised:
-  replicas: 3
+  replicas: 1
   serviceName: demo-agent-compromised
   servicePort: 8082
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
-    image: outshift-zta/demo-agent-compromised
+    registry: ""
+    image: demo-agent-compromised
     suffix: ''
-  tagversion: 2026-04-22-d7b6dce
+  tagversion: latest
   mcp_server_url: http://zta-demo-mcp:3000/mcp
 
 mcp:
@@ -27,35 +27,35 @@ mcp:
   serviceName: zta-demo-mcp
   servicePort: 3000
   docker:
-    registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
-    image: outshift-zta/k8s-demo-mcp
+    registry: ""
+    image: demo-mcp
     suffix: ''
-  tagversion: 2026-04-22-d7b6dce
+  tagversion: latest
 
 chatUis:
   - name: safe
     docker:
-      registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
-      image: outshift-zta/chat-ui
-    tagversion: 2026-04-22-7c71381
+      registry: ""
+      image: chat-ui
+    tagversion: latest
     agentUrl: /safe-agent
     ingress:
-      enabled: true
+      enabled: false
       className: "nginx"
-      apiDomainName: "dev.outshift.ai"
+      apiDomainName: ""
       domainPrefix: "zta-demo-safe"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
   - name: compromised
     docker:
-      registry: 626007623524.dkr.ecr.us-east-2.amazonaws.com
-      image: outshift-zta/chat-ui
-    tagversion: 2026-04-22-7c71381
+      registry: ""
+      image: chat-ui
+    tagversion: latest
     agentUrl: /compromised-agent
     ingress:
-      enabled: true
+      enabled: false
       className: "nginx"
-      apiDomainName: "dev.outshift.ai"
+      apiDomainName: ""
       domainPrefix: "zta-demo-compromised"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
@@ -69,11 +69,11 @@ masSafe:
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
-  llm_host: litellm.prod.outshift.ai
+  llm_host: ""
 
 masCompromised:
   name: "ZTA Demo Compromised"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
-  llm_host: litellm.prod.outshift.ai
+  llm_host: ""

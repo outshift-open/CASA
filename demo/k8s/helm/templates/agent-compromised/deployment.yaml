@@ -19,12 +19,14 @@ spec:
       annotations:
         sidecar.istio.io/inject: "true"
     spec:
+      {{- if .Values.agentCompromised.docker.registry }}
       imagePullSecrets:
         - name: regcred
+      {{- end }}
       containers:
       - name: {{ .Values.agentCompromised.serviceName }}
-        image: {{ .Values.agentCompromised.docker.registry }}/{{ .Values.agentCompromised.docker.image }}:{{ .Values.agentCompromised.tagversion }}
-        imagePullPolicy: Always
+        image: {{ if .Values.agentCompromised.docker.registry }}{{ .Values.agentCompromised.docker.registry }}/{{ end }}{{ .Values.agentCompromised.docker.image }}:{{ .Values.agentCompromised.tagversion }}
+        imagePullPolicy: {{ if .Values.agentCompromised.docker.registry }}Always{{ else }}Never{{ end }}
         securityContext:
           runAsNonRoot: true
           runAsUser: 999

@@ -13,12 +13,14 @@ spec:
       labels:
         app: {{ .Values.mcp.serviceName }}
     spec:
+      {{- if .Values.mcp.docker.registry }}
       imagePullSecrets:
         - name: regcred
+      {{- end }}
       containers:
       - name: {{ .Values.mcp.serviceName }}
-        image: {{ .Values.mcp.docker.registry }}/{{ .Values.mcp.docker.image }}:{{ .Values.mcp.tagversion }}
-        imagePullPolicy: Always
+        image: {{ if .Values.mcp.docker.registry }}{{ .Values.mcp.docker.registry }}/{{ end }}{{ .Values.mcp.docker.image }}:{{ .Values.mcp.tagversion }}
+        imagePullPolicy: {{ if .Values.mcp.docker.registry }}Always{{ else }}Never{{ end }}
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
