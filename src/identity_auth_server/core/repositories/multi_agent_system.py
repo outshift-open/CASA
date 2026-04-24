@@ -1,6 +1,7 @@
 """Repository layer for Multi-Agent System persistence."""
 
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from typing import List
 
 from sqlmodel import Session, select
@@ -56,13 +57,16 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
         return mas
 
     def delete(self, mas: MultiAgentSystem):
-        """Delete an existing multi agent system instance from the database."""
-        self._session.delete(mas)
+        """Soft-delete a multi agent system by setting deleted_at."""
+        mas.deleted_at = datetime.now(timezone.utc)
+        self._session.add(mas)
 
     def get_by_id(self, id: str) -> MultiAgentSystem:
         """Fetch a multi agent system by ID from the database."""
         try:
-            mas = self._session.get(MultiAgentSystem, id)
+            mas = self._session.exec(
+                select(MultiAgentSystem).where(MultiAgentSystem.id == id).where(MultiAgentSystem.deleted_at == None)
+            ).first()
             return mas
         except Exception as e:
             raise Exception(f"Error retrieving MAS with id '{id}': {e}") from e
@@ -70,7 +74,7 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
     def get_all(self) -> List[MultiAgentSystem]:
         """Fetch all the mutli agent systems stored in the database."""
         try:
-            mas_list = self._session.exec(select(MultiAgentSystem)).all()
+            mas_list = self._session.exec(select(MultiAgentSystem).where(MultiAgentSystem.deleted_at == None)).all()
             return list(mas_list)
         except Exception as e:
             raise Exception(f"Error retrieving MAS list: {e}") from e
@@ -83,6 +87,7 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
                 select(MultiAgentSystem)
                 .where(MultiAgentSystem.namespace == namespace)
                 .where((MultiAgentSystem.k8s_name == name) | (MultiAgentSystem.name == name))
+                .where(MultiAgentSystem.deleted_at == None)
             )
             mas = self._session.exec(statement).first()
             if not mas:

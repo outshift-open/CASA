@@ -87,6 +87,7 @@ class App(SQLModel, table=True):
     tools: List["Tool"] = Relationship(back_populates="app")
     mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
     mas: Optional["MultiAgentSystem"] = Relationship(back_populates="apps")
+    deleted_at: Optional[datetime] = Field(default=None)
 
 
 class MultiAgentSystem(SQLModel, table=True):
@@ -107,6 +108,7 @@ class MultiAgentSystem(SQLModel, table=True):
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="multi_agent_systems")
     namespace: Optional[str]
     created_at: datetime = datetime.now(timezone.utc)
+    deleted_at: Optional[datetime] = Field(default=None)
 
 
 class UserInput(SQLModel, table=True):
