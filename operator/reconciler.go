@@ -139,14 +139,19 @@ func (r *MultiAgentSystemReconciler) syncToAuthService(ctx context.Context, mas 
 			}),
 			LlmHost: *identitysdk.NewNullableString(&mas.Spec.LLMHost),
 			Apps: ConvertSlice(mas.Spec.Apps, func(app AppSpec) identitysdk.AppSpec {
+				var httpRequestSchema *identitysdk.HttpRequestSchema
+				if app.HttpRequestSchema != nil {
+					httpRequestSchema = &identitysdk.HttpRequestSchema{
+						PromptFieldJsonPath: app.HttpRequestSchema.PromptFieldJsonPath,
+					}
+				}
+
 				return identitysdk.AppSpec{
 					Name:                   app.Name,
 					Type:                   identitysdk.AppType(app.Type),
 					BaseUrl:                identitysdk.AppSpecBaseUrl(app.BaseURL),
 					KubernetesWorkloadName: *identitysdk.NewNullableString(&app.KubernetesWorkloadName),
-					HttpRequestSchema: *identitysdk.NewNullableHttpRequestSchema(&identitysdk.HttpRequestSchema{
-						PromptFieldJsonPath: app.HttpRequestSchema.PromptFieldJsonPath,
-					}),
+					HttpRequestSchema:      *identitysdk.NewNullableHttpRequestSchema(httpRequestSchema),
 				}
 			}),
 		},
