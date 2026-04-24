@@ -17,21 +17,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
-func newAuthServerClient(authSrvURL string) (*identitysdk.APIClient, error) {
-	u, err := url.Parse(authSrvURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse auth service URL %s: %w", authSrvURL, err)
-	}
-
-	config := identitysdk.NewConfiguration()
-	config.Host = u.Host
-	config.Scheme = u.Scheme
-	config.Debug = true
-	config.HTTPClient = &http.Client{Timeout: 120 * time.Second}
-
-	return identitysdk.NewAPIClient(config), nil
-}
-
 func main() {
 	opts := zap.Options{Development: false}
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
@@ -82,4 +67,18 @@ func main() {
 		ctrl.Log.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func newAuthServerClient(authSrvURL string) (*identitysdk.APIClient, error) {
+	u, err := url.Parse(authSrvURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse auth service URL %s: %w", authSrvURL, err)
+	}
+
+	config := identitysdk.NewConfiguration()
+	config.Host = u.Host
+	config.Scheme = u.Scheme
+	config.HTTPClient = &http.Client{Timeout: 120 * time.Second}
+
+	return identitysdk.NewAPIClient(config), nil
 }
