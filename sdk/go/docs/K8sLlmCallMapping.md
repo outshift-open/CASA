@@ -11,7 +11,7 @@ Name | Type | Description | Notes
 **AppId** | **NullableString** |  | 
 **UserInputId** | **NullableString** |  | 
 **Token** | Pointer to **NullableString** |  | [optional] 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-24T09:07:11.693086Z"]
+**CreatedAt** | Pointer to **time.Time** |  | [optional] 
 
 ## Methods
 
@@ -234,20 +234,20 @@ HasToken returns a boolean if a field has been set.
 UnsetToken ensures that no value is present for Token, not even an explicit nil
 ### GetCreatedAt
 
-`func (o *K8sLlmCallMapping) GetCreatedAt() string`
+`func (o *K8sLlmCallMapping) GetCreatedAt() time.Time`
 
 GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
 
 ### GetCreatedAtOk
 
-`func (o *K8sLlmCallMapping) GetCreatedAtOk() (*string, bool)`
+`func (o *K8sLlmCallMapping) GetCreatedAtOk() (*time.Time, bool)`
 
 GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCreatedAt
 
-`func (o *K8sLlmCallMapping) SetCreatedAt(v string)`
+`func (o *K8sLlmCallMapping) SetCreatedAt(v time.Time)`
 
 SetCreatedAt sets CreatedAt field to given value.
 

@@ -107,7 +107,7 @@ class MultiAgentSystem(SQLModel, table=True):
     authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="multi_agent_systems")
     namespace: Optional[str]
-    created_at: datetime = datetime.now(timezone.utc)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     deleted_at: Optional[datetime] = Field(default=None)
 
 
@@ -116,7 +116,7 @@ class UserInput(SQLModel, table=True):
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     prompt: str
-    created_at: datetime = datetime.now(timezone.utc)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     app_id: Optional[UUID] = Field(foreign_key="app.id")
     tag: Optional[str] = Field(index=True)
 
