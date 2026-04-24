@@ -7,14 +7,14 @@ Name | Type | Description | Notes
 **ApiVersion** | Pointer to **string** | API version | [optional] [default to "zta.io/v1alpha1"]
 **Kind** | Pointer to **string** | Resource kind | [optional] [default to "MultiAgentSystem"]
 **Metadata** | [**MultiAgentSystemMetadata**](MultiAgentSystemMetadata.md) |  | 
-**Spec** | [**MultiAgentSystemSpecOutput**](MultiAgentSystemSpecOutput.md) |  | 
+**Spec** | [**MultiAgentSystemSpec**](MultiAgentSystemSpec.md) |  | 
 **Status** | Pointer to [**NullableMultiAgentSystemStatus**](MultiAgentSystemStatus.md) |  | [optional] 
 
 ## Methods
 
 ### NewMultiAgentSystemCRD
 
-`func NewMultiAgentSystemCRD(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpecOutput, ) *MultiAgentSystemCRD`
+`func NewMultiAgentSystemCRD(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpec, ) *MultiAgentSystemCRD`
 
 NewMultiAgentSystemCRD instantiates a new MultiAgentSystemCRD object
 This constructor will assign default values to properties that have it defined,
@@ -101,20 +101,20 @@ SetMetadata sets Metadata field to given value.
 
 ### GetSpec
 
-`func (o *MultiAgentSystemCRD) GetSpec() MultiAgentSystemSpecOutput`
+`func (o *MultiAgentSystemCRD) GetSpec() MultiAgentSystemSpec`
 
 GetSpec returns the Spec field if non-nil, zero value otherwise.
 
 ### GetSpecOk
 
-`func (o *MultiAgentSystemCRD) GetSpecOk() (*MultiAgentSystemSpecOutput, bool)`
+`func (o *MultiAgentSystemCRD) GetSpecOk() (*MultiAgentSystemSpec, bool)`
 
 GetSpecOk returns a tuple with the Spec field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetSpec
 
-`func (o *MultiAgentSystemCRD) SetSpec(v MultiAgentSystemSpecOutput)`
+`func (o *MultiAgentSystemCRD) SetSpec(v MultiAgentSystemSpec)`
 
 SetSpec sets Spec field to given value.
 

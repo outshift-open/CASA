@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | Pointer to **NullableString** |  | [optional] 
 **Prompt** | **string** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T20:37:20.275677Z"]
+**CreatedAt** | Pointer to **time.Time** |  | [optional] 
 **AppId** | **NullableString** |  | 
 **Tag** | **NullableString** |  | 
 
@@ -86,20 +86,20 @@ SetPrompt sets Prompt field to given value.
 
 ### GetCreatedAt
 
-`func (o *UserInput) GetCreatedAt() string`
+`func (o *UserInput) GetCreatedAt() time.Time`
 
 GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
 
 ### GetCreatedAtOk
 
-`func (o *UserInput) GetCreatedAtOk() (*string, bool)`
+`func (o *UserInput) GetCreatedAtOk() (*time.Time, bool)`
 
 GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCreatedAt
 
-`func (o *UserInput) SetCreatedAt(v string)`
+`func (o *UserInput) SetCreatedAt(v time.Time)`
 
 SetCreatedAt sets CreatedAt field to given value.
 

@@ -102,12 +102,6 @@ init: _clean-env update # Initialize the virtual environment.
   fi;
 .PHONY: init
 
-update: pyproject.toml # Update the conda environment after changes to dependencies.
-> @printf "$(YELLOW)Updating the virtual environment$(NOCOLOR)\n"
-> rm -rf uv.lock  # Removing the lock file make uv slower, but avoids certain corner cases.
-> uv sync --extra dev
-.PHONY: update
-
 clean: _clean-env update # Clean up the dist folder and the re-create the virtual environment.
 > rm -rf dist/
 .PHONY: clean
@@ -166,16 +160,6 @@ keycloak-stop:
 > docker compose -f deployments/docker-compose/docker-compose.keycloak.yml down
 .PHONY: keycloak-stop
 
-demo-run:
-> @printf "$(YELLOW)Starting the demo agents and LiteLLM with Docker Compose$(NOCOLOR)\n"
-> docker compose -f deployments/docker-compose/docker-compose.demo.yml up -d
-.PHONY: demo-run
-
-demo-stop:
-> @printf "$(YELLOW)Stopping the demo agents and LiteLLM$(NOCOLOR)\n"
-> docker compose -f deployments/docker-compose/docker-compose.demo.yml down
-.PHONY: demo-stop
-
 ui-run: # Run the ZTA Explorer UI using Docker Compose.
 > @printf "$(YELLOW)Starting ZTA Explorer UI with Docker Compose$(NOCOLOR)\n"
 > cd deployments/docker-compose && docker compose -f docker-compose.ui.yml up --build -d
@@ -188,75 +172,9 @@ ui-stop: # Stop the ZTA Explorer UI.
 
 generate-sdk:
 > @printf "$(YELLOW)Generating the Python SDK for the Auth Server$(NOCOLOR)\n"
-> @printf "$(YELLOW)Make sure the auth server is running first$(NOCOLOR)\n"
-> docker build -t zta-auth-temp -f deployments/docker/Dockerfile .
-> docker run --rm -d --name zta-auth-temp -p 8000:8000 zta-auth-temp
-> curl --retry-all-errors --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -o openapi.json http://localhost:8000/openapi.json
-> docker stop zta-auth-temp
-> docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g python -o /local/sdk/python --additional-properties=packageName=identity_auth_sdk
-> docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g go -o /local/sdk/go --additional-properties=packageName=api --git-user-id cisco-eti --git-repo-id identity-auth-server/sdk/go --type-mappings DateTime=string
-> docker rmi zta-auth-temp
-> rm openapi.json
-> cd sdk/go && go mod tidy
+> chmod +x ./scripts/generate_sdk.sh
+> ./scripts/generate_sdk.sh
 .PHONY: generate-sdk
-
-demo-data: # Create demo data in the backend (requires backend to be running).
-> @printf "$(YELLOW)Creating demo data$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --verbose
-.PHONY: demo-data
-
-demo-data-dry-run: # Preview demo data that would be created without actually creating it.
-> @printf "$(YELLOW)Running demo data generator in dry-run mode$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --dry-run
-.PHONY: demo-data-dry-run
-
-demo-data-clear: # Clear all existing data (does NOT recreate demo data).
-> @printf "$(YELLOW)Clearing existing data$(NOCOLOR)\n"
-> @printf "$(RED)WARNING: This will delete ALL existing data!$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --clear --verbose
-.PHONY: demo-data-clear
-
-demo-data-test-flow: # Run end-to-end token flow test to verify mas_id in traces.
-> @printf "$(YELLOW)Running token flow test$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --test-flow --verbose
-.PHONY: demo-data-test-flow
-
-demo-data-mock-tools: # Insert mock MCPCallStartedEvent traces into the DB for dashboard testing.
-> @printf "$(YELLOW)Inserting mock tool call traces$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --mock-tools --verbose
-.PHONY: demo-data-mock-tools
-
-demo-data-mock-scopes: # Insert mock scope-blocked MCPCallStartedEvent traces into the DB for dashboard testing.
-> @printf "$(YELLOW)Inserting mock scope-blocked traces$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --mock-scopes --verbose
-.PHONY: demo-data-mock-scopes
-
-demo-data-mock-llm: # Insert mock LLM call traces via API for dashboard testing (requires live backend).
-> @printf "$(YELLOW)Inserting mock LLM call traces$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --mock-llm --verbose
-.PHONY: demo-data-mock-llm
-
-demo-data-full: # Run full demo data population sequence (requires live backend + Keycloak + PostgreSQL).
-> @printf "$(YELLOW)Running full demo data population sequence$(NOCOLOR)\n"
-> $(MAKE) demo-data
-> $(MAKE) demo-data-mock-llm
-> $(MAKE) demo-data-mock-tools
-> $(MAKE) demo-data-mock-scopes
-.PHONY: demo-data-full
-
-demo-data-reset: # Clear all existing data and create fresh demo data.
-> @printf "$(YELLOW)Resetting data: clearing and recreating$(NOCOLOR)\n"
-> @printf "$(RED)WARNING: This will delete ALL existing data!$(NOCOLOR)\n"
-> $(VENV_ACTIVATE)
-> python scripts/create_demo_data.py --clear --verbose && python scripts/create_demo_data.py --verbose
-.PHONY: demo-data-reset
 
 helm-lint: # Lint the ZTA control-plane Helm chart.
 > @printf "$(YELLOW)Linting Helm chart: $(HELM_CHART)$(NOCOLOR)\n"

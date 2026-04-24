@@ -93,13 +93,8 @@ Class | Method | HTTP request | Description
 *KubernetesCRDsAPI* | [**GetMasCrdK8sNamespacesNamespaceMasMasIdGet**](docs/KubernetesCRDsAPI.md#getmascrdk8snamespacesnamespacemasmasidget) | **Get** /k8s/namespaces/{namespace}/mas/{mas_id} | Get Mas Crd
 *KubernetesCRDsAPI* | [**ListAllMasCrdsK8sMasGet**](docs/KubernetesCRDsAPI.md#listallmascrdsk8smasget) | **Get** /k8s/mas | List All Mas Crds
 *KubernetesCRDsAPI* | [**ListMasCrdsInNamespaceK8sNamespacesNamespaceMasGet**](docs/KubernetesCRDsAPI.md#listmascrdsinnamespacek8snamespacesnamespacemasget) | **Get** /k8s/namespaces/{namespace}/mas | List Mas Crds In Namespace
-*KubernetesCRDsAPI* | [**LivenessProbeK8sHealthzGet**](docs/KubernetesCRDsAPI.md#livenessprobek8shealthzget) | **Get** /k8s/healthz | Liveness Probe
-*KubernetesCRDsAPI* | [**ReadinessProbeK8sReadyzGet**](docs/KubernetesCRDsAPI.md#readinessprobek8sreadyzget) | **Get** /k8s/readyz | Readiness Probe
 *KubernetesCRDsAPI* | [**UpdateMasCrdK8sNamespacesNamespaceMasNamePut**](docs/KubernetesCRDsAPI.md#updatemascrdk8snamespacesnamespacemasnameput) | **Put** /k8s/namespaces/{namespace}/mas/{name} | Update Mas Crd
 *KubernetesCRDsAPI* | [**UpdateMasStatusK8sNamespacesNamespaceMasNameStatusPatch**](docs/KubernetesCRDsAPI.md#updatemasstatusk8snamespacesnamespacemasnamestatuspatch) | **Patch** /k8s/namespaces/{namespace}/mas/{name}/status | Update Mas Status
-*KubernetesCRDsAPI* | [**WatchAllMasK8sWatchMultiagentsystemsGet**](docs/KubernetesCRDsAPI.md#watchallmask8swatchmultiagentsystemsget) | **Get** /k8s/watch/multiagentsystems | Watch All Mas
-*KubernetesCRDsAPI* | [**WatchMasInNamespaceK8sWatchNamespacesNamespaceMultiagentsystemsGet**](docs/KubernetesCRDsAPI.md#watchmasinnamespacek8swatchnamespacesnamespacemultiagentsystemsget) | **Get** /k8s/watch/namespaces/{namespace}/multiagentsystems | Watch Mas In Namespace
-*KubernetesCRDsAPI* | [**WatchPoliciesInNamespaceK8sWatchNamespacesNamespaceZtapoliciesGet**](docs/KubernetesCRDsAPI.md#watchpoliciesinnamespacek8swatchnamespacesnamespaceztapoliciesget) | **Get** /k8s/watch/namespaces/{namespace}/ztapolicies | Watch Policies In Namespace
 *KubernetesResourcesAPI* | [**CacheLoadLlmCallMapping**](docs/KubernetesResourcesAPI.md#cacheloadllmcallmapping) | **Get** /k8s/cache/load-llm-call-mapping/{call_id} | Load Llm Call Mapping
 *KubernetesResourcesAPI* | [**CacheLoadToken**](docs/KubernetesResourcesAPI.md#cacheloadtoken) | **Post** /k8s/namespaces/{namespace}/cache/load-token | Load Token
 *KubernetesResourcesAPI* | [**CacheStoreLlmCallMapping**](docs/KubernetesResourcesAPI.md#cachestorellmcallmapping) | **Post** /k8s/namespaces/{namespace}/cache/store-llm-call-mapping | Store Llm Call Mapping
@@ -140,6 +135,7 @@ Class | Method | HTTP request | Description
  - [CacheTokenStoreRequest](docs/CacheTokenStoreRequest.md)
  - [CreateUserInputRequest](docs/CreateUserInputRequest.md)
  - [HTTPValidationError](docs/HTTPValidationError.md)
+ - [HttpRequestSchema](docs/HttpRequestSchema.md)
  - [K8sAppSpecViewModel](docs/K8sAppSpecViewModel.md)
  - [K8sLlmCallMapping](docs/K8sLlmCallMapping.md)
  - [K8sMultiAgentSystemCRDViewModel](docs/K8sMultiAgentSystemCRDViewModel.md)
@@ -161,8 +157,7 @@ Class | Method | HTTP request | Description
  - [MultiAgentSystemCRD](docs/MultiAgentSystemCRD.md)
  - [MultiAgentSystemCreateRequest](docs/MultiAgentSystemCreateRequest.md)
  - [MultiAgentSystemMetadata](docs/MultiAgentSystemMetadata.md)
- - [MultiAgentSystemSpecInput](docs/MultiAgentSystemSpecInput.md)
- - [MultiAgentSystemSpecOutput](docs/MultiAgentSystemSpecOutput.md)
+ - [MultiAgentSystemSpec](docs/MultiAgentSystemSpec.md)
  - [MultiAgentSystemStatus](docs/MultiAgentSystemStatus.md)
  - [MultiAgentSystemUpdateRequest](docs/MultiAgentSystemUpdateRequest.md)
  - [MultiAgentSystemViewModel](docs/MultiAgentSystemViewModel.md)

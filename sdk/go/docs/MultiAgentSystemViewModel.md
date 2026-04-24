@@ -7,13 +7,13 @@ Name | Type | Description | Notes
 **Id** | **string** |  | 
 **Name** | **string** |  | 
 **AuthorizationServerId** | **NullableString** |  | 
-**CreatedAt** | **string** |  | 
+**CreatedAt** | **time.Time** |  | 
 
 ## Methods
 
 ### NewMultiAgentSystemViewModel
 
-`func NewMultiAgentSystemViewModel(id string, name string, authorizationServerId NullableString, createdAt string, ) *MultiAgentSystemViewModel`
+`func NewMultiAgentSystemViewModel(id string, name string, authorizationServerId NullableString, createdAt time.Time, ) *MultiAgentSystemViewModel`
 
 NewMultiAgentSystemViewModel instantiates a new MultiAgentSystemViewModel object
 This constructor will assign default values to properties that have it defined,
@@ -100,20 +100,20 @@ SetAuthorizationServerId sets AuthorizationServerId field to given value.
 UnsetAuthorizationServerId ensures that no value is present for AuthorizationServerId, not even an explicit nil
 ### GetCreatedAt
 
-`func (o *MultiAgentSystemViewModel) GetCreatedAt() string`
+`func (o *MultiAgentSystemViewModel) GetCreatedAt() time.Time`
 
 GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
 
 ### GetCreatedAtOk
 
-`func (o *MultiAgentSystemViewModel) GetCreatedAtOk() (*string, bool)`
+`func (o *MultiAgentSystemViewModel) GetCreatedAtOk() (*time.Time, bool)`
 
 GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCreatedAt
 
-`func (o *MultiAgentSystemViewModel) SetCreatedAt(v string)`
+`func (o *MultiAgentSystemViewModel) SetCreatedAt(v time.Time)`
 
 SetCreatedAt sets CreatedAt field to given value.
 

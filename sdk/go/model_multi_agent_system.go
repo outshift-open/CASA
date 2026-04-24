@@ -12,6 +12,7 @@ package api
 
 import (
 	"encoding/json"
+	"time"
 	"bytes"
 	"fmt"
 )
@@ -27,7 +28,8 @@ type MultiAgentSystem struct {
 	EnabledToolChecks NullableToolCheckFlags `json:"enabled_tool_checks,omitempty"`
 	AuthorizationServerId NullableString `json:"authorization_server_id"`
 	Namespace NullableString `json:"namespace"`
-	CreatedAt *string `json:"created_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	DeletedAt NullableTime `json:"deleted_at,omitempty"`
 }
 
 type _MultiAgentSystem MultiAgentSystem
@@ -41,8 +43,6 @@ func NewMultiAgentSystem(name string, authorizationServerId NullableString, name
 	this.Name = name
 	this.AuthorizationServerId = authorizationServerId
 	this.Namespace = namespace
-	var createdAt string = "2026-04-19T20:37:20.274477Z"
-	this.CreatedAt = &createdAt
 	return &this
 }
 
@@ -51,8 +51,6 @@ func NewMultiAgentSystem(name string, authorizationServerId NullableString, name
 // but it doesn't guarantee that properties required by API are set
 func NewMultiAgentSystemWithDefaults() *MultiAgentSystem {
 	this := MultiAgentSystem{}
-	var createdAt string = "2026-04-19T20:37:20.274477Z"
-	this.CreatedAt = &createdAt
 	return &this
 }
 
@@ -259,9 +257,9 @@ func (o *MultiAgentSystem) SetNamespace(v string) {
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *MultiAgentSystem) GetCreatedAt() string {
+func (o *MultiAgentSystem) GetCreatedAt() time.Time {
 	if o == nil || IsNil(o.CreatedAt) {
-		var ret string
+		var ret time.Time
 		return ret
 	}
 	return *o.CreatedAt
@@ -269,7 +267,7 @@ func (o *MultiAgentSystem) GetCreatedAt() string {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MultiAgentSystem) GetCreatedAtOk() (*string, bool) {
+func (o *MultiAgentSystem) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.CreatedAt) {
 		return nil, false
 	}
@@ -285,9 +283,51 @@ func (o *MultiAgentSystem) HasCreatedAt() bool {
 	return false
 }
 
-// SetCreatedAt gets a reference to the given string and assigns it to the CreatedAt field.
-func (o *MultiAgentSystem) SetCreatedAt(v string) {
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *MultiAgentSystem) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
+}
+
+// GetDeletedAt returns the DeletedAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *MultiAgentSystem) GetDeletedAt() time.Time {
+	if o == nil || IsNil(o.DeletedAt.Get()) {
+		var ret time.Time
+		return ret
+	}
+	return *o.DeletedAt.Get()
+}
+
+// GetDeletedAtOk returns a tuple with the DeletedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *MultiAgentSystem) GetDeletedAtOk() (*time.Time, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.DeletedAt.Get(), o.DeletedAt.IsSet()
+}
+
+// HasDeletedAt returns a boolean if a field has been set.
+func (o *MultiAgentSystem) HasDeletedAt() bool {
+	if o != nil && o.DeletedAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetDeletedAt gets a reference to the given NullableTime and assigns it to the DeletedAt field.
+func (o *MultiAgentSystem) SetDeletedAt(v time.Time) {
+	o.DeletedAt.Set(&v)
+}
+// SetDeletedAtNil sets the value for DeletedAt to be an explicit nil
+func (o *MultiAgentSystem) SetDeletedAtNil() {
+	o.DeletedAt.Set(nil)
+}
+
+// UnsetDeletedAt ensures that no value is present for DeletedAt, not even an explicit nil
+func (o *MultiAgentSystem) UnsetDeletedAt() {
+	o.DeletedAt.Unset()
 }
 
 func (o MultiAgentSystem) MarshalJSON() ([]byte, error) {
@@ -314,6 +354,9 @@ func (o MultiAgentSystem) ToMap() (map[string]interface{}, error) {
 	toSerialize["namespace"] = o.Namespace.Get()
 	if !IsNil(o.CreatedAt) {
 		toSerialize["created_at"] = o.CreatedAt
+	}
+	if o.DeletedAt.IsSet() {
+		toSerialize["deleted_at"] = o.DeletedAt.Get()
 	}
 	return toSerialize, nil
 }

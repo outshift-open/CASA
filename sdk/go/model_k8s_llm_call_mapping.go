@@ -12,6 +12,7 @@ package api
 
 import (
 	"encoding/json"
+	"time"
 	"bytes"
 	"fmt"
 )
@@ -28,7 +29,7 @@ type K8sLlmCallMapping struct {
 	AppId NullableString `json:"app_id"`
 	UserInputId NullableString `json:"user_input_id"`
 	Token NullableString `json:"token,omitempty"`
-	CreatedAt *string `json:"created_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
 type _K8sLlmCallMapping K8sLlmCallMapping
@@ -44,8 +45,6 @@ func NewK8sLlmCallMapping(namespace string, traceId string, masId NullableString
 	this.MasId = masId
 	this.AppId = appId
 	this.UserInputId = userInputId
-	var createdAt string = "2026-04-19T20:37:20.784641Z"
-	this.CreatedAt = &createdAt
 	return &this
 }
 
@@ -54,8 +53,6 @@ func NewK8sLlmCallMapping(namespace string, traceId string, masId NullableString
 // but it doesn't guarantee that properties required by API are set
 func NewK8sLlmCallMappingWithDefaults() *K8sLlmCallMapping {
 	this := K8sLlmCallMapping{}
-	var createdAt string = "2026-04-19T20:37:20.784641Z"
-	this.CreatedAt = &createdAt
 	return &this
 }
 
@@ -270,9 +267,9 @@ func (o *K8sLlmCallMapping) UnsetToken() {
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *K8sLlmCallMapping) GetCreatedAt() string {
+func (o *K8sLlmCallMapping) GetCreatedAt() time.Time {
 	if o == nil || IsNil(o.CreatedAt) {
-		var ret string
+		var ret time.Time
 		return ret
 	}
 	return *o.CreatedAt
@@ -280,7 +277,7 @@ func (o *K8sLlmCallMapping) GetCreatedAt() string {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *K8sLlmCallMapping) GetCreatedAtOk() (*string, bool) {
+func (o *K8sLlmCallMapping) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.CreatedAt) {
 		return nil, false
 	}
@@ -296,8 +293,8 @@ func (o *K8sLlmCallMapping) HasCreatedAt() bool {
 	return false
 }
 
-// SetCreatedAt gets a reference to the given string and assigns it to the CreatedAt field.
-func (o *K8sLlmCallMapping) SetCreatedAt(v string) {
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *K8sLlmCallMapping) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 

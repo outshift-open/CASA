@@ -12,6 +12,7 @@ package api
 
 import (
 	"encoding/json"
+	"time"
 	"bytes"
 	"fmt"
 )
@@ -23,7 +24,7 @@ var _ MappedNullable = &UserInput{}
 type UserInput struct {
 	Id NullableString `json:"id,omitempty"`
 	Prompt string `json:"prompt"`
-	CreatedAt *string `json:"created_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 	AppId NullableString `json:"app_id"`
 	Tag NullableString `json:"tag"`
 }
@@ -37,8 +38,6 @@ type _UserInput UserInput
 func NewUserInput(prompt string, appId NullableString, tag NullableString) *UserInput {
 	this := UserInput{}
 	this.Prompt = prompt
-	var createdAt string = "2026-04-19T20:37:20.275677Z"
-	this.CreatedAt = &createdAt
 	this.AppId = appId
 	this.Tag = tag
 	return &this
@@ -49,8 +48,6 @@ func NewUserInput(prompt string, appId NullableString, tag NullableString) *User
 // but it doesn't guarantee that properties required by API are set
 func NewUserInputWithDefaults() *UserInput {
 	this := UserInput{}
-	var createdAt string = "2026-04-19T20:37:20.275677Z"
-	this.CreatedAt = &createdAt
 	return &this
 }
 
@@ -121,9 +118,9 @@ func (o *UserInput) SetPrompt(v string) {
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *UserInput) GetCreatedAt() string {
+func (o *UserInput) GetCreatedAt() time.Time {
 	if o == nil || IsNil(o.CreatedAt) {
-		var ret string
+		var ret time.Time
 		return ret
 	}
 	return *o.CreatedAt
@@ -131,7 +128,7 @@ func (o *UserInput) GetCreatedAt() string {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UserInput) GetCreatedAtOk() (*string, bool) {
+func (o *UserInput) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.CreatedAt) {
 		return nil, false
 	}
@@ -147,8 +144,8 @@ func (o *UserInput) HasCreatedAt() bool {
 	return false
 }
 
-// SetCreatedAt gets a reference to the given string and assigns it to the CreatedAt field.
-func (o *UserInput) SetCreatedAt(v string) {
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *UserInput) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 

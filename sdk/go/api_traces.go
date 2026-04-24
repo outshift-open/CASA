@@ -28,6 +28,7 @@ type ApiGetTracesTraceGetRequest struct {
 	page *int32
 	pageSize *int32
 	masId *string
+	all *bool
 }
 
 func (r ApiGetTracesTraceGetRequest) Page(page int32) ApiGetTracesTraceGetRequest {
@@ -42,6 +43,11 @@ func (r ApiGetTracesTraceGetRequest) PageSize(pageSize int32) ApiGetTracesTraceG
 
 func (r ApiGetTracesTraceGetRequest) MasId(masId string) ApiGetTracesTraceGetRequest {
 	r.masId = &masId
+	return r
+}
+
+func (r ApiGetTracesTraceGetRequest) All(all bool) ApiGetTracesTraceGetRequest {
+	r.all = &all
 	return r
 }
 
@@ -101,6 +107,13 @@ func (a *TracesAPIService) GetTracesTraceGetExecute(r ApiGetTracesTraceGetReques
 	}
 	if r.masId != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "mas_id", r.masId, "form", "")
+	}
+	if r.all != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "all", r.all, "form", "")
+	} else {
+		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "all", defaultValue, "form", "")
+		r.all = &defaultValue
 	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}

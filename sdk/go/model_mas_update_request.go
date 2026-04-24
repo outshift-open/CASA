@@ -21,7 +21,7 @@ var _ MappedNullable = &MASUpdateRequest{}
 
 // MASUpdateRequest Request model for updating a MultiAgentSystem via API.
 type MASUpdateRequest struct {
-	Spec MultiAgentSystemSpecInput `json:"spec"`
+	Spec MultiAgentSystemSpec `json:"spec"`
 }
 
 type _MASUpdateRequest MASUpdateRequest
@@ -30,7 +30,7 @@ type _MASUpdateRequest MASUpdateRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMASUpdateRequest(spec MultiAgentSystemSpecInput) *MASUpdateRequest {
+func NewMASUpdateRequest(spec MultiAgentSystemSpec) *MASUpdateRequest {
 	this := MASUpdateRequest{}
 	this.Spec = spec
 	return &this
@@ -45,9 +45,9 @@ func NewMASUpdateRequestWithDefaults() *MASUpdateRequest {
 }
 
 // GetSpec returns the Spec field value
-func (o *MASUpdateRequest) GetSpec() MultiAgentSystemSpecInput {
+func (o *MASUpdateRequest) GetSpec() MultiAgentSystemSpec {
 	if o == nil {
-		var ret MultiAgentSystemSpecInput
+		var ret MultiAgentSystemSpec
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *MASUpdateRequest) GetSpec() MultiAgentSystemSpecInput {
 
 // GetSpecOk returns a tuple with the Spec field value
 // and a boolean to check if the value has been set.
-func (o *MASUpdateRequest) GetSpecOk() (*MultiAgentSystemSpecInput, bool) {
+func (o *MASUpdateRequest) GetSpecOk() (*MultiAgentSystemSpec, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,7 +64,7 @@ func (o *MASUpdateRequest) GetSpecOk() (*MultiAgentSystemSpecInput, bool) {
 }
 
 // SetSpec sets field value
-func (o *MASUpdateRequest) SetSpec(v MultiAgentSystemSpecInput) {
+func (o *MASUpdateRequest) SetSpec(v MultiAgentSystemSpec) {
 	o.Spec = v
 }
 

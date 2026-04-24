@@ -10,7 +10,8 @@ Name | Type | Description | Notes
 **EnabledToolChecks** | Pointer to [**NullableToolCheckFlags**](ToolCheckFlags.md) |  | [optional] 
 **AuthorizationServerId** | **NullableString** |  | 
 **Namespace** | **NullableString** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T20:37:20.274477Z"]
+**CreatedAt** | Pointer to **time.Time** |  | [optional] 
+**DeletedAt** | Pointer to **NullableTime** |  | [optional] 
 
 ## Methods
 
@@ -218,20 +219,20 @@ SetNamespace sets Namespace field to given value.
 UnsetNamespace ensures that no value is present for Namespace, not even an explicit nil
 ### GetCreatedAt
 
-`func (o *MultiAgentSystem) GetCreatedAt() string`
+`func (o *MultiAgentSystem) GetCreatedAt() time.Time`
 
 GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
 
 ### GetCreatedAtOk
 
-`func (o *MultiAgentSystem) GetCreatedAtOk() (*string, bool)`
+`func (o *MultiAgentSystem) GetCreatedAtOk() (*time.Time, bool)`
 
 GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCreatedAt
 
-`func (o *MultiAgentSystem) SetCreatedAt(v string)`
+`func (o *MultiAgentSystem) SetCreatedAt(v time.Time)`
 
 SetCreatedAt sets CreatedAt field to given value.
 
@@ -241,6 +242,41 @@ SetCreatedAt sets CreatedAt field to given value.
 
 HasCreatedAt returns a boolean if a field has been set.
 
+### GetDeletedAt
+
+`func (o *MultiAgentSystem) GetDeletedAt() time.Time`
+
+GetDeletedAt returns the DeletedAt field if non-nil, zero value otherwise.
+
+### GetDeletedAtOk
+
+`func (o *MultiAgentSystem) GetDeletedAtOk() (*time.Time, bool)`
+
+GetDeletedAtOk returns a tuple with the DeletedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetDeletedAt
+
+`func (o *MultiAgentSystem) SetDeletedAt(v time.Time)`
+
+SetDeletedAt sets DeletedAt field to given value.
+
+### HasDeletedAt
+
+`func (o *MultiAgentSystem) HasDeletedAt() bool`
+
+HasDeletedAt returns a boolean if a field has been set.
+
+### SetDeletedAtNil
+
+`func (o *MultiAgentSystem) SetDeletedAtNil(b bool)`
+
+ SetDeletedAtNil sets the value for DeletedAt to be an explicit nil
+
+### UnsetDeletedAt
+`func (o *MultiAgentSystem) UnsetDeletedAt()`
+
+UnsetDeletedAt ensures that no value is present for DeletedAt, not even an explicit nil
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

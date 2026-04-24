@@ -12,6 +12,7 @@ package api
 
 import (
 	"encoding/json"
+	"time"
 )
 
 // checks if the MultiAgentSystemStatus type satisfies the MappedNullable interface at compile time
@@ -23,7 +24,7 @@ type MultiAgentSystemStatus struct {
 	Phase *MASPhase `json:"phase,omitempty"`
 	// Number of apps successfully registered
 	AppsReady *int32 `json:"appsReady,omitempty"`
-	LastSyncTime *string `json:"last_sync_time,omitempty"`
+	LastSyncTime *time.Time `json:"last_sync_time,omitempty"`
 	Message NullableString `json:"message,omitempty"`
 	Credentials []AppCredentials `json:"credentials,omitempty"`
 }
@@ -38,8 +39,6 @@ func NewMultiAgentSystemStatus() *MultiAgentSystemStatus {
 	this.Phase = &phase
 	var appsReady int32 = 0
 	this.AppsReady = &appsReady
-	var lastSyncTime string = "2026-04-19T20:37:20.844802Z"
-	this.LastSyncTime = &lastSyncTime
 	return &this
 }
 
@@ -52,8 +51,6 @@ func NewMultiAgentSystemStatusWithDefaults() *MultiAgentSystemStatus {
 	this.Phase = &phase
 	var appsReady int32 = 0
 	this.AppsReady = &appsReady
-	var lastSyncTime string = "2026-04-19T20:37:20.844802Z"
-	this.LastSyncTime = &lastSyncTime
 	return &this
 }
 
@@ -122,9 +119,9 @@ func (o *MultiAgentSystemStatus) SetAppsReady(v int32) {
 }
 
 // GetLastSyncTime returns the LastSyncTime field value if set, zero value otherwise.
-func (o *MultiAgentSystemStatus) GetLastSyncTime() string {
+func (o *MultiAgentSystemStatus) GetLastSyncTime() time.Time {
 	if o == nil || IsNil(o.LastSyncTime) {
-		var ret string
+		var ret time.Time
 		return ret
 	}
 	return *o.LastSyncTime
@@ -132,7 +129,7 @@ func (o *MultiAgentSystemStatus) GetLastSyncTime() string {
 
 // GetLastSyncTimeOk returns a tuple with the LastSyncTime field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MultiAgentSystemStatus) GetLastSyncTimeOk() (*string, bool) {
+func (o *MultiAgentSystemStatus) GetLastSyncTimeOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.LastSyncTime) {
 		return nil, false
 	}
@@ -148,8 +145,8 @@ func (o *MultiAgentSystemStatus) HasLastSyncTime() bool {
 	return false
 }
 
-// SetLastSyncTime gets a reference to the given string and assigns it to the LastSyncTime field.
-func (o *MultiAgentSystemStatus) SetLastSyncTime(v string) {
+// SetLastSyncTime gets a reference to the given time.Time and assigns it to the LastSyncTime field.
+func (o *MultiAgentSystemStatus) SetLastSyncTime(v time.Time) {
 	o.LastSyncTime = &v
 }
 

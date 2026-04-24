@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Phase** | Pointer to [**MASPhase**](MASPhase.md) | Current phase of the MAS | [optional] [default to PENDING]
 **AppsReady** | Pointer to **int32** | Number of apps successfully registered | [optional] [default to 0]
-**LastSyncTime** | Pointer to **string** |  | [optional] [default to "2026-04-19T20:37:20.844802Z"]
+**LastSyncTime** | Pointer to **time.Time** |  | [optional] 
 **Message** | Pointer to **NullableString** |  | [optional] 
 **Credentials** | Pointer to [**[]AppCredentials**](AppCredentials.md) |  | [optional] 
 
@@ -81,20 +81,20 @@ HasAppsReady returns a boolean if a field has been set.
 
 ### GetLastSyncTime
 
-`func (o *MultiAgentSystemStatus) GetLastSyncTime() string`
+`func (o *MultiAgentSystemStatus) GetLastSyncTime() time.Time`
 
 GetLastSyncTime returns the LastSyncTime field if non-nil, zero value otherwise.
 
 ### GetLastSyncTimeOk
 
-`func (o *MultiAgentSystemStatus) GetLastSyncTimeOk() (*string, bool)`
+`func (o *MultiAgentSystemStatus) GetLastSyncTimeOk() (*time.Time, bool)`
 
 GetLastSyncTimeOk returns a tuple with the LastSyncTime field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetLastSyncTime
 
-`func (o *MultiAgentSystemStatus) SetLastSyncTime(v string)`
+`func (o *MultiAgentSystemStatus) SetLastSyncTime(v time.Time)`
 
 SetLastSyncTime sets LastSyncTime field to given value.
 

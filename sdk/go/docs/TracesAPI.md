@@ -12,7 +12,7 @@ Method | HTTP request | Description
 
 ## GetTracesTraceGet
 
-> interface{} GetTracesTraceGet(ctx).Page(page).PageSize(pageSize).MasId(masId).Execute()
+> interface{} GetTracesTraceGet(ctx).Page(page).PageSize(pageSize).MasId(masId).All(all).Execute()
 
 Get Traces
 
@@ -34,10 +34,11 @@ func main() {
 	page := int32(56) // int32 |  (optional) (default to 1)
 	pageSize := int32(56) // int32 |  (optional) (default to 20)
 	masId := "38400000-8cf0-11bd-b23e-10b96e4ef00d" // string |  (optional)
+	all := true // bool |  (optional) (default to false)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.TracesAPI.GetTracesTraceGet(context.Background()).Page(page).PageSize(pageSize).MasId(masId).Execute()
+	resp, r, err := apiClient.TracesAPI.GetTracesTraceGet(context.Background()).Page(page).PageSize(pageSize).MasId(masId).All(all).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `TracesAPI.GetTracesTraceGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -61,6 +62,7 @@ Name | Type | Description  | Notes
  **page** | **int32** |  | [default to 1]
  **pageSize** | **int32** |  | [default to 20]
  **masId** | **string** |  | 
+ **all** | **bool** |  | [default to false]
 
 ### Return type
 
