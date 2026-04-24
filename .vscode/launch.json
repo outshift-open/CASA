@@ -16,13 +16,6 @@
             ]
         },
         {
-            "name": "Python Trusted Client Debugger",
-            "type": "debugpy",
-            "request": "launch",
-            "envFile": "${workspaceFolder}/.env",
-            "program": "${workspaceFolder}/demo/workshop/app/main.py"
-        },
-        {
             "name": "Go Debugger: sidecar ext_auth",
             "type": "go",
             "request": "launch",

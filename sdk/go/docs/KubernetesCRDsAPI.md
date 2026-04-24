@@ -41,7 +41,7 @@ import (
 
 func main() {
 	namespace := "namespace_example" // string | 
-	mASCreateRequest := *openapiclient.NewMASCreateRequest(*openapiclient.NewMultiAgentSystemMetadata("Name_example", "Namespace_example"), *openapiclient.NewMultiAgentSystemSpecInput("Name_example")) // MASCreateRequest | 
+	mASCreateRequest := *openapiclient.NewMASCreateRequest(*openapiclient.NewMultiAgentSystemMetadata("Name_example", "Namespace_example"), *openapiclient.NewMultiAgentSystemSpec("Name_example")) // MASCreateRequest | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
@@ -516,7 +516,7 @@ import (
 func main() {
 	namespace := "namespace_example" // string | 
 	name := "name_example" // string | 
-	mASUpdateRequest := *openapiclient.NewMASUpdateRequest(*openapiclient.NewMultiAgentSystemSpecInput("Name_example")) // MASUpdateRequest | 
+	mASUpdateRequest := *openapiclient.NewMASUpdateRequest(*openapiclient.NewMultiAgentSystemSpec("Name_example")) // MASUpdateRequest | 
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)

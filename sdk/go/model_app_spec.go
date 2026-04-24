@@ -28,6 +28,7 @@ type AppSpec struct {
 	// Base URL of the application
 	BaseUrl AppSpecBaseUrl `json:"baseUrl"`
 	KubernetesWorkloadName NullableString `json:"kubernetesWorkloadName,omitempty"`
+	HttpRequestSchema NullableHttpRequestSchema `json:"httpRequestSchema,omitempty"`
 }
 
 type _AppSpec AppSpec
@@ -166,6 +167,48 @@ func (o *AppSpec) UnsetKubernetesWorkloadName() {
 	o.KubernetesWorkloadName.Unset()
 }
 
+// GetHttpRequestSchema returns the HttpRequestSchema field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AppSpec) GetHttpRequestSchema() HttpRequestSchema {
+	if o == nil || IsNil(o.HttpRequestSchema.Get()) {
+		var ret HttpRequestSchema
+		return ret
+	}
+	return *o.HttpRequestSchema.Get()
+}
+
+// GetHttpRequestSchemaOk returns a tuple with the HttpRequestSchema field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AppSpec) GetHttpRequestSchemaOk() (*HttpRequestSchema, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.HttpRequestSchema.Get(), o.HttpRequestSchema.IsSet()
+}
+
+// HasHttpRequestSchema returns a boolean if a field has been set.
+func (o *AppSpec) HasHttpRequestSchema() bool {
+	if o != nil && o.HttpRequestSchema.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetHttpRequestSchema gets a reference to the given NullableHttpRequestSchema and assigns it to the HttpRequestSchema field.
+func (o *AppSpec) SetHttpRequestSchema(v HttpRequestSchema) {
+	o.HttpRequestSchema.Set(&v)
+}
+// SetHttpRequestSchemaNil sets the value for HttpRequestSchema to be an explicit nil
+func (o *AppSpec) SetHttpRequestSchemaNil() {
+	o.HttpRequestSchema.Set(nil)
+}
+
+// UnsetHttpRequestSchema ensures that no value is present for HttpRequestSchema, not even an explicit nil
+func (o *AppSpec) UnsetHttpRequestSchema() {
+	o.HttpRequestSchema.Unset()
+}
+
 func (o AppSpec) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -181,6 +224,9 @@ func (o AppSpec) ToMap() (map[string]interface{}, error) {
 	toSerialize["baseUrl"] = o.BaseUrl
 	if o.KubernetesWorkloadName.IsSet() {
 		toSerialize["kubernetesWorkloadName"] = o.KubernetesWorkloadName.Get()
+	}
+	if o.HttpRequestSchema.IsSet() {
+		toSerialize["httpRequestSchema"] = o.HttpRequestSchema.Get()
 	}
 	return toSerialize, nil
 }

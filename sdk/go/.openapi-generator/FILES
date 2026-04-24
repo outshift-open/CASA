@@ -26,6 +26,7 @@ docs/CacheTokenLoadRequest.md
 docs/CacheTokenStoreRequest.md
 docs/CreateUserInputRequest.md
 docs/HTTPValidationError.md
+docs/HttpRequestSchema.md
 docs/K8sAppSpecViewModel.md
 docs/K8sLlmCallMapping.md
 docs/K8sMultiAgentSystemCRDViewModel.md
@@ -49,8 +50,7 @@ docs/MultiAgentSystemAppsBindingRequest.md
 docs/MultiAgentSystemCRD.md
 docs/MultiAgentSystemCreateRequest.md
 docs/MultiAgentSystemMetadata.md
-docs/MultiAgentSystemSpecInput.md
-docs/MultiAgentSystemSpecOutput.md
+docs/MultiAgentSystemSpec.md
 docs/MultiAgentSystemStatus.md
 docs/MultiAgentSystemUpdateRequest.md
 docs/MultiAgentSystemViewModel.md
@@ -84,6 +84,7 @@ model_app_view_model.go
 model_cache_token_load_request.go
 model_cache_token_store_request.go
 model_create_user_input_request.go
+model_http_request_schema.go
 model_http_validation_error.go
 model_k8s_app_spec_view_model.go
 model_k8s_llm_call_mapping.go
@@ -106,8 +107,7 @@ model_multi_agent_system_apps_binding_request.go
 model_multi_agent_system_crd.go
 model_multi_agent_system_create_request.go
 model_multi_agent_system_metadata.go
-model_multi_agent_system_spec_input.go
-model_multi_agent_system_spec_output.go
+model_multi_agent_system_spec.go
 model_multi_agent_system_status.go
 model_multi_agent_system_update_request.go
 model_multi_agent_system_view_model.go

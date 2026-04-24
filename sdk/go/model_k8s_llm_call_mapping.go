@@ -44,7 +44,7 @@ func NewK8sLlmCallMapping(namespace string, traceId string, masId NullableString
 	this.MasId = masId
 	this.AppId = appId
 	this.UserInputId = userInputId
-	var createdAt string = "2026-04-19T20:37:20.784641Z"
+	var createdAt string = "2026-04-24T09:07:11.693086Z"
 	this.CreatedAt = &createdAt
 	return &this
 }
@@ -54,7 +54,7 @@ func NewK8sLlmCallMapping(namespace string, traceId string, masId NullableString
 // but it doesn't guarantee that properties required by API are set
 func NewK8sLlmCallMappingWithDefaults() *K8sLlmCallMapping {
 	this := K8sLlmCallMapping{}
-	var createdAt string = "2026-04-19T20:37:20.784641Z"
+	var createdAt string = "2026-04-24T09:07:11.693086Z"
 	this.CreatedAt = &createdAt
 	return &this
 }

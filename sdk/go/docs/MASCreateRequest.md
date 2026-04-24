@@ -5,13 +5,13 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Metadata** | [**MultiAgentSystemMetadata**](MultiAgentSystemMetadata.md) |  | 
-**Spec** | [**MultiAgentSystemSpecInput**](MultiAgentSystemSpecInput.md) |  | 
+**Spec** | [**MultiAgentSystemSpec**](MultiAgentSystemSpec.md) |  | 
 
 ## Methods
 
 ### NewMASCreateRequest
 
-`func NewMASCreateRequest(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpecInput, ) *MASCreateRequest`
+`func NewMASCreateRequest(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpec, ) *MASCreateRequest`
 
 NewMASCreateRequest instantiates a new MASCreateRequest object
 This constructor will assign default values to properties that have it defined,
@@ -48,20 +48,20 @@ SetMetadata sets Metadata field to given value.
 
 ### GetSpec
 
-`func (o *MASCreateRequest) GetSpec() MultiAgentSystemSpecInput`
+`func (o *MASCreateRequest) GetSpec() MultiAgentSystemSpec`
 
 GetSpec returns the Spec field if non-nil, zero value otherwise.
 
 ### GetSpecOk
 
-`func (o *MASCreateRequest) GetSpecOk() (*MultiAgentSystemSpecInput, bool)`
+`func (o *MASCreateRequest) GetSpecOk() (*MultiAgentSystemSpec, bool)`
 
 GetSpecOk returns a tuple with the Spec field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetSpec
 
-`func (o *MASCreateRequest) SetSpec(v MultiAgentSystemSpecInput)`
+`func (o *MASCreateRequest) SetSpec(v MultiAgentSystemSpec)`
 
 SetSpec sets Spec field to given value.
 

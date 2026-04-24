@@ -11,7 +11,7 @@ Name | Type | Description | Notes
 **AppId** | **NullableString** |  | 
 **UserInputId** | **NullableString** |  | 
 **Token** | Pointer to **NullableString** |  | [optional] 
-**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-19T20:37:20.784641Z"]
+**CreatedAt** | Pointer to **string** |  | [optional] [default to "2026-04-24T09:07:11.693086Z"]
 
 ## Methods
 

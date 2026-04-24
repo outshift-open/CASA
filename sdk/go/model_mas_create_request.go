@@ -22,7 +22,7 @@ var _ MappedNullable = &MASCreateRequest{}
 // MASCreateRequest Request model for creating a MultiAgentSystem via API.
 type MASCreateRequest struct {
 	Metadata MultiAgentSystemMetadata `json:"metadata"`
-	Spec MultiAgentSystemSpecInput `json:"spec"`
+	Spec MultiAgentSystemSpec `json:"spec"`
 }
 
 type _MASCreateRequest MASCreateRequest
@@ -31,7 +31,7 @@ type _MASCreateRequest MASCreateRequest
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMASCreateRequest(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpecInput) *MASCreateRequest {
+func NewMASCreateRequest(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpec) *MASCreateRequest {
 	this := MASCreateRequest{}
 	this.Metadata = metadata
 	this.Spec = spec
@@ -71,9 +71,9 @@ func (o *MASCreateRequest) SetMetadata(v MultiAgentSystemMetadata) {
 }
 
 // GetSpec returns the Spec field value
-func (o *MASCreateRequest) GetSpec() MultiAgentSystemSpecInput {
+func (o *MASCreateRequest) GetSpec() MultiAgentSystemSpec {
 	if o == nil {
-		var ret MultiAgentSystemSpecInput
+		var ret MultiAgentSystemSpec
 		return ret
 	}
 
@@ -82,7 +82,7 @@ func (o *MASCreateRequest) GetSpec() MultiAgentSystemSpecInput {
 
 // GetSpecOk returns a tuple with the Spec field value
 // and a boolean to check if the value has been set.
-func (o *MASCreateRequest) GetSpecOk() (*MultiAgentSystemSpecInput, bool) {
+func (o *MASCreateRequest) GetSpecOk() (*MultiAgentSystemSpec, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -90,7 +90,7 @@ func (o *MASCreateRequest) GetSpecOk() (*MultiAgentSystemSpecInput, bool) {
 }
 
 // SetSpec sets field value
-func (o *MASCreateRequest) SetSpec(v MultiAgentSystemSpecInput) {
+func (o *MASCreateRequest) SetSpec(v MultiAgentSystemSpec) {
 	o.Spec = v
 }
 

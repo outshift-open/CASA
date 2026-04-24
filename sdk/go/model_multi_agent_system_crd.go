@@ -26,7 +26,7 @@ type MultiAgentSystemCRD struct {
 	// Resource kind
 	Kind *string `json:"kind,omitempty"`
 	Metadata MultiAgentSystemMetadata `json:"metadata"`
-	Spec MultiAgentSystemSpecOutput `json:"spec"`
+	Spec MultiAgentSystemSpec `json:"spec"`
 	Status NullableMultiAgentSystemStatus `json:"status,omitempty"`
 }
 
@@ -36,7 +36,7 @@ type _MultiAgentSystemCRD MultiAgentSystemCRD
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMultiAgentSystemCRD(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpecOutput) *MultiAgentSystemCRD {
+func NewMultiAgentSystemCRD(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpec) *MultiAgentSystemCRD {
 	this := MultiAgentSystemCRD{}
 	var apiVersion string = "zta.io/v1alpha1"
 	this.ApiVersion = &apiVersion
@@ -148,9 +148,9 @@ func (o *MultiAgentSystemCRD) SetMetadata(v MultiAgentSystemMetadata) {
 }
 
 // GetSpec returns the Spec field value
-func (o *MultiAgentSystemCRD) GetSpec() MultiAgentSystemSpecOutput {
+func (o *MultiAgentSystemCRD) GetSpec() MultiAgentSystemSpec {
 	if o == nil {
-		var ret MultiAgentSystemSpecOutput
+		var ret MultiAgentSystemSpec
 		return ret
 	}
 
@@ -159,7 +159,7 @@ func (o *MultiAgentSystemCRD) GetSpec() MultiAgentSystemSpecOutput {
 
 // GetSpecOk returns a tuple with the Spec field value
 // and a boolean to check if the value has been set.
-func (o *MultiAgentSystemCRD) GetSpecOk() (*MultiAgentSystemSpecOutput, bool) {
+func (o *MultiAgentSystemCRD) GetSpecOk() (*MultiAgentSystemSpec, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -167,7 +167,7 @@ func (o *MultiAgentSystemCRD) GetSpecOk() (*MultiAgentSystemSpecOutput, bool) {
 }
 
 // SetSpec sets field value
-func (o *MultiAgentSystemCRD) SetSpec(v MultiAgentSystemSpecOutput) {
+func (o *MultiAgentSystemCRD) SetSpec(v MultiAgentSystemSpec) {
 	o.Spec = v
 }
 
