@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-      - feature/operator-cleanup
   workflow_dispatch:
   workflow_call:
 
