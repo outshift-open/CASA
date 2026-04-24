@@ -6,7 +6,9 @@ metadata:
 spec:
   url: oci://{{ .Values.llm_proxy.image.repository }}:{{ .Values.llm_proxy.image.tag | default .Chart.AppVersion }}
   imagePullPolicy: {{ .Values.llm_proxy.image.pullPolicy | default "Always" }}
+  {{- if .Values.llm_proxy.image.pullSecret }}
   imagePullSecret: {{ .Values.llm_proxy.image.pullSecret }}
+  {{- end }}
   phase: AUTHN
   match:
     - mode: CLIENT
@@ -15,4 +17,4 @@ spec:
     - name: AUTH_SERVER_HOST
       value: {{ .Values.authServerHost }}
     - name: AUTH_SERVER_PORT
-      value: "8000"
+      value: {{ .Values.authServerPort | default "8000" | quote }}

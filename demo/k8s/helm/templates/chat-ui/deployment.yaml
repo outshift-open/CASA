@@ -20,12 +20,14 @@ spec:
         app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
         sidecar.istio.io/inject: "false"
     spec:
+      {{- if .docker.registry }}
       imagePullSecrets:
         - name: regcred
+      {{- end }}
       containers:
         - name: chat-ui
-          image: {{ .docker.registry }}/{{ .docker.image }}:{{ .tagversion }}
-          imagePullPolicy: Always
+          image: {{ if .docker.registry }}{{ .docker.registry }}/{{ end }}{{ .docker.image }}:{{ .tagversion }}
+          imagePullPolicy: {{ if .docker.registry }}Always{{ else }}Never{{ end }}
           env:
             - name: AGENT_URL
               value: {{ .agentUrl | quote }}

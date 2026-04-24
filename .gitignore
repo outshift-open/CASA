@@ -295,3 +295,4 @@ demo/k8s/helm/values-test.yaml
 
 .claude/
 .bruno/
+values-local.yaml

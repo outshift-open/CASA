@@ -75,7 +75,7 @@ authService:
 uiExplorer:
   image:
     repository:
-    tag: 2026-04-14-7ce1d56
+    tag: ""
     pullPolicy: IfNotPresent
   imagePullSecrets:
     - name: regcred
@@ -152,7 +152,7 @@ keycloak:
   image:
     # Custom image that includes the POIT HTTP-header protocol mapper JAR
     repository:
-    tag: 2026-04-14-7ce1d56
+    tag: ""
     pullPolicy: IfNotPresent
   imagePullSecrets:
     - name: regcred
@@ -187,7 +187,7 @@ keycloak:
 operator:
   image:
     repository:
-    tag: 2026-04-14-7ce1d56
+    tag: ""
     pullPolicy: IfNotPresent
   imagePullSecrets:
     - name: regcred
