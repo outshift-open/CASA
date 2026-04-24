@@ -1,6 +1,7 @@
 import json
 import logging
 from typing import Dict, Optional
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -11,7 +12,6 @@ from identity_auth_server.k8s.types import K8sLlmCallMapping, K8sTokenCache
 from identity_auth_server.k8s.view_models import K8sMultiAgentSystemCRDViewModel
 from identity_auth_server.services.authorization_server import AuthorizationServerService
 from identity_auth_server.telemetry.tracer import Tracer
-
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class K8sQueryService:
 
         # don't store the whole token, store a reference instead (ID for example)
         call = K8sLlmCallMapping(
-            id=request.id,
+            id=UUID(request.id),
             app_id=token.app_id,
             mas_id=token.mas_id,
             namespace=namespace,
@@ -108,11 +108,11 @@ class K8sQueryService:
         return self._k8s_mas_repository.store_llm_call_mapping(call)
 
     def load_llm_call_mapping(self, call_id: str) -> K8sLlmCallMapping:
-        return self._k8s_mas_repository.load_llm_call_mapping(call_id)
+        return self._k8s_mas_repository.load_llm_call_mapping(UUID(call_id))
 
     def trace_llm_call_end(self, request: LLMCallEndedKubernetesRequest) -> LLMCallEndedEvent:
         """Record the end of an LLM call for the authenticated agent."""
-        mapping = self._k8s_mas_repository.load_llm_call_mapping(request.call_id)
+        mapping = self._k8s_mas_repository.load_llm_call_mapping(UUID(request.call_id))
         if mapping is None:
             raise Exception("Invalid call ID")
 
@@ -141,7 +141,7 @@ class K8sQueryService:
         if "choices" in response and len(response["choices"]) > 0:
             choice = response["choices"][0]
             if "message" in choice and "tool_calls" in choice["message"]:
-                tools = [f"name='{tool["function"]["name"]}'" for tool in choice["message"]["tool_calls"]]
+                tools = [f"name='{tool['function']['name']}'" for tool in choice["message"]["tool_calls"]]
                 return json.dumps(tools)
         return None
 

@@ -114,7 +114,8 @@ extend-include = ["*.ipynb"]
 exclude = [".ipynb_checkpoints"]
 
 [tool.ruff.lint]
-select = ["D", "I", "F", "N", "NPY", "RUF"]
+select = ["I", "F", "N", "NPY", "RUF"]
+ignore = ["D"] # TODO: unable later
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "F401", "F403"]

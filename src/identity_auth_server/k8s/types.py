@@ -1,8 +1,11 @@
+# mypy: disable-error-code="call-arg"
+
 from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from sqlmodel import Column, Enum as SAEnum, Field, Integer, Relationship, SQLModel
+from sqlmodel import Column, Field, Integer, Relationship, SQLModel
+from sqlmodel import Enum as SAEnum
 
 from identity_auth_server.core.types import AppType, ToolCheckFlags
 
@@ -14,14 +17,17 @@ class K8sAppSpec(SQLModel, table=True):
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
     name: str = Field(description="Name of the application")
-    type: AppType = Field(description="Type of the application", sa_column=Column(
-        SAEnum(
-            AppType,
-            name="app_type",
-            values_callable=lambda enum_cls: [e.value for e in enum_cls],
+    type: AppType = Field(
+        description="Type of the application",
+        sa_column=Column(
+            SAEnum(
+                AppType,
+                name="app_type",
+                values_callable=lambda enum_cls: [e.value for e in enum_cls],
+            ),
+            nullable=False,
         ),
-        nullable=False,
-    ))
+    )
     url_host: str = Field(description="The host of the app base url", index=True)
     url_scheme: str = Field(description="The scheme of the app base url")
     prompt_field_json_path: Optional[str] = Field(description="The prompt field JSON path in the HTTP request schema")
@@ -74,14 +80,17 @@ class K8sTokenCache(SQLModel, table=True):
     namespace: str = Field(description="Kubernetes namespace")
     trace_id: str = Field(index=True)
     app_host: str = Field()
-    app_type: AppType = Field(description="Type of the app", sa_column=Column(
-        SAEnum(
-            AppType,
-            name="app_type",
-            values_callable=lambda enum_cls: [e.value for e in enum_cls],
+    app_type: AppType = Field(
+        description="Type of the app",
+        sa_column=Column(
+            SAEnum(
+                AppType,
+                name="app_type",
+                values_callable=lambda enum_cls: [e.value for e in enum_cls],
+            ),
+            nullable=False,
         ),
-        nullable=False,
-    ))
+    )
     access_token: str = Field()
     tool: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

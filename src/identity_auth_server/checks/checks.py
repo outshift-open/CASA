@@ -5,9 +5,7 @@ from dataclasses import dataclass
 from identity_auth_server.checks.base import BaseToolCheck, CheckResult, Payload
 from identity_auth_server.core.events import MCPToolBlockingReason, MCPToolBlockingType
 from identity_auth_server.core.types import ToolCheckFlags
-from identity_auth_server.pipelines.conversation.tbac_components import TaskToToolMatcher, TaskToolMatcherInput
-from identity_auth_server.pipelines.task_tool_matcher.task_tool_matcher import TaskToolMatcher
-from identity_auth_server.pipelines.task_tool_matcher.types import TaskToolMatchInput
+from identity_auth_server.pipelines.conversation.tbac_components import TaskToolMatcherInput, TaskToToolMatcher
 
 
 @dataclass(frozen=True)
@@ -71,11 +69,11 @@ class ToolIntentAICheck(BaseToolCheck):
                 tool_description=tool_description,
             )
         )
-        if not match.appropriate:
+        if not match or not match.appropriate:
             # TODO: store them for caching purposes?
             check_result.satisfied = False
             check_result.blocking_type = MCPToolBlockingType.AI_POWERED
             check_result.blocking_reason = MCPToolBlockingReason.TOOL_INTENT_MISMATCH
-            check_result.reasoning = match.reasoning
+            check_result.reasoning = match.reasoning if match else "match_task_to_tool() returned None"
 
         return check_result

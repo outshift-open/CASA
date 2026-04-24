@@ -1,4 +1,4 @@
-# ruff: noqa: D100, D101, D102, N806
+# ruff: noqa: N806
 import os
 from abc import ABC, abstractmethod
 from typing import Annotated, Any, Callable, Generator, Generic, TypeVar
@@ -139,8 +139,8 @@ class Container:
 
     def provide_task_tool_matcher(self: Provider[TaskToToolMatcher]):
         return TaskToToolMatcher(
-            base_url=os.getenv("LLM_API_BASE"),
-            api_key=os.getenv("LLM_API_KEY"),
+            base_url=os.getenv("LLM_API_BASE", ""),
+            api_key=os.getenv("LLM_API_KEY", ""),
             model_id=os.getenv("LLM_MODEL_ID", ""),
         )
 

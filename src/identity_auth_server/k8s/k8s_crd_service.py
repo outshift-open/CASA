@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class K8sCRDService:
     """Service for managing Kubernetes CRD resources in the ZTA control plane."""
 
-    def __init__(  # noqa: D107
+    def __init__(
         self,
         mas_service: MultiAgentSystemService,
         app_service: AppService,
@@ -309,4 +309,4 @@ class K8sCRDService:
         if mas_crd:
             self._k8s_mas_repository.delete_mas(mas_crd)
 
-        self._mas_service.delete_mas(mas.id)
+        self._mas_service.delete_mas(str(mas.id))
