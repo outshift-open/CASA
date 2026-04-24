@@ -370,6 +370,15 @@ paths:
           nullable: true
           type: string
         style: form
+      - explode: true
+        in: query
+        name: all
+        required: false
+        schema:
+          default: false
+          title: All
+          type: boolean
+        style: form
       responses:
         "200":
           content:
@@ -1562,6 +1571,7 @@ components:
         kubernetesWorkloadName: kubernetesWorkloadName
         baseUrl: ""
         name: name
+        httpRequestSchema: ""
         type: ""
       properties:
         name:
@@ -1579,6 +1589,10 @@ components:
         kubernetesWorkloadName:
           nullable: true
           type: string
+        httpRequestSchema:
+          allOf:
+          - $ref: "#/components/schemas/HttpRequestSchema"
+          nullable: true
       required:
       - baseUrl
       - name
@@ -1782,6 +1796,16 @@ components:
           title: Detail
           type: array
       title: HTTPValidationError
+    HttpRequestSchema:
+      description: HTTP request schema for extracting the prompt field.
+      properties:
+        promptFieldJsonPath:
+          description: JSONPath to the prompt field in the HTTP request body
+          title: Promptfieldjsonpath
+          type: string
+      required:
+      - promptFieldJsonPath
+      title: HttpRequestSchema
     K8sAppSpecViewModel:
       description: View model for application specification data.
       example:
@@ -1867,7 +1891,7 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-19T20:37:20.784641Z
+          default: 2026-04-24T09:07:11.693086Z
           format: date-time
           title: Created At
           type: string
@@ -2175,22 +2199,25 @@ components:
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
+          llm_host: llm_host
           authorizationServer: ""
           name: name
           apps:
           - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
             name: name
+            httpRequestSchema: ""
             type: ""
           - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
             name: name
+            httpRequestSchema: ""
             type: ""
       properties:
         metadata:
           $ref: "#/components/schemas/MultiAgentSystemMetadata"
         spec:
-          $ref: "#/components/schemas/MultiAgentSystemSpec-Input"
+          $ref: "#/components/schemas/MultiAgentSystemSpec"
       required:
       - metadata
       - spec
@@ -2217,16 +2244,19 @@ components:
             enabledToolChecks:
             - DETERMINISTIC_TOOL_SELECTED
             - DETERMINISTIC_TOOL_SELECTED
+            llm_host: llm_host
             authorizationServer: ""
             name: name
             apps:
             - kubernetesWorkloadName: kubernetesWorkloadName
               baseUrl: ""
               name: name
+              httpRequestSchema: ""
               type: ""
             - kubernetesWorkloadName: kubernetesWorkloadName
               baseUrl: ""
               name: name
+              httpRequestSchema: ""
               type: ""
           status: ""
         - metadata:
@@ -2245,16 +2275,19 @@ components:
             enabledToolChecks:
             - DETERMINISTIC_TOOL_SELECTED
             - DETERMINISTIC_TOOL_SELECTED
+            llm_host: llm_host
             authorizationServer: ""
             name: name
             apps:
             - kubernetesWorkloadName: kubernetesWorkloadName
               baseUrl: ""
               name: name
+              httpRequestSchema: ""
               type: ""
             - kubernetesWorkloadName: kubernetesWorkloadName
               baseUrl: ""
               name: name
+              httpRequestSchema: ""
               type: ""
           status: ""
       properties:
@@ -2316,20 +2349,23 @@ components:
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
+          llm_host: llm_host
           authorizationServer: ""
           name: name
           apps:
           - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
             name: name
+            httpRequestSchema: ""
             type: ""
           - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
             name: name
+            httpRequestSchema: ""
             type: ""
       properties:
         spec:
-          $ref: "#/components/schemas/MultiAgentSystemSpec-Input"
+          $ref: "#/components/schemas/MultiAgentSystemSpec"
       required:
       - spec
       title: MASUpdateRequest
@@ -2343,6 +2379,7 @@ components:
         namespace: namespace
         created_at: 2000-01-23T04:56:07.000+00:00
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        deleted_at: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
           format: uuid
@@ -2366,9 +2403,13 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-19T20:37:20.274477Z
+          default: 2026-04-24T09:07:11.017834Z
           format: date-time
           title: Created At
+          type: string
+        deleted_at:
+          format: date-time
+          nullable: true
           type: string
       required:
       - authorization_server_id
@@ -2409,16 +2450,19 @@ components:
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
+          llm_host: llm_host
           authorizationServer: ""
           name: name
           apps:
           - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
             name: name
+            httpRequestSchema: ""
             type: ""
           - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
             name: name
+            httpRequestSchema: ""
             type: ""
         status: ""
       properties:
@@ -2437,7 +2481,7 @@ components:
         metadata:
           $ref: "#/components/schemas/MultiAgentSystemMetadata"
         spec:
-          $ref: "#/components/schemas/MultiAgentSystemSpec-Output"
+          $ref: "#/components/schemas/MultiAgentSystemSpec"
         status:
           allOf:
           - $ref: "#/components/schemas/MultiAgentSystemStatus"
@@ -2512,22 +2556,25 @@ components:
       - name
       - namespace
       title: MultiAgentSystemMetadata
-    MultiAgentSystemSpec-Input:
+    MultiAgentSystemSpec:
       description: Specification for MultiAgentSystem CRD.
       example:
         enabledToolChecks:
         - DETERMINISTIC_TOOL_SELECTED
         - DETERMINISTIC_TOOL_SELECTED
+        llm_host: llm_host
         authorizationServer: ""
         name: name
         apps:
         - kubernetesWorkloadName: kubernetesWorkloadName
           baseUrl: ""
           name: name
+          httpRequestSchema: ""
           type: ""
         - kubernetesWorkloadName: kubernetesWorkloadName
           baseUrl: ""
           name: name
+          httpRequestSchema: ""
           type: ""
       properties:
         name:
@@ -2551,48 +2598,9 @@ components:
             $ref: "#/components/schemas/AppSpec"
           title: Apps
           type: array
-      required:
-      - name
-      title: MultiAgentSystemSpec
-    MultiAgentSystemSpec-Output:
-      description: Specification for MultiAgentSystem CRD.
-      example:
-        enabledToolChecks:
-        - DETERMINISTIC_TOOL_SELECTED
-        - DETERMINISTIC_TOOL_SELECTED
-        authorizationServer: ""
-        name: name
-        apps:
-        - kubernetesWorkloadName: kubernetesWorkloadName
-          baseUrl: ""
-          name: name
-          type: ""
-        - kubernetesWorkloadName: kubernetesWorkloadName
-          baseUrl: ""
-          name: name
-          type: ""
-      properties:
-        name:
-          description: Display name of the Multi-Agent System
-          title: Name
+        llm_host:
+          nullable: true
           type: string
-        authorizationServer:
-          default: ""
-          description: Keycloak realm name for this MAS
-          title: Authorizationserver
-          type: string
-        enabledToolChecks:
-          description: List of enabled tool check types
-          items:
-            $ref: "#/components/schemas/ToolCheckType"
-          title: Enabledtoolchecks
-          type: array
-        apps:
-          description: List of applications in this MAS
-          items:
-            $ref: "#/components/schemas/AppSpec"
-          title: Apps
-          type: array
       required:
       - name
       title: MultiAgentSystemSpec
@@ -2626,7 +2634,7 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-19T20:37:20.844802Z
+          default: 2026-04-24T09:07:11.753282Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -3021,7 +3029,7 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-19T20:37:20.275677Z
+          default: 2026-04-24T09:07:11.019131Z
           format: date-time
           title: Created At
           type: string
