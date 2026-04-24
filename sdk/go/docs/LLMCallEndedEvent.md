@@ -6,7 +6,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | Pointer to **string** |  | [optional] 
 **UserInputId** | **string** |  | 
-**CreatedAt** | Pointer to **string** |  | [optional] 
+**CreatedAt** | Pointer to **time.Time** |  | [optional] 
 **CallId** | **string** |  | 
 **Token** | **string** |  | 
 **AppId** | **string** |  | 
@@ -80,20 +80,20 @@ SetUserInputId sets UserInputId field to given value.
 
 ### GetCreatedAt
 
-`func (o *LLMCallEndedEvent) GetCreatedAt() string`
+`func (o *LLMCallEndedEvent) GetCreatedAt() time.Time`
 
 GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
 
 ### GetCreatedAtOk
 
-`func (o *LLMCallEndedEvent) GetCreatedAtOk() (*string, bool)`
+`func (o *LLMCallEndedEvent) GetCreatedAtOk() (*time.Time, bool)`
 
 GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetCreatedAt
 
-`func (o *LLMCallEndedEvent) SetCreatedAt(v string)`
+`func (o *LLMCallEndedEvent) SetCreatedAt(v time.Time)`
 
 SetCreatedAt sets CreatedAt field to given value.
 

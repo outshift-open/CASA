@@ -976,164 +976,6 @@ paths:
       summary: Update Mas Status
       tags:
       - Kubernetes CRDs
-  /k8s/watch/namespaces/{namespace}/multiagentsystems:
-    get:
-      description: |-
-        Watch MultiAgentSystem CRDs in a specific namespace.
-
-        This endpoint streams Server-Sent Events (SSE) for real-time updates.
-        Operators can use this to react to CRD changes immediately.
-
-        Example:
-            curl -N http://localhost:3000/k8s/watch/namespaces/default/multiagentsystems
-      operationId: watch_mas_in_namespace_k8s_watch_namespaces__namespace__multiagentsystems_get
-      parameters:
-      - explode: false
-        in: path
-        name: namespace
-        required: true
-        schema:
-          title: Namespace
-          type: string
-        style: simple
-      - description: Start watching from this version
-        explode: true
-        in: query
-        name: resource_version
-        required: false
-        schema:
-          nullable: true
-          type: string
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema: {}
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: Watch Mas In Namespace
-      tags:
-      - Kubernetes CRDs
-  /k8s/watch/multiagentsystems:
-    get:
-      description: |-
-        Watch all MultiAgentSystem CRDs across all namespaces.
-
-        Example:
-            curl -N http://localhost:3000/k8s/watch/multiagentsystems
-      operationId: watch_all_mas_k8s_watch_multiagentsystems_get
-      parameters:
-      - description: Start watching from this version
-        explode: true
-        in: query
-        name: resource_version
-        required: false
-        schema:
-          nullable: true
-          type: string
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema: {}
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: Watch All Mas
-      tags:
-      - Kubernetes CRDs
-  /k8s/watch/namespaces/{namespace}/ztapolicies:
-    get:
-      description: |-
-        Watch ZTAPolicy CRDs in a specific namespace.
-
-        Example:
-            curl -N http://localhost:3000/k8s/watch/namespaces/production-mas/ztapolicies
-      operationId: watch_policies_in_namespace_k8s_watch_namespaces__namespace__ztapolicies_get
-      parameters:
-      - explode: false
-        in: path
-        name: namespace
-        required: true
-        schema:
-          title: Namespace
-          type: string
-        style: simple
-      - description: Start watching from this version
-        explode: true
-        in: query
-        name: resource_version
-        required: false
-        schema:
-          nullable: true
-          type: string
-        style: form
-      responses:
-        "200":
-          content:
-            application/json:
-              schema: {}
-          description: Successful Response
-        "422":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HTTPValidationError"
-          description: Validation Error
-      summary: Watch Policies In Namespace
-      tags:
-      - Kubernetes CRDs
-  /k8s/healthz:
-    get:
-      description: |-
-        Liveness probe endpoint.
-
-        Returns 200 if the service is alive and should not be restarted.
-        This is a lightweight check.
-
-        Example:
-            curl http://localhost:3000/k8s/healthz
-      operationId: liveness_probe_k8s_healthz_get
-      responses:
-        "200":
-          content:
-            application/json:
-              schema: {}
-          description: Successful Response
-      summary: Liveness Probe
-      tags:
-      - Kubernetes CRDs
-  /k8s/readyz:
-    get:
-      description: |-
-        Readiness probe endpoint.
-
-        Returns 200 if the service is ready to receive traffic.
-        Checks database connectivity and other dependencies.
-
-        Example:
-            curl http://localhost:3000/k8s/readyz
-      operationId: readiness_probe_k8s_readyz_get
-      responses:
-        "200":
-          content:
-            application/json:
-              schema: {}
-          description: Successful Response
-      summary: Readiness Probe
-      tags:
-      - Kubernetes CRDs
   /user-inputs:
     post:
       description: Create a new User Input.
@@ -1891,7 +1733,6 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-24T09:07:11.693086Z
           format: date-time
           title: Created At
           type: string
@@ -2403,7 +2244,6 @@ components:
           nullable: true
           type: string
         created_at:
-          default: 2026-04-24T09:07:11.017834Z
           format: date-time
           title: Created At
           type: string
@@ -2634,7 +2474,6 @@ components:
           title: Appsready
           type: integer
         last_sync_time:
-          default: 2026-04-24T09:07:11.753282Z
           format: date-time
           title: Last Sync Time
           type: string
@@ -3029,7 +2868,6 @@ components:
           title: Prompt
           type: string
         created_at:
-          default: 2026-04-24T09:07:11.019131Z
           format: date-time
           title: Created At
           type: string

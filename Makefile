@@ -172,16 +172,8 @@ ui-stop: # Stop the ZTA Explorer UI.
 
 generate-sdk:
 > @printf "$(YELLOW)Generating the Python SDK for the Auth Server$(NOCOLOR)\n"
-> @printf "$(YELLOW)Make sure the auth server is running first$(NOCOLOR)\n"
-> docker build -t zta-auth-temp -f deployments/docker/Dockerfile .
-> docker run --rm -d --name zta-auth-temp -p 8000:8000 zta-auth-temp
-> curl --retry-all-errors --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -o openapi.json http://localhost:8000/openapi.json
-> docker stop zta-auth-temp
-# > docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g python -o /local/sdk/python --additional-properties=packageName=identity_auth_sdk
-> docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g go -o /local/sdk/go --additional-properties=packageName=api --git-user-id cisco-eti --git-repo-id identity-auth-server/sdk/go --type-mappings DateTime=string
-> docker rmi zta-auth-temp
-> rm openapi.json
-> cd sdk/go && go mod tidy
+> chmod +x ./scripts/generate_sdk.sh
+> ./scripts/generate_sdk.sh
 .PHONY: generate-sdk
 
 helm-lint: # Lint the ZTA control-plane Helm chart.

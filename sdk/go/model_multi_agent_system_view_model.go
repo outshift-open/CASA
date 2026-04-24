@@ -12,6 +12,7 @@ package api
 
 import (
 	"encoding/json"
+	"time"
 	"bytes"
 	"fmt"
 )
@@ -24,7 +25,7 @@ type MultiAgentSystemViewModel struct {
 	Id string `json:"id"`
 	Name string `json:"name"`
 	AuthorizationServerId NullableString `json:"authorization_server_id"`
-	CreatedAt string `json:"created_at"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type _MultiAgentSystemViewModel MultiAgentSystemViewModel
@@ -33,7 +34,7 @@ type _MultiAgentSystemViewModel MultiAgentSystemViewModel
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewMultiAgentSystemViewModel(id string, name string, authorizationServerId NullableString, createdAt string) *MultiAgentSystemViewModel {
+func NewMultiAgentSystemViewModel(id string, name string, authorizationServerId NullableString, createdAt time.Time) *MultiAgentSystemViewModel {
 	this := MultiAgentSystemViewModel{}
 	this.Id = id
 	this.Name = name
@@ -125,9 +126,9 @@ func (o *MultiAgentSystemViewModel) SetAuthorizationServerId(v string) {
 }
 
 // GetCreatedAt returns the CreatedAt field value
-func (o *MultiAgentSystemViewModel) GetCreatedAt() string {
+func (o *MultiAgentSystemViewModel) GetCreatedAt() time.Time {
 	if o == nil {
-		var ret string
+		var ret time.Time
 		return ret
 	}
 
@@ -136,7 +137,7 @@ func (o *MultiAgentSystemViewModel) GetCreatedAt() string {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value
 // and a boolean to check if the value has been set.
-func (o *MultiAgentSystemViewModel) GetCreatedAtOk() (*string, bool) {
+func (o *MultiAgentSystemViewModel) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -144,7 +145,7 @@ func (o *MultiAgentSystemViewModel) GetCreatedAtOk() (*string, bool) {
 }
 
 // SetCreatedAt sets field value
-func (o *MultiAgentSystemViewModel) SetCreatedAt(v string) {
+func (o *MultiAgentSystemViewModel) SetCreatedAt(v time.Time) {
 	o.CreatedAt = v
 }
 

@@ -12,6 +12,7 @@ package api
 
 import (
 	"encoding/json"
+	"time"
 	"bytes"
 	"fmt"
 )
@@ -23,7 +24,7 @@ var _ MappedNullable = &LLMCallStartedEvent{}
 type LLMCallStartedEvent struct {
 	Id *string `json:"id,omitempty"`
 	UserInputId string `json:"user_input_id"`
-	CreatedAt *string `json:"created_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 	CallId string `json:"call_id"`
 	Token string `json:"token"`
 	AppId string `json:"app_id"`
@@ -114,9 +115,9 @@ func (o *LLMCallStartedEvent) SetUserInputId(v string) {
 }
 
 // GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
-func (o *LLMCallStartedEvent) GetCreatedAt() string {
+func (o *LLMCallStartedEvent) GetCreatedAt() time.Time {
 	if o == nil || IsNil(o.CreatedAt) {
-		var ret string
+		var ret time.Time
 		return ret
 	}
 	return *o.CreatedAt
@@ -124,7 +125,7 @@ func (o *LLMCallStartedEvent) GetCreatedAt() string {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *LLMCallStartedEvent) GetCreatedAtOk() (*string, bool) {
+func (o *LLMCallStartedEvent) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil || IsNil(o.CreatedAt) {
 		return nil, false
 	}
@@ -140,8 +141,8 @@ func (o *LLMCallStartedEvent) HasCreatedAt() bool {
 	return false
 }
 
-// SetCreatedAt gets a reference to the given string and assigns it to the CreatedAt field.
-func (o *LLMCallStartedEvent) SetCreatedAt(v string) {
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *LLMCallStartedEvent) SetCreatedAt(v time.Time) {
 	o.CreatedAt = &v
 }
 

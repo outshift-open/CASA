@@ -120,7 +120,7 @@ class MultiAgentSystemStatus(BaseModel):
 
     phase: MASPhase = Field(default=MASPhase.PENDING, description="Current phase of the MAS")
     apps_ready: int = Field(default=0, description="Number of apps successfully registered", alias="appsReady")
-    last_sync_time: datetime = datetime.now(timezone.utc)
+    last_sync_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     message: Optional[str] = Field(default=None, description="Human-readable status message")
     credentials: Optional[List[AppCredentials]] = Field(
         default=None, description="OAuth2 credentials for each app (used by operator to create secrets)"
