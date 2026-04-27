@@ -30,7 +30,7 @@ func main() {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
 
-	// Register zta.io/v1alpha1 GroupVersion
+	// Register casa.io/v1alpha1 GroupVersion
 	scheme.AddKnownTypes(schemeGroupVersion, &MultiAgentSystem{}, &MultiAgentSystemList{})
 	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
 

@@ -47,9 +47,9 @@
   <!-- Bottom node (client) -->
   <circle cx="50" cy="59" r="3.2" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.2"/>
 
-  <!-- ZTA text -->
+  <!-- CASA text -->
   <text x="50" y="72"
         font-family="system-ui,-apple-system,BlinkMacSystemFont,sans-serif"
-        font-weight="800" font-size="8.5" fill="#2dd4bf"
-        text-anchor="middle" letter-spacing="2">ZTA</text>
+        font-weight="800" font-size="7.5" fill="#2dd4bf"
+        text-anchor="middle" letter-spacing="1.5">CASA</text>
 </svg>

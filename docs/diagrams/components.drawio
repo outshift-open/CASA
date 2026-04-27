@@ -102,16 +102,16 @@
       <mxGeometry x="30" y="60" width="1290" height="840" as="geometry" />
     </mxCell>
 
-    <!-- ZTA Control Plane namespace -->
+    <!-- CASA Control Plane namespace -->
     <mxCell id="cp_border" value="" style="rounded=1;arcSize=3;strokeColor=#6366f1;strokeWidth=2;fillColor=#1e1b4b;fillOpacity=20;" vertex="1" parent="1">
       <mxGeometry x="60" y="120" width="330" height="700" as="geometry" />
     </mxCell>
-    <mxCell id="cp_label" value="ZTA-CONTROL-PLANE" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#6366f1;fontSize=11;fontFamily=Courier New;fontStyle=1;" vertex="1" parent="1">
+    <mxCell id="cp_label" value="CASA-CONTROL-PLANE" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#6366f1;fontSize=11;fontFamily=Courier New;fontStyle=1;" vertex="1" parent="1">
       <mxGeometry x="70" y="128" width="310" height="22" as="geometry" />
     </mxCell>
 
-    <!-- ZTA Explorer UI -->
-    <mxCell id="ui_box" value="&lt;b&gt;ZTA Explorer UI&lt;/b&gt;&lt;br/&gt;&lt;font color='#94a3b8' style='font-size: 11px;'&gt;Admin Dashboard&lt;/font&gt;" style="rounded=1;arcSize=12;strokeColor=#34d399;strokeWidth=2;fillColor=#064e3b;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
+    <!-- CASA Explorer UI -->
+    <mxCell id="ui_box" value="&lt;b&gt;CASA Explorer UI&lt;/b&gt;&lt;br/&gt;&lt;font color='#94a3b8' style='font-size: 11px;'&gt;Admin Dashboard&lt;/font&gt;" style="rounded=1;arcSize=12;strokeColor=#34d399;strokeWidth=2;fillColor=#064e3b;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="90" y="165" width="270" height="66" as="geometry" />
     </mxCell>
 
@@ -148,7 +148,7 @@
     <mxCell id="c_app" value="&lt;b&gt;Client App&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b' style='font-size: 11px;'&gt;User-facing client&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#475569;strokeWidth=2;fillColor=#1e293b;fontColor=#cbd5e1;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="475" y="195" width="200" height="170" as="geometry" />
     </mxCell>
-    <mxCell id="c_side" value="&lt;b&gt;ZTA Sidecar&lt;/b&gt;&lt;br/&gt;&lt;font color='#84cc16' style='font-size: 11px;'&gt;Envoy Proxy&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#84cc16;strokeWidth=2;fillColor=#1a2e05;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
+    <mxCell id="c_side" value="&lt;b&gt;CASA Sidecar&lt;/b&gt;&lt;br/&gt;&lt;font color='#84cc16' style='font-size: 11px;'&gt;Envoy Proxy&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#84cc16;strokeWidth=2;fillColor=#1a2e05;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="475" y="490" width="200" height="148" as="geometry" />
     </mxCell>
 
@@ -162,7 +162,7 @@
     <mxCell id="ag_app" value="&lt;b&gt;Agent&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b' style='font-size: 11px;'&gt;LLM-powered&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#475569;strokeWidth=2;fillColor=#1e293b;fontColor=#cbd5e1;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="745" y="195" width="200" height="170" as="geometry" />
     </mxCell>
-    <mxCell id="ag_side" value="&lt;b&gt;ZTA Sidecar&lt;/b&gt;&lt;br/&gt;&lt;font color='#84cc16' style='font-size: 11px;'&gt;Envoy Proxy&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#84cc16;strokeWidth=2;fillColor=#1a2e05;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
+    <mxCell id="ag_side" value="&lt;b&gt;CASA Sidecar&lt;/b&gt;&lt;br/&gt;&lt;font color='#84cc16' style='font-size: 11px;'&gt;Envoy Proxy&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#84cc16;strokeWidth=2;fillColor=#1a2e05;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="745" y="490" width="200" height="148" as="geometry" />
     </mxCell>
 
@@ -176,7 +176,7 @@
     <mxCell id="mcp_app" value="&lt;b&gt;MCP Server&lt;/b&gt;&lt;br/&gt;&lt;font color='#64748b' style='font-size: 11px;'&gt;Tool provider&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#475569;strokeWidth=2;fillColor=#1e293b;fontColor=#cbd5e1;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="1015" y="195" width="200" height="170" as="geometry" />
     </mxCell>
-    <mxCell id="mcp_side" value="&lt;b&gt;ZTA Sidecar&lt;/b&gt;&lt;br/&gt;&lt;font color='#84cc16' style='font-size: 11px;'&gt;Envoy Proxy&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#84cc16;strokeWidth=2;fillColor=#1a2e05;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
+    <mxCell id="mcp_side" value="&lt;b&gt;CASA Sidecar&lt;/b&gt;&lt;br/&gt;&lt;font color='#84cc16' style='font-size: 11px;'&gt;Envoy Proxy&lt;/font&gt;" style="rounded=1;arcSize=10;strokeColor=#84cc16;strokeWidth=2;fillColor=#1a2e05;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="1015" y="490" width="200" height="148" as="geometry" />
     </mxCell>
 
@@ -191,7 +191,7 @@
     </mxCell>
 
     <!-- ═══════════════════════════════════════════════════ TITLE -->
-    <mxCell id="title" value="&lt;b style='font-size:22px;color:#f1f5f9;'&gt;ZTA&lt;/b&gt;  &lt;span style='font-size:14px;color:#94a3b8;'&gt;Zero Trust for Multi-Agent Systems&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+    <mxCell id="title" value="&lt;b style='font-size:22px;color:#f1f5f9;'CASA  &lt;span style='font-size:14px;color:#94a3b8;'&gt;Continuous Agent Semantic Authorization&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
       <mxGeometry x="34" y="14" width="700" height="38" as="geometry" />
     </mxCell>
 

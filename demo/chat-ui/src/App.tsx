@@ -92,13 +92,13 @@ export default function App() {
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       <header className="shrink-0 flex items-center justify-between border-b border-border bg-white/80 backdrop-blur px-6 py-4 z-10">
         <div>
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">ZTA Chat Demo</h1>
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">CASA Chat Demo</h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">{AGENT_URL}/chat</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 rounded-lg bg-safe-muted px-3 py-1.5 text-xs font-medium text-safe">
             <span className="inline-block h-2 w-2 rounded-full bg-safe shrink-0" />
-            ZTA authorization enforced
+            CASA authorization enforced
           </div>
           <Tooltip content="Clear conversation">
             <Button
@@ -123,7 +123,7 @@ export default function App() {
               <div className="flex flex-col gap-2">
                 <h2 className="text-xl font-semibold text-foreground">Welcome to the <span className="text-safe">Finance Agent</span></h2>
                 <p className="text-sm text-slate-500 max-w-sm">
-                  This agent has access to your banking tools. Every tool call is authorized by ZTA before execution.
+                  This agent has access to your banking tools. Every tool call is authorized by CASA before execution.
                 </p>
               </div>
               <div className="flex flex-col gap-2 w-full max-w-sm">

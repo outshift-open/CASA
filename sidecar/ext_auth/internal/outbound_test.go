@@ -25,7 +25,7 @@ func TestOutbound(t *testing.T) {
 	mcpAppID := uuid.NewString()
 	agentAccessToken := uuid.NewString()
 	mcpAccessToken := uuid.NewString()
-	agentWorkloadName := "zta-demo-agent"
+	agentWorkloadName := "casa-demo-agent"
 
 	authSrvClient := mocks.NewAuthServerClient(t)
 	authSrvClient.EXPECT().
