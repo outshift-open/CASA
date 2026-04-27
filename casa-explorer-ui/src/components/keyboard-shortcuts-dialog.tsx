@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
@@ -23,9 +7,7 @@ const SHORTCUTS = [
     {keys: ['?'], description: 'Show keyboard shortcuts'},
     {keys: ['⌘B', 'Ctrl+B'], description: 'Toggle sidebar'},
     {keys: ['G', 'D'], description: 'Go to Dashboard'},
-    {keys: ['G', 'M'], description: 'Go to Multi-Agent Systems'},
-    {keys: ['G', 'A'], description: 'Go to Agentic Services'},
-    {keys: ['G', 'S'], description: 'Go to Scopes'}
+    {keys: ['G', 'M'], description: 'Go to Multi-Agent Systems'}
 ];
 
 export function KeyboardShortcutsDialog() {
@@ -70,14 +52,6 @@ export function KeyboardShortcutsDialog() {
                 }
                 if (e.key === 'm') {
                     navigate('/mas');
-                    return;
-                }
-                if (e.key === 'a') {
-                    navigate('/agentic-services');
-                    return;
-                }
-                if (e.key === 's') {
-                    navigate('/scopes');
                     return;
                 }
             }

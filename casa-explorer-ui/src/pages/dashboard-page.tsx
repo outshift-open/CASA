@@ -1,25 +1,9 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
-import {Shield, Lock, AppWindow, Network, Tags, RefreshCw, HelpCircle} from 'lucide-react';
-import {useApps} from '@/hooks/use-apps';
+import {Separator} from '@/components/ui/separator';
+import {Shield, Activity, ShieldAlert, Network, Tags, RefreshCw, HelpCircle, Cpu, Sparkles} from 'lucide-react';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
 import {useMemo} from 'react';
@@ -69,46 +53,56 @@ const CHART_TOOLTIP_STYLE = {
 };
 
 interface DonutChartProps {
-    data: {name: string; value: number; color: string}[];
+    data: {name: string; value: number; color: string; icon?: React.ElementType}[];
     loading: boolean;
     emptyIcon: React.ReactNode;
     emptyText: string;
     unit: string;
+    onSegmentClick?: (entry: {name: string; value: number; color: string}) => void;
 }
 
-function DonutChart({data, loading, emptyIcon, emptyText, unit}: DonutChartProps) {
+function DonutChart({data, loading, emptyIcon, emptyText, unit, onSegmentClick}: DonutChartProps) {
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-[200px]">
-                <Skeleton className="h-[160px] w-[160px] rounded-full" />
+            <div className="flex items-center justify-center h-[120px]">
+                <Skeleton className="h-[100px] w-[100px] rounded-full" />
             </div>
         );
     }
     if (data.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[200px] gap-3 text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-[120px] gap-3 text-muted-foreground w-full">
                 {emptyIcon}
-                <p className="text-sm">{emptyText}</p>
+                <p className="text-sm text-center">{emptyText}</p>
             </div>
         );
     }
     const total = data.reduce((s, d) => s + d.value, 0);
     return (
-        <div className="flex items-center justify-center gap-8">
-            <div className="w-[160px] h-[160px] flex-shrink-0">
+        <div className="flex items-center justify-center gap-6 h-full">
+            <div className="w-[120px] h-[120px] flex-shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={data}
                             cx="50%"
                             cy="50%"
-                            innerRadius={48}
-                            outerRadius={72}
+                            innerRadius={36}
+                            outerRadius={54}
                             paddingAngle={data.length > 1 ? 3 : 0}
                             dataKey="value"
+                            onClick={
+                                onSegmentClick
+                                    ? (d) => onSegmentClick(d as {name: string; value: number; color: string})
+                                    : undefined
+                            }
                         >
                             {data.map((entry) => (
-                                <Cell key={entry.name} fill={entry.color} />
+                                <Cell
+                                    key={entry.name}
+                                    fill={entry.color}
+                                    style={onSegmentClick ? {cursor: 'pointer'} : undefined}
+                                />
                             ))}
                         </Pie>
                         <ChartTooltip
@@ -122,13 +116,25 @@ function DonutChart({data, loading, emptyIcon, emptyText, unit}: DonutChartProps
                 {data.map((entry) => {
                     const pct = Math.round((entry.value / total) * 100);
                     return (
-                        <div key={entry.name} className="flex items-center gap-2.5">
-                            <span
-                                className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                                style={{backgroundColor: entry.color}}
-                            />
+                        <div
+                            key={entry.name}
+                            className={`flex items-center gap-2.5 group ${onSegmentClick ? 'cursor-pointer' : ''}`}
+                            onClick={() => onSegmentClick?.(entry)}
+                        >
+                            {entry.icon ? (
+                                <entry.icon className="h-3.5 w-3.5 flex-shrink-0" style={{color: entry.color}} />
+                            ) : (
+                                <span
+                                    className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                                    style={{backgroundColor: entry.color}}
+                                />
+                            )}
                             <div className="flex flex-col">
-                                <span className="text-sm font-medium leading-none">{entry.name}</span>
+                                <span
+                                    className={`text-sm font-medium leading-none ${onSegmentClick ? 'group-hover:underline' : ''}`}
+                                >
+                                    {entry.name}
+                                </span>
                                 <span className="text-xs text-muted-foreground mt-1">
                                     {entry.value} {entry.value === 1 ? unit : `${unit}s`} · {pct}%
                                 </span>
@@ -143,7 +149,6 @@ function DonutChart({data, loading, emptyIcon, emptyText, unit}: DonutChartProps
 
 export function DashboardPage() {
     const navigate = useNavigate();
-    const {data: appsData, isLoading, error, dataUpdatedAt: appsUpdatedAt, refetch: refetchApps} = useApps();
     const {
         data: masData,
         isLoading: masLoading,
@@ -158,21 +163,20 @@ export function DashboardPage() {
         refetch: refetchTraces
     } = useTraces(undefined, 1, 100, true);
 
-    const isRefreshing = isLoading || masLoading || tracesLoading;
+    const isRefreshing = masLoading || tracesLoading;
 
     const handleRefresh = async () => {
         try {
-            await Promise.all([refetchApps(), refetchMAS(), refetchTraces()]);
+            await Promise.all([refetchMAS(), refetchTraces()]);
             toast.success('Dashboard refreshed successfully');
         } catch {
             toast.error('Failed to refresh dashboard');
         }
     };
 
-    const totalApps = appsData?.total ?? 0;
     const totalMAS = masData?.length ?? 0;
 
-    const lastUpdated = Math.max(appsUpdatedAt, masUpdatedAt, tracesUpdatedAt);
+    const lastUpdated = Math.max(masUpdatedAt, tracesUpdatedAt);
     const lastUpdatedLabel = lastUpdated
         ? new Date(lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'})
         : null;
@@ -198,6 +202,7 @@ export function DashboardPage() {
 
         const blockReasons = Object.entries(reasonCounts)
             .map(([reason, count]) => ({
+                reason,
                 name: BLOCKING_REASON_LABELS[reason as BlockingReason] ?? reason,
                 description: BLOCKING_REASON_DESCRIPTIONS[reason as BlockingReason] ?? '',
                 count
@@ -220,19 +225,6 @@ export function DashboardPage() {
         };
     }, [allTraces]);
 
-    const appTypeData = useMemo(() => {
-        const items = appsData?.items ?? [];
-        const counts = {agent: 0, client: 0, mcp_server: 0};
-        items.forEach((app) => {
-            counts[app.type] = (counts[app.type] ?? 0) + 1;
-        });
-        return [
-            {name: 'Client', value: counts.client, color: '#22c55e'},
-            {name: 'Agent', value: counts.agent, color: '#3b82f6'},
-            {name: 'MCP Server', value: counts.mcp_server, color: '#a855f7'}
-        ].filter((d) => d.value > 0);
-    }, [appsData]);
-
     const mcpDonutData = useMemo(
         () =>
             [
@@ -245,8 +237,8 @@ export function DashboardPage() {
     const blockTypeData = useMemo(
         () =>
             [
-                {name: 'Deterministic', value: traceStats.deterministicBlocks, color: '#f97316'},
-                {name: 'Semantic', value: traceStats.aiBlocks, color: '#38bdf8'}
+                {name: 'Deterministic', value: traceStats.deterministicBlocks, color: '#f97316', icon: Cpu},
+                {name: 'Semantic', value: traceStats.aiBlocks, color: '#38bdf8', icon: Sparkles}
             ].filter((d) => d.value > 0),
         [traceStats]
     );
@@ -257,7 +249,7 @@ export function DashboardPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold">Dashboard</h1>
-                    <p className="text-muted-foreground">Overview of your Continuous Agent Semantic Authorization</p>
+                    <p className="text-muted-foreground">Overview of your CASA (Continuous Agent Semantic Authorization)</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {lastUpdatedLabel && (
@@ -279,7 +271,7 @@ export function DashboardPage() {
                                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
+                        <TooltipContent className="max-w-[180px]">
                             <p>Refresh</p>
                         </TooltipContent>
                     </Tooltip>
@@ -288,15 +280,105 @@ export function DashboardPage() {
 
             {/* Stat cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {/* Auth requests — donut: Allowed vs Denied */}
+                <Card className="gap-0 flex flex-col py-3">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 py-4">
+                        <div className="flex items-center gap-2">
+                            <Activity className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium">Auth Requests</CardTitle>
+                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[180px]">
+                                <p className="text-center">
+                                    OAuth2 token requests issued to agents, showing allowed vs denied MCP tool calls
+                                </p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </CardHeader>
+                    <div className="px-4">
+                        <Separator />
+                    </div>
+                    <CardContent className="flex-1 flex items-center justify-center px-4 py-4">
+                        <DonutChart
+                            data={mcpDonutData}
+                            loading={tracesLoading}
+                            emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
+                            emptyText="No tool calls recorded yet"
+                            unit="call"
+                            onSegmentClick={(entry) => {
+                                const auth = entry.name === 'Allowed' ? 'allowed' : 'denied';
+                                navigate(`/auth-requests?auth=${auth}&from=dashboard`);
+                            }}
+                        />
+                    </CardContent>
+                </Card>
+
+                {/* Deny type — donut: Deterministic vs Semantic */}
+                <Card className="gap-0 flex flex-col py-3">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
+                        <div className="flex items-center gap-2">
+                            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium">Deny Type</CardTitle>
+                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[180px]">
+                                <p className="text-center">
+                                    How denied calls were caught — deterministic rules (scope, params) vs semantic
+                                    AI-powered intent verification
+                                </p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </CardHeader>
+                    <div className="px-4">
+                        <Separator />
+                    </div>
+                    <CardContent className="flex-1 flex items-center justify-center px-4 py-4">
+                        <DonutChart
+                            data={blockTypeData}
+                            loading={tracesLoading}
+                            emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
+                            emptyText="No denied calls recorded yet"
+                            unit="block"
+                            onSegmentClick={(entry) => {
+                                const denyType = entry.name === 'Semantic' ? 'AI_POWERED' : 'DETERMINISTIC';
+                                navigate(`/auth-requests?auth=denied&denyType=${denyType}&from=dashboard`);
+                            }}
+                        />
+                    </CardContent>
+                </Card>
+
+                {/* Multi-Agent Systems — number */}
                 <Card
-                    className="cursor-pointer hover:bg-accent transition-colors gap-4"
+                    className="gap-0 flex flex-col cursor-pointer hover:bg-accent transition-colors py-3"
                     onClick={() => navigate('/mas')}
                 >
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Multi-Agent Systems</CardTitle>
-                        <Network className="h-4 w-4 text-muted-foreground" />
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
+                        <div className="flex items-center gap-2">
+                            <Network className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium">Multi-Agent Systems</CardTitle>
+                        </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[180px]">
+                                <p className="text-center">
+                                    Multi-Agent Systems grouping agents, clients, and MCP servers under a shared
+                                    authorization policy
+                                </p>
+                            </TooltipContent>
+                        </Tooltip>
                     </CardHeader>
-                    <CardContent>
+                    <div className="px-4">
+                        <Separator />
+                    </div>
+                    <CardContent className="pt-4 px-4 pb-4">
                         {masLoading ? (
                             <Skeleton className="h-8 w-16" />
                         ) : masError ? (
@@ -304,149 +386,61 @@ export function DashboardPage() {
                         ) : (
                             <div className="text-2xl font-bold">{totalMAS}</div>
                         )}
-                        <p className="text-xs text-muted-foreground">Configured MAS</p>
+                        <p className="text-xs text-muted-foreground mt-1">Configured MAS</p>
                     </CardContent>
                 </Card>
 
-                <Card
-                    className="cursor-pointer hover:bg-accent transition-colors gap-4"
-                    onClick={() => navigate('/agentic-services')}
-                >
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Agentic Services</CardTitle>
-                        <AppWindow className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? (
-                            <Skeleton className="h-8 w-16" />
-                        ) : error ? (
-                            <div className="text-sm text-destructive">Error</div>
-                        ) : (
-                            <div className="text-2xl font-bold">{totalApps}</div>
-                        )}
-                        <p className="text-xs text-muted-foreground">Agents, Clients & MCP Servers</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="gap-4 opacity-50 cursor-not-allowed">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Scopes</CardTitle>
-                        <Tags className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-muted-foreground">—</div>
-                        <p className="text-xs text-muted-foreground">Coming soon</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="gap-4">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Authorization Requests</CardTitle>
-                        <div className="flex items-center gap-1">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60 cursor-pointer" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="text-center">
-                                        Agents request tokens via OAuth2 to gain access to MCP tools
-                                    </p>
-                                </TooltipContent>
-                            </Tooltip>
-                            <Lock className="h-4 w-4 text-muted-foreground" />
+                {/* Auth scopes — coming soon */}
+                <Card className="gap-0 flex flex-col opacity-50 cursor-not-allowed py-3">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
+                        <div className="flex items-center gap-2">
+                            <Tags className="h-4 w-4 text-muted-foreground" />
+                            <CardTitle className="text-sm font-medium">Auth Scopes</CardTitle>
                         </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-pointer" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[180px]">
+                                <p className="text-center">
+                                    Fine-grained OAuth2 scopes controlling which MCP tools each agent is permitted to
+                                    call
+                                </p>
+                            </TooltipContent>
+                        </Tooltip>
                     </CardHeader>
-                    <CardContent>
-                        {tracesLoading ? (
-                            <Skeleton className="h-8 w-16" />
-                        ) : (
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <div className="text-2xl font-bold w-fit cursor-default">
-                                        {traceStats.tokenRequests}
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="text-center">Number of OAuth2 tokens issued to agents</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        )}
-                        {traceStats.totalMcpCalls > 0 ? (
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <p className="text-xs text-muted-foreground w-fit cursor-default">
-                                        {traceStats.allowed} allowed · {traceStats.denied} denied
-                                    </p>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="text-center">MCP tool calls allowed vs denied</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        ) : (
-                            <p className="text-xs text-muted-foreground">Token requests issued</p>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Charts row */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Agentic Services by Type</CardTitle>
-                        <CardDescription>Breakdown of registered agentic service types</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DonutChart
-                            data={appTypeData}
-                            loading={isLoading}
-                            emptyIcon={<AppWindow className="h-8 w-8 opacity-40" />}
-                            emptyText="No agentic services registered"
-                            unit="app"
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>MCP Tool Calls</CardTitle>
-                        <CardDescription>Allowed vs denied tool call decisions</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DonutChart
-                            data={mcpDonutData}
-                            loading={tracesLoading}
-                            emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
-                            emptyText="No tool calls recorded yet"
-                            unit="call"
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Deny Type</CardTitle>
-                        <CardDescription>Deterministic vs semantic denies</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DonutChart
-                            data={blockTypeData}
-                            loading={tracesLoading}
-                            emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
-                            emptyText="No denied calls recorded yet"
-                            unit="block"
-                        />
+                    <div className="px-4">
+                        <Separator />
+                    </div>
+                    <CardContent className="pt-4 px-4 pb-4">
+                        <div className="text-2xl font-bold text-muted-foreground">—</div>
+                        <p className="text-xs text-muted-foreground mt-1">Coming soon</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Deny reasons bar chart */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Deny Reasons</CardTitle>
-                    <CardDescription>Why tool calls were denied by the authorization server</CardDescription>
+            <Card className="gap-0 py-3">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
+                    <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Deny Reasons</CardTitle>
+                    </div>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[180px]">
+                            <p className="text-center">
+                                Breakdown of why MCP tool calls were denied by the authorization server
+                            </p>
+                        </TooltipContent>
+                    </Tooltip>
                 </CardHeader>
-                <CardContent>
+                <div className="px-4">
+                    <Separator />
+                </div>
+                <CardContent className="pt-4 px-4 pb-4">
                     {tracesLoading ? (
                         <div className="space-y-3">
                             {Array.from({length: 3}).map((_, i) => (
@@ -459,69 +453,98 @@ export function DashboardPage() {
                             <p className="text-sm">No denied calls recorded yet</p>
                         </div>
                     ) : (
-                        <div style={{height: `${traceStats.blockReasons.length * 48 + 16}px`}}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={traceStats.blockReasons}
-                                    layout="vertical"
-                                    margin={{left: 8, right: 24, top: 4, bottom: 4}}
-                                >
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        stroke="rgba(204,204,220,0.1)"
-                                        horizontal={false}
-                                    />
-                                    <XAxis
-                                        type="number"
-                                        allowDecimals={false}
-                                        tick={{fill: '#8b8fa8', fontSize: 11}}
-                                        axisLine={false}
-                                        tickLine={false}
-                                    />
-                                    <YAxis
-                                        type="category"
-                                        dataKey="name"
-                                        width={180}
-                                        tick={{fill: '#ccccdc', fontSize: 11}}
-                                        axisLine={false}
-                                        tickLine={false}
-                                    />
-                                    <ChartTooltip
-                                        content={({active, payload}) => {
-                                            if (!active || !payload?.length) return null;
-                                            const d = payload[0].payload as {
-                                                name: string;
-                                                description: string;
-                                                count: number;
-                                            };
-                                            return (
-                                                <div
-                                                    style={CHART_TOOLTIP_STYLE.contentStyle}
-                                                    className="px-3 py-2 max-w-[260px]"
-                                                >
-                                                    <p className="font-medium text-[#ccccdc] mb-1">{d.name}</p>
-                                                    {d.description && (
-                                                        <p className="text-[11px] text-[#8b8fa8] mb-1.5 leading-snug">
-                                                            {d.description}
+                        <>
+                            <div style={{height: `${traceStats.blockReasons.length * 48 + 16}px`}}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={traceStats.blockReasons}
+                                        layout="vertical"
+                                        margin={{left: 8, right: 24, top: 4, bottom: 4}}
+                                    >
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            stroke="rgba(204,204,220,0.1)"
+                                            horizontal={false}
+                                        />
+                                        <XAxis
+                                            type="number"
+                                            allowDecimals={false}
+                                            tick={{fill: '#8b8fa8', fontSize: 11}}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="name"
+                                            width={180}
+                                            tick={{fill: '#ccccdc', fontSize: 11}}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <ChartTooltip
+                                            content={({active, payload}) => {
+                                                if (!active || !payload?.length) return null;
+                                                const d = payload[0].payload as {
+                                                    name: string;
+                                                    description: string;
+                                                    count: number;
+                                                };
+                                                return (
+                                                    <div
+                                                        style={CHART_TOOLTIP_STYLE.contentStyle}
+                                                        className="px-3 py-2 max-w-[260px]"
+                                                    >
+                                                        <p className="font-medium text-[#ccccdc] mb-1">{d.name}</p>
+                                                        {d.description && (
+                                                            <p className="text-[11px] text-[#8b8fa8] mb-1.5 leading-snug">
+                                                                {d.description}
+                                                            </p>
+                                                        )}
+                                                        <p className="text-[#ccccdc]">
+                                                            {d.count} denied {d.count === 1 ? 'call' : 'calls'}
                                                         </p>
-                                                    )}
-                                                    <p className="text-[#ccccdc]">
-                                                        {d.count} denied {d.count === 1 ? 'call' : 'calls'}
-                                                    </p>
-                                                </div>
-                                            );
-                                        }}
-                                    />
-                                    <Bar
-                                        dataKey="count"
-                                        name="Denied calls"
-                                        fill="#ef4444"
-                                        radius={[0, 4, 4, 0]}
-                                        barSize={14}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                                                    </div>
+                                                );
+                                            }}
+                                        />
+                                        <Bar
+                                            dataKey="count"
+                                            name="Denied calls"
+                                            fill="#ef4444"
+                                            radius={[0, 4, 4, 0]}
+                                            barSize={14}
+                                            style={{cursor: 'pointer'}}
+                                            onClick={(d) =>
+                                                navigate(
+                                                    `/auth-requests?auth=denied&q=${encodeURIComponent((d as {reason: string}).reason)}`
+                                                )
+                                            }
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="mt-3">
+                                <Separator className="mb-3" />
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                    <span className="text-xs text-muted-foreground">Auth Requests</span>
+                                    {traceStats.blockReasons.map((r) => (
+                                        <button
+                                            key={r.reason}
+                                            type="button"
+                                            className="flex items-center gap-1 text-xs text-primary hover:underline cursor-pointer"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/auth-requests?auth=denied&q=${encodeURIComponent(r.reason)}&from=dashboard`
+                                                )
+                                            }
+                                        >
+                                            {r.name}
+                                            <span className="text-muted-foreground">({r.count})</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
                     )}
                 </CardContent>
             </Card>

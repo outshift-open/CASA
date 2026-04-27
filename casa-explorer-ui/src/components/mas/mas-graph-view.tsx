@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {useMemo, useCallback, useState, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
 import ReactFlow, {
@@ -42,6 +26,7 @@ import type {App, AppType} from '@/types/app.types';
 interface MASGraphViewProps {
     mas: MAS;
     apps: App[];
+    onAppClick?: (app: App) => void;
 }
 
 const nodeTypes: NodeTypes = {
@@ -55,7 +40,7 @@ const APP_TYPE_ORDER: Record<AppType, number> = {
     mcp_server: 3
 };
 
-function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
+function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
     const navigate = useNavigate();
     const graphRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -144,7 +129,7 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
                     type: app.type,
                     toolCount: app.tools?.length || 0,
                     tools: app.tools || [],
-                    onClick: () => navigate(`/apps/${app.id}`),
+                    onClick: () => (onAppClick ? onAppClick(app) : navigate(`/apps/${app.id}`)),
                     isHighlighted: searchTerm !== '' && app.name.toLowerCase().includes(searchTerm.toLowerCase())
                 },
                 className:
@@ -175,7 +160,7 @@ function MASGraphViewInner({mas, apps}: MASGraphViewProps) {
             nodes: [masNode, ...appNodes],
             edges: appEdges
         };
-    }, [mas, filteredApps, navigate, searchTerm]);
+    }, [mas, filteredApps, navigate, searchTerm, onAppClick]);
 
     const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
         if (node.data.onClick) {
@@ -357,3 +342,5 @@ export function MASGraphView(props: MASGraphViewProps) {
         </ReactFlowProvider>
     );
 }
+
+export type {MASGraphViewProps};
