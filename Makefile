@@ -8,7 +8,7 @@ endif
 PYTHON_VERSION = 3.12
 
 # Helm parameters (override with make helm-install HELM_RELEASE=my-release HELM_NAMESPACE=my-ns)
-HELM_CHART     = deployments/k8s/helm/casa-control-plane
+HELM_CHART     = deployments/helm/casa-control-plane
 HELM_RELEASE  ?= casa-poc
 HELM_NAMESPACE ?= casa-dev
 

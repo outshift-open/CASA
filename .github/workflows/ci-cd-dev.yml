@@ -244,7 +244,7 @@ jobs:
             enable-private-ecr: false
             enable-public-ecr: false
             checkout-submodules: true
-            chart-path: deployments/k8s/helm/casa-control-plane
+            chart-path: deployments/helm/casa-control-plane
             # override-chart-version: ${{ needs.calculate-tags.outputs.chart_version }}
             #ecr-public-registry-alias: ${{ vars.ECR_PUBLIC_REGISTRY_ALIAS}}
         secrets:
@@ -264,7 +264,7 @@ jobs:
             enable-private-ecr: false
             enable-public-ecr: false
             checkout-submodules: false
-            chart-path: deployments/k8s/helm/sidecar
+            chart-path: deployments/helm/sidecar
         secrets:
             github-app-id: ${{ secrets.GHA_APP_ID }}
             github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}

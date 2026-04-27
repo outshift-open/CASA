@@ -6,12 +6,12 @@ title: Install Control Plane
 
 # Install the CASA Control Plane
 
-The CASA control plane is installed via the `casa-control-plane` Helm chart located at `deployments/k8s/helm/casa-control-plane/`.
+The CASA control plane is installed via the `casa-control-plane` Helm chart located at `deployments/helm/casa-control-plane/`.
 
 ## Basic Installation
 
 ```bash
-helm install casa deployments/k8s/helm/casa-control-plane \
+helm install casa deployments/helm/casa-control-plane \
   --namespace casa-control-plane \
   --create-namespace
 ```
@@ -100,7 +100,7 @@ keycloak:
 Install with the custom values:
 
 ```bash
-helm install casa deployments/k8s/helm/casa-control-plane \
+helm install casa deployments/helm/casa-control-plane \
   --namespace casa-control-plane \
   --create-namespace \
   -f values-prod.yaml

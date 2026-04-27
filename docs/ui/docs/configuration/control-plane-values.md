@@ -6,7 +6,7 @@ title: Control Plane Values
 
 # Control Plane Helm Values
 
-Reference for `deployments/k8s/helm/casa-control-plane/values.yaml`.
+Reference for `deployments/helm/casa-control-plane/values.yaml`.
 
 ## Auth Service
 

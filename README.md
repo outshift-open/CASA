@@ -174,7 +174,7 @@ Token-level trace for each user session: token issuance, LLM selection events, a
 ### 1. Install the CASA Control Plane
 
 ```bash
-helm install casa deployments/k8s/helm/casa-control-plane \
+helm install casa deployments/helm/casa-control-plane \
   --namespace casa-control-plane \
   --create-namespace
 ```
@@ -252,7 +252,7 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 
 | Path                                      | Description                                             |
 | ----------------------------------------- | ------------------------------------------------------- |
-| `deployments/k8s/helm/casa-control-plane/` | CASA control plane Helm chart                            |
+| `deployments/helm/casa-control-plane/` | CASA control plane Helm chart                            |
 | `deployments/k8s/crds/`                   | CRD examples and API reference                          |
 | `demo/k8s/helm/`                          | Demo MAS Helm chart (agent + MCP server)                |
 | `demo/src/agent/`                         | Demo agent source code                                  |

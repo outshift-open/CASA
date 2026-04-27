@@ -14,12 +14,12 @@ Before upgrading, check the release notes for breaking changes.
 
 ```bash
 # Dry-run to preview changes
-helm upgrade casa deployments/k8s/helm/casa-control-plane \
+helm upgrade casa deployments/helm/casa-control-plane \
   --namespace casa-control-plane \
   --dry-run
 
 # Upgrade
-helm upgrade casa deployments/k8s/helm/casa-control-plane \
+helm upgrade casa deployments/helm/casa-control-plane \
   --namespace casa-control-plane
 
 # Or using the Makefile
@@ -33,7 +33,7 @@ Rolling upgrades are safe for the auth service (stateless). Keycloak and Postgre
 CRDs are not automatically upgraded by `helm upgrade`. Apply them manually:
 
 ```bash
-kubectl apply -f deployments/k8s/helm/casa-control-plane/crds/
+kubectl apply -f deployments/helm/casa-control-plane/crds/
 ```
 
 For `v1alpha1` → stable version upgrades:

@@ -26,28 +26,51 @@ make demo-run          # Start demo agents + LiteLLM
 make ui-run            # Start CASA Explorer UI (docker-compose.ui.yml)
 make demo-data         # Seed demo data (requires running backend)
 make demo-data-reset   # Clear + reseed demo data
+make generate-sdk      # Regenerate sdk/go/ from running server's OpenAPI spec (:8000)
 ```
+
+## Gotchas
+
+- **macOS**: system `make` is 3.81 (too old); use `gmake` instead of `make`
+- **Python package name**: import as `identity_auth_server`, not `casa`
+- `operator/` is Go, `sidecar/ext_auth/` is Go, `sidecar/llm_proxy/` and `sidecar/traceparent_injector/` are Rust — not Python
 
 ## Project Layout
 
 ```
-src/identity_auth_server/   # Main Python package
-  api/                      # FastAPI app, routes (authorization, multi_agent_system, scope, trace, k8s_crd)
-  core/                     # Business logic
+src/identity_auth_server/   # Main Python package (identity_auth_server)
+  api/                      # FastAPI app; routes: app, authorization, k8s, k8s_crd,
+                            #   multi_agent_system, scope, trace, user_input
+  core/                     # Business logic, repositories, IDP client
   services/                 # Service layer
-  database/                 # SQLModel models + DB setup
+  database/                 # SQLModel models, DB setup, Alembic migrations
   checks/                   # Authorization check logic
+  k8s/                      # Kubernetes CRD types, service, repository
+  pipelines/                # AI matching pipelines (task_tool_matcher: embeddings, LLM, hybrid)
   telemetry/                # OpenTelemetry integration
   thirdparty/               # Keycloak, external IdP wrappers
-test/
-  conftest.py               # Shared pytest fixtures
-  integration/              # Integration tests (require live DB/Keycloak; marked with @pytest.mark.integration)
-casa-explorer-ui/            # React/TypeScript observability UI — read-only (yarn)
-sdk/                        # Generated Python SDK (uv workspace member; don't edit directly)
+operator/                   # Go Kubernetes operator (reconciles MultiAgentSystem CRDs)
+sidecar/                    # Envoy filter plugins (Go + Rust)
+  ext_auth/                 # Go ext-authz service
+  llm_proxy/                # Rust Wasm LLM proxy filter
+  traceparent_injector/     # Rust Wasm traceparent filter
+casa-explorer-ui/           # React/TypeScript observability UI — read-only (yarn)
+sdk/go/                     # Generated Go SDK (do not edit directly)
+demo/
+  chat-ui/                  # React demo chat UI
+  k8s/                      # Helm chart for demo MAS
 deployments/
+  docker/                   # Dockerfiles for all components
   docker-compose/           # docker-compose.yml, keycloak, demo, ui variants
-  k8s/helm/                 # Helm chart: casa-control-plane
-scripts/                    # Utility scripts (create_demo_data.py)
+  helm/                     # Helm charts: casa-control-plane, sidecar
+test/                       # Test stubs (no unit tests yet; integration/ and pipelines/ have structure)
+docs/
+  dev/                      # Internal developer notes, sequence diagrams, deployment guide
+  dev/specs/                # WIP architecture specs and diagrams
+  diagrams/                 # Architecture diagrams (drawio + png)
+  screens/                  # UI screenshots
+  ui/                       # Docusaurus 3.6 public docs site
+scripts/                    # generate_sdk.sh (regenerates sdk/go/ from running server)
 ```
 
 ## Code Conventions
