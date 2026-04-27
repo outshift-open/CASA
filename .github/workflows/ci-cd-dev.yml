@@ -86,8 +86,7 @@ jobs:
             ### tell docker where to push.
             ecr-enabled: true
             artifactory-devhub-enabled: false
-            ghcr-enabled: true
-            ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
+            ghcr-enabled: false
             checkout-submodules: true
 
     call-docker-build-push-ui-explorer:
@@ -121,8 +120,7 @@ jobs:
             ### tell docker where to push.
             ecr-enabled: true
             artifactory-devhub-enabled: false
-            ghcr-enabled: true
-            ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
+            ghcr-enabled: false
             checkout-submodules: true
 
     call-docker-build-push-keycloak:
@@ -155,8 +153,7 @@ jobs:
             ### tell docker where to push.
             ecr-enabled: true
             artifactory-devhub-enabled: false
-            ghcr-enabled: true
-            ghcr-org-registry: ${{ vars.GHCR_REGISTRY }}
+            ghcr-enabled: false
             checkout-submodules: true
 
     call-docker-build-push-operator:
