@@ -6,7 +6,7 @@ title: Install Demo MAS
 
 # Install the Demo MAS
 
-The demo MAS deploys a complete Multi-Agent System that you can use to explore ZTA enforcement in action. It is intended for learning and testing, not production use.
+The demo MAS deploys a complete Multi-Agent System that you can use to explore CASA enforcement in action. It is intended for learning and testing, not production use.
 
 ## About the Demo
 
@@ -18,20 +18,20 @@ The demo consists of three components:
 | **Demo Agent** | `demo/src/agent/` | A Python agent that receives user prompts, calls an LLM, and invokes tools via MCP |
 | **Demo MCP Server** | `demo/src/mcp/` | A Python MCP server exposing simple tools (account summary, scheduled payments) |
 
-The user interacts entirely through the client UI — no curl or API calls needed. ZTA intercepts all traffic between components and enforces intent-scoped authorization transparently.
+The user interacts entirely through the client UI — no curl or API calls needed. CASA intercepts all traffic between components and enforces intent-scoped authorization transparently.
 
 ## Prerequisites
 
-- ZTA control plane installed (see [Install Control Plane](control-plane.md))
+- CASA control plane installed (see [Install Control Plane](control-plane.md))
 - Istio sidecar injection enabled for the target namespace (see [Istio deployment guide](/deployment-modes/istio))
 - An OpenAI-compatible API endpoint and key
 
 > **Note on images:** The default `values.yaml` references images in a private ECR registry. To run the demo, build and push your own images:
 >
 > ```bash
-> docker build -t your-registry/zta-demo-client:latest demo/src/client/
-> docker build -t your-registry/zta-demo-agent:latest demo/src/agent/
-> docker build -t your-registry/zta-demo-mcp:latest   demo/src/mcp/
+> docker build -t your-registry/casa-demo-client:latest demo/src/client/
+> docker build -t your-registry/casa-demo-agent:latest demo/src/agent/
+> docker build -t your-registry/casa-demo-mcp:latest   demo/src/mcp/
 > ```
 
 ## Configure Values
@@ -39,38 +39,38 @@ The user interacts entirely through the client UI — no curl or API calls neede
 Edit `demo/k8s/helm/values.yaml`:
 
 ```yaml
-namespace: zta-sidecar
+namespace: casa-sidecar
 
 client:
   replicas: 1
-  serviceName: zta-demo-client
+  serviceName: casa-demo-client
   servicePort: 3001
   docker:
     registry: YOUR_REGISTRY_HERE      # e.g. ghcr.io/your-org
-    image: zta-demo-client
+    image: casa-demo-client
     tagversion: latest
-  agent_a2a_url: http://zta-demo-agent:8082   # agent A2A endpoint
+  agent_a2a_url: http://casa-demo-agent:8082   # agent A2A endpoint
 
 agent:
   replicas: 1
-  serviceName: zta-demo-agent
+  serviceName: casa-demo-agent
   servicePort: 8082
   docker:
     registry: YOUR_REGISTRY_HERE
-    image: zta-demo-agent
+    image: casa-demo-agent
     tagversion: latest
-  mcp_server_url: http://zta-demo-mcp:3000/mcp
+  mcp_server_url: http://casa-demo-mcp:3000/mcp
   secret:
     openai_api_base: https://api.openai.com   # or your LiteLLM proxy
     openai_api_key: YOUR_OPENAI_KEY_HERE
 
 mcp:
   replicas: 1
-  serviceName: zta-demo-mcp
+  serviceName: casa-demo-mcp
   servicePort: 3000
   docker:
     registry: YOUR_REGISTRY_HERE
-    image: zta-demo-mcp
+    image: casa-demo-mcp
     tagversion: latest
 ```
 
@@ -79,15 +79,15 @@ The only config the client UI needs is `agent_a2a_url` — the A2A endpoint of t
 ## Enable Sidecar Injection
 
 ```bash
-kubectl create namespace zta-sidecar
-kubectl label namespace zta-sidecar istio-injection=enabled
+kubectl create namespace casa-sidecar
+kubectl label namespace casa-sidecar istio-injection=enabled
 ```
 
 ## Install the Demo
 
 ```bash
-helm install zta-mas demo/k8s/helm/ \
-  --namespace zta-sidecar \
+helm install casa-mas demo/k8s/helm/ \
+  --namespace casa-sidecar \
   -f demo/k8s/helm/values.yaml
 ```
 
@@ -100,31 +100,31 @@ make mas-helm-install
 Wait for pods:
 
 ```bash
-kubectl -n zta-sidecar wait --for=condition=ready pod --all --timeout=120s
+kubectl -n casa-sidecar wait --for=condition=ready pod --all --timeout=120s
 ```
 
 Expected pods:
 
 ```
 NAME                          READY   STATUS
-zta-demo-client-...           1/1     Running
-zta-demo-agent-...            1/1     Running
-zta-demo-mcp-...              1/1     Running
+casa-demo-client-...           1/1     Running
+casa-demo-agent-...            1/1     Running
+casa-demo-mcp-...              1/1     Running
 ```
 
-## Register the Demo MAS with ZTA
+## Register the Demo MAS with CASA
 
 Apply the `MultiAgentSystem` CRD:
 
 ```bash
 kubectl apply -f - <<EOF
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: demo-mas
-  namespace: zta-sidecar
+  namespace: casa-sidecar
 spec:
-  name: "ZTA Demo MAS"
+  name: "CASA Demo MAS"
   authorizationServer: "demo-realm"
   enabledToolChecks:
   - DETERMINISTIC_TOOL_SELECTED
@@ -132,13 +132,13 @@ spec:
   apps:
   - name: demo-client
     type: client
-    baseUrl: "http://zta-demo-client.zta-sidecar.svc.cluster.local:3001"
+    baseUrl: "http://casa-demo-client.casa-sidecar.svc.cluster.local:3001"
   - name: demo-agent
     type: agent
-    baseUrl: "http://zta-demo-agent.zta-sidecar.svc.cluster.local:8082"
+    baseUrl: "http://casa-demo-agent.casa-sidecar.svc.cluster.local:8082"
   - name: demo-mcp
     type: mcp_server
-    baseUrl: "http://zta-demo-mcp.zta-sidecar.svc.cluster.local:3000"
+    baseUrl: "http://casa-demo-mcp.casa-sidecar.svc.cluster.local:3000"
 EOF
 ```
 
@@ -147,18 +147,18 @@ EOF
 Port-forward the client UI and open it in your browser:
 
 ```bash
-kubectl -n zta-sidecar port-forward svc/zta-demo-client 3001:3001
+kubectl -n casa-sidecar port-forward svc/casa-demo-client 3001:3001
 # Open http://localhost:3001
 ```
 
-Type a message like *"Get the account summary and scheduled payments"* and send it. The client UI forwards the conversation to the agent, which calls the LLM, requests tool tokens from ZTA, and invokes the MCP server.
+Type a message like *"Get the account summary and scheduled payments"* and send it. The client UI forwards the conversation to the agent, which calls the LLM, requests tool tokens from CASA, and invokes the MCP server.
 
 ## View Enforcement Events
 
-Open the ZTA Explorer UI to see the token events and tool decisions generated by your conversation:
+Open the CASA Explorer UI to see the token events and tool decisions generated by your conversation:
 
 ```bash
-kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80
+kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080
 ```
 

@@ -1,9 +1,9 @@
-# Architectural Analysis: Identity Auth Server (Zero Trust Architecture)
+# Architectural Analysis: Identity Auth Server (Continuous Agent Semantic Authorization)
 
 ## 1. High-Level Project Overview
 
 ### Problem Domain
-This project implements a **Zero Trust Architecture (ZTA) Authorization Server** designed to secure interactions between AI agents, LLM services, and Model Context Protocol (MCP) servers. The system addresses the challenge of controlling and auditing tool access in multi-agent AI systems where untrusted agents request access to potentially sensitive tools and resources.
+This project implements a **Continuous Agent Semantic Authorization (CASA) Authorization Server** designed to secure interactions between AI agents, LLM services, and Model Context Protocol (MCP) servers. The system addresses the challenge of controlling and auditing tool access in multi-agent AI systems where untrusted agents request access to potentially sensitive tools and resources.
 
 ### Primary Responsibilities
 The system acts as an OAuth2-compliant authorization server with specialized capabilities for:
@@ -40,7 +40,7 @@ A typical flow involves:
 ### 2.1 Identity Auth Server (Backend Service)
 **Location**: `src/identity_auth_server/`
 
-**Purpose**: Core authorization server implementing OAuth2 token flows with ZTA-specific extensions.
+**Purpose**: Core authorization server implementing OAuth2 token flows with CASA-specific extensions.
 
 **Responsibilities**:
 - OAuth2 token generation (client credentials, token exchange)
@@ -73,8 +73,8 @@ A typical flow involves:
 
 ---
 
-### 2.3 ZTA Explorer UI (Web Frontend)
-**Location**: `zta-explorer-ui/`
+### 2.3 CASA Explorer UI (Web Frontend)
+**Location**: `casa-explorer-ui/`
 
 **Purpose**: Administrative web interface for managing applications, multi-agent systems, and viewing system state.
 
@@ -144,7 +144,7 @@ A typical flow involves:
 
 ---
 
-### Frontend (zta-explorer-ui)
+### Frontend (casa-explorer-ui)
 - **Language**: TypeScript (strict type checking enabled)
 - **Execution Model**: Client-side JavaScript transpiled from TypeScript
 - **Runtime Environment**:
@@ -369,7 +369,7 @@ identity_auth_server/
 
 ---
 
-### Frontend Structure (`zta-explorer-ui/src/`)
+### Frontend Structure (`casa-explorer-ui/src/`)
 
 ```
 src/
@@ -1668,7 +1668,7 @@ POST /apps
 ### JWT Token Structure and Claims
 
 **Token Generation by Keycloak**:
-The system uses Keycloak to issue OAuth2-compliant JWTs with custom claims for ZTA context.
+The system uses Keycloak to issue OAuth2-compliant JWTs with custom claims for CASA context.
 
 **Standard JWT Claims**:
 ```json
@@ -1682,7 +1682,7 @@ The system uses Keycloak to issue OAuth2-compliant JWTs with custom claims for Z
 }
 ```
 
-**Custom ZTA Claims**:
+**Custom CASA Claims**:
 ```json
 {
   "uiid": "{user_input_id}",   // User Input ID (UUID)
@@ -2204,12 +2204,12 @@ yarn build                # Transpile TS -> JS, bundle, minify
 #### Demo and Evaluation Infrastructure
 
 **Demo Setup** (`demo/`):
-The project includes comprehensive demo applications showcasing the complete ZTA flow:
+The project includes comprehensive demo applications showcasing the complete CASA flow:
 
 **Full Stack Demo** (`docker-compose.demo.yml`):
 ```yaml
 services:
-  ui:            # ZTA Explorer UI (port 5600)
+  ui:            # CASA Explorer UI (port 5600)
   litellm:       # LiteLLM proxy for LLM calls (port 4000)
   mcp-server:    # Sample MCP server (port 3000)
   agent:         # Untrusted agent (port 8082)
@@ -2308,7 +2308,7 @@ evaluation/
    - Exposes port 8080
 
 3. **`docker-compose.ui.yml`**:
-   - ZTA Explorer UI
+   - CASA Explorer UI
    - Exposes port 1234
 
 4. **`docker-compose.demo.yml`**:
@@ -2339,7 +2339,7 @@ make ui-run               # Start UI in Docker
 
 ```
 ┌─────────────┐      ┌──────────────┐      ┌──────────┐
-│   Browser   │─────>│  ZTA UI      │─────>│ Auth     │
+│   Browser   │─────>│  CASA UI      │─────>│ Auth     │
 │             │      │  (nginx)     │      │ Server   │
 └─────────────┘      └──────────────┘      │ (Uvicorn)│
                                             └────┬─────┘
@@ -2744,7 +2744,7 @@ The Identity Auth Server represents a **well-architected early-stage system** wi
 **Architectural Strengths**:
 - Clear layered architecture with proper separation of concerns
 - Extensible security check framework using Strategy and Factory patterns
-- OAuth2 standard compliance with innovative ZTA extensions
+- OAuth2 standard compliance with innovative CASA extensions
 - Comprehensive domain modeling for multi-agent authorization
 - Event-driven audit logging for compliance and debugging
 
@@ -3212,7 +3212,7 @@ def create_app_v2(...):  # New schema
 
 ## Summary
 
-This Identity Auth Server implements a specialized Zero Trust Architecture for securing AI agent interactions with tools. The system demonstrates solid foundational architecture with clear layering and separation of concerns, but exhibits characteristics of an early-stage project with significant production readiness gaps.
+This Identity Auth Server implements a specialized Continuous Agent Semantic Authorization for securing AI agent interactions with tools. The system demonstrates solid foundational architecture with clear layering and separation of concerns, but exhibits characteristics of an early-stage project with significant production readiness gaps.
 
 **Strengths**:
 - Well-structured layered architecture
@@ -5043,7 +5043,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
    - Not enforced in this architecture
 
 4. **Tool Access Control** (Step 7)
-   - **Primary ZTA enforcement point**
+   - **Primary CASA enforcement point**
    - Deterministic checks
    - AI-powered intent matching
    - Tools embedded in token
@@ -5105,7 +5105,7 @@ source .venv/bin/activate
 uvicorn identity_auth_server.api.app:app --reload
 
 # Terminal 3: UI
-cd zta-explorer-ui
+cd casa-explorer-ui
 yarn dev
 ```
 
@@ -5888,7 +5888,7 @@ async def exchange_token(...):
 
 ## Conclusion
 
-The Identity Auth Server is a **well-architected but early-stage system** implementing Zero Trust Architecture for AI agent interactions. The codebase demonstrates solid software engineering fundamentals with clear layering, type safety, and extensibility patterns.
+The Identity Auth Server is a **well-architected but early-stage system** implementing Continuous Agent Semantic Authorization for AI agent interactions. The codebase demonstrates solid software engineering fundamentals with clear layering, type safety, and extensibility patterns.
 
 **Current State**: ✅ Suitable for internal development and controlled pilots
 
@@ -5953,7 +5953,7 @@ The system has a solid foundation. With focused effort on security, performance,
 
 ### React Application Structure
 
-#### ZTA Explorer UI Implementation
+#### CASA Explorer UI Implementation
 
 **Technology Stack**:
 - React 19.2 (latest with concurrent features)
@@ -7435,7 +7435,7 @@ def cleanup_old_data():
 
 ## Conclusion
 
-The Identity Auth Server demonstrates a **well-designed foundation** with clear architectural patterns, strong typing, and extensible design. The system successfully implements Zero Trust Architecture for AI agent interactions with sophisticated AI-powered authorization checks.
+The Identity Auth Server demonstrates a **well-designed foundation** with clear architectural patterns, strong typing, and extensible design. The system successfully implements Continuous Agent Semantic Authorization for AI agent interactions with sophisticated AI-powered authorization checks.
 
 However, it remains in an **early-stage, development-focused state** requiring substantial security hardening, operational maturity, and performance optimization before production deployment in security-sensitive or high-scale environments.
 

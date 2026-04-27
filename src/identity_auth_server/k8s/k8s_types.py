@@ -1,4 +1,4 @@
-"""Kubernetes CRD models for ZTA Multi-Agent System."""
+"""Kubernetes CRD models for CASA Multi-Agent System."""
 
 from datetime import datetime, timezone
 from enum import Enum
@@ -147,7 +147,7 @@ class MultiAgentSystemMetadata(BaseModel):
 class MultiAgentSystemCRD(BaseModel):
     """Complete MultiAgentSystem Custom Resource Definition."""
 
-    api_version: str = Field(default="zta.io/v1alpha1", description="API version", alias="apiVersion")
+    api_version: str = Field(default="casa.io/v1alpha1", description="API version", alias="apiVersion")
     kind: Literal["MultiAgentSystem"] = Field(default="MultiAgentSystem", description="Resource kind")
     metadata: MultiAgentSystemMetadata
     spec: MultiAgentSystemSpec

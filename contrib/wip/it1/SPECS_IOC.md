@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This architecture enables **secure, governed AI agent deployments** in Kubernetes by combining Zero Trust Authorization (ZTA) with the Internet of Cognition (IoC) Layer 9 semantic layer.
+This architecture enables **secure, governed AI agent deployments** in Kubernetes by combining Zero Trust Authorization (CASA) with the Internet of Cognition (IoC) Layer 9 semantic layer.
 
 **The Challenge:**
 AI agents make autonomous decisions, call external APIs, and execute tools—creating significant security and governance risks:
@@ -64,7 +64,7 @@ Supporting Infrastructure:
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
-│  ZTA Control Plane                  │  ← AUTHORIZATION
+│  CASA Control Plane                  │  ← AUTHORIZATION
 │  • Auth Service  • Policy Service   │
 │  • Schema Registry                  │
 └─────────────────────────────────────┘
@@ -109,7 +109,7 @@ graph TB
     end
 
     subgraph "Kubernetes Cluster"
-        subgraph "ZTA Control Plane Namespace"
+        subgraph "CASA Control Plane Namespace"
             direction TB
             AUTH[🔐 Auth Service<br/>Token issuance]
             POLICY[📋 Policy Service<br/>MAS/App config]
@@ -406,7 +406,7 @@ This selective enrichment balances security with performance.
 Defined as Kubernetes CRDs:
 
 ```yaml
-apiVersion: zta.io/v1
+apiVersion: casa.io/v1
 kind: A2APolicy
 metadata:
   name: orchestration-policy
@@ -434,7 +434,7 @@ spec:
 ### MCP Policy (Tool Invocation)
 
 ```yaml
-apiVersion: zta.io/v1
+apiVersion: casa.io/v1
 kind: MCPPolicy
 metadata:
   name: tool-access-policy
@@ -571,7 +571,7 @@ If a compromised agent tries to:
 ### Helm Chart Structure
 
 ```
-zta-ioc-system/
+casa-ioc-system/
 ├── charts/
 │   ├── control-plane/           # Auth, Policy, Telemetry
 │   ├── cognitive-engines/       # CE pool + Schema Registry
@@ -591,7 +591,7 @@ zta-ioc-system/
 **MultiAgentSystem CRD**:
 
 ```yaml
-apiVersion: zta.io/v1
+apiVersion: casa.io/v1
 kind: MultiAgentSystem
 metadata:
   name: production-mas
@@ -666,9 +666,9 @@ apiVersion: v1
 kind: Pod
 metadata:
   annotations:
-    zta.io/inject: "true"
-    zta.io/l9-enrichment: "enabled"
-    zta.io/local-ces: "guardrail-ce,tbac-ce"
+    casa.io/inject: "true"
+    casa.io/l9-enrichment: "enabled"
+    casa.io/local-ces: "guardrail-ce,tbac-ce"
 spec:
   containers:
   - name: agent
@@ -833,7 +833,7 @@ graph TB
 ## 13. Implementation Roadmap
 
 ### Phase 1: Foundation (4 weeks)
-- ✅ Deploy ZTA control plane (Auth, Policy, Telemetry)
+- ✅ Deploy CASA control plane (Auth, Policy, Telemetry)
 - ✅ Configure Cilium eBPF (deny-by-default policies)
 - ✅ Inject sidecars (L7 validation only)
 - ✅ Validate token flow (issuance, exchange, introspection)

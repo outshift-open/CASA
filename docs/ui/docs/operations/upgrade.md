@@ -6,7 +6,7 @@ title: Upgrade
 
 # Upgrade
 
-Guidelines for upgrading ZTA components.
+Guidelines for upgrading CASA components.
 
 ## Upgrading the Control Plane Chart
 
@@ -14,13 +14,13 @@ Before upgrading, check the release notes for breaking changes.
 
 ```bash
 # Dry-run to preview changes
-helm upgrade zta deployments/k8s/helm/zta-control-plane \
-  --namespace zta-control-plane \
+helm upgrade casa deployments/k8s/helm/casa-control-plane \
+  --namespace casa-control-plane \
   --dry-run
 
 # Upgrade
-helm upgrade zta deployments/k8s/helm/zta-control-plane \
-  --namespace zta-control-plane
+helm upgrade casa deployments/k8s/helm/casa-control-plane \
+  --namespace casa-control-plane
 
 # Or using the Makefile
 make helm-upgrade
@@ -33,7 +33,7 @@ Rolling upgrades are safe for the auth service (stateless). Keycloak and Postgre
 CRDs are not automatically upgraded by `helm upgrade`. Apply them manually:
 
 ```bash
-kubectl apply -f deployments/k8s/helm/zta-control-plane/crds/
+kubectl apply -f deployments/k8s/helm/casa-control-plane/crds/
 ```
 
 For `v1alpha1` → stable version upgrades:
@@ -43,7 +43,7 @@ For `v1alpha1` → stable version upgrades:
 
 ## Upgrading Sidecars (Istio mode)
 
-The ext-authz middleware is bundled in the `zta-control-plane` chart and upgrades automatically with `helm upgrade`. After a control plane upgrade, trigger a rolling restart of your MAS workloads so Istio re-injects with the latest configuration:
+The ext-authz middleware is bundled in the `casa-control-plane` chart and upgrades automatically with `helm upgrade`. After a control plane upgrade, trigger a rolling restart of your MAS workloads so Istio re-injects with the latest configuration:
 
 ```bash
 kubectl rollout restart deploy/your-agent -n your-mas-namespace
@@ -69,18 +69,18 @@ The auth service applies database migrations automatically on startup using Alem
 If a migration fails:
 
 ```bash
-kubectl -n zta-control-plane logs deploy/zta-auth-service | grep -i "migration\|alembic"
+kubectl -n casa-control-plane logs deploy/casa-auth-service | grep -i "migration\|alembic"
 ```
 
 ## Rolling Back
 
 ```bash
 # Roll back to the previous chart version
-helm rollback zta --namespace zta-control-plane
+helm rollback casa --namespace casa-control-plane
 
 # Or to a specific revision
-helm history zta --namespace zta-control-plane
-helm rollback zta 3 --namespace zta-control-plane
+helm history casa --namespace casa-control-plane
+helm rollback casa 3 --namespace casa-control-plane
 ```
 
 CRD rollbacks are not supported by Helm. If you need to roll back CRD schema changes, apply the previous CRD manifests manually.

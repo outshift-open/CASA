@@ -6,7 +6,7 @@ title: Control Plane Values
 
 # Control Plane Helm Values
 
-Reference for `deployments/k8s/helm/zta-control-plane/values.yaml`.
+Reference for `deployments/k8s/helm/casa-control-plane/values.yaml`.
 
 ## Auth Service
 
@@ -72,7 +72,7 @@ uiExplorer:
     enabled: false
     className: ""
     apiDomainName: ""
-    domainPrefix: "zta"
+    domainPrefix: "casa"
     annotations: {}
   nginx:
     apiProxyEnabled: true

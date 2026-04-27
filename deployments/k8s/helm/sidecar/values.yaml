@@ -210,7 +210,7 @@ opentelemetry-ebpf-instrumentation:
       # open_port: "8082,3000,8391"
       discovery:
         instrument:
-          - k8s_pod_name: "zta-demo-*"
+          - k8s_pod_name: "casa-demo-*"
           - k8s_pod_name: "demo-agent-*"
       routes:
         unmatched: heuristic

@@ -1,11 +1,11 @@
 # MAS Deployment Guide - From Scratch
 
-This guide walks through deploying a Multi-Agent System (MAS) from scratch, assuming you have already deployed the ZTA control plane (auth-service, operator, Keycloak, etc.).
+This guide walks through deploying a Multi-Agent System (MAS) from scratch, assuming you have already deployed the CASA control plane (auth-service, operator, Keycloak, etc.).
 
 ## Prerequisites
 
 ### Already Deployed (via CI/CD)
-- ✅ ZTA Control Plane in `zta-control-plane-dev` namespace:
+- ✅ CASA Control Plane in `casa-control-plane-dev` namespace:
   - Auth-service
   - Operator
   - Keycloak
@@ -194,7 +194,7 @@ Now that your apps are running, create the MAS CRD to register them.
 
 ```yaml
 # mas.yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: my-mas                    # K8s resource name (lowercase, dashes only)
@@ -256,10 +256,10 @@ kubectl get mas my-mas -n my-namespace -o yaml | grep -A10 "status:"
 
 ```bash
 # Check operator logs
-kubectl logs -n zta-control-plane-dev deployment/zta-operator -c operator
+kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator
 
 # Check auth-service logs
-kubectl logs -n zta-control-plane-dev deployment/zta-auth-service -c auth-service
+kubectl logs -n casa-control-plane-dev deployment/casa-auth-service -c auth-service
 ```
 
 ## Step 5: Verify Keycloak Registration
@@ -270,7 +270,7 @@ Your MAS should now have a realm in Keycloak with registered clients.
 
 ```bash
 # Port-forward to Keycloak
-kubectl port-forward -n zta-control-plane-dev svc/keycloak 8080:8080
+kubectl port-forward -n casa-control-plane-dev svc/keycloak 8080:8080
 
 # Open browser: http://localhost:8080/admin
 # Login with admin credentials
@@ -336,7 +336,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 ### Pattern 1: Simple Single-Agent MAS
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: simple-agent
@@ -359,7 +359,7 @@ spec:
 ### Pattern 2: Agent + Multiple MCP Servers
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: agent-with-tools
@@ -392,7 +392,7 @@ spec:
 ### Pattern 3: Multi-Agent Collaboration
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: multi-agent-system
@@ -456,7 +456,7 @@ spec:
     spec:
       containers:
       - name: agent
-        image: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/demo-agent:latest
+        image: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-casa/demo-agent:latest
         ports:
         - containerPort: 8082
         env:
@@ -509,7 +509,7 @@ spec:
     spec:
       containers:
       - name: mcp
-        image: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-zta/demo-mcp:latest
+        image: 626007623524.dkr.ecr.us-east-2.amazonaws.com/outshift-casa/demo-mcp:latest
         ports:
         - containerPort: 3000
         env:
@@ -538,7 +538,7 @@ kubectl wait --for=condition=ready pod -l app=demo-mcp -n demo-mas --timeout=60s
 
 ```yaml
 # demo-mas.yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: demo-mas
@@ -588,7 +588,7 @@ kubectl get mas demo-mas -n demo-mas -o jsonpath='{.status}' | jq
 # }
 
 # Check operator logs
-kubectl logs -n zta-control-plane-dev deployment/zta-operator -c operator --tail=20
+kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator --tail=20
 # Should show successful sync
 ```
 
@@ -598,7 +598,7 @@ kubectl logs -n zta-control-plane-dev deployment/zta-operator -c operator --tail
 
 **Check operator logs:**
 ```bash
-kubectl logs -n zta-control-plane-dev deployment/zta-operator -c operator --tail=50
+kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator --tail=50
 ```
 
 **Common issues:**
@@ -610,7 +610,7 @@ kubectl logs -n zta-control-plane-dev deployment/zta-operator -c operator --tail
 
 **Check auth-service logs:**
 ```bash
-kubectl logs -n zta-control-plane-dev deployment/zta-auth-service -c auth-service --tail=50
+kubectl logs -n casa-control-plane-dev deployment/casa-auth-service -c auth-service --tail=50
 ```
 
 **Common issues:**

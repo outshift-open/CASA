@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  zta-explorer-ui:
+  casa-explorer-ui:
     build:
       context: ../../
       dockerfile: deployments/docker/Dockerfile.ui

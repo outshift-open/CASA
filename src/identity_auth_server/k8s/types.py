@@ -57,7 +57,7 @@ class K8sMultiAgentSystemCRD(SQLModel, table=True):
     __tablename__ = "K8sMultiAgentSystemCRD"
 
     id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    api_version: str = Field(default="zta.io/v1alpha1", description="API version", alias="apiVersion")
+    api_version: str = Field(default="casa.io/v1alpha1", description="API version", alias="apiVersion")
     kind: str = Field(default="MultiAgentSystem", description="Resource kind")
     namespace: str = Field(description="Kubernetes namespace", index=True)
     mas_metadata: Optional[K8sMultiAgentSystemMetadata] = Relationship(back_populates="mas_crd")

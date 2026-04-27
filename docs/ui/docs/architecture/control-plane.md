@@ -6,7 +6,7 @@ title: Control Plane
 
 # Control Plane
 
-The ZTA control plane is the authoritative source for identity, policy, and authorization decisions. It runs in a dedicated Kubernetes namespace (`zta-control-plane`) and is deployed via the `zta-control-plane` Helm chart.
+The CASA control plane is the authoritative source for identity, policy, and authorization decisions. It runs in a dedicated Kubernetes namespace (`casa-control-plane`) and is deployed via the `casa-control-plane` Helm chart.
 
 ## Current Architecture
 
@@ -36,7 +36,7 @@ The core of the control plane. Implemented in Python (FastAPI), backed by Postgr
 
 ### Keycloak IdP
 
-ZTA uses a custom Keycloak image that includes the POIT HTTP-header protocol mapper. Keycloak handles:
+CASA uses a custom Keycloak image that includes the POIT HTTP-header protocol mapper. Keycloak handles:
 
 - Token cryptography (signing, verification)
 - Realm management (one realm per MAS in the current design)
@@ -54,7 +54,7 @@ Two PostgreSQL instances are bundled:
 
 Both can be replaced with externally managed PostgreSQL by setting `postgresAuth.enabled: false` / `postgresKeycloak.enabled: false` in `values.yaml`.
 
-### ZTA Explorer UI
+### CASA Explorer UI
 
 A React-based exploration and debug UI for:
 - Browsing token events and tool call decisions in real time
@@ -71,9 +71,9 @@ Full HA configuration (including Keycloak clustering, PostgreSQL replication) is
 
 ## Namespace Isolation
 
-The control plane namespace (`zta-control-plane`) should have network policies that:
+The control plane namespace (`casa-control-plane`) should have network policies that:
 - Allow inbound connections from MAS namespaces (for sidecar token operations)
 - Deny all other inbound traffic
 - Allow outbound to PostgreSQL and Keycloak only
 
-Example `ZTAPolicy` configuration is provided in the [Cilium deployment guide](/deployment-modes/cilium).
+Example `CASAPolicy` configuration is provided in the [Cilium deployment guide](/deployment-modes/cilium).

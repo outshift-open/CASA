@@ -2,7 +2,7 @@
 
 **Purpose:** Simplified deployment architecture for PoC/development of Zero Trust Authorization System in Kubernetes.
 
-**Target Audience:** Developers wanting to quickly validate the ZTA-MAS concept with minimal infrastructure.
+**Target Audience:** Developers wanting to quickly validate the CASA-MAS concept with minimal infrastructure.
 
 **Key Simplifications:**
 - No HA requirements (single replicas only)
@@ -59,24 +59,24 @@
 
 ```bash
 # 1. Setup cluster with Cilium
-kind create cluster --name zta-poc
+kind create cluster --name casa-poc
 cilium install && cilium status --wait
 
 # 2. Deploy control plane (auth service + postgres)
-kubectl apply -f https://raw.githubusercontent.com/your-org/zta-poc/main/deploy/control-plane.yaml
-kubectl wait --for=condition=ready pod -n zta-dev -l app=zta-auth --timeout=300s
+kubectl apply -f https://raw.githubusercontent.com/your-org/casa-poc/main/deploy/control-plane.yaml
+kubectl wait --for=condition=ready pod -n casa-dev -l app=casa-auth --timeout=300s
 
 # 3. Deploy sidecar injector
-kubectl apply -f https://raw.githubusercontent.com/your-org/zta-poc/main/deploy/sidecar-injector.yaml
+kubectl apply -f https://raw.githubusercontent.com/your-org/casa-poc/main/deploy/sidecar-injector.yaml
 
 # 4. Deploy data plane (agent + MCP server)
-kubectl apply -f https://raw.githubusercontent.com/your-org/zta-poc/main/deploy/data-plane.yaml
+kubectl apply -f https://raw.githubusercontent.com/your-org/casa-poc/main/deploy/data-plane.yaml
 
 # 5. Apply network policies
-kubectl apply -f https://raw.githubusercontent.com/your-org/zta-poc/main/deploy/network-policies.yaml
+kubectl apply -f https://raw.githubusercontent.com/your-org/casa-poc/main/deploy/network-policies.yaml
 
 # 6. Test token flow
-kubectl port-forward -n zta-dev svc/zta-auth 8000:443 &
+kubectl port-forward -n casa-dev svc/casa-auth 8000:443 &
 curl -X POST http://localhost:8000/token -d "grant_type=client_credentials&scope=llm-access"
 ```
 
@@ -103,14 +103,14 @@ This section provides complete, working Kubernetes manifests you can deploy imme
 **Time to deploy:** 30 minutes
 
 ```bash
-# Save this as zta-poc-minimal.yaml
-cat <<'EOF' > zta-poc-minimal.yaml
+# Save this as casa-poc-minimal.yaml
+cat <<'EOF' > casa-poc-minimal.yaml
 ---
-# Namespace: zta-dev (Control Plane)
+# Namespace: casa-dev (Control Plane)
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: zta-dev
+  name: casa-dev
 
 ---
 # Namespace: dev-mas (Data Plane)
@@ -119,7 +119,7 @@ kind: Namespace
 metadata:
   name: dev-mas
   labels:
-    zta.io/injection: enabled
+    casa.io/injection: enabled
 
 ---
 # PostgreSQL for Auth Service
@@ -127,7 +127,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-init
-  namespace: zta-dev
+  namespace: casa-dev
 data:
   init.sql: |
     CREATE TABLE IF NOT EXISTS apps (
@@ -160,7 +160,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: zta-dev
+  namespace: casa-dev
 spec:
   replicas: 1
   selector:
@@ -176,11 +176,11 @@ spec:
         image: postgres:15-alpine
         env:
         - name: POSTGRES_DB
-          value: zta_dev
+          value: casa_dev
         - name: POSTGRES_USER
-          value: zta
+          value: casa
         - name: POSTGRES_PASSWORD
-          value: zta-dev-password
+          value: casa-dev-password
         ports:
         - containerPort: 5432
         volumeMounts:
@@ -207,7 +207,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: zta-dev
+  namespace: casa-dev
 spec:
   selector:
     app: postgres
@@ -221,7 +221,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: auth-service-code
-  namespace: zta-dev
+  namespace: casa-dev
 data:
   main.py: |
     from fastapi import FastAPI, HTTPException, Depends
@@ -235,7 +235,7 @@ data:
     app = FastAPI()
 
     # Database setup
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://zta:zta-dev-password@postgres:5432/zta_dev")
+    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://casa:casa-dev-password@postgres:5432/casa_dev")
     engine = create_engine(DATABASE_URL)
     SessionLocal = sessionmaker(bind=engine)
     Base = declarative_base()
@@ -279,7 +279,7 @@ data:
     # Health check
     @app.get("/health")
     def health():
-        return {"status": "healthy", "service": "zta-poc-auth"}
+        return {"status": "healthy", "service": "casa-poc-auth"}
 
     # Token issuance
     @app.post("/token")
@@ -295,7 +295,7 @@ data:
         payload = {
             "sub": "test-agent",
             "scope": scope,
-            "iss": "zta-poc",
+            "iss": "casa-poc",
             "iat": datetime.utcnow(),
             "exp": datetime.utcnow() + timedelta(minutes=15),
         }
@@ -366,17 +366,17 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zta-auth
-  namespace: zta-dev
+  name: casa-auth
+  namespace: casa-dev
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: zta-auth
+      app: casa-auth
   template:
     metadata:
       labels:
-        app: zta-auth
+        app: casa-auth
     spec:
       containers:
       - name: auth
@@ -389,7 +389,7 @@ spec:
           cd /app && python main.py
         env:
         - name: DATABASE_URL
-          value: postgresql://zta:zta-dev-password@postgres:5432/zta_dev
+          value: postgresql://casa:casa-dev-password@postgres:5432/casa_dev
         - name: JWT_SECRET
           value: dev-secret-change-in-production
         ports:
@@ -413,11 +413,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: zta-auth
-  namespace: zta-dev
+  name: casa-auth
+  namespace: casa-dev
 spec:
   selector:
-    app: zta-auth
+    app: casa-auth
   ports:
   - port: 443
     targetPort: 8000
@@ -434,20 +434,20 @@ spec:
   selector:
     matchLabels:
       app: test-agent
-      zta.io/app-type: agent
+      casa.io/app-type: agent
   template:
     metadata:
       labels:
         app: test-agent
-        zta.io/app-type: agent
+        casa.io/app-type: agent
     spec:
       containers:
       - name: agent
         image: curlimages/curl:latest
         command: ["sh", "-c", "while true; do sleep 3600; done"]
         env:
-        - name: ZTA_AUTH_URL
-          value: http://zta-auth.zta-dev.svc:443
+        - name: CASA_AUTH_URL
+          value: http://casa-auth.casa-dev.svc:443
 
 ---
 # Filesystem MCP Server (data plane)
@@ -461,12 +461,12 @@ spec:
   selector:
     matchLabels:
       app: filesystem-mcp
-      zta.io/app-type: mcp-server
+      casa.io/app-type: mcp-server
   template:
     metadata:
       labels:
         app: filesystem-mcp
-        zta.io/app-type: mcp-server
+        casa.io/app-type: mcp-server
     spec:
       containers:
       - name: mcp-server
@@ -483,7 +483,7 @@ spec:
           import os
 
           app = FastAPI()
-          AUTH_URL = os.getenv("ZTA_AUTH_URL", "http://zta-auth.zta-dev.svc:443")
+          AUTH_URL = os.getenv("CASA_AUTH_URL", "http://casa-auth.casa-dev.svc:443")
           JWT_SECRET = "dev-secret-change-in-production"
 
           @app.post("/mcp")
@@ -506,7 +506,7 @@ spec:
                   "jsonrpc": "2.0",
                   "result": {
                       "content": "File contents from filesystem MCP",
-                      "validated_by": "zta-poc"
+                      "validated_by": "casa-poc"
                   },
                   "id": 1
               }
@@ -517,8 +517,8 @@ spec:
           PYTHON
           python /app/mcp_server.py
         env:
-        - name: ZTA_AUTH_URL
-          value: http://zta-auth.zta-dev.svc:443
+        - name: CASA_AUTH_URL
+          value: http://casa-auth.casa-dev.svc:443
         ports:
         - containerPort: 8080
 
@@ -545,12 +545,12 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      zta.io/app-type: agent
+      casa.io/app-type: agent
   egress:
   # Allow: Agent → MCP servers
   - toEndpoints:
     - matchLabels:
-        zta.io/app-type: mcp-server
+        casa.io/app-type: mcp-server
     toPorts:
     - ports:
       - port: "8080"
@@ -559,7 +559,7 @@ spec:
   # Allow: Agent → Auth Service
   - toEndpoints:
     - matchLabels:
-        app: zta-auth
+        app: casa-auth
     toPorts:
     - ports:
       - port: "8000"
@@ -592,12 +592,12 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      zta.io/app-type: mcp-server
+      casa.io/app-type: mcp-server
   ingress:
   # Allow: Only agents can call MCP
   - fromEndpoints:
     - matchLabels:
-        zta.io/app-type: agent
+        casa.io/app-type: agent
     toPorts:
     - ports:
       - port: "8080"
@@ -607,7 +607,7 @@ spec:
   # Allow: MCP → Auth (token validation)
   - toEndpoints:
     - matchLabels:
-        app: zta-auth
+        app: casa-auth
     toPorts:
     - ports:
       - port: "8000"
@@ -626,29 +626,29 @@ spec:
 EOF
 
 # Deploy everything
-kubectl apply -f zta-poc-minimal.yaml
+kubectl apply -f casa-poc-minimal.yaml
 
 # Wait for pods
-kubectl wait --for=condition=ready pod -n zta-dev -l app=postgres --timeout=120s
-kubectl wait --for=condition=ready pod -n zta-dev -l app=zta-auth --timeout=120s
+kubectl wait --for=condition=ready pod -n casa-dev -l app=postgres --timeout=120s
+kubectl wait --for=condition=ready pod -n casa-dev -l app=casa-auth --timeout=120s
 kubectl wait --for=condition=ready pod -n dev-mas -l app=test-agent --timeout=120s
 kubectl wait --for=condition=ready pod -n dev-mas -l app=filesystem-mcp --timeout=120s
 
 echo "✅ Deployment complete!"
 echo ""
 echo "Test the system:"
-echo "  kubectl port-forward -n zta-dev svc/zta-auth 8000:443 &"
+echo "  kubectl port-forward -n casa-dev svc/casa-auth 8000:443 &"
 echo "  curl -X POST http://localhost:8000/token -d 'grant_type=client_credentials&scope=llm-access'"
 ```
 
 **Verification:**
 ```bash
 # Check all pods running
-kubectl get pods -n zta-dev
+kubectl get pods -n casa-dev
 kubectl get pods -n dev-mas
 
 # Test token issuance
-kubectl port-forward -n zta-dev svc/zta-auth 8000:443 &
+kubectl port-forward -n casa-dev svc/casa-auth 8000:443 &
 TOKEN=$(curl -s -X POST http://localhost:8000/token \
   -d "grant_type=client_credentials&scope=call-tools&requested_tools=filesystem:read" \
   | jq -r '.access_token')
@@ -718,7 +718,7 @@ graph TB
         LLM[OpenAI LLM]
     end
 
-    subgraph "🟢 ZTA Control Plane (zta-dev namespace)"
+    subgraph "🟢 CASA Control Plane (casa-dev namespace)"
         AUTH[Auth Service<br/>1 pod - monolithic]
         KC[Keycloak<br/>1 pod]
         PG[(PostgreSQL<br/>1 pod)]
@@ -772,17 +772,17 @@ graph TB
 
 ## Component Breakdown
 
-### Control Plane (namespace: `zta-dev`)
+### Control Plane (namespace: `casa-dev`)
 
 The control plane issues and validates tokens. In PoC, we collapse multiple services into a monolith.
 
 | Component | What It Does | Replicas | Resources | Notes |
 |-----------|-------------|----------|-----------|-------|
-| **ZTA Auth Service** | Token ops + policy + discovery | 1 | 200m CPU, 256Mi RAM | Monolithic FastAPI app |
+| **CASA Auth Service** | Token ops + policy + discovery | 1 | 200m CPU, 256Mi RAM | Monolithic FastAPI app |
 | **PostgreSQL** | Persistent storage | 1 | 100m CPU, 256Mi RAM | Single pod, emptyDir volume |
 | **Keycloak** (optional) | OAuth2 IdP | 1 | 500m CPU, 512Mi RAM | Can be skipped for simplest PoC |
 
-**ZTA Auth Service Endpoints:**
+**CASA Auth Service Endpoints:**
 ```yaml
 # Core OAuth2 (required)
 POST /token                    # Issue token (client_credentials)
@@ -858,7 +858,7 @@ The PoC implements a streamlined version of the production token flow.
 sequenceDiagram
     participant User
     participant Agent as Demo Agent<br/>(+ Sidecar)
-    participant Auth as ZTA Auth Service
+    participant Auth as CASA Auth Service
     participant LLM as OpenAI
     participant MCP as Filesystem MCP<br/>(+ Sidecar)
 
@@ -904,19 +904,19 @@ The PoC collapses multiple production services into a single FastAPI application
 ### Service Architecture
 
 ```python
-# src/zta_poc/main.py
+# src/casa_poc/main.py
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import jwt
 import os
 
-app = FastAPI(title="ZTA PoC Auth Service", version="0.1.0")
+app = FastAPI(title="CASA PoC Auth Service", version="0.1.0")
 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-secret-change-me")
 TOKEN_EXPIRY_MINUTES = int(os.getenv("TOKEN_EXPIRY_MINUTES", "15"))
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://zta:password@postgres:5432/zta_dev")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://casa:password@postgres:5432/casa_dev")
 
 # === TOKEN ISSUANCE ===
 
@@ -953,7 +953,7 @@ def issue_token(
         "scope": scope,
         "iat": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRY_MINUTES),
-        "iss": "zta-poc-auth",
+        "iss": "casa-poc-auth",
     }
 
     # For tool tokens, validate and embed tool list
@@ -1129,13 +1129,13 @@ async def discover_mcp_tools(app_id: int, db: Session = Depends(get_db)):
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "service": "zta-poc-auth"}
+    return {"status": "healthy", "service": "casa-poc-auth"}
 ```
 
 ### Database Models (SQLModel)
 
 ```python
-# src/zta_poc/models.py
+# src/casa_poc/models.py
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime
@@ -1188,7 +1188,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 
 # Run migrations (in production use Alembic)
-CMD ["sh", "-c", "python -m src.zta_poc.init_db && uvicorn src.zta_poc.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "python -m src.casa_poc.init_db && uvicorn src.casa_poc.main:app --host 0.0.0.0 --port 8000"]
 ```
 
 ### requirements.txt
@@ -1216,7 +1216,7 @@ python-multipart==0.0.9
 
 ```bash
 # 1. Kubernetes cluster (any local cluster works)
-kind create cluster --name zta-poc
+kind create cluster --name casa-poc
 # OR
 minikube start
 
@@ -1231,7 +1231,7 @@ cilium status
 
 ```bash
 # Create namespace
-kubectl create namespace zta-dev
+kubectl create namespace casa-dev
 
 # Deploy PostgreSQL
 kubectl apply -f - <<EOF
@@ -1239,7 +1239,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: zta-dev
+  namespace: casa-dev
 spec:
   replicas: 1
   selector:
@@ -1255,9 +1255,9 @@ spec:
         image: postgres:15
         env:
         - name: POSTGRES_DB
-          value: zta_dev
+          value: casa_dev
         - name: POSTGRES_USER
-          value: zta
+          value: casa
         - name: POSTGRES_PASSWORD
           value: dev-password-change-me
         ports:
@@ -1273,7 +1273,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: zta-dev
+  namespace: casa-dev
 spec:
   selector:
     app: postgres
@@ -1287,7 +1287,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: keycloak
-  namespace: zta-dev
+  namespace: casa-dev
 spec:
   replicas: 1
   selector:
@@ -1315,7 +1315,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: keycloak
-  namespace: zta-dev
+  namespace: casa-dev
 spec:
   selector:
     app: keycloak
@@ -1328,24 +1328,24 @@ kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zta-auth
-  namespace: zta-dev
+  name: casa-auth
+  namespace: casa-dev
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: zta-auth
+      app: casa-auth
   template:
     metadata:
       labels:
-        app: zta-auth
+        app: casa-auth
     spec:
       containers:
       - name: auth
-        image: your-registry/zta-auth-service:dev
+        image: your-registry/casa-auth-service:dev
         env:
         - name: DATABASE_URL
-          value: postgresql://zta:dev-password-change-me@postgres:5432/zta_dev
+          value: postgresql://casa:dev-password-change-me@postgres:5432/casa_dev
         - name: KEYCLOAK_URL
           value: http://keycloak:8080
         - name: KEYCLOAK_ADMIN_USER
@@ -1364,11 +1364,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: zta-auth
-  namespace: zta-dev
+  name: casa-auth
+  namespace: casa-dev
 spec:
   selector:
-    app: zta-auth
+    app: casa-auth
   ports:
   - port: 443
     targetPort: 8000
@@ -1379,7 +1379,7 @@ EOF
 
 ```bash
 # Create namespace for system components
-kubectl create namespace zta-system
+kubectl create namespace casa-system
 
 # Deploy mutating webhook for sidecar injection
 kubectl apply -f - <<EOF
@@ -1387,11 +1387,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: sidecar-config
-  namespace: zta-system
+  namespace: casa-system
 data:
   sidecar.yaml: |
     containers:
-    - name: zta-sidecar
+    - name: casa-sidecar
       image: envoyproxy/envoy:v1.28-latest
       ports:
       - containerPort: 15001
@@ -1426,13 +1426,13 @@ data:
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: zta-sidecar-injector
+  name: casa-sidecar-injector
 webhooks:
-- name: inject.zta.io
+- name: inject.casa.io
   clientConfig:
     service:
       name: sidecar-injector
-      namespace: zta-system
+      namespace: casa-system
       path: "/inject"
     caBundle: <BASE64_ENCODED_CA>
   rules:
@@ -1442,7 +1442,7 @@ webhooks:
     resources: ["pods"]
   namespaceSelector:
     matchLabels:
-      zta.io/injection: enabled
+      casa.io/injection: enabled
   admissionReviewVersions: ["v1"]
   sideEffects: None
 EOF
@@ -1453,7 +1453,7 @@ EOF
 ```bash
 # Create MAS namespace with sidecar injection enabled
 kubectl create namespace dev-mas
-kubectl label namespace dev-mas zta.io/injection=enabled
+kubectl label namespace dev-mas casa.io/injection=enabled
 
 # Deploy test agent
 kubectl apply -f - <<EOF
@@ -1467,19 +1467,19 @@ spec:
   selector:
     matchLabels:
       app: test-agent
-      zta.io/app-type: agent
+      casa.io/app-type: agent
   template:
     metadata:
       labels:
         app: test-agent
-        zta.io/app-type: agent
+        casa.io/app-type: agent
     spec:
       containers:
       - name: agent
         image: your-registry/test-agent:dev
         env:
-        - name: ZTA_AUTH_URL
-          value: http://zta-auth.zta-dev.svc:443
+        - name: CASA_AUTH_URL
+          value: http://casa-auth.casa-dev.svc:443
         - name: MCP_SERVER_URL
           value: http://filesystem-mcp.dev-mas.svc:8080
 ---
@@ -1507,19 +1507,19 @@ spec:
   selector:
     matchLabels:
       app: filesystem-mcp
-      zta.io/app-type: mcp-server
+      casa.io/app-type: mcp-server
   template:
     metadata:
       labels:
         app: filesystem-mcp
-        zta.io/app-type: mcp-server
+        casa.io/app-type: mcp-server
     spec:
       containers:
       - name: mcp-server
         image: your-registry/filesystem-mcp:dev
         env:
-        - name: ZTA_AUTH_URL
-          value: http://zta-auth.zta-dev.svc:443
+        - name: CASA_AUTH_URL
+          value: http://casa-auth.casa-dev.svc:443
         ports:
         - containerPort: 8080
 ---
@@ -1549,12 +1549,12 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      zta.io/app-type: agent
+      casa.io/app-type: agent
   egress:
   # Allow: Agent → MCP servers
   - toEndpoints:
     - matchLabels:
-        zta.io/app-type: mcp-server
+        casa.io/app-type: mcp-server
     toPorts:
     - ports:
       - port: "8080"
@@ -1563,8 +1563,8 @@ spec:
   # Allow: Agent → Auth Service
   - toEndpoints:
     - matchLabels:
-        app: zta-auth
-        k8s:io.kubernetes.pod.namespace: zta-dev
+        app: casa-auth
+        k8s:io.kubernetes.pod.namespace: casa-dev
     toPorts:
     - ports:
       - port: "443"
@@ -1596,12 +1596,12 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      zta.io/app-type: mcp-server
+      casa.io/app-type: mcp-server
   ingress:
   # Allow: Agents → MCP
   - fromEndpoints:
     - matchLabels:
-        zta.io/app-type: agent
+        casa.io/app-type: agent
     toPorts:
     - ports:
       - port: "8080"
@@ -1611,8 +1611,8 @@ spec:
   # Allow: MCP → Auth Service (token validation)
   - toEndpoints:
     - matchLabels:
-        app: zta-auth
-        k8s:io.kubernetes.pod.namespace: zta-dev
+        app: casa-auth
+        k8s:io.kubernetes.pod.namespace: casa-dev
     toPorts:
     - ports:
       - port: "443"
@@ -1637,7 +1637,7 @@ EOF
 ### Envoy Sidecar (Simplified)
 
 ```yaml
-# ConfigMap: envoy-sidecar-config (namespace: zta-system)
+# ConfigMap: envoy-sidecar-config (namespace: casa-system)
 static_resources:
   listeners:
   - name: interceptor
@@ -1671,11 +1671,11 @@ static_resources:
 
                   -- Fetch from auth service
                   local headers, body = request_handle:httpCall(
-                    "zta_auth_cluster",
+                    "casa_auth_cluster",
                     {
                       [":method"] = "POST",
                       [":path"] = "/token",
-                      [":authority"] = "zta-auth.zta-dev.svc",
+                      [":authority"] = "casa-auth.casa-dev.svc",
                       ["content-type"] = "application/x-www-form-urlencoded"
                     },
                     "grant_type=client_credentials&scope=llm-access",
@@ -1732,17 +1732,17 @@ static_resources:
     type: ORIGINAL_DST
     lb_policy: CLUSTER_PROVIDED
 
-  - name: zta_auth_cluster
+  - name: casa_auth_cluster
     type: STRICT_DNS
     lb_policy: ROUND_ROBIN
     load_assignment:
-      cluster_name: zta_auth_cluster
+      cluster_name: casa_auth_cluster
       endpoints:
       - lb_endpoints:
         - endpoint:
             address:
               socket_address:
-                address: zta-auth.zta-dev.svc
+                address: casa-auth.casa-dev.svc
                 port_value: 443
 ```
 
@@ -1960,7 +1960,7 @@ class AuthClient:
 
         try:
             response = requests.post(
-                "http://zta-auth.zta-dev.svc/token",
+                "http://casa-auth.casa-dev.svc/token",
                 data={"grant_type": "client_credentials", "scope": scope},
                 timeout=5.0
             )
@@ -1999,7 +1999,7 @@ from fastapi import FastAPI, Header, HTTPException
 import httpx
 
 app = FastAPI()
-ZTA_AUTH_URL = os.getenv("ZTA_AUTH_URL", "http://zta-auth.zta-dev.svc")
+CASA_AUTH_URL = os.getenv("CASA_AUTH_URL", "http://casa-auth.casa-dev.svc")
 
 async def validate_token(authorization: str = Header(...)):
     """Dependency to validate token on every request."""
@@ -2011,7 +2011,7 @@ async def validate_token(authorization: str = Header(...)):
     # Introspect token
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            f"{ZTA_AUTH_URL}/introspect",
+            f"{CASA_AUTH_URL}/introspect",
             data={"token": token},
             timeout=5.0
         )
@@ -2067,16 +2067,16 @@ async def handle_mcp_request(
 
 ```bash
 # Check all pods running
-kubectl get pods -n zta-dev
+kubectl get pods -n casa-dev
 
 # Expected output:
 # NAME                        READY   STATUS    RESTARTS   AGE
 # postgres-xxx                1/1     Running   0          5m
 # keycloak-xxx                1/1     Running   0          5m
-# zta-auth-xxx                1/1     Running   0          5m
+# casa-auth-xxx                1/1     Running   0          5m
 
 # Test auth service
-kubectl port-forward -n zta-dev svc/zta-auth 8000:443
+kubectl port-forward -n casa-dev svc/casa-auth 8000:443
 curl http://localhost:8000/health
 # {"status": "healthy"}
 ```
@@ -2135,7 +2135,7 @@ curl http://filesystem-mcp.dev-mas.svc:8080/health
 # ✓ Should succeed
 
 # Try allowed: Auth service
-curl http://zta-auth.zta-dev.svc:443/health
+curl http://casa-auth.casa-dev.svc:443/health
 # ✓ Should succeed
 
 # Try allowed: OpenAI
@@ -2147,7 +2147,7 @@ curl https://example.com
 # ✗ Should timeout (blocked by Cilium)
 
 # Try denied: Other pod
-curl http://postgres.zta-dev.svc:5432
+curl http://postgres.casa-dev.svc:5432
 # ✗ Should timeout (blocked by Cilium)
 ```
 
@@ -2156,10 +2156,10 @@ curl http://postgres.zta-dev.svc:5432
 ```bash
 # Check agent pod has sidecar
 kubectl get pod -n dev-mas -l app=test-agent -o jsonpath='{.items[0].spec.containers[*].name}'
-# agent zta-sidecar
+# agent casa-sidecar
 
 # Check sidecar logs
-kubectl logs -n dev-mas deployment/test-agent -c zta-sidecar
+kubectl logs -n dev-mas deployment/test-agent -c casa-sidecar
 # Should show token requests and protocol validation
 ```
 
@@ -2169,7 +2169,7 @@ kubectl logs -n dev-mas deployment/test-agent -c zta-sidecar
 
 ```bash
 # Terminal 1: Port forward auth service
-kubectl port-forward -n zta-dev svc/zta-auth 8000:443
+kubectl port-forward -n casa-dev svc/casa-auth 8000:443
 
 # Terminal 2: Execute test workflow
 cat > test_workflow.sh <<'EOF'
@@ -2278,7 +2278,7 @@ curl https://evil.com
 # Timeout (blocked by Cilium)
 
 # ❌ Try to reach Postgres directly
-curl http://postgres.zta-dev.svc:5432
+curl http://postgres.casa-dev.svc:5432
 # Timeout (no explicit allow rule)
 
 # ❌ Try to reach MCP server without sidecar
@@ -2326,7 +2326,7 @@ spec:
     metadata:
       labels:
         app: echo
-        zta.io/app-type: mcp-server
+        casa.io/app-type: mcp-server
     spec:
       containers:
       - name: echo
@@ -2429,17 +2429,17 @@ print("✅ Token expiry validation working")
 
 ```bash
 # Scenario A: Auth service down
-kubectl scale -n zta-dev deployment/zta-auth --replicas=0
+kubectl scale -n casa-dev deployment/casa-auth --replicas=0
 
 # Agent should:
 # - Use cached tokens (for ~30s)
 # - Then fail requests with 503
 
-kubectl logs -n dev-mas deployment/test-agent -c zta-sidecar --tail=20
+kubectl logs -n dev-mas deployment/test-agent -c casa-sidecar --tail=20
 # "WARN: Auth service unavailable, using cached token (age: 45s)"
 
 # Restore auth service
-kubectl scale -n zta-dev deployment/zta-auth --replicas=1
+kubectl scale -n casa-dev deployment/casa-auth --replicas=1
 
 # Scenario B: Cilium down (eBPF failure)
 kubectl delete pod -n kube-system -l k8s-app=cilium
@@ -2452,19 +2452,19 @@ kubectl delete pod -n kube-system -l k8s-app=cilium
 cilium install
 
 # Scenario C: Database down
-kubectl scale -n zta-dev deployment/postgres --replicas=0
+kubectl scale -n casa-dev deployment/postgres --replicas=0
 
 # Auth service should:
 # - Fail new token issuance (500 error)
 # - Continue validating tokens (JWT signature check, no DB needed)
 
 kubectl exec -n dev-mas deployment/test-agent -c agent -- \
-  curl http://zta-auth.zta-dev.svc:443/token -d "grant_type=client_credentials"
+  curl http://casa-auth.casa-dev.svc:443/token -d "grant_type=client_credentials"
 # {"error": "database unavailable"}
 
 # But introspection still works:
 kubectl exec -n dev-mas deployment/test-agent -c agent -- \
-  curl http://zta-auth.zta-dev.svc:443/introspect -d "token=<existing_token>"
+  curl http://casa-auth.casa-dev.svc:443/introspect -d "token=<existing_token>"
 # {"active": true, ...}
 ```
 
@@ -2489,12 +2489,12 @@ spec:
   selector:
     matchLabels:
       app: database-mcp
-      zta.io/app-type: mcp-server
+      casa.io/app-type: mcp-server
   template:
     metadata:
       labels:
         app: database-mcp
-        zta.io/app-type: mcp-server
+        casa.io/app-type: mcp-server
     spec:
       containers:
       - name: mcp
@@ -2515,7 +2515,7 @@ spec:
 EOF
 
 # 2. Register in auth service
-kubectl port-forward -n zta-dev svc/zta-auth 8000:443 &
+kubectl port-forward -n casa-dev svc/casa-auth 8000:443 &
 
 curl -X POST http://localhost:8000/apps \
   -H "Content-Type: application/json" \
@@ -2561,14 +2561,14 @@ cat > test-token-flow.sh <<'BASH'
 #!/bin/bash
 set -e
 
-echo "=== ZTA PoC Token Flow Test ==="
+echo "=== CASA PoC Token Flow Test ==="
 
 # Setup
 AUTH_URL="http://localhost:8000"
 MCP_URL="http://localhost:8080"
 
 # Port forward in background
-kubectl port-forward -n zta-dev svc/zta-auth 8000:443 &
+kubectl port-forward -n casa-dev svc/casa-auth 8000:443 &
 PF1=$!
 kubectl port-forward -n dev-mas svc/filesystem-mcp 8080:8080 &
 PF2=$!
@@ -2719,14 +2719,14 @@ kubectl get cnp -n dev-mas agent-egress -o yaml
 # Method 1: Update ConfigMap and restart
 kubectl create configmap auth-service-code \
   --from-file=main.py=./auth_service.py \
-  --dry-run=client -o yaml | kubectl apply -n zta-dev -f -
+  --dry-run=client -o yaml | kubectl apply -n casa-dev -f -
 
-kubectl rollout restart deployment/zta-auth -n zta-dev
-kubectl wait --for=condition=ready pod -n zta-dev -l app=zta-auth --timeout=60s
+kubectl rollout restart deployment/casa-auth -n casa-dev
+kubectl wait --for=condition=ready pod -n casa-dev -l app=casa-auth --timeout=60s
 
 # Method 2: Direct edit (for quick testing)
-kubectl edit configmap auth-service-code -n zta-dev
-kubectl rollout restart deployment/zta-auth -n zta-dev
+kubectl edit configmap auth-service-code -n casa-dev
+kubectl rollout restart deployment/casa-auth -n casa-dev
 ```
 
 ---
@@ -2788,20 +2788,20 @@ ab -n 1000 -c 10 -p introspect.txt -T 'application/x-www-form-urlencoded' \
 
 ```bash
 # Backup current schema
-kubectl exec -n zta-dev deployment/postgres -- \
-  pg_dump -U zta -d zta_dev -s > schema_backup.sql
+kubectl exec -n casa-dev deployment/postgres -- \
+  pg_dump -U casa -d casa_dev -s > schema_backup.sql
 
 # Add new column
-kubectl exec -n zta-dev deployment/postgres -- \
-  psql -U zta -d zta_dev -c "ALTER TABLE apps ADD COLUMN created_at TIMESTAMP DEFAULT NOW();"
+kubectl exec -n casa-dev deployment/postgres -- \
+  psql -U casa -d casa_dev -c "ALTER TABLE apps ADD COLUMN created_at TIMESTAMP DEFAULT NOW();"
 
 # Verify
-kubectl exec -n zta-dev deployment/postgres -- \
-  psql -U zta -d zta_dev -c "\d apps"
+kubectl exec -n casa-dev deployment/postgres -- \
+  psql -U casa -d casa_dev -c "\d apps"
 
 # Rollback if needed
-kubectl exec -n zta-dev deployment/postgres -- \
-  psql -U zta -d zta_dev < schema_backup.sql
+kubectl exec -n casa-dev deployment/postgres -- \
+  psql -U casa -d casa_dev < schema_backup.sql
 ```
 
 ---
@@ -2810,22 +2810,22 @@ kubectl exec -n zta-dev deployment/postgres -- \
 
 ```bash
 # Stream all logs from control plane
-kubectl logs -n zta-dev -l app=zta-auth --follow
+kubectl logs -n casa-dev -l app=casa-auth --follow
 
 # Stream agent logs
 kubectl logs -n dev-mas -l app=test-agent --follow
 
 # Search for errors
-kubectl logs -n zta-dev deployment/zta-auth | grep -i error
+kubectl logs -n casa-dev deployment/casa-auth | grep -i error
 
 # Get last 100 lines
-kubectl logs -n zta-dev deployment/zta-auth --tail=100
+kubectl logs -n casa-dev deployment/casa-auth --tail=100
 
 # Save logs to file
-kubectl logs -n zta-dev deployment/zta-auth > auth-service.log
+kubectl logs -n casa-dev deployment/casa-auth > auth-service.log
 
 # Exec into pod for debugging
-kubectl exec -it -n zta-dev deployment/zta-auth -- sh
+kubectl exec -it -n casa-dev deployment/casa-auth -- sh
 
 # Inside pod:
 #   pip install ipython
@@ -2840,14 +2840,14 @@ kubectl exec -it -n zta-dev deployment/zta-auth -- sh
 
 ```bash
 # Delete everything
-kubectl delete namespace zta-dev dev-mas
+kubectl delete namespace casa-dev dev-mas
 
 # Or reset database only
-kubectl exec -n zta-dev deployment/postgres -- \
-  psql -U zta -d zta_dev -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+kubectl exec -n casa-dev deployment/postgres -- \
+  psql -U casa -d casa_dev -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
 # Restart auth service to re-run migrations
-kubectl rollout restart deployment/zta-auth -n zta-dev
+kubectl rollout restart deployment/casa-auth -n casa-dev
 
 # Verify clean state
 curl http://localhost:8000/apps
@@ -2861,7 +2861,7 @@ curl http://localhost:8000/apps
 For PoC, use a minimal CRD:
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: dev-mas
@@ -2869,7 +2869,7 @@ metadata:
 spec:
   # Basic config only
   authServer:
-    url: http://zta-auth.zta-dev.svc:443
+    url: http://casa-auth.casa-dev.svc:443
 
   # Disable production features
   features:
@@ -3024,11 +3024,11 @@ def authorize_tool(tool_name: str, task: str):
 ## Minimal Helm Chart
 
 ```yaml
-# charts/zta-poc/values.yaml
+# charts/casa-poc/values.yaml
 controlPlane:
-  namespace: zta-dev
+  namespace: casa-dev
   auth:
-    image: your-registry/zta-auth:dev
+    image: your-registry/casa-auth:dev
     replicas: 1
     resources:
       requests:
@@ -3069,8 +3069,8 @@ features:
 
 Install:
 ```bash
-helm install zta-poc ./charts/zta-poc \
-  --namespace zta-dev \
+helm install casa-poc ./charts/casa-poc \
+  --namespace casa-dev \
   --create-namespace \
   --values dev-values.yaml
 ```
@@ -3104,7 +3104,7 @@ helm install zta-poc ./charts/zta-poc \
 
 ### Pattern 1: Python Agent Integration
 
-How to integrate a Python-based agent with ZTA:
+How to integrate a Python-based agent with CASA:
 
 ```python
 # agent.py
@@ -3112,9 +3112,9 @@ import os
 import httpx
 import asyncio
 
-class ZTAAgent:
+class CASAAgent:
     def __init__(self):
-        self.auth_url = os.getenv("ZTA_AUTH_URL", "http://zta-auth.zta-dev.svc:443")
+        self.auth_url = os.getenv("CASA_AUTH_URL", "http://casa-auth.casa-dev.svc:443")
         self.llm_token = None
         self.tool_tokens = {}
 
@@ -3203,7 +3203,7 @@ class ZTAAgent:
 
 # Usage example
 async def main():
-    agent = ZTAAgent()
+    agent = CASAAgent()
 
     # Step 1: Call LLM
     llm_response = await agent.call_llm("What files should I read?")
@@ -3233,20 +3233,20 @@ spec:
   selector:
     matchLabels:
       app: python-agent
-      zta.io/app-type: agent
+      casa.io/app-type: agent
   template:
     metadata:
       labels:
         app: python-agent
-        zta.io/app-type: agent
+        casa.io/app-type: agent
     spec:
       containers:
       - name: agent
         image: python:3.12
         command: ["python", "/app/agent.py"]
         env:
-        - name: ZTA_AUTH_URL
-          value: http://zta-auth.zta-dev.svc:443
+        - name: CASA_AUTH_URL
+          value: http://casa-auth.casa-dev.svc:443
         volumeMounts:
         - name: code
           mountPath: /app
@@ -3260,7 +3260,7 @@ spec:
 
 ### Pattern 2: MCP Server with Token Validation
 
-How to secure an MCP server with ZTA:
+How to secure an MCP server with CASA:
 
 ```python
 # mcp_server.py
@@ -3271,7 +3271,7 @@ import os
 
 app = FastAPI()
 
-AUTH_URL = os.getenv("ZTA_AUTH_URL", "http://zta-auth.zta-dev.svc:443")
+AUTH_URL = os.getenv("CASA_AUTH_URL", "http://casa-auth.casa-dev.svc:443")
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-in-production")
 
 async def validate_token(authorization: str) -> dict:
@@ -3415,7 +3415,7 @@ For PoC, you can skip sidecar injection and have apps handle tokens directly:
 # No sidecar needed - app handles tokens
 import httpx
 
-class SimpleZTAClient:
+class SimpleCASAClient:
     def __init__(self, auth_url: str):
         self.auth_url = auth_url
         self.token = None
@@ -3446,7 +3446,7 @@ class SimpleZTAClient:
         return response.json()
 
 # Usage
-client = SimpleZTAClient("http://zta-auth.zta-dev.svc:443")
+client = SimpleCASAClient("http://casa-auth.casa-dev.svc:443")
 client.get_token("call-tools", ["filesystem:read"])
 result = client.call_mcp(
     "http://filesystem-mcp.dev-mas.svc:8080",
@@ -3477,7 +3477,7 @@ Running multiple isolated Multi-Agent Systems:
 ```bash
 # Create MAS 1: Development
 kubectl create namespace mas-dev
-kubectl label namespace mas-dev zta.io/injection=enabled
+kubectl label namespace mas-dev casa.io/injection=enabled
 
 curl -X POST http://localhost:8000/mas \
   -H "Content-Type: application/json" \
@@ -3489,7 +3489,7 @@ curl -X POST http://localhost:8000/mas \
 
 # Create MAS 2: Staging
 kubectl create namespace mas-staging
-kubectl label namespace mas-staging zta.io/injection=enabled
+kubectl label namespace mas-staging casa.io/injection=enabled
 
 curl -X POST http://localhost:8000/mas \
   -H "Content-Type: application/json" \
@@ -3526,7 +3526,7 @@ EOF
 
 ### Pattern 5: External LLM with Token Forwarding
 
-How to call external LLM (OpenAI) with ZTA tokens:
+How to call external LLM (OpenAI) with CASA tokens:
 
 ```python
 # The sidecar doesn't modify external LLM calls
@@ -3535,7 +3535,7 @@ How to call external LLM (OpenAI) with ZTA tokens:
 import httpx
 import os
 
-async def call_llm_with_audit(prompt: str, zta_token: str):
+async def call_llm_with_audit(prompt: str, casa_token: str):
     """Call OpenAI with audit trail"""
 
     # Get OpenAI API key (from secret)
@@ -3547,7 +3547,7 @@ async def call_llm_with_audit(prompt: str, zta_token: str):
             "https://api.openai.com/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {openai_key}",
-                "X-ZTA-Token": zta_token,  # Pass through for logging
+                "X-CASA-Token": casa_token,  # Pass through for logging
             },
             json={
                 "model": "gpt-4",
@@ -3556,8 +3556,8 @@ async def call_llm_with_audit(prompt: str, zta_token: str):
         )
         llm_response = response.json()
 
-    # Log to ZTA telemetry (in production)
-    # await log_llm_call(zta_token, prompt, llm_response)
+    # Log to CASA telemetry (in production)
+    # await log_llm_call(casa_token, prompt, llm_response)
 
     return llm_response
 ```
@@ -3649,12 +3649,12 @@ This section details the incremental steps to evolve the PoC into a production-r
    apiVersion: policy/v1
    kind: PodDisruptionBudget
    metadata:
-     name: zta-auth-pdb
+     name: casa-auth-pdb
    spec:
      minAvailable: 2
      selector:
        matchLabels:
-         app: zta-auth
+         app: casa-auth
    ```
 
 **Testing:** Kill one replica of each service, verify no downtime.
@@ -3679,8 +3679,8 @@ This section details the incremental steps to evolve the PoC into a production-r
    ```python
    from prometheus_client import Counter, Histogram
 
-   token_issued_counter = Counter('zta_token_issued_total', 'Tokens issued', ['scope'])
-   token_validation_duration = Histogram('zta_token_validation_seconds', 'Validation latency')
+   token_issued_counter = Counter('casa_token_issued_total', 'Tokens issued', ['scope'])
+   token_validation_duration = Histogram('casa_token_validation_seconds', 'Validation latency')
 
    @app.post("/token")
    def issue_token(...):
@@ -3777,7 +3777,7 @@ This section details the incremental steps to evolve the PoC into a production-r
        spec:
          containers:
          - name: ai-pipeline
-           image: zta-ai-pipeline:v1
+           image: casa-ai-pipeline:v1
            env:
            - name: OPENAI_API_KEY
              valueFrom:
@@ -3879,7 +3879,7 @@ transport_socket:
       validation_context:
         trusted_ca: {filename: "/etc/certs/ca.crt"}
         match_subject_alt_names:
-        - exact: "zta-auth.zta-control-plane.svc"
+        - exact: "casa-auth.casa-control-plane.svc"
 ```
 
 #### 5.3 Add Network Policy Hardening
@@ -3889,7 +3889,7 @@ apiVersion: cilium.io/v2
 kind:CiliumNetworkPolicy
 metadata:
   name: control-plane-lockdown
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   endpointSelector:
     matchLabels:
@@ -3898,7 +3898,7 @@ spec:
   # Only allow internal cluster communication
   - toEndpoints:
     - matchLabels:
-        k8s:io.kubernetes.pod.namespace: zta-control-plane
+        k8s:io.kubernetes.pod.namespace: casa-control-plane
   - toEndpoints:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: kube-system
@@ -3921,11 +3921,11 @@ kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: zta-auth
+  name: casa-auth
   annotations:
     vault.hashicorp.com/agent-inject: "true"
-    vault.hashicorp.com/role: "zta-auth"
-    vault.hashicorp.com/agent-inject-secret-db: "database/creds/zta"
+    vault.hashicorp.com/role: "casa-auth"
+    vault.hashicorp.com/agent-inject-secret-db: "database/creds/casa"
     vault.hashicorp.com/agent-inject-secret-keycloak: "kv/keycloak/admin"
 EOF
 ```
@@ -3935,12 +3935,12 @@ EOF
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: zta-auth-hpa
+  name: casa-auth-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: zta-auth
+    name: casa-auth
   minReplicas: 3
   maxReplicas: 20
   metrics:
@@ -3991,7 +3991,7 @@ spec:
             command: ["pgbackrest", "backup", "--type=full"]
             env:
             - name: PGBACKREST_STANZA
-              value: "zta-prod"
+              value: "casa-prod"
             - name: PGBACKREST_REPO1_PATH
               value: "/backups"
             volumeMounts:
@@ -4066,15 +4066,15 @@ Use this checklist to validate your system:
 
 ```bash
 # Postgres not starting
-kubectl logs -n zta-dev deployment/postgres
+kubectl logs -n casa-dev deployment/postgres
 # Check: Sufficient resources? PVC created?
 
 # Keycloak timeout
-kubectl describe pod -n zta-dev -l app=keycloak
+kubectl describe pod -n casa-dev -l app=keycloak
 # Check: Java heap size sufficient (default 512Mi)?
 
 # Auth service can't reach Postgres
-kubectl exec -n zta-dev deployment/zta-auth -- ping postgres
+kubectl exec -n casa-dev deployment/casa-auth -- ping postgres
 # Check: Service DNS resolving?
 ```
 
@@ -4082,7 +4082,7 @@ kubectl exec -n zta-dev deployment/zta-auth -- ping postgres
 
 ```bash
 # Sidecar not injected
-kubectl get mutatingwebhookconfiguration zta-sidecar-injector
+kubectl get mutatingwebhookconfiguration casa-sidecar-injector
 # Check: Webhook configured? CA bundle correct?
 
 # Traffic not redirected
@@ -4090,7 +4090,7 @@ kubectl exec -n dev-mas deployment/test-agent -c agent -- iptables -t nat -L
 # Check: REDIRECT rule to port 15001?
 
 # Token not injected
-kubectl logs -n dev-mas deployment/test-agent -c zta-sidecar | grep "Authorization"
+kubectl logs -n dev-mas deployment/test-agent -c casa-sidecar | grep "Authorization"
 # Check: Envoy Lua filter working? Auth service reachable?
 ```
 
@@ -4162,15 +4162,15 @@ hubble observe --namespace dev-mas --verdict DROPPED
 2. **Performance testing:**
    ```bash
    # Load test token endpoint
-   ab -n 10000 -c 100 http://zta-auth.zta-dev.svc/token
+   ab -n 10000 -c 100 http://casa-auth.casa-dev.svc/token
 
    # Monitor latency
-   kubectl top pods -n zta-dev
+   kubectl top pods -n casa-dev
    kubectl top pods -n dev-mas
 
    # Check database connections
-   kubectl exec -n zta-dev deployment/postgres -- \
-     psql -U zta -c "SELECT count(*) FROM pg_stat_activity;"
+   kubectl exec -n casa-dev deployment/postgres -- \
+     psql -U casa -c "SELECT count(*) FROM pg_stat_activity;"
    ```
 
 3. **Harden security:**
@@ -4192,13 +4192,13 @@ hubble observe --namespace dev-mas --verdict DROPPED
    apiVersion: v1
    kind: Service
    metadata:
-     name: zta-auth-metrics
-     namespace: zta-dev
+     name: casa-auth-metrics
+     namespace: casa-dev
      labels:
-       app: zta-auth
+       app: casa-auth
    spec:
      selector:
-       app: zta-auth
+       app: casa-auth
      ports:
      - name: metrics
        port: 9090
@@ -4234,17 +4234,17 @@ hubble observe --namespace dev-mas --verdict DROPPED
    apiVersion: argoproj.io/v1alpha1
    kind: Application
    metadata:
-     name: zta-system
+     name: casa-system
      namespace: argocd
    spec:
      project: default
      source:
-       repoURL: https://github.com/your-org/zta-manifests
+       repoURL: https://github.com/your-org/casa-manifests
        targetRevision: main
        path: overlays/dev
      destination:
        server: https://kubernetes.default.svc
-       namespace: zta-dev
+       namespace: casa-dev
      syncPolicy:
        automated:
          prune: true
@@ -4308,14 +4308,14 @@ See **Migration Path: PoC → Production** section above for detailed 12-week pl
 **Symptom:** Pods deploy but have only 1 container (missing sidecar).
 
 **Causes:**
-- Namespace missing label `zta.io/injection: enabled`
-- Pod missing label `zta.io/app-type: agent`
+- Namespace missing label `casa.io/injection: enabled`
+- Pod missing label `casa.io/app-type: agent`
 - MutatingWebhookConfiguration not applied or CA bundle invalid
 
 **Fix:**
 ```bash
 # Check webhook configuration
-kubectl get mutatingwebhookconfiguration zta-sidecar-injector -o yaml | grep -A5 clientConfig
+kubectl get mutatingwebhookconfiguration casa-sidecar-injector -o yaml | grep -A5 clientConfig
 
 # Verify namespace label
 kubectl get namespace dev-mas --show-labels
@@ -4346,7 +4346,7 @@ echo $TOKEN | cut -d'.' -f2 | base64 -d | jq
 
 # Test introspection endpoint from MCP pod
 kubectl exec -n dev-mas deployment/filesystem-mcp -c mcp-server -- \
-  curl -X POST http://zta-auth.zta-dev.svc/introspect -d "token=$TOKEN"
+  curl -X POST http://casa-auth.casa-dev.svc/introspect -d "token=$TOKEN"
 ```
 
 ---
@@ -4391,14 +4391,14 @@ hubble observe --verdict DROPPED --follow
 **Fix:**
 ```bash
 # Check auth service logs for DB errors
-kubectl logs -n zta-dev deployment/zta-auth | grep -i "database\|timeout"
+kubectl logs -n casa-dev deployment/casa-auth | grep -i "database\|timeout"
 
 # Scale up immediately
-kubectl scale -n zta-dev deployment/zta-auth --replicas=3
+kubectl scale -n casa-dev deployment/casa-auth --replicas=3
 
 # Add connection pooling (PgBouncer)
 helm install pgbouncer bitnami/pgbouncer \
-  --set postgresql.host=postgres.zta-dev.svc \
+  --set postgresql.host=postgres.casa-dev.svc \
   --set pgbouncer.poolMode=transaction
 ```
 
@@ -4446,9 +4446,9 @@ Before moving from PoC to production, complete these items:
 
 - [ ] **Replace JWT secret** - Use Vault or Kubernetes Secret
   ```bash
-  kubectl create secret generic zta-jwt-secret \
+  kubectl create secret generic casa-jwt-secret \
     --from-literal=secret=$(openssl rand -base64 32) \
-    -n zta-dev
+    -n casa-dev
   ```
 
 - [ ] **Enable TLS everywhere** - Use cert-manager
@@ -4473,7 +4473,7 @@ Before moving from PoC to production, complete these items:
 
 - [ ] **Scan container images** - Use Trivy or Snyk
   ```bash
-  trivy image zta-auth-service:latest
+  trivy image casa-auth-service:latest
   ```
 
 ### High Availability (Important)
@@ -4501,7 +4501,7 @@ Before moving from PoC to production, complete these items:
       requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:
           matchLabels:
-            app: zta-auth
+            app: casa-auth
         topologyKey: kubernetes.io/hostname
   ```
 
@@ -4510,12 +4510,12 @@ Before moving from PoC to production, complete these items:
   apiVersion: autoscaling/v2
   kind: HorizontalPodAutoscaler
   metadata:
-    name: zta-auth-hpa
+    name: casa-auth-hpa
   spec:
     scaleTargetRef:
       apiVersion: apps/v1
       kind: Deployment
-      name: zta-auth
+      name: casa-auth
     minReplicas: 3
     maxReplicas: 20
     metrics:
@@ -4546,8 +4546,8 @@ Before moving from PoC to production, complete these items:
   ```python
   from prometheus_client import Counter, Histogram
 
-  token_issued_counter = Counter('zta_token_issued_total', 'Total tokens issued', ['scope'])
-  token_latency_histogram = Histogram('zta_token_latency_seconds', 'Token issuance latency')
+  token_issued_counter = Counter('casa_token_issued_total', 'Total tokens issued', ['scope'])
+  token_latency_histogram = Histogram('casa_token_latency_seconds', 'Token issuance latency')
   ```
 
 - [ ] **Deploy Grafana dashboards** - Visualize token flows
@@ -4564,7 +4564,7 @@ Before moving from PoC to production, complete these items:
 - [ ] **Configure alerts** - PagerDuty/Opsgenie
   ```yaml
   - alert: HighTokenValidationLatency
-    expr: histogram_quantile(0.95, zta_token_latency_seconds) > 0.5
+    expr: histogram_quantile(0.95, casa_token_latency_seconds) > 0.5
     for: 5m
     annotations:
       summary: "Token validation latency is high"
@@ -4577,7 +4577,7 @@ Before moving from PoC to production, complete these items:
   // k6 script
   import http from 'k6/http';
   export default function () {
-    http.post('http://zta-auth/token', 'grant_type=client_credentials&scope=llm-access');
+    http.post('http://casa-auth/token', 'grant_type=client_credentials&scope=llm-access');
   }
   ```
   Target: 10,000 req/sec with p95 < 100ms
@@ -4616,9 +4616,9 @@ Before moving from PoC to production, complete these items:
   apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
   metadata:
-    name: zta-admin
+    name: casa-admin
   rules:
-  - apiGroups: ["zta.io"]
+  - apiGroups: ["casa.io"]
     resources: ["multiagentsystems"]
     verbs: ["get", "list", "create", "update"]
   ```
@@ -4640,7 +4640,7 @@ Before moving from PoC to production, complete these items:
   kubectl create cronjob pg-backup \
     --image=postgres:15 \
     --schedule="0 2 * * *" \
-    -- pg_dump -U zta -d zta_dev | gzip | aws s3 cp - s3://backups/pg-$(date +%Y%m%d).sql.gz
+    -- pg_dump -U casa -d casa_dev | gzip | aws s3 cp - s3://backups/pg-$(date +%Y%m%d).sql.gz
   ```
 
 - [ ] **Disaster recovery plan** - RTO < 4h, RPO < 1h
@@ -4649,10 +4649,10 @@ Before moving from PoC to production, complete these items:
 
 - [ ] **CI/CD pipeline** - GitOps with ArgoCD
   ```bash
-  argocd app create zta-control-plane \
-    --repo https://github.com/your-org/zta-deploy \
+  argocd app create casa-control-plane \
+    --repo https://github.com/your-org/casa-deploy \
     --path control-plane \
-    --dest-namespace zta-prod \
+    --dest-namespace casa-prod \
     --dest-server https://kubernetes.default.svc
   ```
 
@@ -4706,7 +4706,7 @@ A: Set `ENABLE_AI_CHECKS=true` in auth service, add OpenAI API key, deploy embed
 
 **Q: Can I migrate from PoC to production without downtime?**
 A: Yes, using blue-green deployment:
-1. Deploy production control plane in new namespace (`zta-prod`)
+1. Deploy production control plane in new namespace (`casa-prod`)
 2. Migrate MAS one at a time (update sidecar auth URL)
 3. Run both systems in parallel during transition
 4. Decommission PoC once all workloads migrated
@@ -4715,7 +4715,7 @@ A: Yes, using blue-green deployment:
 A: Token issuance (DB writes). Mitigate with: (1) Redis caching, (2) longer token TTL, (3) connection pooling. In production, auth service can handle 10,000 tokens/sec with proper tuning.
 
 **Q: How do I debug "token not injected" issues?**
-A: Check sidecar logs: `kubectl logs -n dev-mas deployment/test-agent -c zta-sidecar | grep -i "token\|auth"`. Common causes: auth service unreachable, wrong scope requested, JWT signing key mismatch.
+A: Check sidecar logs: `kubectl logs -n dev-mas deployment/test-agent -c casa-sidecar | grep -i "token\|auth"`. Common causes: auth service unreachable, wrong scope requested, JWT signing key mismatch.
 
 **Q: Do I need to write agents differently for this system?**
 A: No. Agents call LLM and MCP servers normally. Sidecars handle all token operations transparently. Only requirement: agents must use service DNS names (not IPs) for traffic interception to work.
@@ -4767,7 +4767,7 @@ After deploying this PoC, you should be able to:
 
 1. **Deploy the PoC** (1-2 hours)
    ```bash
-   kind create cluster --name zta-poc
+   kind create cluster --name casa-poc
    kubectl apply -f control-plane.yaml
    kubectl apply -f data-plane.yaml
    ```
@@ -4795,8 +4795,8 @@ After deploying this PoC, you should be able to:
 
 ### Additional Resources
 
-- **Code repository:** [github.com/your-org/zta-poc](https://github.com/your-org/zta-poc)
-- **Slack channel:** `#zta-mas-deployment`
+- **Code repository:** [github.com/your-org/casa-poc](https://github.com/your-org/casa-poc)
+- **Slack channel:** `#casa-mas-deployment`
 - **Documentation:** [SPECS.md](./SPECS.md) | [BUILD.md](./BUILD.md)
 - **Cilium docs:** https://docs.cilium.io
 - **Envoy docs:** https://www.envoyproxy.io

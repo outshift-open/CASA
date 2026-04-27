@@ -6,7 +6,7 @@ title: Token Flow
 
 # Token Flow
 
-ZTA uses OAuth2 token exchange (RFC 8693) to create a chain of trust from user intent to tool execution. Every token is scoped to a specific purpose, and each exchange requires the previous token to be valid.
+CASA uses OAuth2 token exchange (RFC 8693) to create a chain of trust from user intent to tool execution. Every token is scoped to a specific purpose, and each exchange requires the previous token to be valid.
 
 ## Token Types
 
@@ -26,7 +26,7 @@ sequenceDiagram
     participant User
     participant Client
     participant ClientSidecar as Client Sidecar
-    participant ZTA as ZTA Control Plane
+    participant CASA as CASA Control Plane
     participant Agent
     participant AgentSidecar as Agent Sidecar
     participant LLM as External LLM
@@ -35,25 +35,25 @@ sequenceDiagram
 
     User->>Client: Submit prompt
     Client->>ClientSidecar: (outbound intercepted)
-    ClientSidecar->>ZTA: POST /oauth/token (client_credentials)
-    ZTA-->>ClientSidecar: T1 (user input token, stores prompt)
+    ClientSidecar->>CASA: POST /oauth/token (client_credentials)
+    CASA-->>ClientSidecar: T1 (user input token, stores prompt)
     ClientSidecar->>Agent: Forward request with T1
 
     Agent->>AgentSidecar: (outbound intercepted)
-    AgentSidecar->>ZTA: POST /oauth/token/exchange (T1 → T2, scope=llm-access)
-    ZTA-->>AgentSidecar: T2 (LLM-scoped token)
+    AgentSidecar->>CASA: POST /oauth/token/exchange (T1 → T2, scope=llm-access)
+    CASA-->>AgentSidecar: T2 (LLM-scoped token)
     AgentSidecar->>LLM: LLM call with T2
     LLM-->>AgentSidecar: Response (tool selections)
-    AgentSidecar->>ZTA: Log LLM trace (tools selected by LLM)
+    AgentSidecar->>CASA: Log LLM trace (tools selected by LLM)
 
     Agent->>AgentSidecar: (outbound to MCP intercepted)
-    AgentSidecar->>ZTA: POST /oauth/token/exchange (T1 → T3, tool=filesystem:read)
-    Note over ZTA: Run tool checks:<br/>1. Tool in LLM selection?<br/>2. Intent matches user prompt?
-    ZTA-->>AgentSidecar: T3 (call-tools token, tools=[filesystem:read])
+    AgentSidecar->>CASA: POST /oauth/token/exchange (T1 → T3, tool=filesystem:read)
+    Note over CASA: Run tool checks:<br/>1. Tool in LLM selection?<br/>2. Intent matches user prompt?
+    CASA-->>AgentSidecar: T3 (call-tools token, tools=[filesystem:read])
 
     AgentSidecar->>MCPSidecar: MCP call with T3
-    MCPSidecar->>ZTA: POST /oauth/introspect (T3)
-    ZTA-->>MCPSidecar: Active=true, tools=[filesystem:read]
+    MCPSidecar->>CASA: POST /oauth/introspect (T3)
+    CASA-->>MCPSidecar: Active=true, tools=[filesystem:read]
     MCPSidecar->>MCP: Forward MCP request
     MCP-->>MCPSidecar: Tool result
     MCPSidecar-->>Agent: Return result
@@ -63,7 +63,7 @@ sequenceDiagram
 
 If a tool check fails during token exchange (step where Agent requests T3):
 
-1. ZTA returns a 403 Forbidden response
+1. CASA returns a 403 Forbidden response
 2. The sidecar logs the denial with the tool name and check that failed
 3. The agent receives a 403 and cannot call the tool
 4. The event is recorded in telemetry for audit purposes
@@ -89,4 +89,4 @@ Applications are not aware of token operations. The sidecar handles everything:
 - On egress: intercepts the request, performs the token exchange, injects the token, forwards
 - On ingress: intercepts the request, introspects the token, allows or denies
 
-Your application code never sees tokens, never calls the control plane, and never needs to handle auth errors from ZTA.
+Your application code never sees tokens, never calls the control plane, and never needs to handle auth errors from CASA.

@@ -1,7 +1,7 @@
 apiVersion: extensions.istio.io/v1alpha1
 kind: WasmPlugin
 metadata:
-  name: zta-traceparent-injector
+  name: casa-traceparent-injector
   namespace: {{ .Release.Namespace }}
 spec:
   url: oci://{{ .Values.traceparent_injector.image.repository }}:{{ .Values.traceparent_injector.image.tag | default .Chart.AppVersion }}

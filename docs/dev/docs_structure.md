@@ -1,6 +1,6 @@
-# ZTA Documentation Strategy
+# CASA Documentation Strategy
 
-This document defines the information architecture and content decisions for the ZTA project documentation. It is intended for contributors and maintainers, not end users.
+This document defines the information architecture and content decisions for the CASA project documentation. It is intended for contributors and maintainers, not end users.
 
 ---
 
@@ -10,7 +10,7 @@ This document defines the information architecture and content decisions for the
 
 | Audience | Goal | Entry Point |
 |---|---|---|
-| Platform engineers / DevOps | Deploy ZTA control plane into a K8s cluster | README → Installation |
+| Platform engineers / DevOps | Deploy CASA control plane into a K8s cluster | README → Installation |
 | MAS application developers | Register and configure a Multi-Agent System | README → Concepts → CRDs |
 | Security engineers | Understand trust model, policy checks, enforcement layers | Architecture → Concepts |
 | OSS contributors | Understand codebase and contribute | Contributing |
@@ -18,7 +18,7 @@ This document defines the information architecture and content decisions for the
 ### What Belongs in the README
 
 - One-line description + badges
-- Why ZTA exists (problem statement, max 3 paragraphs)
+- Why CASA exists (problem statement, max 3 paragraphs)
 - High-level architecture diagram (single Mermaid diagram)
 - Core concept definitions (one paragraph each, no deep internals)
 - Quick start (Helm install, minimal steps)
@@ -55,22 +55,22 @@ docs/
 ├── Architecture
 │   ├── Overview                    ← global diagram + component summary
 │   ├── Control Plane               ← auth service, Keycloak, PostgreSQL, UI Explorer
-│   ├── ZTA Sidecar                 ← Envoy-based, inbound/outbound, iptables, ext-authz
+│   ├── CASA Sidecar                 ← Envoy-based, inbound/outbound, iptables, ext-authz
 │   └── eBPF Enforcement            ← Cilium L3/L4, JWT extraction, observability
 ├── Concepts
 │   ├── Multi-Agent Systems         ← MAS model, app types (agent, client, mcp_server)
-│   ├── CRDs                        ← MultiAgentSystem, ZTAPolicy
+│   ├── CRDs                        ← MultiAgentSystem, CASAPolicy
 │   ├── Token Flow                  ← OAuth2 client credentials, token exchange, introspection
 │   ├── Deterministic Checks        ← DETERMINISTIC_TOOL_SELECTED, DETERMINISTIC_LLM_SELECTED_TOOLS
 │   └── Semantic Checks             ← AI_POWERED_TOOL_MATCH, embeddings, LLM verifier
 ├── Installation
 │   ├── Prerequisites               ← kubectl, helm, cluster requirements
-│   ├── Control Plane               ← helm install zta-control-plane
-│   └── Demo MAS                    ← helm install zta-mas
+│   ├── Control Plane               ← helm install casa-control-plane
+│   └── Demo MAS                    ← helm install casa-mas
 ├── Configuration
 │   ├── Control Plane Values        ← values.yaml field reference
 │   ├── Demo MAS Values             ← values.yaml field reference
-│   └── CRDs Reference              ← field-by-field for MultiAgentSystem and ZTAPolicy
+│   └── CRDs Reference              ← field-by-field for MultiAgentSystem and CASAPolicy
 ├── Deployment Modes
 │   ├── Istio                       ← ext-authz middleware, namespace labeling, OTEL
 │   └── Cilium                      ← CiliumNetworkPolicy, eBPF programs, Hubble
@@ -92,9 +92,9 @@ docs/
 
 ## 3. Packaging and Configuration Decisions
 
-### Control Plane Chart (`zta-control-plane`)
+### Control Plane Chart (`casa-control-plane`)
 
-**Present as:** A self-contained Helm chart that deploys the ZTA control plane. All dependencies (PostgreSQL for auth, PostgreSQL for Keycloak, Keycloak) are bundled by default and can be disabled to use externally managed services.
+**Present as:** A self-contained Helm chart that deploys the CASA control plane. All dependencies (PostgreSQL for auth, PostgreSQL for Keycloak, Keycloak) are bundled by default and can be disabled to use externally managed services.
 
 **Dependency handling:**
 - `postgresAuth.enabled` / `postgresKeycloak.enabled` — set to `false` to use an external Postgres
@@ -112,9 +112,9 @@ docs/
 - Omit internal helpers and template internals
 - Note that `authorizationServer` in MultiAgentSystem CRD is transitional (scheduled for removal)
 
-### Demo MAS Chart (`zta-mas`)
+### Demo MAS Chart (`casa-mas`)
 
-**Present as:** A minimal reference deployment of a Multi-Agent System (one agent + one MCP server) used to demonstrate ZTA enforcement. Not production-ready; intended for learning and testing.
+**Present as:** A minimal reference deployment of a Multi-Agent System (one agent + one MCP server) used to demonstrate CASA enforcement. Not production-ready; intended for learning and testing.
 
 **Key config:**
 - `agent.mcp_server_url` — MCP server URL the agent will call
@@ -128,7 +128,7 @@ Both modes are first-class. Present them as two deployment options:
 | | Istio Mode | Cilium Mode |
 |---|---|---|
 | Sidecar injection | Istio automatic injection (`istio-injection=enabled` label) | Custom mutating webhook |
-| L7 enforcement | `ext_authz_middleware` (Go service) via Envoy ext_authz filter | ZTA sidecar (Envoy + Lua filters) |
+| L7 enforcement | `ext_authz_middleware` (Go service) via Envoy ext_authz filter | CASA sidecar (Envoy + Lua filters) |
 | L3/L4 enforcement | Istio NetworkPolicy (limited) | CiliumNetworkPolicy (recommended) |
 | Observability | OpenTelemetry + Jaeger (via OTEL collector) | Hubble + Prometheus |
 | Current status | Used in existing deployments | Described in SPECS, roadmap |
@@ -161,11 +161,11 @@ Configures the MAS workloads:
 
 Defines Zero Trust enforcement rules:
 - `MultiAgentSystem` — which apps are in the system, which tool checks are enabled
-- `ZTAPolicy` — per-workload allowed protocols, allowed endpoints, LLM endpoint
+- `CASAPolicy` — per-workload allowed protocols, allowed endpoints, LLM endpoint
 
 ### Integration Config (external system references)
 
-Points ZTA at external services:
+Points CASA at external services:
 - LLM endpoint FQDN (OpenAI-compatible API)
 - External Keycloak URL (when not using bundled Keycloak)
 - External PostgreSQL DSN
@@ -204,11 +204,11 @@ No other diagrams needed for v1.
 ### Sections (in order)
 
 1. Badges (existing pytest + pre-commit CI badges)
-2. `# ZTA — Zero Trust for Multi-Agent Systems`
+2. `# CASA — Continuous Agent Semantic Authorization`
 3. One-sentence description
-4. `## Why ZTA` — problem statement (3 short paragraphs)
+4. `## Why CASA` — problem statement (3 short paragraphs)
 5. `## Architecture` — Mermaid diagram + brief component list
-6. `## Core Concepts` — 6 definitions (Control Plane, MAS, ZTA Sidecar, MultiAgentSystem CRD, Deterministic Checks, Semantic Checks)
+6. `## Core Concepts` — 6 definitions (Control Plane, MAS, CASA Sidecar, MultiAgentSystem CRD, Deterministic Checks, Semantic Checks)
 7. `## Quick Start` — 5-step Helm deployment
 8. `## Repository Structure` — directory table
 9. `## Project Status` — alpha disclaimer
@@ -217,7 +217,7 @@ No other diagrams needed for v1.
 
 ### Tone Guidelines
 
-- Write for a senior engineer who has never heard of ZTA before
+- Write for a senior engineer who has never heard of CASA before
 - Lead with "what it does" not "how it works"
 - Be direct; no buzzword stacking
 - Avoid: "revolutionary", "seamlessly", "powerful", "leverage"
@@ -243,7 +243,7 @@ No other diagrams needed for v1.
 | Local dev | `npm start` with hot reload | Simple but limited |
 | Future scalability | Version branches, i18n, plugin ecosystem | Harder to grow |
 
-Docsify would be simpler for a single-page quick-reference. ZTA has ~20 doc pages with distinct sections and will add versioning as the CRD API matures. Docusaurus is the right long-term choice.
+Docsify would be simpler for a single-page quick-reference. CASA has ~20 doc pages with distinct sections and will add versioning as the CRD API matures. Docusaurus is the right long-term choice.
 
 **Local run:** `cd docs/ui && npm install && npm start`
 **Build:** `cd docs/ui && npm run build` (outputs to `docs/ui/build/`)

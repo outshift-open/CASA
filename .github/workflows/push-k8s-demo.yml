@@ -74,7 +74,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
-      image-name: "outshift-zta/demo-agent-safe"
+      image-name: "outshift-casa/demo-agent-safe"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
       context: demo/k8s/agent-safe
       dockerfile: demo/k8s/agent-safe/Dockerfile
@@ -94,7 +94,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
-      image-name: "outshift-zta/demo-agent-compromised"
+      image-name: "outshift-casa/demo-agent-compromised"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
       context: demo/k8s/agent-compromised
       dockerfile: demo/k8s/agent-compromised/Dockerfile
@@ -114,7 +114,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
-      image-name: "outshift-zta/k8s-demo-mcp"
+      image-name: "outshift-casa/k8s-demo-mcp"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
       context: demo/k8s/mcp
       dockerfile: demo/k8s/mcp/Dockerfile
@@ -134,7 +134,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
     with:
       runner-group: arc-runner-set
-      image-name: "outshift-zta/chat-ui"
+      image-name: "outshift-casa/chat-ui"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
       context: demo/chat-ui
       dockerfile: demo/chat-ui/Dockerfile

@@ -25,7 +25,7 @@ When an agent first receives a user input token (T1), that token encodes which t
 
 **What it checks:** Did the LLM actually select this tool for this request?
 
-When the agent calls the LLM and receives tool selections, the sidecar logs those selections to the ZTA control plane. When the agent then requests a tool token, this check verifies that the tool was among those logged LLM selections for the current request.
+When the agent calls the LLM and receives tool selections, the sidecar logs those selections to the CASA control plane. When the agent then requests a tool token, this check verifies that the tool was among those logged LLM selections for the current request.
 
 **Why it matters:** Prevents prompt injection attacks where an agent is manipulated into requesting tools that the LLM never selected. A compromised MCP server could try to trick an agent into calling unintended tools; this check blocks that.
 

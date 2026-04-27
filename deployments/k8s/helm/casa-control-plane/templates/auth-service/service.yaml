@@ -1,0 +1,18 @@
+{{- $component := "auth-service" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-auth-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "casa-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  type: {{ .Values.authService.service.type }}
+  selector:
+    {{- include "casa-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 4 }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.authService.service.port }}
+      targetPort: http

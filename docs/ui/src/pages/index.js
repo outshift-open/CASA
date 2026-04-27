@@ -51,7 +51,7 @@ const features = [
         icon: "🛡️",
         title: "Zero Trust, No Code Changes",
         description:
-            "ZTA enforces intent-scoped authorization at the sidecar level. Your agents and MCP servers need no SDK or configuration changes.",
+            "CASA enforces intent-scoped authorization at the sidecar level. Your agents and MCP servers need no SDK or configuration changes.",
         link: "/concepts/mas",
     },
     {
@@ -81,8 +81,8 @@ const quickLinks = [
 export default function Home() {
     return (
         <Layout
-            title="ZTA Docs"
-            description="Zero Trust for Multi-Agent Systems — Kubernetes-native authorization platform"
+            title="CASA Docs"
+            description="Continuous Agent Semantic Authorization — Kubernetes-native authorization platform"
         >
             <HomepageHeader />
             <main>

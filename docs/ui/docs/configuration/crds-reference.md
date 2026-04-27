@@ -6,11 +6,11 @@ title: CRDs Reference
 
 # CRDs Field Reference
 
-Full field reference for the `zta.io/v1alpha1` CRDs. For conceptual explanations, see [Concepts — CRDs](/concepts/crds).
+Full field reference for the `casa.io/v1alpha1` CRDs. For conceptual explanations, see [Concepts — CRDs](/concepts/crds).
 
 ## MultiAgentSystem
 
-**API group:** `zta.io`  
+**API group:** `casa.io`  
 **Version:** `v1alpha1`  
 **Kind:** `MultiAgentSystem`  
 **Short name:** `mas`  
@@ -48,7 +48,7 @@ Full field reference for the `zta.io/v1alpha1` CRDs. For conceptual explanations
 ### Complete Example
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: production-mas
@@ -77,16 +77,16 @@ spec:
 
 ---
 
-## ZTAPolicy
+## CASAPolicy
 
-**API group:** `zta.io`  
+**API group:** `casa.io`  
 **Version:** `v1alpha1`  
-**Kind:** `ZTAPolicy`  
-**Short name:** `ztap`  
+**Kind:** `CASAPolicy`  
+**Short name:** `casap`  
 **Scope:** Namespaced
 
 :::caution In Development
-`ZTAPolicy` is currently in development. Field names and semantics may change before the stable release. It controls per-workload **allowed protocols** and **LLM endpoint** allow-lists.
+`CASAPolicy` is currently in development. Field names and semantics may change before the stable release. It controls per-workload **allowed protocols** and **LLM endpoint** allow-lists.
 :::
 
 
@@ -117,8 +117,8 @@ spec:
 **Agent with MCP and A2A access:**
 
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: agent-policy
   namespace: production-mas
@@ -133,8 +133,8 @@ spec:
   - name: filesystem-mcp
     namespace: production-mas
     port: 8080
-  - name: zta-auth-service
-    namespace: zta-control-plane
+  - name: casa-auth-service
+    namespace: casa-control-plane
     port: 8443
   llmEndpoint:
     fqdn: api.openai.com
@@ -144,8 +144,8 @@ spec:
 **MCP server (inbound only):**
 
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: mcp-server-policy
   namespace: production-mas
@@ -156,16 +156,16 @@ spec:
   allowedProtocols:
   - mcp
   allowedEndpoints:
-  - name: zta-auth-service
-    namespace: zta-control-plane
+  - name: casa-auth-service
+    namespace: casa-control-plane
     port: 8443
 ```
 
 **Restricted agent (no LLM access):**
 
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: restricted-agent-policy
   namespace: production-mas
@@ -179,8 +179,8 @@ spec:
   - name: filesystem-mcp
     namespace: production-mas
     port: 8080
-  - name: zta-auth-service
-    namespace: zta-control-plane
+  - name: casa-auth-service
+    namespace: casa-control-plane
     port: 8443
   # No llmEndpoint — this agent cannot call external LLMs
 ```

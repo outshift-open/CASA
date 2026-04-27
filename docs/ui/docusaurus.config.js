@@ -3,7 +3,7 @@ const { themes: prismThemes } = require("prism-react-renderer");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-    title: "ZTA — Zero Trust for Multi-Agent Systems",
+    title: "CASA — Continuous Agent Semantic Authorization",
     tagline:
         "Cloud-native Zero Trust authorization for MAS, with no code changes required.",
     favicon: "img/favicon.ico",
@@ -50,11 +50,11 @@ const config = {
     themeConfig:
         /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
         ({
-            image: "img/zta-social-card.png",
+            image: "img/casa-social-card.png",
             navbar: {
-                title: "ZTA",
+                title: "CASA",
                 logo: {
-                    alt: "ZTA Logo",
+                    alt: "CASA Logo",
                     src: "img/logo.svg",
                 },
                 items: [

@@ -6,17 +6,17 @@ title: CRDs
 
 # Custom Resource Definitions
 
-ZTA defines two CRDs in the `zta.io/v1alpha1` API group:
+CASA defines two CRDs in the `casa.io/v1alpha1` API group:
 
 - `MultiAgentSystem` — declares the applications in a MAS and the tool checks to apply *(fully supported)*
-- `ZTAPolicy` — declares per-workload protocol and LLM endpoint policies, reconciled into network enforcement *(in development)*
+- `CASAPolicy` — declares per-workload protocol and LLM endpoint policies, reconciled into network enforcement *(in development)*
 
-Both are installed as part of the `zta-control-plane` Helm chart.
+Both are installed as part of the `casa-control-plane` Helm chart.
 
 ## MultiAgentSystem
 
 **Short name:** `mas`  
-**API:** `multiagentsystems.zta.io`  
+**API:** `multiagentsystems.casa.io`  
 **Status: Fully supported**
 
 ### Purpose
@@ -26,7 +26,7 @@ Declares a Multi-Agent System: which applications belong to it, what types they 
 ### Example
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: production-mas
@@ -78,25 +78,25 @@ spec:
 
 ---
 
-## ZTAPolicy
+## CASAPolicy
 
-**Short name:** `ztap`  
-**API:** `ztapolicies.zta.io`  
+**Short name:** `casap`  
+**API:** `casapolicies.casa.io`  
 **Status: In Development**
 
 :::caution In Development
-`ZTAPolicy` is currently in development and not yet available. It will control per-workload **allowed protocols** (`mcp`, `a2a`) and **LLM endpoints** (FQDN allow-list), and will reconcile automatically into network enforcement policies.
+`CASAPolicy` is currently in development and not yet available. It will control per-workload **allowed protocols** (`mcp`, `a2a`) and **LLM endpoints** (FQDN allow-list), and will reconcile automatically into network enforcement policies.
 :::
 
 ### Purpose
 
-Declares per-workload network access rules — specifically which protocols a workload may use and which external LLM endpoints it may reach. The ZTA operator reconciles these into network enforcement policies.
+Declares per-workload network access rules — specifically which protocols a workload may use and which external LLM endpoints it may reach. The CASA operator reconciles these into network enforcement policies.
 
 ### Example
 
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: agent-policy
   namespace: production-mas
@@ -111,8 +111,8 @@ spec:
   - name: filesystem-mcp
     namespace: production-mas
     port: 8080
-  - name: zta-auth-service
-    namespace: zta-control-plane
+  - name: casa-auth-service
+    namespace: casa-control-plane
     port: 8443
   llmEndpoint:
     fqdn: api.openai.com
@@ -149,8 +149,8 @@ spec:
 # List all MAS resources
 kubectl get mas --all-namespaces
 
-# List all ZTA policies
-kubectl get ztap --all-namespaces
+# List all CASA policies
+kubectl get casap --all-namespaces
 
 # Describe a specific MAS
 kubectl describe mas production-mas -n production-mas

@@ -1,4 +1,4 @@
-"""API for Identity Service ZTA."""
+"""API for Identity Service CASA."""
 
 import logging
 from contextlib import asynccontextmanager

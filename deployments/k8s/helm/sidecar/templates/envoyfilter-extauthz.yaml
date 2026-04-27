@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: zta-ext-auth-filter
+  name: casa-ext-auth-filter
   namespace: {{ .Release.Namespace }}
 spec:
   configPatches:

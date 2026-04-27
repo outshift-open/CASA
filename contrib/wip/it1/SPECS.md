@@ -1,4 +1,4 @@
-# Zero Trust Multi-Agent System (ZTA-MAS) - Kubernetes Deployment Specification
+# Zero Trust Multi-Agent System (CASA-MAS) - Kubernetes Deployment Specification
 
 ## Executive Summary
 
@@ -7,7 +7,7 @@ This document defines a production-ready Kubernetes architecture for deploying a
 **Key Architectural Decisions:**
 - **Sidecar-per-workload**: Every MCP server, User App, and Agent gets a Zero Trust sidecar proxy
 - **eBPF L3/L4 enforcement**: Cilium enforces deny-by-default networking with identity-aware policies
-- **Control plane separation**: ZTA control plane manages token issuance, validation, and policy distribution
+- **Control plane separation**: CASA control plane manages token issuance, validation, and policy distribution
 - **Protocol restrictions**: Only MCP (internal) and A2A (agent-to-agent) protocols allowed internally; single OpenAI-compatible LLM endpoint externally
 - **Token-aware enforcement**: eBPF captures and validates JWT tokens at network layer where feasible
 
@@ -85,32 +85,32 @@ This document defines a production-ready Kubernetes architecture for deploying a
 ```mermaid
 graph TB
     subgraph "Control Plane Namespace"
-        ZTA[ZTA Control Plane<br/>StatefulSet]
+        CASA[CASA Control Plane<br/>StatefulSet]
         KC[Keycloak IdP<br/>StatefulSet]
         PG[(PostgreSQL<br/>StatefulSet)]
-        UI[ZTA Explorer UI<br/>Deployment]
+        UI[CASA Explorer UI<br/>Deployment]
 
-        ZTA --> KC
-        ZTA --> PG
-        UI --> ZTA
+        CASA --> KC
+        CASA --> PG
+        UI --> CASA
     end
 
     subgraph "MAS Namespace: production-mas"
         subgraph "User App Pod"
             UA[User App<br/>Container]
-            UAS[ZTA Sidecar<br/>Proxy]
+            UAS[CASA Sidecar<br/>Proxy]
             UA -.-> UAS
         end
 
         subgraph "Agent Pod"
             AG[Agent<br/>Container]
-            AGS[ZTA Sidecar<br/>Proxy]
+            AGS[CASA Sidecar<br/>Proxy]
             AG -.-> AGS
         end
 
         subgraph "MCP Server Pod"
             MCP[MCP Server<br/>Container]
-            MCPS[ZTA Sidecar<br/>Proxy]
+            MCPS[CASA Sidecar<br/>Proxy]
             MCP -.-> MCPS
         end
 
@@ -127,19 +127,19 @@ graph TB
         EBPF[Network Policy Enforcement<br/>+ Token Validation<br/>+ Flow Logging]
     end
 
-    UAS -.->|Token Request| ZTA
-    AGS -.->|Token Exchange| ZTA
-    MCPS -.->|Token Introspection| ZTA
+    UAS -.->|Token Request| CASA
+    AGS -.->|Token Exchange| CASA
+    MCPS -.->|Token Introspection| CASA
 
     AGS -->|Allowed Egress| LLM
 
     EBPF -.->|Enforces All Traffic| UA
     EBPF -.->|Enforces All Traffic| AG
     EBPF -.->|Enforces All Traffic| MCP
-    EBPF -.->|Logs to| ZTA
+    EBPF -.->|Logs to| CASA
 
     style EBPF fill:#ff6b6b
-    style ZTA fill:#4ecdc4
+    style CASA fill:#4ecdc4
     style KC fill:#ffe66d
     style LLM fill:#95e1d3
 ```
@@ -167,29 +167,29 @@ graph LR
     end
 
     subgraph "Trust Boundary 3: Control Plane"
-        ZTA[ZTA Server]
+        CASA[CASA Server]
         KC[Keycloak]
         PG[(Database)]
     end
 
     U -->|HTTPS| ING
     ING -->|TLS| UAS
-    UAS -.->|AuthN/Z| ZTA
+    UAS -.->|AuthN/Z| CASA
     UA -->|Localhost| UAS
 
     AGS -->|TLS + Token| LLM
-    AGS -.->|Token Exchange| ZTA
+    AGS -.->|Token Exchange| CASA
 
     AG -->|Localhost| AGS
     MCP -->|Localhost| MCPS
 
-    MCPS -.->|Token Introspect| ZTA
-    ZTA --> KC
-    ZTA --> PG
+    MCPS -.->|Token Introspect| CASA
+    CASA --> KC
+    CASA --> PG
 
     style U fill:#ff6b6b
     style LLM fill:#ff6b6b
-    style ZTA fill:#95e1d3
+    style CASA fill:#95e1d3
     style KC fill:#95e1d3
     style PG fill:#95e1d3
 ```
@@ -202,7 +202,7 @@ sequenceDiagram
     participant UserApp
     participant UASidecar as UserApp Sidecar
     participant eBPF as Cilium eBPF
-    participant ZTA as ZTA Control Plane
+    participant CASA as CASA Control Plane
     participant Agent
     participant AgentSidecar as Agent Sidecar
     participant LLM as External LLM
@@ -211,38 +211,38 @@ sequenceDiagram
 
     User->>UserApp: Submit task/prompt
     UserApp->>UASidecar: Request token (client_credentials)
-    UASidecar->>eBPF: Egress to ZTA
-    eBPF->>eBPF: Check CiliumNetworkPolicy (allow ZTA)
-    eBPF->>ZTA: Forward request
-    ZTA->>ZTA: Store user input, generate token
-    ZTA-->>UASidecar: Return token (T1) with user_input_id
+    UASidecar->>eBPF: Egress to CASA
+    eBPF->>eBPF: Check CiliumNetworkPolicy (allow CASA)
+    eBPF->>CASA: Forward request
+    CASA->>CASA: Store user input, generate token
+    CASA-->>UASidecar: Return token (T1) with user_input_id
 
     UserApp->>Agent: Invoke agent with T1
     Agent->>AgentSidecar: Request LLM token exchange (T1 → T2)
-    AgentSidecar->>eBPF: Egress to ZTA
-    eBPF->>ZTA: Forward exchange request
-    ZTA->>ZTA: Validate T1, issue LLM-scoped token (T2)
-    ZTA-->>AgentSidecar: Return T2 (scope: llm-access)
+    AgentSidecar->>eBPF: Egress to CASA
+    eBPF->>CASA: Forward exchange request
+    CASA->>CASA: Validate T1, issue LLM-scoped token (T2)
+    CASA-->>AgentSidecar: Return T2 (scope: llm-access)
 
     Agent->>AgentSidecar: Call LLM with T2
     AgentSidecar->>eBPF: Egress to LLM
     eBPF->>eBPF: Extract JWT from header<br/>Validate scope=llm-access
     eBPF->>LLM: Forward if valid (deny otherwise)
     LLM-->>AgentSidecar: LLM response (tool selections)
-    AgentSidecar->>ZTA: Log LLM trace (tools selected)
+    AgentSidecar->>CASA: Log LLM trace (tools selected)
 
     Agent->>AgentSidecar: Request MCP token exchange (T1 → T3)
-    AgentSidecar->>ZTA: Exchange for tool "filesystem:read"
-    ZTA->>ZTA: Run tool checks:<br/>1. Tool in LLM selection?<br/>2. Intent matches user task?<br/>3. Embeddings match?
-    ZTA-->>AgentSidecar: Return T3 (scope: call-tools, tools=[filesystem:read])
+    AgentSidecar->>CASA: Exchange for tool "filesystem:read"
+    CASA->>CASA: Run tool checks:<br/>1. Tool in LLM selection?<br/>2. Intent matches user task?<br/>3. Embeddings match?
+    CASA-->>AgentSidecar: Return T3 (scope: call-tools, tools=[filesystem:read])
 
     Agent->>AgentSidecar: Call MCP tool with T3
     AgentSidecar->>eBPF: Egress to MCP
     eBPF->>eBPF: Extract JWT, validate scope=call-tools
     eBPF->>MCPSidecar: Forward (protocol=MCP only)
     MCPSidecar->>MCPSidecar: Extract token from MCP auth header
-    MCPSidecar->>ZTA: Introspect token T3
-    ZTA-->>MCPSidecar: Token valid, tools=[filesystem:read]
+    MCPSidecar->>CASA: Introspect token T3
+    CASA-->>MCPSidecar: Token valid, tools=[filesystem:read]
     MCPSidecar->>MCP: Forward MCP request
     MCP-->>MCPSidecar: Tool result
     MCPSidecar-->>Agent: Return result
@@ -254,7 +254,7 @@ sequenceDiagram
 
 ### 3.1 Decomposition Justification
 
-The monolithic ZTA server must be split to achieve:
+The monolithic CASA server must be split to achieve:
 1. **Scalability**: Token issuance, introspection, and AI pipelines have different scaling characteristics
 2. **Fault isolation**: AI pipeline failures shouldn't crash token validation
 3. **Security**: Introspection logic should run closer to workloads (sidecar) to reduce network trust
@@ -273,7 +273,7 @@ graph TB
     end
 
     subgraph "Data Plane Components"
-        SIDECAR[ZTA Sidecar Proxy<br/>Token Caching & Validation]
+        SIDECAR[CASA Sidecar Proxy<br/>Token Caching & Validation]
     end
 
     subgraph "Infrastructure"
@@ -331,7 +331,7 @@ graph TB
 - AI Pipeline Service (tool matching)
 - Telemetry Service (event emission)
 
-**Container Image:** `zta-auth-service:v1`
+**Container Image:** `casa-auth-service:v1`
 
 ---
 
@@ -358,7 +358,7 @@ graph TB
 - PostgreSQL (primary data store)
 - Redis (read cache)
 
-**Container Image:** `zta-policy-service:v1`
+**Container Image:** `casa-policy-service:v1`
 
 ---
 
@@ -395,7 +395,7 @@ graph TB
 - `EMBEDDINGS_THRESHOLD`: 0.0-1.0 (default 0.2)
 - `LLM_TEMPERATURE`: 0.0 (deterministic)
 
-**Container Image:** `zta-ai-pipeline-service:v1`
+**Container Image:** `casa-ai-pipeline-service:v1`
 
 ---
 
@@ -421,7 +421,7 @@ graph TB
 - PostgreSQL (event store)
 - Redis (event queue)
 
-**Container Image:** `zta-telemetry-service:v1`
+**Container Image:** `casa-telemetry-service:v1`
 
 ---
 
@@ -445,11 +445,11 @@ graph TB
 - MCP Protocol client library
 - PostgreSQL (tool metadata)
 
-**Container Image:** `zta-mcp-discovery-service:v1`
+**Container Image:** `casa-mcp-discovery-service:v1`
 
 ---
 
-#### 3.3.6 ZTA Sidecar Proxy (Data Plane)
+#### 3.3.6 CASA Sidecar Proxy (Data Plane)
 
 **Responsibilities:**
 - L7 HTTP/HTTPS proxy for application container
@@ -457,7 +457,7 @@ graph TB
 - Token introspection caching (TTL 30s)
 - Protocol enforcement (MCP, A2A)
 - Request/response logging
-- Fail-closed: Deny traffic if ZTA control plane unreachable
+- Fail-closed: Deny traffic if CASA control plane unreachable
 
 **Features:**
 - **Token Caching**: Cache introspection results to reduce control plane load
@@ -466,17 +466,17 @@ graph TB
 - **Metrics**: Prometheus endpoint for request rates, latencies, cache hit ratio
 
 **Configuration (Annotations/Env Vars):**
-- `ZTA_CONTROL_PLANE_URL`: URL of Auth Service
-- `ZTA_TELEMETRY_URL`: URL of Telemetry Service
-- `ZTA_APP_ID`: Application ID from Policy Service
-- `ZTA_ALLOWED_PROTOCOLS`: `mcp,a2a` (enforced at L7)
-- `ZTA_FAIL_OPEN`: `false` (fail-closed by default)
+- `CASA_CONTROL_PLANE_URL`: URL of Auth Service
+- `CASA_TELEMETRY_URL`: URL of Telemetry Service
+- `CASA_APP_ID`: Application ID from Policy Service
+- `CASA_ALLOWED_PROTOCOLS`: `mcp,a2a` (enforced at L7)
+- `CASA_FAIL_OPEN`: `false` (fail-closed by default)
 
 **Injection Method:**
-- Mutating webhook adds sidecar to pods with label `zta.io/enabled=true`
+- Mutating webhook adds sidecar to pods with label `casa.io/enabled=true`
 - Init container copies iptables rules to redirect app traffic to sidecar
 
-**Container Image:** `zta-sidecar-proxy:v1`
+**Container Image:** `casa-sidecar-proxy:v1`
 
 **Ports:**
 - `15001` - Inbound proxy (from other sidecars)
@@ -574,8 +574,8 @@ spec:
         protocol: TCP
   - toEndpoints:
     - matchLabels:
-        app: zta-auth-service  # Allow agent → ZTA
-        namespace: zta-control-plane
+        app: casa-auth-service  # Allow agent → CASA
+        namespace: casa-control-plane
     toPorts:
     - ports:
       - port: "443"
@@ -665,8 +665,8 @@ spec:
 - Network policy verdicts (allowed/denied)
 - Service dependency graph
 
-**Integration with ZTA Telemetry:**
-- Hubble exports flows to ZTA Telemetry Service
+**Integration with CASA Telemetry:**
+- Hubble exports flows to CASA Telemetry Service
 - Flows correlated with token events via pod identity
 - Example flow:
   ```json
@@ -711,7 +711,7 @@ graph LR
         APP[App Process<br/>:8000]
     end
 
-    subgraph "ZTA Sidecar Container"
+    subgraph "CASA Sidecar Container"
         INBOUND[Inbound Listener<br/>:15001]
         OUTBOUND[Outbound Listener<br/>:15002]
         ADMIN[Admin API<br/>:15003]
@@ -779,7 +779,7 @@ static_resources:
               transport_api_version: V3
               grpc_service:
                 envoy_grpc:
-                  cluster_name: zta_auth_service
+                  cluster_name: casa_auth_service
               failure_mode_allow: false  # FAIL CLOSED
               with_request_body:
                 max_request_bytes: 8192
@@ -815,7 +815,7 @@ static_resources:
               "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
               inline_code: |
                 function envoy_on_request(request_handle)
-                  -- Inject ZTA token
+                  -- Inject CASA token
                   local token = get_cached_token()
                   if token == nil then
                     token = exchange_token(request_handle)
@@ -844,7 +844,7 @@ static_resources:
                 address: 127.0.0.1
                 port_value: 8000
 
-  - name: zta_auth_service
+  - name: casa_auth_service
     type: STRICT_DNS
     connect_timeout: 5s
     typed_extension_protocol_options:
@@ -853,13 +853,13 @@ static_resources:
         explicit_http_config:
           http2_protocol_options: {}
     load_assignment:
-      cluster_name: zta_auth_service
+      cluster_name: casa_auth_service
       endpoints:
       - lb_endpoints:
         - endpoint:
             address:
               socket_address:
-                address: zta-auth-service.zta-control-plane.svc.cluster.local
+                address: casa-auth-service.casa-control-plane.svc.cluster.local
                 port_value: 8443
 ```
 
@@ -888,8 +888,8 @@ local ALLOWED_PROTOCOLS = {
 }
 
 function is_allowed_protocol(method, path)
-  local app_type = os.getenv("ZTA_APP_TYPE")  -- agent, mcp_server, user_app
-  local allowed = os.getenv("ZTA_ALLOWED_PROTOCOLS")  -- mcp,a2a
+  local app_type = os.getenv("CASA_APP_TYPE")  -- agent, mcp_server, user_app
+  local allowed = os.getenv("CASA_ALLOWED_PROTOCOLS")  -- mcp,a2a
 
   for protocol in string.gmatch(allowed, "[^,]+") do
     local proto_config = ALLOWED_PROTOCOLS[protocol]
@@ -943,7 +943,7 @@ end
 ```mermaid
 sequenceDiagram
     participant APP as Application
-    participant SIDECAR as ZTA Sidecar
+    participant SIDECAR as CASA Sidecar
     participant CACHE as Local Cache
     participant CTRL as Control Plane
 
@@ -978,7 +978,7 @@ sequenceDiagram
 - Enforce rate limits per token
 - Log authorization decisions to telemetry
 
-**Implementation:** Separate Go service (`zta-ext-authz:v1`)
+**Implementation:** Separate Go service (`casa-ext-authz:v1`)
 
 **gRPC Interface:**
 ```protobuf
@@ -1046,13 +1046,13 @@ func (s *AuthzServer) Check(ctx context.Context, req *CheckRequest) (*CheckRespo
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: zta-sidecar-injector
+  name: casa-sidecar-injector
 webhooks:
-- name: sidecar.zta.io
+- name: sidecar.casa.io
   clientConfig:
     service:
-      name: zta-injector
-      namespace: zta-system
+      name: casa-injector
+      namespace: casa-system
       path: /inject
   rules:
   - operations: ["CREATE"]
@@ -1061,10 +1061,10 @@ webhooks:
     resources: ["pods"]
   namespaceSelector:
     matchLabels:
-      zta.io/injection: enabled
+      casa.io/injection: enabled
   objectSelector:
     matchExpressions:
-    - key: zta.io/inject-sidecar
+    - key: casa.io/inject-sidecar
       operator: NotIn
       values: ["false"]
   admissionReviewVersions: ["v1"]
@@ -1076,7 +1076,7 @@ webhooks:
 ```go
 func (i *Injector) Inject(pod *corev1.Pod) (*corev1.Pod, error) {
     // Skip if already injected
-    if pod.Annotations["zta.io/sidecar-injected"] == "true" {
+    if pod.Annotations["casa.io/sidecar-injected"] == "true" {
         return pod, nil
     }
 
@@ -1088,25 +1088,25 @@ func (i *Injector) Inject(pod *corev1.Pod) (*corev1.Pod, error) {
     }
 
     // Determine app type from pod labels
-    appType := pod.Labels["zta.io/app-type"]  // agent, mcp_server, user_app
+    appType := pod.Labels["casa.io/app-type"]  // agent, mcp_server, user_app
     if appType == "" {
-        return nil, errors.New("missing label: zta.io/app-type")
+        return nil, errors.New("missing label: casa.io/app-type")
     }
 
     // Build sidecar container
     sidecar := corev1.Container{
-        Name:  "zta-sidecar",
-        Image: "zta-sidecar-proxy:v1.0.0",
+        Name:  "casa-sidecar",
+        Image: "casa-sidecar-proxy:v1.0.0",
         Ports: []corev1.ContainerPort{
             {Name: "inbound", ContainerPort: 15001},
             {Name: "outbound", ContainerPort: 15002},
             {Name: "admin", ContainerPort: 15003},
         },
         Env: []corev1.EnvVar{
-            {Name: "ZTA_CONTROL_PLANE_URL", Value: "https://zta-auth-service.zta-control-plane.svc:8443"},
-            {Name: "ZTA_APP_TYPE", Value: appType},
-            {Name: "ZTA_APP_ID", Value: pod.Labels["zta.io/app-id"]},
-            {Name: "ZTA_ALLOWED_PROTOCOLS", Value: getAllowedProtocols(appType)},
+            {Name: "CASA_CONTROL_PLANE_URL", Value: "https://casa-auth-service.casa-control-plane.svc:8443"},
+            {Name: "CASA_APP_TYPE", Value: appType},
+            {Name: "CASA_APP_ID", Value: pod.Labels["casa.io/app-id"]},
+            {Name: "CASA_ALLOWED_PROTOCOLS", Value: getAllowedProtocols(appType)},
         },
         VolumeMounts: []corev1.VolumeMount{
             {Name: "envoy-config", MountPath: "/etc/envoy"},
@@ -1115,8 +1115,8 @@ func (i *Injector) Inject(pod *corev1.Pod) (*corev1.Pod, error) {
 
     // Add init container for iptables
     initContainer := corev1.Container{
-        Name:  "zta-init",
-        Image: "zta-init:v1.0.0",
+        Name:  "casa-init",
+        Image: "casa-init:v1.0.0",
         SecurityContext: &corev1.SecurityContext{
             Capabilities: &corev1.Capabilities{
                 Add: []corev1.Capability{"NET_ADMIN"},
@@ -1134,7 +1134,7 @@ func (i *Injector) Inject(pod *corev1.Pod) (*corev1.Pod, error) {
     // Modify pod spec
     pod.Spec.InitContainers = append(pod.Spec.InitContainers, initContainer)
     pod.Spec.Containers = append(pod.Spec.Containers, sidecar)
-    pod.Annotations["zta.io/sidecar-injected"] = "true"
+    pod.Annotations["casa.io/sidecar-injected"] = "true"
 
     return pod, nil
 }
@@ -1166,7 +1166,7 @@ graph TB
             ING[Ingress Controller<br/>nginx/Cilium]
         end
 
-        subgraph "zta-control-plane Namespace"
+        subgraph "casa-control-plane Namespace"
             AUTH[Auth Service]
             POLICY[Policy Service]
             PIPE[AI Pipeline]
@@ -1243,13 +1243,13 @@ spec:
   egress: []   # Deny all egress
 ```
 
-#### 5.2.2 Allow User App → ZTA Control Plane
+#### 5.2.2 Allow User App → CASA Control Plane
 
 ```yaml
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: userapp-to-zta
+  name: userapp-to-casa
   namespace: production-mas
 spec:
   endpointSelector:
@@ -1258,8 +1258,8 @@ spec:
   egress:
   - toEndpoints:
     - matchLabels:
-        app: zta-auth-service
-        io.kubernetes.pod.namespace: zta-control-plane
+        app: casa-auth-service
+        io.kubernetes.pod.namespace: casa-control-plane
     toPorts:
     - ports:
       - port: "8443"
@@ -1335,7 +1335,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: control-plane-mesh
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   endpointSelector:
     matchLabels:
@@ -1347,7 +1347,7 @@ spec:
   - fromEndpoints:
     - matchLabels:
         io.kubernetes.pod.namespace: production-mas  # Allow MAS workloads
-        zta.io/enabled: "true"
+        casa.io/enabled: "true"
   egress:
   - toEndpoints:
     - matchLabels:
@@ -1365,32 +1365,32 @@ spec:
 **Cilium Security Identities:**
 - Each pod gets a numeric identity based on labels
 - Example identities:
-  - `1234` = `app=agent, namespace=production-mas, zta.io/enabled=true`
-  - `5678` = `app=mcp-server, namespace=production-mas, zta.io/enabled=true`
-  - `9012` = `app=zta-auth-service, namespace=zta-control-plane`
+  - `1234` = `app=agent, namespace=production-mas, casa.io/enabled=true`
+  - `5678` = `app=mcp-server, namespace=production-mas, casa.io/enabled=true`
+  - `9012` = `app=casa-auth-service, namespace=casa-control-plane`
 
 **Policy Enforcement:**
 - eBPF programs match identities, not IP addresses
 - Policies survive pod restarts/reschedules
 - Identity propagated in packet metadata (no IP dependency)
 
-**Example: Agent can only call MCP if both have ZTA sidecar**
+**Example: Agent can only call MCP if both have CASA sidecar**
 ```yaml
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: agent-to-mcp-zta-only
+  name: agent-to-mcp-casa-only
   namespace: production-mas
 spec:
   endpointSelector:
     matchLabels:
       app: agent
-      zta.io/enabled: "true"
+      casa.io/enabled: "true"
   egress:
   - toEndpoints:
     - matchLabels:
         app: mcp-server
-        zta.io/enabled: "true"  # Both must have sidecar
+        casa.io/enabled: "true"  # Both must have sidecar
 ```
 
 ### 5.4 Observability Pipeline
@@ -1399,7 +1399,7 @@ spec:
 graph LR
     subgraph "Data Sources"
         HUBBLE[Cilium Hubble<br/>Flow Logs]
-        SIDECAR[ZTA Sidecars<br/>L7 Logs]
+        SIDECAR[CASA Sidecars<br/>L7 Logs]
         CTRL[Control Plane<br/>Token Events]
     end
 
@@ -1416,7 +1416,7 @@ graph LR
     subgraph "Visualization"
         GRAFANA[Grafana<br/>Dashboards]
         HUBBLE_UI[Hubble UI<br/>Service Map]
-        ZTA_UI[ZTA Explorer<br/>Traces]
+        CASA_UI[CASA Explorer<br/>Traces]
     end
 
     HUBBLE -->|Flow JSON| TELEM
@@ -1431,7 +1431,7 @@ graph LR
     SIDECAR --> PROM
     CTRL --> PROM
 
-    PG --> ZTA_UI
+    PG --> CASA_UI
     LOKI --> GRAFANA
     PROM --> GRAFANA
     HUBBLE --> HUBBLE_UI
@@ -1668,7 +1668,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      zta.io/enabled: "true"
+      casa.io/enabled: "true"
   egress:
   - toFQDNs:
     - matchPattern: "api.openai.com"  # ONLY allowed LLM
@@ -1727,7 +1727,7 @@ graph TB
     subgraph "Agent Pod"
         subgraph "Containers"
             AGENT[Agent Container<br/>Port: 8000]
-            SIDECAR[ZTA Sidecar<br/>Port: 15001/15002]
+            SIDECAR[CASA Sidecar<br/>Port: 15001/15002]
             INIT[Init Container<br/>iptables setup]
         end
 
@@ -1768,13 +1768,13 @@ graph TB
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: zta-sidecar-config
+  name: casa-sidecar-config
   namespace: production-mas
 data:
   config.yaml: |
     app_id: "agent-abc-123"
-    control_plane_url: "https://zta-auth-service.zta-control-plane.svc.cluster.local:8443"
-    telemetry_url: "https://zta-telemetry-service.zta-control-plane.svc.cluster.local:8443"
+    control_plane_url: "https://casa-auth-service.casa-control-plane.svc.cluster.local:8443"
+    telemetry_url: "https://casa-telemetry-service.casa-control-plane.svc.cluster.local:8443"
     allowed_protocols:
       - mcp
       - a2a
@@ -1790,23 +1790,23 @@ data:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
 spec:
-  serviceName: zta-auth-service
+  serviceName: casa-auth-service
   replicas: 3
   selector:
     matchLabels:
-      app: zta-auth-service
+      app: casa-auth-service
   template:
     metadata:
       labels:
-        app: zta-auth-service
+        app: casa-auth-service
         tier: control-plane
     spec:
       containers:
       - name: auth-service
-        image: zta-auth-service:v1.0.0
+        image: casa-auth-service:v1.0.0
         ports:
         - containerPort: 8443
           name: https
@@ -1814,10 +1814,10 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: zta-db-credentials
+              name: casa-db-credentials
               key: url
         - name: KEYCLOAK_URL
-          value: "http://keycloak.zta-control-plane.svc.cluster.local:8080"
+          value: "http://keycloak.casa-control-plane.svc.cluster.local:8080"
         resources:
           requests:
             cpu: 500m
@@ -1854,7 +1854,7 @@ metadata:
   namespace: production-mas
   labels:
     app: agent
-    zta.io/enabled: "true"
+    casa.io/enabled: "true"
 spec:
   replicas: 5
   selector:
@@ -1864,15 +1864,15 @@ spec:
     metadata:
       labels:
         app: agent
-        zta.io/enabled: "true"
+        casa.io/enabled: "true"
       annotations:
-        zta.io/inject-sidecar: "true"
-        zta.io/app-id: "agent-abc-123"
+        casa.io/inject-sidecar: "true"
+        casa.io/app-id: "agent-abc-123"
     spec:
       initContainers:
-      - name: zta-init
-        image: zta-sidecar-proxy:v1.0.0
-        command: ["/usr/local/bin/zta-init.sh"]
+      - name: casa-init
+        image: casa-sidecar-proxy:v1.0.0
+        command: ["/usr/local/bin/casa-init.sh"]
         securityContext:
           capabilities:
             add: ["NET_ADMIN"]
@@ -1882,10 +1882,10 @@ spec:
         ports:
         - containerPort: 8000
         env:
-        - name: ZTA_SIDECAR_URL
+        - name: CASA_SIDECAR_URL
           value: "http://localhost:15001"
-      - name: zta-sidecar
-        image: zta-sidecar-proxy:v1.0.0
+      - name: casa-sidecar
+        image: casa-sidecar-proxy:v1.0.0
         ports:
         - containerPort: 15001
           name: inbound
@@ -1895,15 +1895,15 @@ spec:
           name: metrics
         volumeMounts:
         - name: token-cache
-          mountPath: /var/zta/tokens
+          mountPath: /var/casa/tokens
         - name: config
-          mountPath: /etc/zta
+          mountPath: /etc/casa
       volumes:
       - name: token-cache
         emptyDir: {}
       - name: config
         configMap:
-          name: zta-sidecar-config
+          name: casa-sidecar-config
 ```
 
 ---
@@ -1913,7 +1913,7 @@ spec:
 ### 7.1 Helm Chart Structure
 
 ```
-zta-mas-system/
+casa-mas-system/
 ├── Chart.yaml
 ├── values.yaml
 ├── values-prod.yaml
@@ -1946,7 +1946,7 @@ zta-mas-system/
 │   └── _helpers.tpl
 └── crds/
     ├── multiagentsystem-crd.yaml
-    ├── ztapolicy-crd.yaml
+    ├── casapolicy-crd.yaml
     └── mcpserver-crd.yaml
 ```
 
@@ -1958,9 +1958,9 @@ zta-mas-system/
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: multiagentsystems.zta.io
+  name: multiagentsystems.casa.io
 spec:
-  group: zta.io
+  group: casa.io
   names:
     kind: MultiAgentSystem
     plural: multiagentsystems
@@ -2019,7 +2019,7 @@ spec:
 
 **Example MultiAgentSystem Resource:**
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: production-mas
@@ -2043,19 +2043,19 @@ spec:
     baseUrl: "http://filesystem-mcp.production-mas.svc.cluster.local:8080"
 ```
 
-#### 7.2.2 ZTAPolicy CRD (Kubernetes-native policy definition)
+#### 7.2.2 CASAPolicy CRD (Kubernetes-native policy definition)
 
 ```yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: ztapolicies.zta.io
+  name: casapolicies.casa.io
 spec:
-  group: zta.io
+  group: casa.io
   names:
-    kind: ZTAPolicy
-    plural: ztapolicies
-    singular: ztapolicy
+    kind: CASAPolicy
+    plural: casapolicies
+    singular: casapolicy
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -2101,10 +2101,10 @@ spec:
                     type: integer
 ```
 
-**Example ZTAPolicy:**
+**Example CASAPolicy:**
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: agent-policy
   namespace: production-mas
@@ -2119,8 +2119,8 @@ spec:
   - name: filesystem-mcp
     namespace: production-mas
     port: 8080
-  - name: zta-auth-service
-    namespace: zta-control-plane
+  - name: casa-auth-service
+    namespace: casa-control-plane
     port: 8443
   llmEndpoint:
     fqdn: api.openai.com
@@ -2128,7 +2128,7 @@ spec:
 ```
 
 **Operator Behavior:**
-- Watches ZTAPolicy resources
+- Watches CASAPolicy resources
 - Generates CiliumNetworkPolicy from spec
 - Injects sidecar configuration
 - Reconciles on changes
@@ -2144,19 +2144,19 @@ package controllers
 
 import (
     "context"
-    ztav1alpha1 "github.com/zta-mas/api/v1alpha1"
+    casav1alpha1 "github.com/casa-mas/api/v1alpha1"
     ctrl "sigs.k8s.io/controller-runtime"
     "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type MultiAgentSystemReconciler struct {
     client.Client
-    ControlPlaneClient *ztaclient.Client
+    ControlPlaneClient *casaclient.Client
     KeycloakClient     *keycloak.Client
 }
 
 func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-    mas := &ztav1alpha1.MultiAgentSystem{}
+    mas := &casav1alpha1.MultiAgentSystem{}
     if err := r.Get(ctx, req.NamespacedName, mas); err != nil {
         return ctrl.Result{}, client.IgnoreNotFound(err)
     }
@@ -2214,14 +2214,14 @@ func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Req
     return ctrl.Result{RequeueAfter: 60 * time.Second}, nil
 }
 
-func (r *MultiAgentSystemReconciler) reconcileNetworkPolicies(ctx context.Context, mas *ztav1alpha1.MultiAgentSystem) error {
+func (r *MultiAgentSystemReconciler) reconcileNetworkPolicies(ctx context.Context, mas *casav1alpha1.MultiAgentSystem) error {
     // Generate default-deny policy
     defaultDeny := &ciliumv2.CiliumNetworkPolicy{
         ObjectMeta: metav1.ObjectMeta{
             Name:      "default-deny-all",
             Namespace: mas.Namespace,
             OwnerReferences: []metav1.OwnerReference{
-                *metav1.NewControllerRef(mas, ztav1alpha1.GroupVersion.WithKind("MultiAgentSystem")),
+                *metav1.NewControllerRef(mas, casav1alpha1.GroupVersion.WithKind("MultiAgentSystem")),
             },
         },
         Spec: &ciliumapi.NetworkPolicySpec{
@@ -2253,7 +2253,7 @@ func (r *MultiAgentSystemReconciler) reconcileNetworkPolicies(ctx context.Contex
     return nil
 }
 
-func (r *MultiAgentSystemReconciler) generateAgentToMCPPolicy(mas *ztav1alpha1.MultiAgentSystem, agent ztav1alpha1.App) *ciliumv2.CiliumNetworkPolicy {
+func (r *MultiAgentSystemReconciler) generateAgentToMCPPolicy(mas *casav1alpha1.MultiAgentSystem, agent casav1alpha1.App) *ciliumv2.CiliumNetworkPolicy {
     mcpServers := []string{}
     for _, app := range mas.Spec.Apps {
         if app.Type == "mcp_server" {
@@ -2268,7 +2268,7 @@ func (r *MultiAgentSystemReconciler) generateAgentToMCPPolicy(mas *ztav1alpha1.M
                 {
                     MatchLabels: map[string]string{
                         "app":                mcpServer,
-                        "zta.io/enabled":     "true",
+                        "casa.io/enabled":     "true",
                     },
                 },
             },
@@ -2293,14 +2293,14 @@ func (r *MultiAgentSystemReconciler) generateAgentToMCPPolicy(mas *ztav1alpha1.M
             Name:      fmt.Sprintf("%s-to-mcp", agent.Name),
             Namespace: mas.Namespace,
             OwnerReferences: []metav1.OwnerReference{
-                *metav1.NewControllerRef(mas, ztav1alpha1.GroupVersion.WithKind("MultiAgentSystem")),
+                *metav1.NewControllerRef(mas, casav1alpha1.GroupVersion.WithKind("MultiAgentSystem")),
             },
         },
         Spec: &ciliumapi.NetworkPolicySpec{
             EndpointSelector: ciliumapi.EndpointSelector{
                 MatchLabels: map[string]string{
                     "app":            agent.Name,
-                    "zta.io/enabled": "true",
+                    "casa.io/enabled": "true",
                 },
             },
             Egress: egressRules,
@@ -2309,20 +2309,20 @@ func (r *MultiAgentSystemReconciler) generateAgentToMCPPolicy(mas *ztav1alpha1.M
 }
 ```
 
-**Reconciliation Loop for ZTAPolicy:**
+**Reconciliation Loop for CASAPolicy:**
 
 ```go
-type ZTAPolicyReconciler struct {
+type CASAPolicyReconciler struct {
     client.Client
 }
 
-func (r *ZTAPolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-    policy := &ztav1alpha1.ZTAPolicy{}
+func (r *CASAPolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+    policy := &casav1alpha1.CASAPolicy{}
     if err := r.Get(ctx, req.NamespacedName, policy); err != nil {
         return ctrl.Result{}, client.IgnoreNotFound(err)
     }
 
-    // Generate CiliumNetworkPolicy from ZTAPolicy
+    // Generate CiliumNetworkPolicy from CASAPolicy
     cnp := r.translateToCiliumPolicy(policy)
 
     // Apply CiliumNetworkPolicy
@@ -2344,7 +2344,7 @@ func (r *ZTAPolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
     return ctrl.Result{}, nil
 }
 
-func (r *ZTAPolicyReconciler) translateToCiliumPolicy(policy *ztav1alpha1.ZTAPolicy) *ciliumv2.CiliumNetworkPolicy {
+func (r *CASAPolicyReconciler) translateToCiliumPolicy(policy *casav1alpha1.CASAPolicy) *ciliumv2.CiliumNetworkPolicy {
     egressRules := []ciliumapi.EgressRule{}
 
     // Add allowed endpoints
@@ -2389,7 +2389,7 @@ func (r *ZTAPolicyReconciler) translateToCiliumPolicy(policy *ztav1alpha1.ZTAPol
             Name:      fmt.Sprintf("%s-generated", policy.Name),
             Namespace: policy.Namespace,
             OwnerReferences: []metav1.OwnerReference{
-                *metav1.NewControllerRef(policy, ztav1alpha1.GroupVersion.WithKind("ZTAPolicy")),
+                *metav1.NewControllerRef(policy, casav1alpha1.GroupVersion.WithKind("CASAPolicy")),
             },
         },
         Spec: &ciliumapi.NetworkPolicySpec{
@@ -2409,22 +2409,22 @@ func (r *ZTAPolicyReconciler) translateToCiliumPolicy(policy *ztav1alpha1.ZTAPol
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zta-operator
-  namespace: zta-system
+  name: casa-operator
+  namespace: casa-system
 spec:
   replicas: 2  # HA
   selector:
     matchLabels:
-      app: zta-operator
+      app: casa-operator
   template:
     metadata:
       labels:
-        app: zta-operator
+        app: casa-operator
     spec:
-      serviceAccountName: zta-operator
+      serviceAccountName: casa-operator
       containers:
       - name: manager
-        image: zta-operator:v1.0.0
+        image: casa-operator:v1.0.0
         command:
         - /manager
         args:
@@ -2432,10 +2432,10 @@ spec:
         - --health-probe-bind-address=:8081
         - --metrics-bind-address=:8080
         env:
-        - name: ZTA_CONTROL_PLANE_URL
-          value: "https://zta-auth-service.zta-control-plane.svc:8443"
+        - name: CASA_CONTROL_PLANE_URL
+          value: "https://casa-auth-service.casa-control-plane.svc:8443"
         - name: KEYCLOAK_URL
-          value: "http://keycloak.zta-control-plane.svc:8080"
+          value: "http://keycloak.casa-control-plane.svc:8080"
         - name: KEYCLOAK_ADMIN_USER
           valueFrom:
             secretKeyRef:
@@ -2473,12 +2473,12 @@ global:
   imagePullPolicy: IfNotPresent
 
 controlPlane:
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 
   authService:
     replicas: 3
     image:
-      repository: zta-auth-service
+      repository: casa-auth-service
       tag: v1.0.0
     resources:
       requests:
@@ -2496,13 +2496,13 @@ controlPlane:
   policyService:
     replicas: 2
     image:
-      repository: zta-policy-service
+      repository: casa-policy-service
       tag: v1.0.0
 
   aiPipeline:
     replicas: 3
     image:
-      repository: zta-ai-pipeline-service
+      repository: casa-ai-pipeline-service
       tag: v1.0.0
     config:
       matcherType: hybrid
@@ -2514,7 +2514,7 @@ controlPlane:
   telemetry:
     replicas: 5
     image:
-      repository: zta-telemetry-service
+      repository: casa-telemetry-service
       tag: v1.0.0
     config:
       batchSize: 100
@@ -2523,7 +2523,7 @@ controlPlane:
   discovery:
     replicas: 2
     image:
-      repository: zta-mcp-discovery-service
+      repository: casa-mcp-discovery-service
       tag: v1.0.0
 
   keycloak:
@@ -2551,7 +2551,7 @@ controlPlane:
 
 sidecar:
   image:
-    repository: zta-sidecar-proxy
+    repository: casa-sidecar-proxy
     tag: v1.0.0
   resources:
     requests:
@@ -2580,7 +2580,7 @@ monitoring:
   grafana:
     enabled: true
     dashboards:
-      zta: true
+      casa: true
   loki:
     enabled: true
 ```
@@ -2639,7 +2639,7 @@ sidecar:
    apiVersion: batch/v1
    kind: Job
    metadata:
-     name: zta-pre-upgrade-backup
+     name: casa-pre-upgrade-backup
      annotations:
        "helm.sh/hook": pre-upgrade
        "helm.sh/hook-weight": "1"
@@ -2666,7 +2666,7 @@ sidecar:
    apiVersion: batch/v1
    kind: Job
    metadata:
-     name: zta-post-upgrade-migrate
+     name: casa-post-upgrade-migrate
      annotations:
        "helm.sh/hook": post-upgrade
    ```
@@ -2674,14 +2674,14 @@ sidecar:
 **Rollback Procedure:**
 ```bash
 # Rollback Helm release
-helm rollback zta-mas-system -n zta-control-plane
+helm rollback casa-mas-system -n casa-control-plane
 
 # Verify control plane health
-kubectl get pods -n zta-control-plane
-kubectl logs -n zta-control-plane deployment/zta-auth-service
+kubectl get pods -n casa-control-plane
+kubectl logs -n casa-control-plane deployment/casa-auth-service
 
 # Verify sidecar connectivity
-kubectl exec -n production-mas deployment/agent-deployment -c zta-sidecar -- curl localhost:15003/health
+kubectl exec -n production-mas deployment/agent-deployment -c casa-sidecar -- curl localhost:15003/health
 ```
 
 ### 7.6 Secrets Management
@@ -2698,7 +2698,7 @@ graph TB
     end
 
     subgraph "Kubernetes Secrets"
-        DB_SEC[zta-db-credentials]
+        DB_SEC[casa-db-credentials]
         KC_SEC[keycloak-admin-creds]
         LLM_SEC[openai-api-key]
         JWT_SEC[jwt-signing-keys]
@@ -2725,7 +2725,7 @@ graph TB
 **Secrets Structure:**
 ```
 secrets/
-├── zta-db-credentials              # PostgreSQL connection
+├── casa-db-credentials              # PostgreSQL connection
 │   ├── username
 │   ├── password
 │   └── url
@@ -2909,32 +2909,32 @@ export VAULT_ADDR=https://vault.vault.svc.cluster.local:8200
 export VAULT_TOKEN=<root-token>
 
 # Enable KV v2 secrets engine
-vault secrets enable -version=2 -path=zta/kv kv
+vault secrets enable -version=2 -path=casa/kv kv
 
 # Write static secrets
-vault kv put zta/kv/prod/database \
-  username=zta_admin \
+vault kv put casa/kv/prod/database \
+  username=casa_admin \
   password=$(openssl rand -base64 32) \
-  url=postgresql://postgres.zta-control-plane.svc.cluster.local:5432/zta
+  url=postgresql://postgres.casa-control-plane.svc.cluster.local:5432/casa
 
-vault kv put zta/kv/prod/keycloak \
+vault kv put casa/kv/prod/keycloak \
   admin_username=admin \
   admin_password=$(openssl rand -base64 32) \
-  realm=zta-realm
+  realm=casa-realm
 
-vault kv put zta/kv/prod/openai \
+vault kv put casa/kv/prod/openai \
   api_key=sk-... \
   organization_id=org-... \
   endpoint_url=https://api.openai.com/v1
 
-vault kv put zta/kv/prod/redis \
+vault kv put casa/kv/prod/redis \
   password=$(openssl rand -base64 32)
 
 # Generate JWT signing keys
 openssl genpkey -algorithm RSA -out /tmp/jwt-private.pem -pkeyopt rsa_keygen_bits:4096
 openssl rsa -pubout -in /tmp/jwt-private.pem -out /tmp/jwt-public.pem
 
-vault kv put zta/kv/prod/jwt \
+vault kv put casa/kv/prod/jwt \
   private_key=@/tmp/jwt-private.pem \
   public_key=@/tmp/jwt-public.pem
 ```
@@ -2942,18 +2942,18 @@ vault kv put zta/kv/prod/jwt \
 **Enable Dynamic Database Credentials:**
 ```bash
 # Enable database secrets engine
-vault secrets enable -path=zta/database database
+vault secrets enable -path=casa/database database
 
 # Configure PostgreSQL connection
-vault write zta/database/config/postgresql \
+vault write casa/database/config/postgresql \
   plugin_name=postgresql-database-plugin \
-  allowed_roles="zta-readonly,zta-readwrite" \
-  connection_url="postgresql://{{username}}:{{password}}@postgres.zta-control-plane.svc.cluster.local:5432/zta" \
+  allowed_roles="casa-readonly,casa-readwrite" \
+  connection_url="postgresql://{{username}}:{{password}}@postgres.casa-control-plane.svc.cluster.local:5432/casa" \
   username="vault-admin" \
   password="vault-admin-password"
 
 # Create role for read-only access
-vault write zta/database/roles/zta-readonly \
+vault write casa/database/roles/casa-readonly \
   db_name=postgresql \
   creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
     GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
@@ -2961,7 +2961,7 @@ vault write zta/database/roles/zta-readonly \
   max_ttl="24h"
 
 # Create role for read-write access (Auth Service)
-vault write zta/database/roles/zta-readwrite \
+vault write casa/database/roles/casa-readwrite \
   db_name=postgresql \
   creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
     GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
@@ -2969,12 +2969,12 @@ vault write zta/database/roles/zta-readwrite \
   max_ttl="24h"
 
 # Generate dynamic credentials (expires in 1h)
-vault read zta/database/creds/zta-readonly
+vault read casa/database/creds/casa-readonly
 # Key                Value
 # ---                -----
-# lease_id           zta/database/creds/zta-readonly/abc123
+# lease_id           casa/database/creds/casa-readonly/abc123
 # lease_duration     1h
-# username           v-root-zta-readonly-abc123xyz
+# username           v-root-casa-readonly-abc123xyz
 # password           A1a-random-password-xyz
 ```
 
@@ -2990,15 +2990,15 @@ vault write auth/kubernetes/config \
   kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
   token_reviewer_jwt=@/var/run/secrets/kubernetes.io/serviceaccount/token
 
-# Create policy for ZTA services
-vault policy write zta-services - <<EOF
+# Create policy for CASA services
+vault policy write casa-services - <<EOF
 # Allow reading static secrets
-path "zta/kv/data/prod/*" {
+path "casa/kv/data/prod/*" {
   capabilities = ["read"]
 }
 
 # Allow generating dynamic database credentials
-path "zta/database/creds/zta-readwrite" {
+path "casa/database/creds/casa-readwrite" {
   capabilities = ["read"]
 }
 
@@ -3008,28 +3008,28 @@ path "auth/token/renew-self" {
 }
 
 # Allow cert-manager to access PKI
-path "pki/intermediate/control-plane/sign/zta-services" {
+path "pki/intermediate/control-plane/sign/casa-services" {
   capabilities = ["create", "update"]
 }
 EOF
 
 # Create Kubernetes role bound to service accounts
-vault write auth/kubernetes/role/zta-auth-service \
-  bound_service_account_names=zta-auth-service \
-  bound_service_account_namespaces=zta-control-plane \
-  policies=zta-services \
+vault write auth/kubernetes/role/casa-auth-service \
+  bound_service_account_names=casa-auth-service \
+  bound_service_account_namespaces=casa-control-plane \
+  policies=casa-services \
   ttl=1h
 
-vault write auth/kubernetes/role/zta-policy-service \
-  bound_service_account_names=zta-policy-service \
-  bound_service_account_namespaces=zta-control-plane \
-  policies=zta-services \
+vault write auth/kubernetes/role/casa-policy-service \
+  bound_service_account_names=casa-policy-service \
+  bound_service_account_namespaces=casa-control-plane \
+  policies=casa-services \
   ttl=1h
 
 vault write auth/kubernetes/role/external-secrets-operator \
   bound_service_account_names=external-secrets \
   bound_service_account_namespaces=external-secrets \
-  policies=zta-services \
+  policies=casa-services \
   ttl=1h
 ```
 
@@ -3062,12 +3062,12 @@ apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
   name: vault-backend
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   provider:
     vault:
       server: "https://vault.vault.svc.cluster.local:8200"
-      path: "zta/kv"
+      path: "casa/kv"
       version: "v2"
       auth:
         kubernetes:
@@ -3083,15 +3083,15 @@ spec:
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: zta-db-credentials
-  namespace: zta-control-plane
+  name: casa-db-credentials
+  namespace: casa-control-plane
 spec:
   refreshInterval: 1h
   secretStoreRef:
     name: vault-backend
     kind: SecretStore
   target:
-    name: zta-db-credentials
+    name: casa-db-credentials
     creationPolicy: Owner
   data:
   - secretKey: username
@@ -3111,7 +3111,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: keycloak-admin-credentials
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -3137,7 +3137,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: openai-api-key
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -3159,7 +3159,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: jwt-signing-keys
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   refreshInterval: 24h  # JWT keys rotated daily
   secretStoreRef:
@@ -3186,23 +3186,23 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
   annotations:
     vault.hashicorp.com/agent-inject: "true"
-    vault.hashicorp.com/role: "zta-auth-service"
-    vault.hashicorp.com/agent-inject-secret-db-creds: "zta/database/creds/zta-readwrite"
+    vault.hashicorp.com/role: "casa-auth-service"
+    vault.hashicorp.com/agent-inject-secret-db-creds: "casa/database/creds/casa-readwrite"
     vault.hashicorp.com/agent-inject-template-db-creds: |
-      {{- with secret "zta/database/creds/zta-readwrite" -}}
+      {{- with secret "casa/database/creds/casa-readwrite" -}}
       export DB_USERNAME="{{ .Data.username }}"
       export DB_PASSWORD="{{ .Data.password }}"
-      export DB_URL="postgresql://{{ .Data.username }}:{{ .Data.password }}@postgres.zta-control-plane:5432/zta"
+      export DB_URL="postgresql://{{ .Data.username }}:{{ .Data.password }}@postgres.casa-control-plane:5432/casa"
       {{- end }}
 spec:
-  serviceAccountName: zta-auth-service
+  serviceAccountName: casa-auth-service
   containers:
   - name: auth-service
-    image: zta-auth-service:v1.0.0
+    image: casa-auth-service:v1.0.0
     command:
     - /bin/sh
     - -c
@@ -3229,7 +3229,7 @@ auto_auth {
   method "kubernetes" {
     mount_path = "auth/kubernetes"
     config = {
-      role = "zta-auth-service"
+      role = "casa-auth-service"
     }
   }
 
@@ -3272,7 +3272,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: rotate-jwt-keys
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   schedule: "0 2 * * 0"  # Every Sunday at 2 AM
   jobTemplate:
@@ -3294,20 +3294,20 @@ spec:
               vault login -method=kubernetes role=jwt-key-rotator
 
               # Read current keys
-              vault kv get -format=json zta/kv/prod/jwt > /tmp/old-keys.json
+              vault kv get -format=json casa/kv/prod/jwt > /tmp/old-keys.json
 
               # Generate new keys
               openssl genpkey -algorithm RSA -out /tmp/new-private.pem -pkeyopt rsa_keygen_bits:4096
               openssl rsa -pubout -in /tmp/new-private.pem -out /tmp/new-public.pem
 
               # Write new keys to Vault
-              vault kv put zta/kv/prod/jwt \
+              vault kv put casa/kv/prod/jwt \
                 private_key=@/tmp/new-private.pem \
                 public_key=@/tmp/new-public.pem \
                 previous_public_key=@/tmp/old-public.pem
 
               # Trigger Auth Service rollout
-              kubectl rollout restart deployment/zta-auth-service -n zta-control-plane
+              kubectl rollout restart deployment/casa-auth-service -n casa-control-plane
 
               echo "JWT keys rotated successfully"
           restartPolicy: OnFailure
@@ -3354,19 +3354,19 @@ spec:
               vault operator raft snapshot save /tmp/vault-snapshot-$(date +%Y%m%d-%H%M%S).snap
 
               # Upload to S3
-              aws s3 cp /tmp/vault-snapshot-*.snap s3://zta-vault-backups/snapshots/
+              aws s3 cp /tmp/vault-snapshot-*.snap s3://casa-vault-backups/snapshots/
 
               # Cleanup old local snapshots
               rm /tmp/vault-snapshot-*.snap
 
               # Cleanup old S3 snapshots (retain 30 days)
-              aws s3 ls s3://zta-vault-backups/snapshots/ | while read -r line; do
+              aws s3 ls s3://casa-vault-backups/snapshots/ | while read -r line; do
                 createDate=$(echo $line | awk '{print $1" "$2}')
                 createDateSec=$(date -d "$createDate" +%s)
                 olderThan=$(date -d "30 days ago" +%s)
                 if [[ $createDateSec -lt $olderThan ]]; then
                   fileName=$(echo $line | awk '{print $4}')
-                  aws s3 rm s3://zta-vault-backups/snapshots/$fileName
+                  aws s3 rm s3://casa-vault-backups/snapshots/$fileName
                 fi
               done
           restartPolicy: OnFailure
@@ -3377,7 +3377,7 @@ spec:
 # In DR scenario, restore Vault from snapshot
 
 # 1. Download latest snapshot from S3
-aws s3 cp s3://zta-vault-backups/snapshots/vault-snapshot-latest.snap /tmp/
+aws s3 cp s3://casa-vault-backups/snapshots/vault-snapshot-latest.snap /tmp/
 
 # 2. Port-forward to Vault pod
 kubectl port-forward -n vault vault-0 8200:8200
@@ -3386,7 +3386,7 @@ kubectl port-forward -n vault vault-0 8200:8200
 vault operator raft snapshot restore -force /tmp/vault-snapshot-latest.snap
 
 # 4. Verify data
-vault kv list zta/kv/prod/
+vault kv list casa/kv/prod/
 
 # 5. Restart all Vault pods to sync
 kubectl rollout restart statefulset/vault -n vault
@@ -3421,7 +3421,7 @@ kubectl apply -f bootstrap-sealed-secret.yaml
 
 **GitOps Repository Layout:**
 ```
-zta-mas-gitops/
+casa-mas-gitops/
 ├── apps/                           # Application definitions
 │   ├── control-plane/
 │   │   ├── argocd-application.yaml
@@ -3438,7 +3438,7 @@ zta-mas-gitops/
 │   ├── vault/
 │   └── external-secrets-operator/
 ├── charts/                         # Helm charts
-│   └── zta-mas-system/
+│   └── casa-mas-system/
 │       ├── Chart.yaml
 │       ├── values.yaml
 │       ├── templates/
@@ -3458,7 +3458,7 @@ zta-mas-gitops/
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: zta-control-plane
+  name: casa-control-plane
   namespace: argocd
 spec:
   generators:
@@ -3466,35 +3466,35 @@ spec:
       elements:
       - cluster: dev
         url: https://dev.k8s.example.com
-        namespace: zta-control-plane-dev
+        namespace: casa-control-plane-dev
         replicaCount: "1"
         resources: small
-        domain: dev.zta.example.com
+        domain: dev.casa.example.com
       - cluster: staging
         url: https://staging.k8s.example.com
-        namespace: zta-control-plane-staging
+        namespace: casa-control-plane-staging
         replicaCount: "2"
         resources: medium
-        domain: staging.zta.example.com
+        domain: staging.casa.example.com
       - cluster: prod
         url: https://prod.k8s.example.com
-        namespace: zta-control-plane
+        namespace: casa-control-plane
         replicaCount: "3"
         resources: large
-        domain: zta.example.com
+        domain: casa.example.com
   template:
     metadata:
-      name: 'zta-control-plane-{{cluster}}'
+      name: 'casa-control-plane-{{cluster}}'
       labels:
         environment: '{{cluster}}'
     spec:
-      project: zta
+      project: casa
       source:
-        repoURL: https://github.com/your-org/zta-mas-gitops
+        repoURL: https://github.com/your-org/casa-mas-gitops
         targetRevision: main
-        path: charts/zta-mas-system
+        path: charts/casa-mas-system
         helm:
-          releaseName: zta-mas-system
+          releaseName: casa-mas-system
           valueFiles:
           - values-{{cluster}}.yaml
           parameters:
@@ -3536,7 +3536,7 @@ metadata:
 spec:
   generators:
   - git:
-      repoURL: https://github.com/your-org/zta-mas-gitops
+      repoURL: https://github.com/your-org/casa-mas-gitops
       revision: main
       directories:
       - path: apps/mas-workloads/*
@@ -3544,9 +3544,9 @@ spec:
     metadata:
       name: '{{path.basename}}'
     spec:
-      project: zta
+      project: casa
       source:
-        repoURL: https://github.com/your-org/zta-mas-gitops
+        repoURL: https://github.com/your-org/casa-mas-gitops
         targetRevision: main
         path: '{{path}}'
       destination:
@@ -3567,23 +3567,23 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
 spec:
   replicas: 5
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: zta-auth-service
+      app: casa-auth-service
   template:
     metadata:
       labels:
-        app: zta-auth-service
+        app: casa-auth-service
         version: stable
     spec:
       containers:
       - name: auth-service
-        image: ghcr.io/your-org/zta-auth-service:v1.0.0
+        image: ghcr.io/your-org/casa-auth-service:v1.0.0
         ports:
         - containerPort: 8443
   strategy:
@@ -3606,11 +3606,11 @@ spec:
         startingStep: 2
         args:
         - name: service-name
-          value: zta-auth-service
+          value: casa-auth-service
       trafficRouting:
         istio:
           virtualService:
-            name: zta-auth-service
+            name: casa-auth-service
             routes:
             - primary
 ```
@@ -3621,7 +3621,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: success-rate
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   args:
   - name: service-name
@@ -3644,7 +3644,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: latency-p95
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   args:
   - name: service-name
@@ -3671,11 +3671,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
 spec:
   selector:
-    app: zta-auth-service
+    app: casa-auth-service
     version: blue  # Switch to 'green' during deployment
   ports:
   - port: 8443
@@ -3684,50 +3684,50 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zta-auth-service-blue
-  namespace: zta-control-plane
+  name: casa-auth-service-blue
+  namespace: casa-control-plane
   labels:
-    app: zta-auth-service
+    app: casa-auth-service
     version: blue
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: zta-auth-service
+      app: casa-auth-service
       version: blue
   template:
     metadata:
       labels:
-        app: zta-auth-service
+        app: casa-auth-service
         version: blue
     spec:
       containers:
       - name: auth-service
-        image: ghcr.io/your-org/zta-auth-service:v1.0.0
+        image: ghcr.io/your-org/casa-auth-service:v1.0.0
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zta-auth-service-green
-  namespace: zta-control-plane
+  name: casa-auth-service-green
+  namespace: casa-control-plane
   labels:
-    app: zta-auth-service
+    app: casa-auth-service
     version: green
 spec:
   replicas: 0  # Scaled up during deployment
   selector:
     matchLabels:
-      app: zta-auth-service
+      app: casa-auth-service
       version: green
   template:
     metadata:
       labels:
-        app: zta-auth-service
+        app: casa-auth-service
         version: green
     spec:
       containers:
       - name: auth-service
-        image: ghcr.io/your-org/zta-auth-service:v1.1.0  # New version
+        image: ghcr.io/your-org/casa-auth-service:v1.1.0  # New version
 ```
 
 **Automated Blue-Green Switch (ArgoCD Sync Wave):**
@@ -3735,7 +3735,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: zta-auth-service-deployment
+  name: casa-auth-service-deployment
   namespace: argocd
 spec:
   syncPolicy:
@@ -3743,10 +3743,10 @@ spec:
     - ApplyOutOfSyncOnly=true
   source:
     path: apps/control-plane/auth-service
-    repoURL: https://github.com/your-org/zta-mas-gitops
+    repoURL: https://github.com/your-org/casa-mas-gitops
     targetRevision: main
   destination:
-    namespace: zta-control-plane
+    namespace: casa-control-plane
     server: https://kubernetes.default.svc
   # Sync waves for blue-green:
   # Wave 0: Deploy green deployment (new version)
@@ -3760,8 +3760,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: zta-auth-service-smoke-test
-  namespace: zta-control-plane
+  name: casa-auth-service-smoke-test
+  namespace: casa-control-plane
   annotations:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
@@ -3778,7 +3778,7 @@ spec:
         - |
           # Test health endpoint
           for i in $(seq 1 30); do
-            if curl -f http://zta-auth-service-green:8443/health; then
+            if curl -f http://casa-auth-service-green:8443/health; then
               echo "Health check passed"
               exit 0
             fi
@@ -3796,11 +3796,11 @@ spec:
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: zta-mas-system
+  name: casa-mas-system
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://github.com/your-org/zta-mas-gitops
+  url: https://github.com/your-org/casa-mas-gitops
   ref:
     branch: main
   secretRef:
@@ -3812,20 +3812,20 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: zta-mas-system
+  name: casa-mas-system
   namespace: flux-system
 spec:
   interval: 10m
   chart:
     spec:
-      chart: ./charts/zta-mas-system
+      chart: ./charts/casa-mas-system
       sourceRef:
         kind: GitRepository
-        name: zta-mas-system
+        name: casa-mas-system
         namespace: flux-system
       interval: 1m
-  releaseName: zta-mas-system
-  targetNamespace: zta-control-plane
+  releaseName: casa-mas-system
+  targetNamespace: casa-control-plane
   install:
     createNamespace: true
     remediation:
@@ -3841,17 +3841,17 @@ spec:
   values:
     global:
       environment: production
-      domain: zta.example.com
+      domain: casa.example.com
   valuesFrom:
   - kind: ConfigMap
-    name: zta-mas-system-config
+    name: casa-mas-system-config
     valuesKey: values.yaml
   postRenderers:
   - kustomize:
       patches:
       - target:
           kind: Deployment
-          name: zta-auth-service
+          name: casa-auth-service
         patch: |
           - op: add
             path: /spec/template/metadata/annotations/prometheus.io~1scrape
@@ -3863,7 +3863,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: zta-control-plane
+  name: casa-control-plane
   namespace: flux-system
 spec:
   interval: 10m
@@ -3871,16 +3871,16 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: zta-mas-system
+    name: casa-mas-system
   healthChecks:
   - apiVersion: apps/v1
     kind: Deployment
-    name: zta-auth-service
-    namespace: zta-control-plane
+    name: casa-auth-service
+    namespace: casa-control-plane
   - apiVersion: apps/v1
     kind: StatefulSet
     name: postgresql
-    namespace: zta-control-plane
+    namespace: casa-control-plane
   timeout: 10m
   retryInterval: 2m
   postBuild:
@@ -3898,7 +3898,7 @@ spec:
 apiVersion: notification.toolkit.fluxcd.io/v1beta2
 kind: Alert
 metadata:
-  name: zta-mas-system-alert
+  name: casa-mas-system-alert
   namespace: flux-system
 spec:
   providerRef:
@@ -3906,9 +3906,9 @@ spec:
   eventSeverity: info
   eventSources:
   - kind: GitRepository
-    name: zta-mas-system
+    name: casa-mas-system
   - kind: HelmRelease
-    name: zta-mas-system
+    name: casa-mas-system
 ---
 apiVersion: notification.toolkit.fluxcd.io/v1beta2
 kind: Provider
@@ -3917,7 +3917,7 @@ metadata:
   namespace: flux-system
 spec:
   type: slack
-  channel: zta-deployments
+  channel: casa-deployments
   secretRef:
     name: slack-webhook-url
 ```
@@ -3930,7 +3930,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chartmuseum
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   replicas: 2
   selector:
@@ -3948,7 +3948,7 @@ spec:
         - name: STORAGE
           value: amazon
         - name: STORAGE_AMAZON_BUCKET
-          value: zta-helm-charts
+          value: casa-helm-charts
         - name: STORAGE_AMAZON_REGION
           value: us-west-2
         - name: AUTH_ANONYMOUS_GET
@@ -3972,12 +3972,12 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: zta-mas-system
+  name: casa-mas-system
   namespace: flux-system
 spec:
   chart:
     spec:
-      chart: zta-mas-system
+      chart: casa-mas-system
       version: 1.0.0
       sourceRef:
         kind: HelmRepository
@@ -3991,7 +3991,7 @@ metadata:
   namespace: flux-system
 spec:
   type: oci
-  url: oci://harbor.example.com/zta-charts
+  url: oci://harbor.example.com/casa-charts
   interval: 5m
   secretRef:
     name: harbor-credentials
@@ -4026,14 +4026,14 @@ graph LR
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: zta-dev
+  name: casa-dev
   namespace: argocd
 spec:
-  description: ZTA MAS Development Environment
+  description: CASA MAS Development Environment
   sourceRepos:
-  - https://github.com/your-org/zta-mas-gitops
+  - https://github.com/your-org/casa-mas-gitops
   destinations:
-  - namespace: 'zta-*-dev'
+  - namespace: 'casa-*-dev'
     server: https://dev.k8s.example.com
   clusterResourceWhitelist:
   - group: '*'
@@ -4045,14 +4045,14 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: zta-prod
+  name: casa-prod
   namespace: argocd
 spec:
-  description: ZTA MAS Production Environment
+  description: CASA MAS Production Environment
   sourceRepos:
-  - https://github.com/your-org/zta-mas-gitops
+  - https://github.com/your-org/casa-mas-gitops
   destinations:
-  - namespace: 'zta-control-plane'
+  - namespace: 'casa-control-plane'
     server: https://prod.k8s.example.com
   - namespace: 'production-mas'
     server: https://prod.k8s.example.com
@@ -4078,7 +4078,7 @@ spec:
     schedule: '0 0-6 * * *'  # Off-hours
     duration: 6h
     applications:
-    - 'zta-control-plane-*'
+    - 'casa-control-plane-*'
 ```
 
 **GitHub Actions for Promotion:**
@@ -4157,13 +4157,13 @@ graph TB
 
 | Component | Certificate Type | SAN (Subject Alternative Name) | Validity | Rotation |
 |-----------|-----------------|--------------------------------|----------|----------|
-| Root CA | Self-signed CA | `CN=ZTA Root CA` | 10 years | Manual (key ceremony) |
-| Control Plane CA | Intermediate CA | `CN=ZTA Control Plane CA` | 5 years | Manual (with root key) |
-| Data Plane CA | Intermediate CA | `CN=ZTA Data Plane CA` | 5 years | Manual (with root key) |
-| Auth Service | Server cert | `DNS:zta-auth-service.zta-control-plane.svc.cluster.local` | 90 days | cert-manager auto-renew |
-| Policy Service | Server cert | `DNS:zta-policy-service.zta-control-plane.svc.cluster.local` | 90 days | cert-manager auto-renew |
-| Agent Sidecar | Client+Server cert | `URI:spiffe://zta.io/ns/production-mas/sa/agent` | 24 hours | Envoy SDS auto-fetch |
-| MCP Sidecar | Client+Server cert | `URI:spiffe://zta.io/ns/production-mas/sa/mcp-server` | 24 hours | Envoy SDS auto-fetch |
+| Root CA | Self-signed CA | `CN=CASA Root CA` | 10 years | Manual (key ceremony) |
+| Control Plane CA | Intermediate CA | `CN=CASA Control Plane CA` | 5 years | Manual (with root key) |
+| Data Plane CA | Intermediate CA | `CN=CASA Data Plane CA` | 5 years | Manual (with root key) |
+| Auth Service | Server cert | `DNS:casa-auth-service.casa-control-plane.svc.cluster.local` | 90 days | cert-manager auto-renew |
+| Policy Service | Server cert | `DNS:casa-policy-service.casa-control-plane.svc.cluster.local` | 90 days | cert-manager auto-renew |
+| Agent Sidecar | Client+Server cert | `URI:spiffe://casa.io/ns/production-mas/sa/agent` | 24 hours | Envoy SDS auto-fetch |
+| MCP Sidecar | Client+Server cert | `URI:spiffe://casa.io/ns/production-mas/sa/mcp-server` | 24 hours | Envoy SDS auto-fetch |
 
 #### 7.8.2 cert-manager Configuration
 
@@ -4205,11 +4205,11 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: zta-root-ca
+  name: casa-root-ca
 spec:
   vault:
     server: https://vault.vault.svc.cluster.local:8200
-    path: pki/sign/zta-root-ca
+    path: pki/sign/casa-root-ca
     caBundle: <base64-encoded-vault-ca>
     auth:
       kubernetes:
@@ -4225,19 +4225,19 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: zta-control-plane-ca
-  namespace: zta-control-plane
+  name: casa-control-plane-ca
+  namespace: casa-control-plane
 spec:
-  secretName: zta-control-plane-ca-key-pair
+  secretName: casa-control-plane-ca-key-pair
   duration: 43800h  # 5 years
   renewBefore: 8760h  # 1 year before expiry
-  commonName: "ZTA Control Plane Intermediate CA"
+  commonName: "CASA Control Plane Intermediate CA"
   isCA: true
   usages:
   - cert sign
   - crl sign
   issuerRef:
-    name: zta-root-ca
+    name: casa-root-ca
     kind: ClusterIssuer
 ```
 
@@ -4246,21 +4246,21 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: zta-auth-service-tls
-  namespace: zta-control-plane
+  name: casa-auth-service-tls
+  namespace: casa-control-plane
 spec:
-  secretName: zta-auth-service-tls
+  secretName: casa-auth-service-tls
   duration: 2160h  # 90 days
   renewBefore: 360h  # 15 days before expiry
   subject:
     organizations:
-    - "ZTA Control Plane"
-  commonName: zta-auth-service
+    - "CASA Control Plane"
+  commonName: casa-auth-service
   dnsNames:
-  - zta-auth-service
-  - zta-auth-service.zta-control-plane
-  - zta-auth-service.zta-control-plane.svc
-  - zta-auth-service.zta-control-plane.svc.cluster.local
+  - casa-auth-service
+  - casa-auth-service.casa-control-plane
+  - casa-auth-service.casa-control-plane.svc
+  - casa-auth-service.casa-control-plane.svc.cluster.local
   ipAddresses:
   - 127.0.0.1
   usages:
@@ -4269,17 +4269,17 @@ spec:
   - server auth
   - client auth
   issuerRef:
-    name: zta-control-plane-ca
+    name: casa-control-plane-ca
     kind: Issuer
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: zta-control-plane-ca
-  namespace: zta-control-plane
+  name: casa-control-plane-ca
+  namespace: casa-control-plane
 spec:
   ca:
-    secretName: zta-control-plane-ca-key-pair
+    secretName: casa-control-plane-ca-key-pair
 ```
 
 #### 7.8.3 SPIFFE/SPIRE Integration for Sidecars
@@ -4354,7 +4354,7 @@ spec:
 server {
   bind_address = "0.0.0.0"
   bind_port = "8081"
-  trust_domain = "zta.io"
+  trust_domain = "casa.io"
   data_dir = "/run/spire/data"
   log_level = "INFO"
   ca_ttl = "24h"
@@ -4365,7 +4365,7 @@ plugins {
   DataStore "sql" {
     plugin_data {
       database_type = "postgres"
-      connection_string = "postgresql://spire:password@postgres.zta-control-plane:5432/spire"
+      connection_string = "postgresql://spire:password@postgres.casa-control-plane:5432/spire"
     }
   }
 
@@ -4378,7 +4378,7 @@ plugins {
   NodeAttestor "k8s_psat" {
     plugin_data {
       clusters = {
-        "zta-cluster" = {
+        "casa-cluster" = {
           service_account_allow_list = ["spire:spire-agent"]
         }
       }
@@ -4388,7 +4388,7 @@ plugins {
   UpstreamAuthority "vault" {
     plugin_data {
       vault_addr = "https://vault.vault.svc.cluster.local:8200"
-      pki_mount_point = "pki/intermediate/zta-data-plane"
+      pki_mount_point = "pki/intermediate/casa-data-plane"
       ca_cert_path = "/run/spire/vault-ca.crt"
       token_auth {
         token = "s.VAULT_TOKEN_HERE"
@@ -4452,11 +4452,11 @@ kind: ClusterSPIFFEID
 metadata:
   name: agent-sidecars
 spec:
-  spiffeIDTemplate: "spiffe://zta.io/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  spiffeIDTemplate: "spiffe://casa.io/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
   podSelector:
     matchLabels:
       app: agent
-      zta.io/sidecar: "true"
+      casa.io/sidecar: "true"
   workloadSelectorTemplates:
   - "k8s:ns:{{ .PodMeta.Namespace }}"
   - "k8s:sa:{{ .PodSpec.ServiceAccountName }}"
@@ -4515,7 +4515,7 @@ metadata:
   namespace: production-mas
   labels:
     app: agent
-    zta.io/sidecar: "true"
+    casa.io/sidecar: "true"
 spec:
   serviceAccountName: agent
   containers:
@@ -4523,7 +4523,7 @@ spec:
     image: my-agent:v1.0.0
     # Agent talks to localhost:15001 (sidecar)
 
-  - name: zta-sidecar
+  - name: casa-sidecar
     image: envoyproxy/envoy:v1.28.0
     args:
     - -c
@@ -4541,7 +4541,7 @@ spec:
   volumes:
   - name: envoy-config
     configMap:
-      name: zta-sidecar-envoy-config
+      name: casa-sidecar-envoy-config
   - name: spire-agent-socket
     hostPath:
       path: /run/spire/sockets
@@ -4566,7 +4566,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: certificate-expiry-alerts
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   groups:
   - name: certificates
@@ -4599,8 +4599,8 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: zta-ca-bundle
-  namespace: zta-control-plane
+  name: casa-ca-bundle
+  namespace: casa-control-plane
 data:
   ca-bundle.crt: |
     # Root CA Certificate
@@ -4621,22 +4621,22 @@ data:
 
 **Trust Bundle Injector (Mutating Webhook):**
 ```go
-// Inject CA bundle into all ZTA pods
+// Inject CA bundle into all CASA pods
 func (w *TrustBundleInjector) Handle(ctx context.Context, req admission.Request) admission.Response {
     pod := &corev1.Pod{}
     err := w.decoder.Decode(req, pod)
 
-    // Check if pod needs ZTA trust bundle
-    if pod.Labels["zta.io/enabled"] != "true" {
+    // Check if pod needs CASA trust bundle
+    if pod.Labels["casa.io/enabled"] != "true" {
         return admission.Allowed("")
     }
 
     // Add volume with CA bundle
     pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
-        Name: "zta-ca-bundle",
+        Name: "casa-ca-bundle",
         VolumeSource: corev1.VolumeSource{
             ConfigMap: &corev1.ConfigMapVolumeSource{
-                Name: "zta-ca-bundle",
+                Name: "casa-ca-bundle",
             },
         },
     })
@@ -4646,8 +4646,8 @@ func (w *TrustBundleInjector) Handle(ctx context.Context, req admission.Request)
         pod.Spec.Containers[i].VolumeMounts = append(
             pod.Spec.Containers[i].VolumeMounts,
             corev1.VolumeMount{
-                Name:      "zta-ca-bundle",
-                MountPath: "/etc/ssl/certs/zta-ca-bundle.crt",
+                Name:      "casa-ca-bundle",
+                MountPath: "/etc/ssl/certs/casa-ca-bundle.crt",
                 SubPath:   "ca-bundle.crt",
                 ReadOnly:  true,
             },
@@ -4658,7 +4658,7 @@ func (w *TrustBundleInjector) Handle(ctx context.Context, req admission.Request)
             pod.Spec.Containers[i].Env,
             corev1.EnvVar{
                 Name:  "SSL_CERT_FILE",
-                Value: "/etc/ssl/certs/zta-ca-bundle.crt",
+                Value: "/etc/ssl/certs/casa-ca-bundle.crt",
             },
         )
     }
@@ -4677,8 +4677,8 @@ vault secrets tune -max-lease-ttl=87600h pki  # 10 years
 
 # Generate root CA
 vault write -field=certificate pki/root/generate/internal \
-    common_name="ZTA Root CA" \
-    ttl=87600h > /tmp/zta-root-ca.crt
+    common_name="CASA Root CA" \
+    ttl=87600h > /tmp/casa-root-ca.crt
 
 # Configure CA and CRL URLs
 vault write pki/config/urls \
@@ -4691,7 +4691,7 @@ vault secrets tune -max-lease-ttl=43800h pki/intermediate/control-plane
 
 # Generate intermediate CSR
 vault write -format=json pki/intermediate/control-plane/intermediate/generate/internal \
-    common_name="ZTA Control Plane Intermediate CA" \
+    common_name="CASA Control Plane Intermediate CA" \
     | jq -r '.data.csr' > /tmp/control-plane.csr
 
 # Sign intermediate with root
@@ -4706,8 +4706,8 @@ vault write pki/intermediate/control-plane/intermediate/set-signed \
     certificate=@/tmp/control-plane-signed.crt
 
 # Create role for cert-manager
-vault write pki/intermediate/control-plane/roles/zta-services \
-    allowed_domains="zta-control-plane.svc.cluster.local" \
+vault write pki/intermediate/control-plane/roles/casa-services \
+    allowed_domains="casa-control-plane.svc.cluster.local" \
     allow_subdomains=true \
     max_ttl=2160h \
     key_type=rsa \
@@ -4731,11 +4731,11 @@ vault write auth/kubernetes/role/cert-manager \
 **Vault Policy for cert-manager:**
 ```hcl
 # Policy: cert-manager-policy
-path "pki/intermediate/control-plane/sign/zta-services" {
+path "pki/intermediate/control-plane/sign/casa-services" {
   capabilities = ["create", "update"]
 }
 
-path "pki/intermediate/control-plane/issue/zta-services" {
+path "pki/intermediate/control-plane/issue/casa-services" {
   capabilities = ["create", "update"]
 }
 
@@ -4784,7 +4784,7 @@ static_resources:
                   end
 
                   local spiffe_id = client_cert:uriSanPeerCertificate()
-                  if spiffe_id == nil or not string.match(spiffe_id, "^spiffe://zta.io/") then
+                  if spiffe_id == nil or not string.match(spiffe_id, "^spiffe://casa.io/") then
                     request_handle:respond({[":status"] = "403"}, "Invalid SPIFFE ID")
                     return
                   end
@@ -4809,7 +4809,7 @@ static_resources:
                   - envoy_grpc:
                       cluster_name: spire_agent
             validation_context_sds_secret_config:
-              name: "spiffe://zta.io"
+              name: "spiffe://casa.io"
               sds_config:
                 resource_api_version: V3
                 api_config_source:
@@ -4888,14 +4888,14 @@ static_resources:
   - Tool schemas validated against expected signature
 
 **Threat 5: Control Plane Compromise**
-- **Attack**: Attacker gains access to ZTA Auth Service, issues arbitrary tokens
+- **Attack**: Attacker gains access to CASA Auth Service, issues arbitrary tokens
 - **Impact**: Complete system compromise
 - **Mitigation**:
   - Control plane isolated in separate namespace
   - Network policies restrict ingress to control plane (only from MAS namespaces)
   - Secrets encrypted at rest (KMS)
   - Audit logging of all token operations
-  - Keycloak separated from ZTA (separate secret store)
+  - Keycloak separated from CASA (separate secret store)
 
 **Threat 6: Token Replay**
 - **Attack**: Attacker captures valid token, replays it from different location
@@ -4977,11 +4977,11 @@ This section provides comprehensive security hardening configurations including 
 
 **PSS Enforcement Strategy:**
 
-Kubernetes Pod Security Standards (PSS) replace deprecated Pod Security Policies (PSP). The ZTA-MAS system uses a tiered approach:
+Kubernetes Pod Security Standards (PSS) replace deprecated Pod Security Policies (PSP). The CASA-MAS system uses a tiered approach:
 
 | Namespace | PSS Level | Enforcement | Justification |
 |-----------|-----------|-------------|---------------|
-| zta-control-plane | Restricted | Enforce | High-value targets, no privileged access needed |
+| casa-control-plane | Restricted | Enforce | High-value targets, no privileged access needed |
 | production-mas | Restricted | Enforce | Untrusted workloads (agents, apps) must be isolated |
 | dev-mas | Baseline | Warn | Development flexibility with warnings |
 | kube-system | Privileged | Audit | System components may need host access |
@@ -4991,11 +4991,11 @@ Kubernetes Pod Security Standards (PSS) replace deprecated Pod Security Policies
 **PSS Label Application:**
 
 ```yaml
-# zta-control-plane namespace with Restricted PSS
+# casa-control-plane namespace with Restricted PSS
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: zta-control-plane
+  name: casa-control-plane
   labels:
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/enforce-version: v1.27
@@ -5007,7 +5007,7 @@ metadata:
 
 **Restricted PSS Requirements:**
 
-All pods in `zta-control-plane` and `production-mas` must:
+All pods in `casa-control-plane` and `production-mas` must:
 
 1. **No Privileged Containers:**
    ```yaml
@@ -5062,12 +5062,12 @@ All pods in `zta-control-plane` and `production-mas` must:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
 spec:
   template:
     spec:
-      serviceAccountName: zta-auth-service
+      serviceAccountName: casa-auth-service
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -5078,7 +5078,7 @@ spec:
 
       containers:
       - name: auth-service
-        image: ghcr.io/your-org/zta-auth-service:v1.0.0
+        image: ghcr.io/your-org/casa-auth-service:v1.0.0
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -5221,7 +5221,7 @@ spec:
     - apiGroups: [""]
       kinds: ["Pod"]
     namespaces:
-    - zta-control-plane
+    - casa-control-plane
     - production-mas
 ```
 
@@ -5319,32 +5319,32 @@ spec:
     - apiGroups: [""]
       kinds: ["Pod"]
     namespaces:
-    - zta-control-plane
+    - casa-control-plane
     - production-mas
 ```
 
-**5. Require ZTA Sidecar Annotation:**
+**5. Require CASA Sidecar Annotation:**
 
 ```yaml
 apiVersion: templates.gatekeeper.sh/v1
 kind: ConstraintTemplate
 metadata:
-  name: k8srequireztasidecar
+  name: k8srequirecasasidecar
 spec:
   crd:
     spec:
       names:
-        kind: K8sRequireZTASidecar
+        kind: K8sRequireCASASidecar
   targets:
   - target: admission.k8s.gatekeeper.sh
     rego: |
-      package k8srequireztasidecar
+      package k8srequirecasasidecar
 
       violation[{"msg": msg}] {
         input.review.object.kind == "Pod"
         input.review.object.metadata.namespace == "production-mas"
-        not input.review.object.metadata.labels["zta.io/enabled"]
-        msg := "Pods in production-mas must have zta.io/enabled label"
+        not input.review.object.metadata.labels["casa.io/enabled"]
+        msg := "Pods in production-mas must have casa.io/enabled label"
       }
 ```
 
@@ -5393,42 +5393,42 @@ helm install falco falcosecurity/falco \
   --set falcoctl.artifact.follow.enabled=true
 ```
 
-**Custom Falco Rules (ZTA-specific):**
+**Custom Falco Rules (CASA-specific):**
 
 ```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: falco-rules-zta
+  name: falco-rules-casa
   namespace: falco
 data:
-  zta_rules.yaml: |
+  casa_rules.yaml: |
     # Detect token exfiltration attempts
     - rule: Token Exfiltration Attempt
       desc: Detect attempts to send tokens to external endpoints
       condition: >
         (proc.name in (curl, wget, nc, ncat)) and
         (fd.name glob "*Authorization*" or fd.name glob "*Bearer*") and
-        not fd.net in (zta-auth-service.zta-control-plane.svc.cluster.local, api.openai.com)
+        not fd.net in (casa-auth-service.casa-control-plane.svc.cluster.local, api.openai.com)
       output: >
         Token exfiltration attempt detected
         (user=%user.name command=%proc.cmdline container=%container.name
         image=%container.image.repository dest=%fd.name)
       priority: CRITICAL
-      tags: [zta, token_exfiltration, network]
+      tags: [casa, token_exfiltration, network]
 
     # Detect privilege escalation
-    - rule: Privilege Escalation in ZTA Namespace
-      desc: Detect privilege escalation attempts in ZTA namespaces
+    - rule: Privilege Escalation in CASA Namespace
+      desc: Detect privilege escalation attempts in CASA namespaces
       condition: >
         spawned_process and
-        (container.ns in (zta-control-plane, production-mas)) and
+        (container.ns in (casa-control-plane, production-mas)) and
         (proc.name in (sudo, su, setuid, chmod, chown))
       output: >
         Privilege escalation attempt
         (user=%user.name command=%proc.cmdline container=%container.name)
       priority: CRITICAL
-      tags: [zta, privilege_escalation]
+      tags: [casa, privilege_escalation]
 
     # Detect unauthorized file writes
     - rule: Write to Sensitive Directory
@@ -5441,7 +5441,7 @@ data:
         Unauthorized file write to sensitive directory
         (user=%user.name file=%fd.name container=%container.name command=%proc.cmdline)
       priority: WARNING
-      tags: [zta, filesystem, integrity]
+      tags: [casa, filesystem, integrity]
 
     # Detect unexpected network connections
     - rule: Unexpected Outbound Connection
@@ -5449,13 +5449,13 @@ data:
       condition: >
         outbound and
         container.ns = production-mas and
-        not fd.sip in (zta-auth-service, zta-policy-service, api.openai.com) and
+        not fd.sip in (casa-auth-service, casa-policy-service, api.openai.com) and
         not fd.sport in (443, 8443)
       output: >
         Unexpected outbound connection
         (container=%container.name dest_ip=%fd.sip dest_port=%fd.sport command=%proc.cmdline)
       priority: WARNING
-      tags: [zta, network, lateral_movement]
+      tags: [casa, network, lateral_movement]
 
     # Detect container escape attempts
     - rule: Container Escape Attempt
@@ -5469,7 +5469,7 @@ data:
         Container escape attempt detected
         (user=%user.name command=%proc.cmdline container=%container.name)
       priority: CRITICAL
-      tags: [zta, container_escape, breakout]
+      tags: [casa, container_escape, breakout]
 
     # Detect crypto mining
     - rule: Crypto Mining Activity
@@ -5483,7 +5483,7 @@ data:
         Crypto mining activity detected
         (user=%user.name command=%proc.cmdline container=%container.name)
       priority: CRITICAL
-      tags: [zta, cryptomining, malware]
+      tags: [casa, cryptomining, malware]
 ```
 
 **Falco Alert Integration (Slack):**
@@ -5504,7 +5504,7 @@ data:
 
     rules_file:
     - /etc/falco/falco_rules.yaml
-    - /etc/falco/zta_rules.yaml
+    - /etc/falco/casa_rules.yaml
 
     priority: WARNING
     buffered_outputs: true
@@ -5561,12 +5561,12 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Build image
-      run: docker build -t zta-auth-service:${{ github.sha }} .
+      run: docker build -t casa-auth-service:${{ github.sha }} .
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: 'zta-auth-service:${{ github.sha }}'
+        image-ref: 'casa-auth-service:${{ github.sha }}'
         format: 'sarif'
         output: 'trivy-results.sarif'
         severity: 'CRITICAL,HIGH'
@@ -5581,7 +5581,7 @@ jobs:
     - name: Trivy HTML Report
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: 'zta-auth-service:${{ github.sha }}'
+        image-ref: 'casa-auth-service:${{ github.sha }}'
         format: 'template'
         template: '@/contrib/html.tpl'
         output: 'trivy-report.html'
@@ -5610,11 +5610,11 @@ helm install trivy-operator aqua/trivy-operator \
 
 ```bash
 # Get vulnerability reports
-kubectl get vulnerabilityreports -n zta-control-plane
+kubectl get vulnerabilityreports -n casa-control-plane
 
 # Get detailed report
-kubectl get vulnerabilityreport -n zta-control-plane \
-  deployment-zta-auth-service-zta-auth-service -o yaml
+kubectl get vulnerabilityreport -n casa-control-plane \
+  deployment-casa-auth-service-casa-auth-service -o yaml
 
 # Example output:
 # report:
@@ -5696,7 +5696,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: control-plane-isolation
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   podSelector:
     matchLabels:
@@ -5704,14 +5704,14 @@ spec:
   policyTypes:
   - Ingress
   ingress:
-  # Only allow from MAS namespaces with ZTA sidecar
+  # Only allow from MAS namespaces with CASA sidecar
   - from:
     - namespaceSelector:
         matchLabels:
-          zta.io/mas: "true"
+          casa.io/mas: "true"
     - podSelector:
         matchLabels:
-          zta.io/enabled: "true"
+          casa.io/enabled: "true"
     ports:
     - protocol: TCP
       port: 8443
@@ -5751,7 +5751,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
   name: vault-backend
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   provider:
     vault:
@@ -5761,13 +5761,13 @@ spec:
       auth:
         kubernetes:
           mountPath: "kubernetes"
-          role: "zta-auth-service"
+          role: "casa-auth-service"
           serviceAccountRef:
-            name: "zta-auth-service"
+            name: "casa-auth-service"
       # TLS verification
       caBundle: <base64-encoded-ca-cert>
       # Namespace restriction
-      namespace: "zta-control-plane"
+      namespace: "casa-control-plane"
 ```
 
 **Rotate Secrets Automatically:**
@@ -5777,7 +5777,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: rotate-db-credentials
-  namespace: zta-control-plane
+  namespace: casa-control-plane
 spec:
   schedule: "0 0 * * 0"  # Weekly
   jobTemplate:
@@ -5793,11 +5793,11 @@ spec:
             - -c
             - |
               # Generate new credentials in Vault
-              vault write database/rotate-role/zta-db-role
+              vault write database/rotate-role/casa-db-role
 
               # Restart deployments to pick up new credentials
-              kubectl rollout restart deployment/zta-auth-service -n zta-control-plane
-              kubectl rollout restart deployment/zta-policy-service -n zta-control-plane
+              kubectl rollout restart deployment/casa-auth-service -n casa-control-plane
+              kubectl rollout restart deployment/casa-policy-service -n casa-control-plane
 ```
 
 #### 8.4.7 RBAC Hardening
@@ -5809,40 +5809,40 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
 rules:
 # Read-only access to ConfigMaps
 - apiGroups: [""]
   resources: ["configmaps"]
   verbs: ["get", "list"]
-  resourceNames: ["zta-auth-config"]
+  resourceNames: ["casa-auth-config"]
 
 # Read-only access to Secrets
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get"]
-  resourceNames: ["zta-db-credentials", "openai-api-key"]
+  resourceNames: ["casa-db-credentials", "openai-api-key"]
 
 # No pod exec, no secrets create/delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
 subjects:
 - kind: ServiceAccount
-  name: zta-auth-service
+  name: casa-auth-service
 roleRef:
   kind: Role
-  name: zta-auth-service
+  name: casa-auth-service
   apiGroup: rbac.authorization.k8s.io
 ```
 
@@ -5850,10 +5850,10 @@ roleRef:
 
 ```bash
 # List all RBAC permissions for a ServiceAccount
-kubectl auth can-i --list --as=system:serviceaccount:zta-control-plane:zta-auth-service
+kubectl auth can-i --list --as=system:serviceaccount:casa-control-plane:casa-auth-service
 
 # Check specific permission
-kubectl auth can-i delete secrets --as=system:serviceaccount:zta-control-plane:zta-auth-service
+kubectl auth can-i delete secrets --as=system:serviceaccount:casa-control-plane:casa-auth-service
 # Expected: no
 ```
 
@@ -5935,42 +5935,42 @@ kubectl auth can-i delete secrets --as=system:serviceaccount:zta-control-plane:z
 **Diagnosis:**
 1. Check AI Pipeline Service latency:
    ```bash
-   kubectl logs -n zta-control-plane deployment/zta-ai-pipeline-service | grep "matcher_latency"
+   kubectl logs -n casa-control-plane deployment/casa-ai-pipeline-service | grep "matcher_latency"
    ```
 2. Check external LLM API status (OpenAI status page)
 3. Check PostgreSQL connection pool exhaustion:
    ```bash
-   kubectl exec -n zta-control-plane statefulset/postgresql -- psql -c "SELECT count(*) FROM pg_stat_activity;"
+   kubectl exec -n casa-control-plane statefulset/postgresql -- psql -c "SELECT count(*) FROM pg_stat_activity;"
    ```
 
 **Remediation:**
 1. Scale up AI Pipeline replicas:
    ```bash
-   kubectl scale deployment/zta-ai-pipeline-service -n zta-control-plane --replicas=20
+   kubectl scale deployment/casa-ai-pipeline-service -n casa-control-plane --replicas=20
    ```
 2. Increase cache TTL for embeddings:
    ```bash
-   kubectl set env deployment/zta-ai-pipeline-service -n zta-control-plane EMBEDDING_CACHE_TTL=3600
+   kubectl set env deployment/casa-ai-pipeline-service -n casa-control-plane EMBEDDING_CACHE_TTL=3600
    ```
 3. Fallback to embeddings-only matcher:
    ```bash
-   kubectl set env deployment/zta-ai-pipeline-service -n zta-control-plane MATCHER_TYPE=embeddings
+   kubectl set env deployment/casa-ai-pipeline-service -n casa-control-plane MATCHER_TYPE=embeddings
    ```
 
 #### Runbook 2: Sidecar Not Injecting
 
 **Symptoms:**
-- New pods missing `zta-sidecar` container
+- New pods missing `casa-sidecar` container
 - Traffic blocked by network policies
 
 **Diagnosis:**
 1. Check mutating webhook status:
    ```bash
-   kubectl get mutatingwebhookconfigurations zta-sidecar-injector -o yaml
+   kubectl get mutatingwebhookconfigurations casa-sidecar-injector -o yaml
    ```
 2. Check webhook pod logs:
    ```bash
-   kubectl logs -n zta-control-plane deployment/zta-sidecar-webhook
+   kubectl logs -n casa-control-plane deployment/casa-sidecar-webhook
    ```
 3. Verify pod has annotation:
    ```bash
@@ -5980,12 +5980,12 @@ kubectl auth can-i delete secrets --as=system:serviceaccount:zta-control-plane:z
 **Remediation:**
 1. Restart webhook:
    ```bash
-   kubectl rollout restart deployment/zta-sidecar-webhook -n zta-control-plane
+   kubectl rollout restart deployment/casa-sidecar-webhook -n casa-control-plane
    ```
 2. Manually patch pod (workaround):
    ```bash
    kubectl patch deployment <deployment-name> -n production-mas --type=json \
-     -p='[{"op": "add", "path": "/spec/template/metadata/annotations/zta.io~1inject-sidecar", "value": "true"}]'
+     -p='[{"op": "add", "path": "/spec/template/metadata/annotations/casa.io~1inject-sidecar", "value": "true"}]'
    ```
 
 #### Runbook 3: Network Policy Blocking Legitimate Traffic
@@ -6027,7 +6027,7 @@ kubectl auth can-i delete secrets --as=system:serviceaccount:zta-control-plane:z
 
 ### 9.4 Monitoring Dashboards
 
-**Dashboard 1: ZTA Overview**
+**Dashboard 1: CASA Overview**
 - Token issuance rate (gauge)
 - Token exchange success rate (%)
 - Tool check pass/fail ratio (stacked bar)
@@ -6124,7 +6124,7 @@ class MCPProtocolValidator:
         return ValidationResult(valid=True)
 
     def validate_token(self, token: str, required_tool: str) -> bool:
-        # Call ZTA control plane for introspection
+        # Call CASA control plane for introspection
         response = requests.post(
             f"{self.control_plane_url}/oauth/introspect",
             json={"token": token, "requested_tool": required_tool},
@@ -6144,7 +6144,7 @@ metadata:
 spec:
   workloadSelector:
     labels:
-      zta.io/enabled: "true"
+      casa.io/enabled: "true"
   configPatches:
   - applyTo: HTTP_FILTER
     match:
@@ -6304,12 +6304,12 @@ spec:
   endpointSelector:
     matchLabels:
       app.type: agent
-      zta.io/enabled: "true"
+      casa.io/enabled: "true"
   egress:
   - toEndpoints:
     - matchLabels:
         app.type: agent  # Agents can reach other agents
-        zta.io/enabled: "true"
+        casa.io/enabled: "true"
     toPorts:
     - ports:
       - port: "8000"
@@ -6439,7 +6439,7 @@ class TestProtocolEnforcement:
 
 ### 9.6 Observability Stack
 
-This section defines the complete observability infrastructure for monitoring, alerting, tracing, and logging across the ZTA-MAS system.
+This section defines the complete observability infrastructure for monitoring, alerting, tracing, and logging across the CASA-MAS system.
 
 #### 9.6.1 Observability Architecture
 
@@ -6460,7 +6460,7 @@ graph TB
 
     subgraph "Visualization (Grafana)"
         GRAFANA[Grafana<br/>2 replicas]
-        DASH_ZTA[ZTA Dashboards]
+        DASH_CASA[CASA Dashboards]
         DASH_NET[Network Dashboards]
         DASH_SEC[Security Dashboards]
     end
@@ -6481,7 +6481,7 @@ graph TB
         PROMTAIL[Promtail<br/>DaemonSet]
     end
 
-    subgraph "ZTA Services"
+    subgraph "CASA Services"
         AUTH[Auth Service]
         POLICY[Policy Service]
         AI[AI Pipeline]
@@ -6510,7 +6510,7 @@ graph TB
     ALERT --> PD
 
     PROM --> GRAFANA
-    GRAFANA --> DASH_ZTA
+    GRAFANA --> DASH_CASA
     GRAFANA --> DASH_NET
     GRAFANA --> DASH_SEC
 
@@ -6550,7 +6550,7 @@ graph TB
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
-  name: zta-prometheus
+  name: casa-prometheus
   namespace: monitoring
 spec:
   replicas: 2
@@ -6587,13 +6587,13 @@ spec:
   # Scrape configuration
   serviceMonitorSelector:
     matchLabels:
-      monitoring: zta
+      monitoring: casa
   podMonitorSelector:
     matchLabels:
-      monitoring: zta
+      monitoring: casa
   ruleSelector:
     matchLabels:
-      monitoring: zta
+      monitoring: casa
 
   # Thanos sidecar for long-term storage
   thanos:
@@ -6627,37 +6627,37 @@ stringData:
   thanos.yaml: |
     type: S3
     config:
-      bucket: "zta-metrics-long-term"
+      bucket: "casa-metrics-long-term"
       endpoint: "s3.us-west-2.amazonaws.com"
       region: "us-west-2"
       access_key: "${AWS_ACCESS_KEY_ID}"
       secret_key: "${AWS_SECRET_ACCESS_KEY}"
 ```
 
-#### 9.6.3 ServiceMonitors for ZTA Components
+#### 9.6.3 ServiceMonitors for CASA Components
 
 **Auth Service ServiceMonitor:**
 ```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: zta-auth-service
-  namespace: zta-control-plane
+  name: casa-auth-service
+  namespace: casa-control-plane
   labels:
-    monitoring: zta
+    monitoring: casa
 spec:
   selector:
     matchLabels:
-      app: zta-auth-service
+      app: casa-auth-service
   endpoints:
   - port: metrics
     interval: 30s
     path: /metrics
     scheme: https
     tlsConfig:
-      caFile: /etc/prometheus/secrets/zta-ca/ca.crt
-      certFile: /etc/prometheus/secrets/zta-client-cert/tls.crt
-      keyFile: /etc/prometheus/secrets/zta-client-cert/tls.key
+      caFile: /etc/prometheus/secrets/casa-ca/ca.crt
+      certFile: /etc/prometheus/secrets/casa-client-cert/tls.crt
+      keyFile: /etc/prometheus/secrets/casa-client-cert/tls.key
     relabelings:
     - sourceLabels: [__meta_kubernetes_pod_name]
       targetLabel: pod
@@ -6674,14 +6674,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
-  name: zta-sidecars
+  name: casa-sidecars
   namespace: monitoring
   labels:
-    monitoring: zta
+    monitoring: casa
 spec:
   selector:
     matchLabels:
-      zta.io/sidecar: "true"
+      casa.io/sidecar: "true"
   podMetricsEndpoints:
   - port: sidecar-metrics
     interval: 15s
@@ -6700,49 +6700,49 @@ spec:
 **Auth Service Metrics:**
 ```
 # Token operations
-zta_auth_token_issued_total{app_id, mas_id}
-zta_auth_token_exchanged_total{app_id, mas_id, result="success|failed"}
-zta_auth_token_introspection_total{result="active|invalid"}
+casa_auth_token_issued_total{app_id, mas_id}
+casa_auth_token_exchanged_total{app_id, mas_id, result="success|failed"}
+casa_auth_token_introspection_total{result="active|invalid"}
 
 # Latency histograms
-zta_auth_token_generation_duration_seconds{quantile}
-zta_auth_token_exchange_duration_seconds{quantile}
+casa_auth_token_generation_duration_seconds{quantile}
+casa_auth_token_exchange_duration_seconds{quantile}
 
 # Tool checks
-zta_auth_tool_check_total{check_type="deterministic|ai", result="pass|fail"}
-zta_auth_tool_check_duration_seconds{check_type, quantile}
+casa_auth_tool_check_total{check_type="deterministic|ai", result="pass|fail"}
+casa_auth_tool_check_duration_seconds{check_type, quantile}
 
 # External dependencies
-zta_auth_keycloak_request_duration_seconds{operation, quantile}
-zta_auth_database_query_duration_seconds{query_type, quantile}
+casa_auth_keycloak_request_duration_seconds{operation, quantile}
+casa_auth_database_query_duration_seconds{query_type, quantile}
 ```
 
 **Policy Service Metrics:**
 ```
 # Policy operations
-zta_policy_app_registered_total
-zta_policy_mas_created_total
-zta_policy_cilium_policy_generated_total{namespace}
+casa_policy_app_registered_total
+casa_policy_mas_created_total
+casa_policy_cilium_policy_generated_total{namespace}
 
 # Cache performance
-zta_policy_cache_hit_ratio{cache_type="app|mas|policy"}
-zta_policy_cache_size_bytes{cache_type}
+casa_policy_cache_hit_ratio{cache_type="app|mas|policy"}
+casa_policy_cache_size_bytes{cache_type}
 ```
 
 **AI Pipeline Metrics:**
 ```
 # Matcher performance
-zta_ai_matcher_duration_seconds{matcher_type="embeddings|llm|hybrid", quantile}
-zta_ai_matcher_result_total{matcher_type, result="match|nomatch"}
+casa_ai_matcher_duration_seconds{matcher_type="embeddings|llm|hybrid", quantile}
+casa_ai_matcher_result_total{matcher_type, result="match|nomatch"}
 
 # LLM API calls
-zta_ai_llm_request_total{model, result="success|timeout|error"}
-zta_ai_llm_request_duration_seconds{model, quantile}
-zta_ai_llm_tokens_consumed_total{model, type="prompt|completion"}
+casa_ai_llm_request_total{model, result="success|timeout|error"}
+casa_ai_llm_request_duration_seconds{model, quantile}
+casa_ai_llm_tokens_consumed_total{model, type="prompt|completion"}
 
 # Embeddings
-zta_ai_embedding_request_total{model}
-zta_ai_embedding_cache_hit_ratio
+casa_ai_embedding_request_total{model}
+casa_ai_embedding_cache_hit_ratio
 ```
 
 **Sidecar Metrics (Envoy):**
@@ -6753,13 +6753,13 @@ envoy_cluster_upstream_rq_xx{cluster, envoy_response_code_class="2|4|5"}
 envoy_cluster_upstream_rq_time{cluster, quantile}
 
 # Token operations
-zta_sidecar_token_injection_total
-zta_sidecar_token_introspection_total{result="cached|fresh"}
-zta_sidecar_token_introspection_cache_hit_ratio
+casa_sidecar_token_injection_total
+casa_sidecar_token_introspection_total{result="cached|fresh"}
+casa_sidecar_token_introspection_cache_hit_ratio
 
 # Protocol enforcement
-zta_sidecar_protocol_validation_total{protocol="mcp|a2a", result="pass|fail"}
-zta_sidecar_protocol_violation_total{protocol, violation_type}
+casa_sidecar_protocol_validation_total{protocol="mcp|a2a", result="pass|fail"}
+casa_sidecar_protocol_violation_total{protocol, violation_type}
 
 # Connection metrics
 envoy_cluster_upstream_cx_total{cluster}
@@ -6789,13 +6789,13 @@ hubble_drop_total{reason}
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: zta-critical-alerts
+  name: casa-critical-alerts
   namespace: monitoring
   labels:
-    monitoring: zta
+    monitoring: casa
 spec:
   groups:
-  - name: zta.critical
+  - name: casa.critical
     interval: 30s
     rules:
 
@@ -6803,9 +6803,9 @@ spec:
     - alert: HighTokenExchangeFailureRate
       expr: |
         (
-          sum(rate(zta_auth_token_exchanged_total{result="failed"}[5m]))
+          sum(rate(casa_auth_token_exchanged_total{result="failed"}[5m]))
           /
-          sum(rate(zta_auth_token_exchanged_total[5m]))
+          sum(rate(casa_auth_token_exchanged_total[5m]))
         ) > 0.05
       for: 5m
       labels:
@@ -6814,11 +6814,11 @@ spec:
       annotations:
         summary: "High token exchange failure rate"
         description: "{{ $value | humanizePercentage }} of token exchanges are failing (threshold: 5%)"
-        runbook_url: "https://docs.zta.io/runbooks/high-token-failure"
+        runbook_url: "https://docs.casa.io/runbooks/high-token-failure"
 
     # Auth service down
     - alert: AuthServiceDown
-      expr: up{job="zta-auth-service"} == 0
+      expr: up{job="casa-auth-service"} == 0
       for: 2m
       labels:
         severity: critical
@@ -6826,13 +6826,13 @@ spec:
       annotations:
         summary: "Auth Service is down"
         description: "Auth Service has been down for more than 2 minutes"
-        runbook_url: "https://docs.zta.io/runbooks/auth-service-down"
+        runbook_url: "https://docs.casa.io/runbooks/auth-service-down"
 
     # AI Pipeline high latency
     - alert: AIMatcherHighLatency
       expr: |
         histogram_quantile(0.95,
-          sum(rate(zta_ai_matcher_duration_seconds_bucket[5m])) by (le, matcher_type)
+          sum(rate(casa_ai_matcher_duration_seconds_bucket[5m])) by (le, matcher_type)
         ) > 5
       for: 10m
       labels:
@@ -6841,7 +6841,7 @@ spec:
       annotations:
         summary: "AI Matcher P95 latency above 5s"
         description: "{{ $labels.matcher_type }} matcher P95 latency: {{ $value }}s"
-        runbook_url: "https://docs.zta.io/runbooks/ai-pipeline-latency"
+        runbook_url: "https://docs.casa.io/runbooks/ai-pipeline-latency"
 
     # Certificate expiring soon
     - alert: CertificateExpiringSoon
@@ -6854,7 +6854,7 @@ spec:
       annotations:
         summary: "Certificate {{ $labels.name }} expiring in {{ $value }} days"
         description: "Certificate in namespace {{ $labels.namespace }} expires in less than 15 days"
-        runbook_url: "https://docs.zta.io/runbooks/certificate-renewal"
+        runbook_url: "https://docs.casa.io/runbooks/certificate-renewal"
 
     # Network policy denials spike
     - alert: NetworkPolicyDenialsSpike
@@ -6868,12 +6868,12 @@ spec:
       annotations:
         summary: "High rate of network policy denials in {{ $labels.namespace }}"
         description: "{{ $value }} denials/sec detected (possible attack or misconfiguration)"
-        runbook_url: "https://docs.zta.io/runbooks/network-policy-denials"
+        runbook_url: "https://docs.casa.io/runbooks/network-policy-denials"
 
     # Sidecar token introspection failures
     - alert: SidecarTokenIntrospectionFailures
       expr: |
-        sum(rate(zta_sidecar_token_introspection_total{result="error"}[5m])) by (namespace, pod)
+        sum(rate(casa_sidecar_token_introspection_total{result="error"}[5m])) by (namespace, pod)
         > 1
       for: 5m
       labels:
@@ -6882,7 +6882,7 @@ spec:
       annotations:
         summary: "Sidecar {{ $labels.pod }} experiencing token introspection failures"
         description: "{{ $value }} introspection failures/sec"
-        runbook_url: "https://docs.zta.io/runbooks/sidecar-token-failures"
+        runbook_url: "https://docs.casa.io/runbooks/sidecar-token-failures"
 ```
 
 **Warning Alerts:**
@@ -6890,19 +6890,19 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: zta-warning-alerts
+  name: casa-warning-alerts
   namespace: monitoring
   labels:
-    monitoring: zta
+    monitoring: casa
 spec:
   groups:
-  - name: zta.warnings
+  - name: casa.warnings
     interval: 1m
     rules:
 
     # Low cache hit ratio
     - alert: LowSidecarCacheHitRatio
-      expr: zta_sidecar_token_introspection_cache_hit_ratio < 0.7
+      expr: casa_sidecar_token_introspection_cache_hit_ratio < 0.7
       for: 15m
       labels:
         severity: warning
@@ -6915,7 +6915,7 @@ spec:
     - alert: HighLLMAPILatency
       expr: |
         histogram_quantile(0.95,
-          sum(rate(zta_ai_llm_request_duration_seconds_bucket[5m])) by (le, model)
+          sum(rate(casa_ai_llm_request_duration_seconds_bucket[5m])) by (le, model)
         ) > 2
       for: 10m
       labels:
@@ -6949,7 +6949,7 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: Alertmanager
 metadata:
-  name: zta-alertmanager
+  name: casa-alertmanager
   namespace: monitoring
 spec:
   replicas: 3
@@ -6996,7 +6996,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: alertmanager-zta-alertmanager
+  name: alertmanager-casa-alertmanager
   namespace: monitoring
 stringData:
   alertmanager.yaml: |
@@ -7026,7 +7026,7 @@ stringData:
     receivers:
     - name: 'default'
       slack_configs:
-      - channel: '#zta-alerts'
+      - channel: '#casa-alerts'
         title: '[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}'
         text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
 
@@ -7039,7 +7039,7 @@ stringData:
 
     - name: 'slack-alerts'
       slack_configs:
-      - channel: '#zta-alerts'
+      - channel: '#casa-alerts'
         title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.alertname }}'
         text: |-
           {{ range .Alerts }}
@@ -7089,7 +7089,7 @@ data:
       trace:
         backend: s3
         s3:
-          bucket: zta-traces
+          bucket: casa-traces
           endpoint: s3.us-west-2.amazonaws.com
           region: us-west-2
         wal:
@@ -7237,7 +7237,7 @@ from opentelemetry.sdk.resources import Resource
 
 # Configure tracing
 resource = Resource.create(attributes={
-    "service.name": "zta-auth-service",
+    "service.name": "casa-auth-service",
     "service.version": "1.0.0",
     "deployment.environment": "production"
 })
@@ -7379,7 +7379,7 @@ data:
         shared_store: s3
 
       aws:
-        s3: s3://us-west-2/zta-logs
+        s3: s3://us-west-2/casa-logs
         region: us-west-2
         s3forcepathstyle: false
 
@@ -7491,8 +7491,8 @@ data:
       - role: pod
 
       relabel_configs:
-      # Only scrape pods with zta.io/logs=true
-      - source_labels: [__meta_kubernetes_pod_label_zta_io_logs]
+      # Only scrape pods with casa.io/logs=true
+      - source_labels: [__meta_kubernetes_pod_label_casa_io_logs]
         regex: "true"
         action: keep
 
@@ -7584,7 +7584,7 @@ spec:
         - name: GF_DATABASE_TYPE
           value: postgres
         - name: GF_DATABASE_HOST
-          value: postgresql.zta-control-plane.svc.cluster.local:5432
+          value: postgresql.casa-control-plane.svc.cluster.local:5432
         - name: GF_DATABASE_NAME
           value: grafana
         - name: GF_DATABASE_USER
@@ -7676,19 +7676,19 @@ data:
           datasourceUid: Prometheus
 ```
 
-**Dashboard: ZTA Overview (JSON):**
+**Dashboard: CASA Overview (JSON):**
 ```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-dashboard-zta-overview
+  name: grafana-dashboard-casa-overview
   namespace: monitoring
 data:
-  zta-overview.json: |
+  casa-overview.json: |
     {
       "dashboard": {
-        "title": "ZTA Overview",
-        "tags": ["zta", "overview"],
+        "title": "CASA Overview",
+        "tags": ["casa", "overview"],
         "timezone": "browser",
         "schemaVersion": 38,
         "panels": [
@@ -7698,7 +7698,7 @@ data:
             "type": "graph",
             "targets": [
               {
-                "expr": "sum(rate(zta_auth_token_issued_total[5m]))",
+                "expr": "sum(rate(casa_auth_token_issued_total[5m]))",
                 "legendFormat": "Tokens/sec"
               }
             ],
@@ -7710,7 +7710,7 @@ data:
             "type": "stat",
             "targets": [
               {
-                "expr": "sum(rate(zta_auth_token_exchanged_total{result='success'}[5m])) / sum(rate(zta_auth_token_exchanged_total[5m]))",
+                "expr": "sum(rate(casa_auth_token_exchanged_total{result='success'}[5m])) / sum(rate(casa_auth_token_exchanged_total[5m]))",
                 "legendFormat": "Success Rate"
               }
             ],
@@ -7735,7 +7735,7 @@ data:
             "type": "piechart",
             "targets": [
               {
-                "expr": "sum by (result) (rate(zta_auth_tool_check_total[5m]))",
+                "expr": "sum by (result) (rate(casa_auth_tool_check_total[5m]))",
                 "legendFormat": "{{ result }}"
               }
             ],
@@ -7747,7 +7747,7 @@ data:
             "type": "graph",
             "targets": [
               {
-                "expr": "histogram_quantile(0.95, sum by (le, matcher_type) (rate(zta_ai_matcher_duration_seconds_bucket[5m])))",
+                "expr": "histogram_quantile(0.95, sum by (le, matcher_type) (rate(casa_ai_matcher_duration_seconds_bucket[5m])))",
                 "legendFormat": "{{ matcher_type }}"
               }
             ],
@@ -7759,7 +7759,7 @@ data:
             "type": "graph",
             "targets": [
               {
-                "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace='zta-control-plane'}[5m]))",
+                "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace='casa-control-plane'}[5m]))",
                 "legendFormat": "{{ pod }}"
               }
             ],
@@ -7825,7 +7825,7 @@ This section provides a detailed, step-by-step migration strategy for transition
 **Current State (Monolith):**
 ```mermaid
 graph TB
-    subgraph "Monolithic ZTA Server"
+    subgraph "Monolithic CASA Server"
         AUTH[Auth Logic]
         POLICY[Policy Logic]
         AI[AI Pipeline]
@@ -7929,7 +7929,7 @@ graph TB
 from prometheus_client import Counter
 
 token_issued_counter = Counter(
-    'zta_auth_token_issued_total',
+    'casa_auth_token_issued_total',
     'Total tokens issued',
     ['service_version', 'app_id', 'mas_id']  # service_version: monolith|microservice
 )
@@ -7965,7 +7965,7 @@ def exchange_token(request):
 **Validation:**
 ```bash
 # Verify metrics are tagged
-curl -s http://prometheus:9090/api/v1/query?query='zta_auth_token_issued_total{service_version="monolith"}' | jq .
+curl -s http://prometheus:9090/api/v1/query?query='casa_auth_token_issued_total{service_version="monolith"}' | jq .
 
 # Verify feature flags
 curl -s http://feature-flags:8080/api/flags | jq '.flags[] | select(.name=="auth-service-v2")'
@@ -8032,29 +8032,29 @@ migration:
 **Validation:**
 ```bash
 # Verify microservices are receiving traffic
-kubectl logs -n zta-control-plane deployment/zta-auth-service --tail=100 | grep "token_exchange_request"
+kubectl logs -n casa-control-plane deployment/casa-auth-service --tail=100 | grep "token_exchange_request"
 
 # Compare response times (should be similar)
 # Monolith P95 latency
-curl -s 'http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95,rate(zta_auth_token_exchange_duration_seconds_bucket{service_version="monolith"}[5m]))'
+curl -s 'http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95,rate(casa_auth_token_exchange_duration_seconds_bucket{service_version="monolith"}[5m]))'
 
 # Microservice P95 latency (shadow)
-curl -s 'http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95,rate(zta_auth_token_exchange_duration_seconds_bucket{service_version="microservice"}[5m]))'
+curl -s 'http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95,rate(casa_auth_token_exchange_duration_seconds_bucket{service_version="microservice"}[5m]))'
 
 # Verify NO production traffic served by microservices
-kubectl logs -n zta-control-plane deployment/zta-auth-service | grep "response_sent" | wc -l
+kubectl logs -n casa-control-plane deployment/casa-auth-service | grep "response_sent" | wc -l
 # Expected: 0 (shadowing doesn't send responses)
 ```
 
 **Rollback:**
 ```bash
 # Disable shadowing
-helm upgrade zta-mas-system ./charts/zta-mas-system \
+helm upgrade casa-mas-system ./charts/casa-mas-system \
   --set migration.shadowMode.enabled=false \
-  --namespace zta-control-plane
+  --namespace casa-control-plane
 
 # Delete microservice deployments (optional)
-kubectl delete deployment -n zta-control-plane -l migration-phase=shadow
+kubectl delete deployment -n casa-control-plane -l migration-phase=shadow
 ```
 
 ---
@@ -8098,7 +8098,7 @@ kubectl delete deployment -n zta-control-plane -l migration-phase=shadow
         weight: 99
       - name: auth-service-v2
         weight: 1
-      runtime_key_prefix: zta.auth_service.traffic_split
+      runtime_key_prefix: casa.auth_service.traffic_split
     retry_policy:
       retry_on: "5xx"
       num_retries: 3
@@ -8110,9 +8110,9 @@ kubectl delete deployment -n zta-control-plane -l migration-phase=shadow
 - alert: MigrationCanaryErrorRateHigh
   expr: |
     (
-      sum(rate(zta_auth_token_exchanged_total{service_version="microservice", result="failed"}[5m]))
+      sum(rate(casa_auth_token_exchanged_total{service_version="microservice", result="failed"}[5m]))
       /
-      sum(rate(zta_auth_token_exchanged_total{service_version="microservice"}[5m]))
+      sum(rate(casa_auth_token_exchanged_total{service_version="microservice"}[5m]))
     ) > 0.05
   for: 5m
   annotations:
@@ -8122,7 +8122,7 @@ kubectl delete deployment -n zta-control-plane -l migration-phase=shadow
 - alert: MigrationCanaryLatencyHigh
   expr: |
     histogram_quantile(0.95,
-      rate(zta_auth_token_exchange_duration_seconds_bucket{service_version="microservice"}[5m])
+      rate(casa_auth_token_exchange_duration_seconds_bucket{service_version="microservice"}[5m])
     ) > 0.5
   for: 10m
   annotations:
@@ -8133,15 +8133,15 @@ kubectl delete deployment -n zta-control-plane -l migration-phase=shadow
 **Validation:**
 ```bash
 # Verify 1% traffic split
-curl -s http://prometheus:9090/api/v1/query?query='sum(rate(zta_auth_token_issued_total{service_version="microservice"}[5m])) / sum(rate(zta_auth_token_issued_total[5m]))'
+curl -s http://prometheus:9090/api/v1/query?query='sum(rate(casa_auth_token_issued_total{service_version="microservice"}[5m])) / sum(rate(casa_auth_token_issued_total[5m]))'
 # Expected: ~0.01 (1%)
 
 # Compare error rates
 # Monolith error rate
-curl -s 'http://prometheus:9090/api/v1/query?query=(sum(rate(zta_auth_token_exchanged_total{service_version="monolith",result="failed"}[5m])) / sum(rate(zta_auth_token_exchanged_total{service_version="monolith"}[5m])))'
+curl -s 'http://prometheus:9090/api/v1/query?query=(sum(rate(casa_auth_token_exchanged_total{service_version="monolith",result="failed"}[5m])) / sum(rate(casa_auth_token_exchanged_total{service_version="monolith"}[5m])))'
 
 # Microservice error rate
-curl -s 'http://prometheus:9090/api/v1/query?query=(sum(rate(zta_auth_token_exchanged_total{service_version="microservice",result="failed"}[5m])) / sum(rate(zta_auth_token_exchanged_total{service_version="microservice"}[5m])))'
+curl -s 'http://prometheus:9090/api/v1/query?query=(sum(rate(casa_auth_token_exchanged_total{service_version="microservice",result="failed"}[5m])) / sum(rate(casa_auth_token_exchanged_total{service_version="microservice"}[5m])))'
 
 # Verify no regressions
 # Success: microservice error rate <= monolith error rate + 1%
@@ -8182,7 +8182,7 @@ curl -X PATCH http://feature-flags:8080/api/flags/auth-service-v2 \
   -d '{"traffic_split": {"microservice": 0, "monolith": 100}}'
 
 # Verify traffic shifted back
-kubectl exec -n zta-control-plane deployment/envoy-gateway -- \
+kubectl exec -n casa-control-plane deployment/envoy-gateway -- \
   curl -s localhost:19000/config_dump | jq '.configs[] | select(.["@type"] | contains("RouteConfiguration"))'
 ```
 
@@ -8216,7 +8216,7 @@ TRAFFIC_PCT=$2  # e.g., 25
 echo "Validating ${SERVICE} at ${TRAFFIC_PCT}% traffic..."
 
 # 1. Check error rate
-ERROR_RATE=$(curl -s "http://prometheus:9090/api/v1/query?query=(sum(rate(zta_auth_token_exchanged_total{service_version=\"microservice\",result=\"failed\"}[10m])) / sum(rate(zta_auth_token_exchanged_total{service_version=\"microservice\"}[10m])))" | jq -r '.data.result[0].value[1]')
+ERROR_RATE=$(curl -s "http://prometheus:9090/api/v1/query?query=(sum(rate(casa_auth_token_exchanged_total{service_version=\"microservice\",result=\"failed\"}[10m])) / sum(rate(casa_auth_token_exchanged_total{service_version=\"microservice\"}[10m])))" | jq -r '.data.result[0].value[1]')
 
 if (( $(echo "$ERROR_RATE > 0.02" | bc -l) )); then
   echo "ERROR: Error rate too high: ${ERROR_RATE} (threshold: 0.02)"
@@ -8224,7 +8224,7 @@ if (( $(echo "$ERROR_RATE > 0.02" | bc -l) )); then
 fi
 
 # 2. Check latency P95
-LATENCY_P95=$(curl -s "http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95, rate(zta_auth_token_exchange_duration_seconds_bucket{service_version=\"microservice\"}[10m]))" | jq -r '.data.result[0].value[1]')
+LATENCY_P95=$(curl -s "http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95, rate(casa_auth_token_exchange_duration_seconds_bucket{service_version=\"microservice\"}[10m]))" | jq -r '.data.result[0].value[1]')
 
 if (( $(echo "$LATENCY_P95 > 0.5" | bc -l) )); then
   echo "ERROR: P95 latency too high: ${LATENCY_P95}s (threshold: 0.5s)"
@@ -8232,7 +8232,7 @@ if (( $(echo "$LATENCY_P95 > 0.5" | bc -l) )); then
 fi
 
 # 3. Check traffic split matches target
-ACTUAL_TRAFFIC=$(curl -s "http://prometheus:9090/api/v1/query?query=(sum(rate(zta_auth_token_issued_total{service_version=\"microservice\"}[5m])) / sum(rate(zta_auth_token_issued_total[5m])))" | jq -r '.data.result[0].value[1]')
+ACTUAL_TRAFFIC=$(curl -s "http://prometheus:9090/api/v1/query?query=(sum(rate(casa_auth_token_issued_total{service_version=\"microservice\"}[5m])) / sum(rate(casa_auth_token_issued_total[5m])))" | jq -r '.data.result[0].value[1]')
 EXPECTED_TRAFFIC=$(echo "scale=2; $TRAFFIC_PCT / 100" | bc)
 
 DIFF=$(echo "$ACTUAL_TRAFFIC - $EXPECTED_TRAFFIC" | bc | tr -d '-')
@@ -8242,14 +8242,14 @@ if (( $(echo "$DIFF > 0.03" | bc -l) )); then
 fi
 
 # 4. Check no database errors
-DB_ERRORS=$(kubectl logs -n zta-control-plane deployment/zta-auth-service --tail=1000 | grep -c "database connection error" || true)
+DB_ERRORS=$(kubectl logs -n casa-control-plane deployment/casa-auth-service --tail=1000 | grep -c "database connection error" || true)
 if [ $DB_ERRORS -gt 5 ]; then
   echo "ERROR: Too many database errors: ${DB_ERRORS}"
   exit 1
 fi
 
 # 5. Verify no memory leaks
-MEMORY_USAGE=$(kubectl top pod -n zta-control-plane -l app=zta-auth-service --no-headers | awk '{print $3}' | sed 's/Mi//' | head -1)
+MEMORY_USAGE=$(kubectl top pod -n casa-control-plane -l app=casa-auth-service --no-headers | awk '{print $3}' | sed 's/Mi//' | head -1)
 if [ $MEMORY_USAGE -gt 4000 ]; then
   echo "WARNING: High memory usage: ${MEMORY_USAGE}Mi (threshold: 4000Mi)"
 fi
@@ -8389,16 +8389,16 @@ echo "✅ Migration complete for ${SERVICE}"
 #!/bin/bash
 # decommission_monolith.sh
 
-echo "=== Decommissioning ZTA Monolith ==="
+echo "=== Decommissioning CASA Monolith ==="
 
 # Step 1: Scale down to 1 replica
 echo "Step 1/5: Scaling to 1 replica..."
-kubectl scale deployment/zta-monolith -n zta-control-plane --replicas=1
+kubectl scale deployment/casa-monolith -n casa-control-plane --replicas=1
 sleep 48h  # 48-hour soak
 
 # Step 2: Verify zero traffic
 echo "Step 2/5: Verifying zero traffic..."
-TRAFFIC=$(curl -s "http://prometheus:9090/api/v1/query?query=sum(rate(zta_auth_token_issued_total{service_version=\"monolith\"}[24h]))" | jq -r '.data.result[0].value[1]')
+TRAFFIC=$(curl -s "http://prometheus:9090/api/v1/query?query=sum(rate(casa_auth_token_issued_total{service_version=\"monolith\"}[24h]))" | jq -r '.data.result[0].value[1]')
 if [ "$TRAFFIC" != "0" ]; then
   echo "❌ Monolith still receiving traffic: ${TRAFFIC} req/s. Aborting."
   exit 1
@@ -8406,22 +8406,22 @@ fi
 
 # Step 3: Scale to zero
 echo "Step 3/5: Scaling to 0 replicas..."
-kubectl scale deployment/zta-monolith -n zta-control-plane --replicas=0
+kubectl scale deployment/casa-monolith -n casa-control-plane --replicas=0
 sleep 168h  # 7-day grace period
 
 # Step 4: Archive images
 echo "Step 4/5: Archiving container images..."
-MONOLITH_IMAGE=$(kubectl get deployment/zta-monolith -n zta-control-plane -o jsonpath='{.spec.template.spec.containers[0].image}')
+MONOLITH_IMAGE=$(kubectl get deployment/casa-monolith -n casa-control-plane -o jsonpath='{.spec.template.spec.containers[0].image}')
 docker pull $MONOLITH_IMAGE
-docker save $MONOLITH_IMAGE | gzip > zta-monolith-$(date +%Y%m%d).tar.gz
-aws s3 cp zta-monolith-*.tar.gz s3://zta-backups/decommissioned-images/
+docker save $MONOLITH_IMAGE | gzip > casa-monolith-$(date +%Y%m%d).tar.gz
+aws s3 cp casa-monolith-*.tar.gz s3://casa-backups/decommissioned-images/
 
 # Step 5: Delete deployment
 echo "Step 5/5: Deleting deployment..."
-kubectl delete deployment/zta-monolith -n zta-control-plane
+kubectl delete deployment/casa-monolith -n casa-control-plane
 
 echo "✅ Monolith decommissioned successfully"
-echo "Emergency rollback: docker load < zta-monolith-*.tar.gz && kubectl apply -f monolith-backup.yaml"
+echo "Emergency rollback: docker load < casa-monolith-*.tar.gz && kubectl apply -f monolith-backup.yaml"
 ```
 
 #### 10.1.4 Data Migration Strategy
@@ -8456,27 +8456,27 @@ If splitting databases, use this approach:
 ```sql
 -- Week 10: Split databases (optional)
 -- 1. Create separate databases
-CREATE DATABASE zta_auth;
-CREATE DATABASE zta_policy;
-CREATE DATABASE zta_telemetry;
+CREATE DATABASE casa_auth;
+CREATE DATABASE casa_policy;
+CREATE DATABASE casa_telemetry;
 
 -- 2. Migrate tables
 -- Auth Service: tokens audit table
-CREATE TABLE zta_auth.tokens AS SELECT * FROM zta_shared.tokens;
+CREATE TABLE casa_auth.tokens AS SELECT * FROM casa_shared.tokens;
 
 -- Policy Service: apps, mas, tools, scopes
-CREATE TABLE zta_policy.apps AS SELECT * FROM zta_shared.apps;
-CREATE TABLE zta_policy.mas AS SELECT * FROM zta_shared.mas;
+CREATE TABLE casa_policy.apps AS SELECT * FROM casa_shared.apps;
+CREATE TABLE casa_policy.mas AS SELECT * FROM casa_shared.mas;
 
 -- Telemetry: traces, events
-CREATE TABLE zta_telemetry.traces AS SELECT * FROM zta_shared.traces;
+CREATE TABLE casa_telemetry.traces AS SELECT * FROM casa_shared.traces;
 
 -- 3. Enable logical replication (for gradual cutover)
-ALTER TABLE zta_shared.apps REPLICA IDENTITY FULL;
+ALTER TABLE casa_shared.apps REPLICA IDENTITY FULL;
 CREATE PUBLICATION apps_pub FOR TABLE apps;
 
--- 4. Set up replication to zta_policy
-CREATE SUBSCRIPTION apps_sub CONNECTION 'host=postgres port=5432 dbname=zta_shared' PUBLICATION apps_pub;
+-- 4. Set up replication to casa_policy
+CREATE SUBSCRIPTION apps_sub CONNECTION 'host=postgres port=5432 dbname=casa_shared' PUBLICATION apps_pub;
 ```
 
 **Foreign Key Handling:**
@@ -8638,7 +8638,7 @@ export let options = {
 
 export default function () {
   // Generate token
-  let tokenRes = http.post('https://zta-auth-service/oauth/token', JSON.stringify({
+  let tokenRes = http.post('https://casa-auth-service/oauth/token', JSON.stringify({
     client_id: 'test-client',
     client_secret: 'test-secret',
     user_input: 'Read file /etc/passwd'
@@ -8652,7 +8652,7 @@ export default function () {
   let token = tokenRes.json('access_token');
 
   // Exchange token
-  let exchangeRes = http.post('https://zta-auth-service/oauth/token/exchange', JSON.stringify({
+  let exchangeRes = http.post('https://casa-auth-service/oauth/token/exchange', JSON.stringify({
     subject_token: token,
     requested_tool: 'filesystem_read'
   }), { headers: { 'Content-Type': 'application/json' } });
@@ -8701,9 +8701,9 @@ prom = PrometheusConnect(url="http://prometheus:9090", disable_ssl=True)
 def check_error_rate(service, threshold=0.05):
     query = f'''
     (
-      sum(rate(zta_auth_token_exchanged_total{{service_version="microservice", result="failed"}}[5m]))
+      sum(rate(casa_auth_token_exchanged_total{{service_version="microservice", result="failed"}}[5m]))
       /
-      sum(rate(zta_auth_token_exchanged_total{{service_version="microservice"}}[5m]))
+      sum(rate(casa_auth_token_exchanged_total{{service_version="microservice"}}[5m]))
     )
     '''
     result = prom.custom_query(query)
@@ -8756,11 +8756,11 @@ while True:
 - PagerDuty alert
 
 ## Step 1: Identify affected service
-kubectl get pods -n zta-control-plane -l migration-phase=active
+kubectl get pods -n casa-control-plane -l migration-phase=active
 # Look for CrashLoopBackOff or high restart count
 
 ## Step 2: Check recent deployments
-kubectl rollout history deployment/zta-auth-service -n zta-control-plane
+kubectl rollout history deployment/casa-auth-service -n casa-control-plane
 
 ## Step 3: Rollback traffic (FAST)
 # Option A: Feature flag (preferred)
@@ -8768,21 +8768,21 @@ curl -X PATCH http://feature-flags:8080/api/flags/auth-service-v2 \
   -d '{"traffic_split": {"microservice": 0, "monolith": 100}}'
 
 # Option B: Helm rollback
-helm rollback zta-mas-system -n zta-control-plane
+helm rollback casa-mas-system -n casa-control-plane
 
 # Option C: kubectl rollout undo
-kubectl rollout undo deployment/zta-auth-service -n zta-control-plane
+kubectl rollout undo deployment/casa-auth-service -n casa-control-plane
 
 ## Step 4: Verify rollback
 # Check traffic shifted
-curl -s http://prometheus:9090/api/v1/query?query='sum(rate(zta_auth_token_issued_total{service_version="microservice"}[1m]))'
+curl -s http://prometheus:9090/api/v1/query?query='sum(rate(casa_auth_token_issued_total{service_version="microservice"}[1m]))'
 # Should return 0
 
 # Check error rate decreased
-curl -s http://prometheus:9090/api/v1/query?query='sum(rate(zta_auth_token_exchanged_total{result="failed"}[5m])) / sum(rate(zta_auth_token_exchanged_total[5m]))'
+curl -s http://prometheus:9090/api/v1/query?query='sum(rate(casa_auth_token_exchanged_total{result="failed"}[5m])) / sum(rate(casa_auth_token_exchanged_total[5m]))'
 
 ## Step 5: Root cause analysis (post-incident)
-kubectl logs -n zta-control-plane deployment/zta-auth-service --previous --tail=1000 > incident.log
+kubectl logs -n casa-control-plane deployment/casa-auth-service --previous --tail=1000 > incident.log
 # Analyze logs, identify bug, create Jira ticket
 ```
 
@@ -8792,7 +8792,7 @@ kubectl logs -n zta-control-plane deployment/zta-auth-service --previous --tail=
 
 | Criterion | Target | Measurement |
 |-----------|--------|-------------|
-| All services migrated | 100% | `kubectl get deployment -n zta-control-plane -l app=monolith` returns 0 pods |
+| All services migrated | 100% | `kubectl get deployment -n casa-control-plane -l app=monolith` returns 0 pods |
 | Error rate unchanged | < 1% regression | Compare 7-day average before/after |
 | Latency unchanged | < 10% regression | P95 latency before/after |
 | Zero downtime | 0 seconds | No 5xx errors during migration |
@@ -8809,7 +8809,7 @@ kubectl logs -n zta-control-plane deployment/zta-auth-service --previous --tail=
 echo "=== Post-Migration Validation ==="
 
 # 1. Verify monolith decommissioned
-MONOLITH_PODS=$(kubectl get pods -n zta-control-plane -l app=zta-monolith --no-headers | wc -l)
+MONOLITH_PODS=$(kubectl get pods -n casa-control-plane -l app=casa-monolith --no-headers | wc -l)
 if [ $MONOLITH_PODS -ne 0 ]; then
   echo "❌ Monolith still running: ${MONOLITH_PODS} pods"
   exit 1
@@ -8818,7 +8818,7 @@ echo "✅ Monolith decommissioned"
 
 # 2. Compare error rates (7-day average)
 BEFORE_ERROR_RATE=0.008  # From baseline
-AFTER_ERROR_RATE=$(curl -s "http://prometheus:9090/api/v1/query?query=sum(rate(zta_auth_token_exchanged_total{result=\"failed\"}[7d])) / sum(rate(zta_auth_token_exchanged_total[7d]))" | jq -r '.data.result[0].value[1]')
+AFTER_ERROR_RATE=$(curl -s "http://prometheus:9090/api/v1/query?query=sum(rate(casa_auth_token_exchanged_total{result=\"failed\"}[7d])) / sum(rate(casa_auth_token_exchanged_total[7d]))" | jq -r '.data.result[0].value[1]')
 
 DIFF=$(echo "$AFTER_ERROR_RATE - $BEFORE_ERROR_RATE" | bc)
 if (( $(echo "$DIFF > 0.001" | bc -l) )); then
@@ -8829,7 +8829,7 @@ echo "✅ Error rate maintained: ${AFTER_ERROR_RATE}"
 
 # 3. Compare latency (7-day P95)
 BEFORE_LATENCY=0.35  # From baseline
-AFTER_LATENCY=$(curl -s "http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95, rate(zta_auth_token_exchange_duration_seconds_bucket[7d]))" | jq -r '.data.result[0].value[1]')
+AFTER_LATENCY=$(curl -s "http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95, rate(casa_auth_token_exchange_duration_seconds_bucket[7d]))" | jq -r '.data.result[0].value[1]')
 
 LATENCY_DIFF=$(echo "$AFTER_LATENCY - $BEFORE_LATENCY" | bc)
 if (( $(echo "$LATENCY_DIFF > 0.035" | bc -l) )); then
@@ -8839,10 +8839,10 @@ fi
 echo "✅ Latency maintained: ${AFTER_LATENCY}s"
 
 # 4. Verify all microservices healthy
-UNHEALTHY=$(kubectl get pods -n zta-control-plane -l tier=control-plane --field-selector=status.phase!=Running --no-headers | wc -l)
+UNHEALTHY=$(kubectl get pods -n casa-control-plane -l tier=control-plane --field-selector=status.phase!=Running --no-headers | wc -l)
 if [ $UNHEALTHY -ne 0 ]; then
   echo "❌ Unhealthy pods detected: ${UNHEALTHY}"
-  kubectl get pods -n zta-control-plane -l tier=control-plane --field-selector=status.phase!=Running
+  kubectl get pods -n casa-control-plane -l tier=control-plane --field-selector=status.phase!=Running
   exit 1
 fi
 echo "✅ All pods healthy"
@@ -8868,7 +8868,7 @@ echo "All criteria met. Migration complete."
 
 ### 10.2 Performance Testing & Capacity Planning
 
-This section provides comprehensive performance testing strategies, load testing scripts, capacity planning formulas, and autoscaling configurations for the ZTA-MAS system.
+This section provides comprehensive performance testing strategies, load testing scripts, capacity planning formulas, and autoscaling configurations for the CASA-MAS system.
 
 #### 10.2.1 Performance Testing Strategy
 
@@ -8948,7 +8948,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://zta-auth-service.zta-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
 
 export default function () {
   const payload = JSON.stringify({
@@ -9029,7 +9029,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://zta-auth-service.zta-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
 const ENABLE_AI_CHECKS = __ENV.ENABLE_AI_CHECKS === 'true';
 
 export default function () {
@@ -9139,7 +9139,7 @@ function htmlReport(data) {
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ZTA Load Test Report</title>
+  <title>CASA Load Test Report</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
@@ -9150,7 +9150,7 @@ function htmlReport(data) {
   </style>
 </head>
 <body>
-  <h1>ZTA Load Test Report</h1>
+  <h1>CASA Load Test Report</h1>
   <p>Timestamp: ${new Date().toISOString()}</p>
   <table>
     <tr><th>Metric</th><th>Value</th><th>Threshold</th><th>Status</th></tr>
@@ -9200,7 +9200,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://zta-auth-service.zta-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
 
 export default function () {
   const response = http.post(`${BASE_URL}/oauth/token`, JSON.stringify({
@@ -9259,7 +9259,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://zta-auth-service.zta-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
 
 export default function () {
   const response = http.post(`${BASE_URL}/oauth/token`, JSON.stringify({
@@ -9323,7 +9323,7 @@ jobs:
     - name: Deploy to test cluster
       run: |
         kubectl apply -k test/k8s/
-        kubectl wait --for=condition=ready pod -l app=zta-auth-service -n zta-control-plane --timeout=300s
+        kubectl wait --for=condition=ready pod -l app=casa-auth-service -n casa-control-plane --timeout=300s
 
     - name: Run baseline test
       run: |
@@ -9572,13 +9572,13 @@ Node Type: m5.2xlarge (8 vCPU, 32GB RAM)
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: zta-auth-service-hpa
-  namespace: zta-control-plane
+  name: casa-auth-service-hpa
+  namespace: casa-control-plane
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: zta-auth-service
+    name: casa-auth-service
   minReplicas: 3
   maxReplicas: 20
   metrics:
@@ -9602,7 +9602,7 @@ spec:
   - type: Pods
     pods:
       metric:
-        name: zta_auth_token_issued_total
+        name: casa_auth_token_issued_total
       target:
         type: AverageValue
         averageValue: "400"  # 400 tokens/sec per pod
@@ -9633,20 +9633,20 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: zta-ai-pipeline-hpa
-  namespace: zta-control-plane
+  name: casa-ai-pipeline-hpa
+  namespace: casa-control-plane
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: zta-ai-pipeline-service
+    name: casa-ai-pipeline-service
   minReplicas: 5
   maxReplicas: 50
   metrics:
   - type: Pods
     pods:
       metric:
-        name: zta_ai_matcher_duration_seconds
+        name: casa_ai_matcher_duration_seconds
       target:
         type: AverageValue
         averageValue: "1000m"  # 1 second average latency
@@ -9707,7 +9707,7 @@ data:
     maxNodeProvisionTime: 15m
 
     nodeGroups:
-    - name: zta-worker-nodes
+    - name: casa-worker-nodes
       minSize: 10
       maxSize: 50
       targetSize: 15
@@ -9720,18 +9720,18 @@ data:
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
-  name: zta-auth-service-vpa
-  namespace: zta-control-plane
+  name: casa-auth-service-vpa
+  namespace: casa-control-plane
 spec:
   targetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: zta-auth-service
+    name: casa-auth-service
   updatePolicy:
     updateMode: "Auto"  # Or "Recreate" for StatefulSets
   resourcePolicy:
     containerPolicies:
-    - containerName: zta-auth-service
+    - containerName: casa-auth-service
       minAllowed:
         cpu: 500m
         memory: 512Mi
@@ -9745,12 +9745,12 @@ spec:
 **VPA Recommendations Viewer:**
 ```bash
 # Get VPA recommendations
-kubectl describe vpa zta-auth-service-vpa -n zta-control-plane
+kubectl describe vpa casa-auth-service-vpa -n casa-control-plane
 
 # Output example:
 # Recommendation:
 #   Container Recommendations:
-#     Container Name: zta-auth-service
+#     Container Name: casa-auth-service
 #     Lower Bound:
 #       Cpu:     800m
 #       Memory:  1Gi
@@ -9817,7 +9817,7 @@ kubectl describe vpa zta-auth-service-vpa -n zta-control-plane
 apiVersion: chaos-mesh.org/v1alpha1
 kind: Workflow
 metadata:
-  name: zta-chaos-test-suite
+  name: casa-chaos-test-suite
   namespace: chaos-testing
 spec:
   entry: entry
@@ -9838,9 +9838,9 @@ spec:
       mode: one
       selector:
         namespaces:
-        - zta-control-plane
+        - casa-control-plane
         labelSelectors:
-          app: zta-auth-service
+          app: casa-auth-service
       duration: 30s
 
   - name: network-delay-test
@@ -9851,9 +9851,9 @@ spec:
       mode: all
       selector:
         namespaces:
-        - zta-control-plane
+        - casa-control-plane
         labelSelectors:
-          app: zta-auth-service
+          app: casa-auth-service
       delay:
         latency: "100ms"
         correlation: "50"
@@ -9867,9 +9867,9 @@ spec:
       mode: one
       selector:
         namespaces:
-        - zta-control-plane
+        - casa-control-plane
         labelSelectors:
-          app: zta-ai-pipeline-service
+          app: casa-ai-pipeline-service
       stressors:
         cpu:
           workers: 4
@@ -9884,7 +9884,7 @@ spec:
       mode: one
       selector:
         namespaces:
-        - zta-control-plane
+        - casa-control-plane
         labelSelectors:
           app: postgresql
       duration: 2m
@@ -9900,7 +9900,7 @@ helm install chaos-mesh chaos-mesh/chaos-mesh --namespace=chaos-testing --create
 kubectl apply -f chaos-test-suite.yaml
 
 # Monitor during chaos
-watch kubectl get pods -n zta-control-plane
+watch kubectl get pods -n casa-control-plane
 
 # Verify resilience
 kubectl logs -n chaos-testing -l app=chaos-test-monitor
@@ -9913,19 +9913,19 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 ### Phase 1: Control Plane Foundation (Weeks 1-4)
 
 **Goals:**
-- Deploy monolithic ZTA server to Kubernetes
+- Deploy monolithic CASA server to Kubernetes
 - Integrate with Keycloak and PostgreSQL
 - Validate token flows in cluster
 
 **Deliverables:**
-1. Helm chart for monolithic ZTA server
+1. Helm chart for monolithic CASA server
 2. CiliumNetworkPolicy for control plane isolation
 3. PostgreSQL StatefulSet with backup automation
 4. Keycloak StatefulSet with admin realm
-5. End-to-end test: User app → ZTA → Keycloak → Token
+5. End-to-end test: User app → CASA → Keycloak → Token
 
 **Success Criteria:**
-- ZTA server handles 100 tokens/sec
+- CASA server handles 100 tokens/sec
 - Zero downtime during pod restarts
 - Audit logs persisted to PostgreSQL
 
@@ -9934,19 +9934,19 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 ### Phase 2: Sidecar Injection (Weeks 5-8)
 
 **Goals:**
-- Build and deploy ZTA sidecar proxy
+- Build and deploy CASA sidecar proxy
 - Implement mutating webhook for injection
 - Validate L7 protocol enforcement
 
 **Deliverables:**
-1. ZTA sidecar container image (Envoy-based or custom)
+1. CASA sidecar container image (Envoy-based or custom)
 2. Mutating webhook for sidecar injection
 3. Init container for iptables configuration
 4. Sidecar ConfigMap and DaemonSet (if needed)
 5. End-to-end test: Agent → Sidecar → MCP server
 
 **Success Criteria:**
-- Sidecars auto-inject on pods with `zta.io/enabled=true`
+- Sidecars auto-inject on pods with `casa.io/enabled=true`
 - Sidecars enforce MCP protocol (block HTTP to non-MCP endpoints)
 - Sidecar cache reduces control plane load by 80%
 
@@ -9976,7 +9976,7 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 ### Phase 4: Control Plane Decomposition (Weeks 13-16)
 
 **Goals:**
-- Split monolithic ZTA into microservices
+- Split monolithic CASA into microservices
 - Deploy Auth, Policy, AI Pipeline, Telemetry, Discovery services
 - Migrate data to service-specific databases (optional)
 
@@ -9997,12 +9997,12 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 ### Phase 5: CRDs and Operator (Weeks 17-20)
 
 **Goals:**
-- Define MultiAgentSystem, ZTAPolicy CRDs
+- Define MultiAgentSystem, CASAPolicy CRDs
 - Build Kubernetes Operator to reconcile CRDs
 - Automate CiliumNetworkPolicy generation
 
 **Deliverables:**
-1. CRD manifests (multiagentsystem, ztapolicy, mcpserver)
+1. CRD manifests (multiagentsystem, casapolicy, mcpserver)
 2. Operator codebase (Kubebuilder or Operator SDK)
 3. Reconciliation loops for CRD → CiliumNetworkPolicy
 4. GitOps integration (ArgoCD Application manifests)
@@ -10072,7 +10072,7 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 | **Token Exchange** | OAuth2 RFC 8693: Exchange one token for another (delegation/impersonation) |
 | **Tool Check** | Security validation that requested tool matches user intent |
 | **Task-Tool Matcher** | AI pipeline that matches user tasks to appropriate tools |
-| **ZTA** | Zero Trust Architecture: Security model with deny-by-default and continuous verification |
+| **CASA** | Continuous Agent Semantic Authorization: Security model with deny-by-default and continuous verification |
 
 ---
 
@@ -10080,14 +10080,14 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 
 | Component | Port | Protocol | Purpose |
 |-----------|------|----------|---------|
-| ZTA Auth Service | 8443 | HTTPS | Token operations |
-| ZTA Policy Service | 8443 | HTTPS | App/MAS management |
-| ZTA AI Pipeline Service | 8443 | HTTPS | Task-tool matching |
-| ZTA Telemetry Service | 8443 | HTTPS | Event ingestion |
-| ZTA Discovery Service | 8443 | HTTPS | MCP tool discovery |
-| ZTA Sidecar (inbound) | 15001 | HTTP | Receive traffic from app |
-| ZTA Sidecar (outbound) | 15002 | HTTP | Send traffic to external |
-| ZTA Sidecar (metrics) | 15003 | HTTP | Prometheus metrics |
+| CASA Auth Service | 8443 | HTTPS | Token operations |
+| CASA Policy Service | 8443 | HTTPS | App/MAS management |
+| CASA AI Pipeline Service | 8443 | HTTPS | Task-tool matching |
+| CASA Telemetry Service | 8443 | HTTPS | Event ingestion |
+| CASA Discovery Service | 8443 | HTTPS | MCP tool discovery |
+| CASA Sidecar (inbound) | 15001 | HTTP | Receive traffic from app |
+| CASA Sidecar (outbound) | 15002 | HTTP | Send traffic to external |
+| CASA Sidecar (metrics) | 15003 | HTTP | Prometheus metrics |
 | Keycloak | 8080 | HTTP | OAuth2 endpoints |
 | PostgreSQL | 5432 | TCP | Database |
 | Redis | 6379 | TCP | Cache |
@@ -10102,20 +10102,20 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 
 ```bash
 # 1. Install control plane
-helm install zta-system ./charts/zta-mas-system \
-  --namespace zta-control-plane \
+helm install casa-system ./charts/casa-mas-system \
+  --namespace casa-control-plane \
   --create-namespace \
   --values values-prod.yaml
 
 # 2. Wait for control plane ready
-kubectl wait --for=condition=ready pod -l tier=control-plane -n zta-control-plane --timeout=300s
+kubectl wait --for=condition=ready pod -l tier=control-plane -n casa-control-plane --timeout=300s
 
 # 3. Create MAS namespace
 kubectl create namespace production-mas
 
 # 4. Deploy MultiAgentSystem CRD
 kubectl apply -f - <<EOF
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: production-mas
@@ -10155,9 +10155,9 @@ spec:
     metadata:
       labels:
         app: agent
-        zta.io/enabled: "true"
+        casa.io/enabled: "true"
       annotations:
-        zta.io/inject-sidecar: "true"
+        casa.io/inject-sidecar: "true"
     spec:
       containers:
       - name: agent
@@ -10168,7 +10168,7 @@ EOF
 
 # 6. Verify sidecar injection
 kubectl get pods -n production-mas
-# Should show 2 containers per pod (agent + zta-sidecar)
+# Should show 2 containers per pod (agent + casa-sidecar)
 
 # 7. Test token flow
 kubectl exec -n production-mas deployment/agent -c agent -- curl http://localhost:15001/oauth/token
@@ -10225,7 +10225,7 @@ hubble observe --namespace production-mas --last 100
 - Technology: Envoy with Lua filters for protocol validation
 - Responsibilities: L7 protocol enforcement (MCP/A2A), token injection, caching, telemetry
 - Configuration: Envoy xDS API + ConfigMap
-- Injection: Mutating webhook (automatic for pods with `zta.io/enabled=true`)
+- Injection: Mutating webhook (automatic for pods with `casa.io/enabled=true`)
 
 ✅ **eBPF Enforcement** (§4.2, §5.5)
 - Cilium for L3/L4 policy enforcement
@@ -10241,7 +10241,7 @@ hubble observe --namespace production-mas --last 100
 
 ✅ **Custom Resources** (§7.2)
 - `MultiAgentSystem` CRD: Declarative MAS definition
-- `ZTAPolicy` CRD: Simplified policy abstraction
+- `CASAPolicy` CRD: Simplified policy abstraction
 - Operator: Auto-generates CiliumNetworkPolicies, manages Keycloak realms
 
 ✅ **Protocol Enforcement** (§9.5)
@@ -10313,7 +10313,7 @@ hubble observe --namespace production-mas --last 100
    - Rationale: Reduce latency, simplify networking
 
 4. **Keycloak HA**: Embedded PostgreSQL or external?
-   - Recommendation: External PostgreSQL (shared with ZTA)
+   - Recommendation: External PostgreSQL (shared with CASA)
    - Rationale: Simpler backup, single DB to manage
 
 5. **Certificate Management**: cert-manager or external CA?
@@ -10345,7 +10345,7 @@ hubble observe --namespace production-mas --last 100
 
 ### 30-Minute Demo Deployment
 
-This quick start deploys a minimal ZTA-MAS system for evaluation purposes.
+This quick start deploys a minimal CASA-MAS system for evaluation purposes.
 
 **Prerequisites:**
 ```bash
@@ -10390,40 +10390,40 @@ kubectl wait --for=condition=ready pod -l k8s-app=cilium -n kube-system --timeou
 # PostgreSQL
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install postgresql bitnami/postgresql \
-  --namespace zta-control-plane \
+  --namespace casa-control-plane \
   --create-namespace \
   --set auth.postgresPassword=demo123
 
 # Keycloak
 helm install keycloak bitnami/keycloak \
-  --namespace zta-control-plane \
+  --namespace casa-control-plane \
   --set auth.adminPassword=admin \
   --set postgresql.enabled=false \
   --set externalDatabase.host=postgresql \
   --set externalDatabase.password=demo123
 ```
 
-**Step 3: Deploy ZTA Control Plane**
+**Step 3: Deploy CASA Control Plane**
 ```bash
 # Clone repo (hypothetical)
-git clone https://github.com/your-org/zta-mas-system
-cd zta-mas-system
+git clone https://github.com/your-org/casa-mas-system
+cd casa-mas-system
 
 # Deploy with Helm
-helm install zta-mas-system ./charts/zta-mas-system \
-  --namespace zta-control-plane \
+helm install casa-mas-system ./charts/casa-mas-system \
+  --namespace casa-control-plane \
   --set global.environment=demo \
   --set controlPlane.replicas=1 \
   --set sidecar.injection.enabled=true
 
 # Wait for deployment
-kubectl wait --for=condition=available deployment --all -n zta-control-plane --timeout=300s
+kubectl wait --for=condition=available deployment --all -n casa-control-plane --timeout=300s
 ```
 
 **Step 4: Create Sample MAS**
 ```yaml
 kubectl apply -f - <<EOF
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: demo-mas
@@ -10453,13 +10453,13 @@ kubectl apply -f examples/demo-mcp.yaml -n demo-mas
 
 # Verify sidecars injected
 kubectl get pods -n demo-mas
-# Should show 2 containers per pod (app + zta-sidecar)
+# Should show 2 containers per pod (app + casa-sidecar)
 ```
 
 **Step 6: Test Token Flow**
 ```bash
 # Port-forward to auth service
-kubectl port-forward -n zta-control-plane svc/zta-auth-service 8443:8443 &
+kubectl port-forward -n casa-control-plane svc/casa-auth-service 8443:8443 &
 
 # Generate token
 curl -k -X POST https://localhost:8443/oauth/token \
@@ -10780,8 +10780,8 @@ Blue-green deployment is recommended for major version upgrades.
 **Q12: How do you troubleshoot a token exchange failure?**
 
 **A:**
-1. Check sidecar logs: `kubectl logs <pod> -c zta-sidecar`
-2. Check control plane logs: `kubectl logs -n zta-control-plane deployment/zta-auth-service`
+1. Check sidecar logs: `kubectl logs <pod> -c casa-sidecar`
+2. Check control plane logs: `kubectl logs -n casa-control-plane deployment/casa-auth-service`
 3. Check Hubble flows: `hubble observe --pod <pod-name>`
 4. Check telemetry: Query PostgreSQL `traces` table for user_input_id
 5. Check AI pipeline: Verify LLM API is reachable
@@ -10881,7 +10881,7 @@ Grafana dashboard visualizes audit trail (§8.3).
 
 ### Security
 
-9. **NIST Zero Trust Architecture** (SP 800-207)  
+9. **NIST Continuous Agent Semantic Authorization** (SP 800-207)  
    https://csrc.nist.gov/publications/detail/sp/800-207/final  
    _Zero Trust principles and implementation_
 

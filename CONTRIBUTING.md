@@ -1,6 +1,6 @@
 # How to Contribute
 
-Thanks for your interest in contributing to `zta`! Here are a few
+Thanks for your interest in contributing to `casa`! Here are a few
 general guidelines on contributing and reporting bugs that we ask you to review.
 Following these guidelines helps to communicate that you respect the time of the
 contributors managing and developing this open source project. In return, they
@@ -39,7 +39,7 @@ major version release.
 
 ## Other Ways to Contribute
 
-We welcome anyone that wants to contribute to `zta` to triage and
+We welcome anyone that wants to contribute to `casa` to triage and
 reply to open issues to help troubleshoot and fix existing bugs. Here is what
 you can do:
 
@@ -50,9 +50,9 @@ you can do:
     [Wiki](https://github.com/outshift-open/zta/wiki) with up-to-date
     instructions and code samples.
 -   Review existing pull requests, and testing patches against real existing
-    applications that use `zta`.
+    applications that use `casa`.
 -   Write a test, or add a missing test case to an existing test.
 
-Thanks again for your interest on contributing to `zta`!
+Thanks again for your interest on contributing to `casa`!
 
 :heart:

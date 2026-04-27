@@ -6,7 +6,7 @@ title: Demo Walkthrough
 
 # Demo Walkthrough
 
-This walkthrough shows the complete ZTA enforcement flow using the demo MAS, from user prompt to tool execution.
+This walkthrough shows the complete CASA enforcement flow using the demo MAS, from user prompt to tool execution.
 
 ## What the Demo Does
 
@@ -18,16 +18,16 @@ The demo scenario:
 2. The client forwards the conversation to the agent via its A2A endpoint
 3. The agent calls an LLM to determine which tools to use
 4. The LLM selects `get_account_summary` and `get_scheduled_payments` tools
-5. The agent requests a tool token from ZTA for each tool
-6. ZTA validates that each tool matches the user's intent (deterministic checks)
+5. The agent requests a tool token from CASA for each tool
+6. CASA validates that each tool matches the user's intent (deterministic checks)
 7. The agent calls the MCP server with the validated tokens
 8. The MCP server executes the tools and returns results
 9. The agent response appears in the Client UI
-10. ZTA enforces and logs all token operations
+10. CASA enforces and logs all token operations
 
 ## Prerequisites
 
-- ZTA control plane running (see [Install Control Plane](/installation/control-plane))
+- CASA control plane running (see [Install Control Plane](/installation/control-plane))
 - Demo MAS deployed and sidecar injection enabled (see [Install Demo MAS](/installation/demo-mas))
 - `MultiAgentSystem` CRD applied
 
@@ -38,20 +38,20 @@ The demo scenario:
 Port-forward the client service and open it in your browser:
 
 ```bash
-kubectl -n zta-sidecar port-forward svc/zta-demo-client 3001:3001
+kubectl -n casa-sidecar port-forward svc/casa-demo-client 3001:3001
 # Open http://localhost:3001
 ```
 
-Type a message such as *"Get the account summary and scheduled payments"* and send it. The client forwards the conversation to the agent, which calls the LLM, requests tool tokens from ZTA, and invokes the MCP server. The agent response appears directly in the chat.
+Type a message such as *"Get the account summary and scheduled payments"* and send it. The client forwards the conversation to the agent, which calls the LLM, requests tool tokens from CASA, and invokes the MCP server. The agent response appears directly in the chat.
 
-### 2. Observe ZTA events in the Explorer UI
+### 2. Observe CASA events in the Explorer UI
 
 ```bash
-kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80
+kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080
 ```
 
-In the ZTA Explorer UI, you should see:
+In the CASA Explorer UI, you should see:
 - A user input event correlated with your prompt
 - Token exchange events for T1 → T2 (LLM) and T1 → T3 (each tool)
 - ALLOW decisions for `get_account_summary` and `get_scheduled_payments`
@@ -62,15 +62,15 @@ If `AI_POWERED_TOOL_MATCH` is enabled in the MAS configuration, send a narrower 
 
 > *"Get the account summary"*
 
-If the agent attempts to also call a write tool, ZTA blocks it.
+If the agent attempts to also call a write tool, CASA blocks it.
 
-**Expected behavior:** The write tool call is rejected with 403. The agent returns a partial result using only the approved tools. In the ZTA Explorer UI, you should see:
+**Expected behavior:** The write tool call is rejected with 403. The agent returns a partial result using only the approved tools. In the CASA Explorer UI, you should see:
 - A DENY event for the write tool
 - The check that failed: `AI_POWERED_TOOL_MATCH` — "filesystem:write does not match user intent: get account summary"
 
-## What ZTA Does Internally
+## What CASA Does Internally
 
-During the above request, ZTA:
+During the above request, CASA:
 
 1. **Receives token request** from the client UI sidecar (T1 issuance)
    - Stores the user's prompt correlated with the token
@@ -90,23 +90,23 @@ During the above request, ZTA:
 View auth service logs during the request:
 
 ```bash
-kubectl -n zta-control-plane logs -f deploy/zta-auth-service | grep -E "token|tool|check"
+kubectl -n casa-control-plane logs -f deploy/casa-auth-service | grep -E "token|tool|check"
 ```
 
 View sidecar logs (pick the relevant pod):
 
 ```bash
 # Client sidecar
-kubectl -n zta-sidecar logs -f deploy/zta-demo-client -c istio-proxy 2>/dev/null || \
-kubectl -n zta-sidecar logs -f deploy/zta-demo-client -c zta-sidecar
+kubectl -n casa-sidecar logs -f deploy/casa-demo-client -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/casa-demo-client -c casa-sidecar
 
 # Agent sidecar
-kubectl -n zta-sidecar logs -f deploy/zta-demo-agent -c istio-proxy 2>/dev/null || \
-kubectl -n zta-sidecar logs -f deploy/zta-demo-agent -c zta-sidecar
+kubectl -n casa-sidecar logs -f deploy/casa-demo-agent -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/casa-demo-agent -c casa-sidecar
 
 # MCP sidecar
-kubectl -n zta-sidecar logs -f deploy/zta-demo-mcp -c istio-proxy 2>/dev/null || \
-kubectl -n zta-sidecar logs -f deploy/zta-demo-mcp -c zta-sidecar
+kubectl -n casa-sidecar logs -f deploy/casa-demo-mcp -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/casa-demo-mcp -c casa-sidecar
 ```
 
 ## Cleanup

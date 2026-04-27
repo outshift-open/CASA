@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class K8sCRDService:
-    """Service for managing Kubernetes CRD resources in the ZTA control plane."""
+    """Service for managing Kubernetes CRD resources in the CASA control plane."""
 
     def __init__(
         self,
@@ -96,7 +96,7 @@ class K8sCRDService:
         )
 
         return MultiAgentSystemCRD(
-            api_version="zta.io/v1alpha1",
+            api_version="casa.io/v1alpha1",
             kind="MultiAgentSystem",
             metadata=MultiAgentSystemMetadata(
                 name=mas.name.lower().replace(" ", "-"),

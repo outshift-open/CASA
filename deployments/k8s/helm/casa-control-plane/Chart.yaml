@@ -1,0 +1,16 @@
+apiVersion: v2
+name: casa-control-plane
+description: CASA Control Plane — auth-service, UI explorer, Keycloak, PostgreSQL
+type: application
+version: 0.1.14
+appVersion: "0.0.13"
+keywords:
+  - semantic-authorization
+  - multi-agent
+  - identity
+  - auth
+home: https://github.com/cisco-eti/identity-auth-server
+sources:
+  - https://github.com/cisco-eti/identity-auth-server
+maintainers:
+  - name: cisco-eti

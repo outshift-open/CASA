@@ -1,7 +1,7 @@
 apiVersion: extensions.istio.io/v1alpha1
 kind: WasmPlugin
 metadata:
-  name: zta-llm-proxy
+  name: casa-llm-proxy
   namespace: {{ .Release.Namespace }}
 spec:
   url: oci://{{ .Values.llm_proxy.image.repository }}:{{ .Values.llm_proxy.image.tag | default .Chart.AppVersion }}

@@ -5,7 +5,7 @@ WORKDIR /build
 COPY ./operator ./operator
 COPY ./sdk/go ./sdk/go
 WORKDIR /build/operator
-RUN go build -o zta-operator
+RUN go build -o casa-operator
 
 RUN apk update \
     &&  apk add ca-certificates \
@@ -19,12 +19,12 @@ RUN addgroup -S web && adduser -u 1999 -S -G web web
 # Set workdir
 WORKDIR /home/web
 
-COPY --from=builder /build/operator/zta-operator .
+COPY --from=builder /build/operator/casa-operator .
 
 # Give permissions
-RUN chmod +x zta-operator && \
+RUN chmod +x casa-operator && \
     chown -R web:web .
 
 USER web
 
-ENTRYPOINT ["./zta-operator"]
+ENTRYPOINT ["./casa-operator"]

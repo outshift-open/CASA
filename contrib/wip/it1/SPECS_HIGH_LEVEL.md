@@ -40,7 +40,7 @@ graph TB
         LLM[OpenAI LLM]
     end
 
-    subgraph "🟢 ZTA Control Plane (zta-control-plane namespace)"
+    subgraph "🟢 CASA Control Plane (casa-control-plane namespace)"
         AUTH[Auth Service<br/>3-20 pods]
         POLICY[Policy Service<br/>3 pods]
         AI[AI Pipeline<br/>3-10 pods]
@@ -117,7 +117,7 @@ graph TB
 
 ## Step 1: Understand the Components
 
-### Control Plane (namespace: `zta-control-plane`)
+### Control Plane (namespace: `casa-control-plane`)
 The brains of the operation. Runs as stateless services (except PostgreSQL).
 
 | Service | What It Does | Scale |
@@ -305,8 +305,8 @@ spec:
   # Allow: Agent → Auth Service (token exchange)
   - toEndpoints:
     - matchLabels:
-        app: zta-auth-service
-        k8s:io.kubernetes.pod.namespace: zta-control-plane
+        app: casa-auth-service
+        k8s:io.kubernetes.pod.namespace: casa-control-plane
     toPorts:
     - ports:
       - port: "443"
@@ -339,7 +339,7 @@ spec:
 ### Helm Chart Structure
 
 ```
-zta-system/
+casa-system/
 ├── Chart.yaml
 ├── values.yaml
 ├── charts/
@@ -347,15 +347,15 @@ zta-system/
 │   ├── infrastructure/        # PostgreSQL, Redis, Keycloak
 │   └── observability/         # Prometheus, Grafana, Loki
 └── templates/
-    ├── crds/                  # MultiAgentSystem, ZTAPolicy
+    ├── crds/                  # MultiAgentSystem, CASAPolicy
     ├── sidecar-injector/      # MutatingWebhook
-    └── operators/             # ZTA Operator (reconciles CRDs)
+    └── operators/             # CASA Operator (reconciles CRDs)
 ```
 
 **Install:**
 ```bash
-helm install zta-control-plane zta/zta-system \
-  --namespace zta-control-plane \
+helm install casa-control-plane casa/casa-system \
+  --namespace casa-control-plane \
   --create-namespace
 ```
 
@@ -366,7 +366,7 @@ helm install zta-control-plane zta/zta-system \
 **MultiAgentSystem** = Your MAS configuration as code
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: production-mas
@@ -387,7 +387,7 @@ spec:
 
 **What the operator does when you `kubectl apply` this:**
 1. Creates Keycloak realm `production-realm`
-2. Registers apps in ZTA Policy Service
+2. Registers apps in CASA Policy Service
 3. Configures CiliumNetworkPolicy for namespace
 4. Enables sidecar injection (mutating webhook)
 5. Sets up observability dashboards
@@ -397,8 +397,8 @@ spec:
 ### Sidecar Injection (Automatic)
 
 **How it works:**
-1. Label namespace: `zta.io/injection: enabled`
-2. Label your pod: `zta.io/app-type: agent` (or `mcp_server`, `user_app`)
+1. Label namespace: `casa.io/injection: enabled`
+2. Label your pod: `casa.io/app-type: agent` (or `mcp_server`, `user_app`)
 3. Deploy pod → Mutating webhook injects sidecar automatically
 
 **What gets injected:**
@@ -433,8 +433,8 @@ spec:
 ### Namespace Layout
 
 ```
-zta-control-plane/    # All control plane services
-zta-system/           # Operators, CRDs, injector webhook
+casa-control-plane/    # All control plane services
+casa-system/           # Operators, CRDs, injector webhook
 production-mas/       # Your MAS workloads (agents, MCP servers)
 staging-mas/          # Staging environment (isolated)
 kube-system/          # Cilium (eBPF)
@@ -477,21 +477,21 @@ graph LR
     end
 
     subgraph "🟢 Fully Trusted"
-        ZTA[Control Plane]
+        CASA[Control Plane]
         KC[Keycloak]
         PG[(Database)]
     end
 
     U -->|Validated| UA
     AG -->|Token-gated| LLM
-    AG -.->|Authenticated| ZTA
-    MCP -.->|Authenticated| ZTA
+    AG -.->|Authenticated| CASA
+    MCP -.->|Authenticated| CASA
 
     style U fill:#ff6b6b
     style LLM fill:#ff6b6b
     style AG fill:#ffe66d
     style MCP fill:#ffe66d
-    style ZTA fill:#95e1d3
+    style CASA fill:#95e1d3
     style KC fill:#95e1d3
 ```
 
@@ -523,9 +523,9 @@ graph LR
 ### Observability Stack
 
 **Metrics (Prometheus):**
-- `zta_token_issuance_total` - Counter of tokens issued
-- `zta_token_exchange_duration_seconds` - Histogram of exchange latency
-- `zta_tool_check_result` - Counter by result (allow/deny)
+- `casa_token_issuance_total` - Counter of tokens issued
+- `casa_token_exchange_duration_seconds` - Histogram of exchange latency
+- `casa_tool_check_result` - Counter by result (allow/deny)
 - `cilium_flows_total{verdict="denied"}` - eBPF blocked flows
 
 **Logs (Loki):**
@@ -549,8 +549,8 @@ graph LR
 All configurations managed as code in Git:
 
 ```
-zta-gitops/
-├── control-plane/        # Helm values for ZTA services
+casa-gitops/
+├── control-plane/        # Helm values for CASA services
 ├── mas-workloads/
 │   ├── production-mas/   # MultiAgentSystem CRD + app deployments
 │   └── staging-mas/
@@ -560,7 +560,7 @@ zta-gitops/
 **Deployment flow:**
 1. Push to Git → ArgoCD detects change
 2. ArgoCD applies to cluster
-3. ZTA Operator reconciles MultiAgentSystem CRD
+3. CASA Operator reconciles MultiAgentSystem CRD
 4. Keycloak realm + apps created automatically
 
 📖 **GitOps patterns:** [SPECS.md §7.7](./SPECS.md#77-gitops-integration-argocd)
@@ -591,7 +591,7 @@ zta-gitops/
 2. Build AI Pipeline Service (embeddings matcher)
 3. Build Telemetry Service (event collection)
 4. Build MCP Discovery Service
-5. Deploy ZTA Operator (reconciles MultiAgentSystem CRD)
+5. Deploy CASA Operator (reconciles MultiAgentSystem CRD)
 6. Integration tests (token flow end-to-end)
 
 **Success criteria:**
@@ -619,7 +619,7 @@ zta-gitops/
 
 1. Deploy Prometheus + Grafana + Loki + Tempo
 2. Configure Hubble (eBPF flow logs)
-3. Build ZTA Explorer UI (admin dashboard)
+3. Build CASA Explorer UI (admin dashboard)
 4. Implement RBAC for control plane APIs
 5. Secrets management (Vault + External Secrets Operator)
 6. Disaster recovery (backups, restore procedures)
@@ -670,7 +670,7 @@ zta-gitops/
 **Rationale:** Open-source, supports RFC 8693 (token exchange), realm-per-MAS isolation  
 **Tradeoff:** ✅ No vendor lock-in, full control | ❌ Operational overhead (HA, backups, upgrades)
 
-### Why Decompose Monolithic ZTA Server?
+### Why Decompose Monolithic CASA Server?
 **Decision:** Split into 5 services (Auth, Policy, AI Pipeline, Telemetry, Discovery)  
 **Rationale:**  
 - Different scaling characteristics (AI Pipeline is CPU-heavy, Auth is latency-sensitive)
@@ -715,14 +715,14 @@ helm install cilium cilium/cilium \
   --set hubble.enabled=true \
   --set hubble.relay.enabled=true
 
-# 2. Install ZTA Control Plane
-helm install zta-control-plane zta/zta-system \
-  --namespace zta-control-plane \
+# 2. Install CASA Control Plane
+helm install casa-control-plane casa/casa-system \
+  --namespace casa-control-plane \
   --create-namespace
 
 # 3. Create your first Multi-Agent System
 kubectl apply -f - <<EOF
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: production-mas
@@ -739,7 +739,7 @@ EOF
 
 # 4. Verify
 kubectl get mas -n production-mas
-kubectl get pods -n zta-control-plane
+kubectl get pods -n casa-control-plane
 hubble observe --namespace production-mas
 ```
 
@@ -751,18 +751,18 @@ metadata:
   name: my-agent
   namespace: production-mas
   labels:
-    zta.io/app-type: agent  # Triggers sidecar injection
+    casa.io/app-type: agent  # Triggers sidecar injection
 spec:
   containers:
   - name: agent
     image: my-agent:v1.0
     env:
-    - name: ZTA_AUTH_URL
-      value: "https://zta-auth-service.zta-control-plane.svc"
+    - name: CASA_AUTH_URL
+      value: "https://casa-auth-service.casa-control-plane.svc"
 ```
 
 **What happens automatically:**
-1. Mutating webhook injects ZTA sidecar (Envoy)
+1. Mutating webhook injects CASA sidecar (Envoy)
 2. Operator creates Keycloak realm `production-realm`
 3. Cilium enforces deny-by-default network policy
 4. Sidecar intercepts all traffic, adds auth tokens
@@ -779,7 +779,7 @@ spec:
 ```yaml
 # Alert when token issuance fails
 - alert: TokenIssuanceFailureRate
-  expr: rate(zta_token_issuance_errors_total[5m]) > 0.01
+  expr: rate(casa_token_issuance_errors_total[5m]) > 0.01
   severity: critical
 
 # Alert when eBPF blocks unexpected traffic
@@ -789,7 +789,7 @@ spec:
 
 # Alert when AI Pipeline is slow
 - alert: ToolCheckLatencyHigh
-  expr: histogram_quantile(0.95, zta_tool_check_duration_seconds) > 2
+  expr: histogram_quantile(0.95, casa_tool_check_duration_seconds) > 2
   severity: warning
 ```
 
@@ -804,9 +804,9 @@ spec:
 | Symptom | Likely Cause | Fix |
 |---------|-------------|-----|
 | Agent can't reach MCP server | CiliumNetworkPolicy not applied | `kubectl get cnp -n production-mas` |
-| Token exchange fails | Keycloak realm not created | Check ZTA Operator logs |
+| Token exchange fails | Keycloak realm not created | Check CASA Operator logs |
 | High token latency | PostgreSQL bottleneck | Scale up IOPS or add read replicas |
-| Sidecar not injected | Namespace not labeled | Add `zta.io/injection: enabled` |
+| Sidecar not injected | Namespace not labeled | Add `casa.io/injection: enabled` |
 | eBPF blocks LLM calls | FQDN not in allowlist | Update CiliumNetworkPolicy `toFQDNs` |
 
 ### Upgrades (Zero-Downtime)
@@ -814,15 +814,15 @@ spec:
 **Control plane upgrade:**
 ```bash
 # 1. Upgrade Helm chart (rolling update)
-helm upgrade zta-control-plane zta/zta-system \
-  --namespace zta-control-plane \
+helm upgrade casa-control-plane casa/casa-system \
+  --namespace casa-control-plane \
   --version 2.0.0
 
 # 2. Verify health
-kubectl rollout status deployment/zta-auth-service -n zta-control-plane
+kubectl rollout status deployment/casa-auth-service -n casa-control-plane
 
 # 3. Check metrics
-curl https://zta-auth-service.zta-control-plane.svc/metrics
+curl https://casa-auth-service.casa-control-plane.svc/metrics
 ```
 
 **Sidecar upgrade (per-MAS):**
@@ -905,14 +905,14 @@ kubectl get pods -n production-mas -o jsonpath='{.items[0].spec.containers[*].na
 hubble observe --namespace production-mas --verdict DENIED
 
 # Check token metrics
-kubectl port-forward -n zta-control-plane svc/zta-auth-service 9090:9090
-curl localhost:9090/metrics | grep zta_token
+kubectl port-forward -n casa-control-plane svc/casa-auth-service 9090:9090
+curl localhost:9090/metrics | grep casa_token
 
 # View CiliumNetworkPolicies
 kubectl get cnp -A
 
 # Operator logs (debug MAS creation)
-kubectl logs -n zta-system -l app=zta-operator --tail=100
+kubectl logs -n casa-system -l app=casa-operator --tail=100
 ```
 
 ### Troubleshooting Decision Tree
@@ -920,7 +920,7 @@ kubectl logs -n zta-system -l app=zta-operator --tail=100
 Traffic blocked?
 ├─ Check CiliumNetworkPolicy: kubectl get cnp -n <namespace>
 ├─ Check Hubble: hubble observe --verdict DENIED
-└─ Check sidecar logs: kubectl logs <pod> -c zta-sidecar
+└─ Check sidecar logs: kubectl logs <pod> -c casa-sidecar
 
 Token invalid?
 ├─ Check Auth Service: curl <auth-service>/health
@@ -937,5 +937,5 @@ Agent can't call MCP?
 
 **Document Version:** 3.0  
 **Last Updated:** 2025-01-10  
-**Scope:** Minimum information needed to design, deploy, and operate ZTA-MAS in Kubernetes  
+**Scope:** Minimum information needed to design, deploy, and operate CASA-MAS in Kubernetes  
 **Audience:** Senior Cloud & Kubernetes Architects, Platform Engineers, SREs

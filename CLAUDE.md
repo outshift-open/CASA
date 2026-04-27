@@ -1,11 +1,11 @@
-# ZTA — Zero Trust for Multi-Agent Systems
+# CASA — Continuous Agent Semantic Authorization
 
 Python FastAPI auth/authorization server for intent-scoped Zero Trust authorization of Multi-Agent Systems (MAS). Deployed on Kubernetes with Keycloak, PostgreSQL, Envoy sidecars, and Cilium eBPF enforcement.
 
 ## Tech Stack
 
 - **Backend**: Python 3.12+, FastAPI, SQLModel, SQLAlchemy, Keycloak (python-keycloak), PyJWT
-- **Frontend**: React + TypeScript + Vite + Tailwind (`zta-explorer-ui/`)
+- **Frontend**: React + TypeScript + Vite + Tailwind (`casa-explorer-ui/`)
 - **Package manager**: `uv` (Python), `yarn` (frontend)
 - **Linting/formatting**: `ruff` (lint + format), `mypy` (types), `shellcheck`
 - **Pre-commit hooks**: enforced on commit and push; run `make check` to run manually
@@ -23,7 +23,7 @@ make docker-run        # Start full stack via Docker Compose
 make docker-stop       # Stop Docker Compose stack
 make keycloak-run      # Start Keycloak only (docker-compose.keycloak.yml)
 make demo-run          # Start demo agents + LiteLLM
-make ui-run            # Start ZTA Explorer UI (docker-compose.ui.yml)
+make ui-run            # Start CASA Explorer UI (docker-compose.ui.yml)
 make demo-data         # Seed demo data (requires running backend)
 make demo-data-reset   # Clear + reseed demo data
 ```
@@ -42,11 +42,11 @@ src/identity_auth_server/   # Main Python package
 test/
   conftest.py               # Shared pytest fixtures
   integration/              # Integration tests (require live DB/Keycloak; marked with @pytest.mark.integration)
-zta-explorer-ui/            # React/TypeScript observability UI — read-only (yarn)
+casa-explorer-ui/            # React/TypeScript observability UI — read-only (yarn)
 sdk/                        # Generated Python SDK (uv workspace member; don't edit directly)
 deployments/
   docker-compose/           # docker-compose.yml, keycloak, demo, ui variants
-  k8s/helm/                 # Helm chart: zta-control-plane
+  k8s/helm/                 # Helm chart: casa-control-plane
 scripts/                    # Utility scripts (create_demo_data.py)
 ```
 

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ---
-name: ZTA Control Plane CI/CD
+name: CASA Control Plane CI/CD
 on:
   push:
     branches:
@@ -159,7 +159,7 @@ jobs:
             checkout-submodules: true
 
     call-docker-build-push-operator:
-      name: Call Docker Build ZTA Operator
+      name: Call Docker Build CASA Operator
       needs: [checkout]
       uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
       secrets:
@@ -170,7 +170,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
       with:
         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-        image-name: "outshift-zta/zta-operator"
+        image-name: "outshift-casa/casa-operator"
         context: .
         dockerfile: deployments/docker/Dockerfile.operator
         ecr-enabled: true
@@ -189,7 +189,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
       with:
         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-        image-name: "outshift-zta/traceparent_injector_plugin"
+        image-name: "outshift-casa/traceparent_injector_plugin"
         context: sidecar/traceparent_injector
         dockerfile: sidecar/traceparent_injector/Dockerfile
         ecr-enabled: true
@@ -208,7 +208,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
       with:
         runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-        image-name: "outshift-zta/llm_proxy_plugin"
+        image-name: "outshift-casa/llm_proxy_plugin"
         context: sidecar/llm_proxy
         dockerfile: sidecar/llm_proxy/Dockerfile
         ecr-enabled: true
@@ -227,7 +227,7 @@ jobs:
       caller-github-token: ${{ secrets.GITHUB_TOKEN }}
         with:
             runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-            image-name: "outshift-zta/ext_auth_service"
+            image-name: "outshift-casa/ext_auth_service"
             context: .
             dockerfile: deployments/docker/Dockerfile.extauth
             ecr-enabled: true
@@ -236,8 +236,8 @@ jobs:
 
     # ################################## Helm Publish #################################
     # #################################################################################
-    call-helm-publish-zta-control-plane:
-        name: Helm publish ZTA Control Plane
+    call-helm-publish-casa-control-plane:
+        name: Helm publish CASA Control Plane
         needs: [checkout]
         uses: cisco-eti/gh-reusable-workflows/.github/workflows/helm-publish.yaml@fix/ghcr-x-access-token-only
         with:
@@ -246,7 +246,7 @@ jobs:
             enable-private-ecr: false
             enable-public-ecr: false
             checkout-submodules: true
-            chart-path: deployments/k8s/helm/zta-control-plane
+            chart-path: deployments/k8s/helm/casa-control-plane
             # override-chart-version: ${{ needs.calculate-tags.outputs.chart_version }}
             #ecr-public-registry-alias: ${{ vars.ECR_PUBLIC_REGISTRY_ALIAS}}
         secrets:
@@ -301,21 +301,21 @@ jobs:
                   SHA=$(git rev-parse --short HEAD)
                   echo "tag=$DATE-$SHA" >> $GITHUB_OUTPUT
 
-    # ZTA Control Plane Deployment (Combined)
-    call-trigger-cd-zta-control-plane:
-      name: Trigger CD ZTA Control Plane
+    # CASA Control Plane Deployment (Combined)
+    call-trigger-cd-casa-control-plane:
+      name: Trigger CD CASA Control Plane
       needs: [
         call-docker-build-push-auth-service,
         call-docker-build-push-ui-explorer,
         call-docker-build-push-keycloak,
         call-docker-build-push-operator,
-        call-helm-publish-zta-control-plane,
+        call-helm-publish-casa-control-plane,
         utils
       ]
       uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@fix/ghcr-x-access-token-only
       with:
         deployment-repo: "cisco-eti/identity-auth-server-deployment"
-        client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-control-plane", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "authService.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "uiExplorer.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "keycloak.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "operator.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
+        client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/casa-control-plane", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "authService.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "uiExplorer.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "keycloak.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "operator.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
       secrets:
         github-app-id: ${{ secrets.GHA_APP_ID }}
         github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
@@ -323,7 +323,7 @@ jobs:
         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
-    # ZTA (ext-authz-middleware) Deployment
+    # CASA (ext-authz-middleware) Deployment
     call-trigger-cd-extauthz:
         name: Trigger CD ext-authz-middleware
         needs:
@@ -337,7 +337,7 @@ jobs:
         uses: cisco-eti/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@fix/ghcr-x-access-token-only
         with:
             deployment-repo: "cisco-eti/identity-auth-server-deployment"
-            client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/zta-authz-middleware", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "llm_proxy.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "traceparent_injector.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
+            client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/casa-authz-middleware", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "llm_proxy.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "traceparent_injector.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
         secrets:
             github-app-id: ${{ secrets.GHA_APP_ID }}
             github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
