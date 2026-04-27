@@ -192,21 +192,29 @@ The demo MAS uses the following `MultiAgentSystem` CRD spec:
 apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
-    name: my-mas
-    namespace: my-mas
+  name: my-mas
+  namespace: my-mas
 spec:
-    name: "My Multi-Agent System"
-    authorizationServer: "my-mas-realm"
-    enabledToolChecks:
-        - DETERMINISTIC_TOOL_SELECTED
-        - DETERMINISTIC_LLM_SELECTED_TOOLS
-    apps:
-        - name: my-agent
-          type: agent
-          baseUrl: "http://my-agent.my-mas.svc.cluster.local:8000"
-        - name: my-mcp-server
-          type: mcp_server
-          baseUrl: "http://my-mcp-server.my-mas.svc.cluster.local:8080"
+  name: "My Multi-Agent System"
+  enabledToolChecks:
+  - DETERMINISTIC_TOOL_SELECTED
+  - DETERMINISTIC_LLM_SELECTED_TOOLS
+  llm_host: your-llm-host.example.com
+  apps:
+  - name: my-agent
+    type: agent
+    kubernetesWorkloadName: my-agent
+    baseUrl:
+      host: my-agent:8000
+      scheme: http
+    httpRequestSchema:
+      promptFieldJsonPath: '{.prompt}'
+  - name: my-mcp-server
+    type: mcp_server
+    kubernetesWorkloadName: my-mcp-server
+    baseUrl:
+      host: my-mcp-server:8080
+      scheme: http
 ```
 
 To explore CASA with the demo MAS, install it with Helm:

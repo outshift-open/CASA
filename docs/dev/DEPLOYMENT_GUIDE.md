@@ -203,13 +203,22 @@ spec:
   name: "My MAS"                  # Human-friendly display name
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
+  llm_host: your-llm-host.example.com
   apps:
     - name: my-agent
       type: agent
-      baseUrl: http://my-agent:8080      # Service name:port
+      kubernetesWorkloadName: my-agent
+      baseUrl:
+        host: my-agent:8080
+        scheme: http
+      httpRequestSchema:
+        promptFieldJsonPath: '{.prompt}'
     - name: my-mcp-server
       type: mcp_server
-      baseUrl: http://my-mcp-server:3000
+      kubernetesWorkloadName: my-mcp-server
+      baseUrl:
+        host: my-mcp-server:3000
+        scheme: http
 ```
 
 **Field Explanations:**
@@ -343,13 +352,17 @@ metadata:
   namespace: my-namespace
 spec:
   name: "Simple Agent"
-  authorizationServer: simple-realm
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
   apps:
     - name: agent
       type: agent
-      baseUrl: http://agent:8080
+      kubernetesWorkloadName: agent
+      baseUrl:
+        host: agent:8080
+        scheme: http
+      httpRequestSchema:
+        promptFieldJsonPath: '{.prompt}'
 ```
 
 **Required:**
@@ -366,23 +379,36 @@ metadata:
   namespace: my-namespace
 spec:
   name: "Agent with Tools"
-  authorizationServer: tools-realm
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
   apps:
     - name: main-agent
       type: agent
-      baseUrl: http://main-agent:8080
+      kubernetesWorkloadName: main-agent
+      baseUrl:
+        host: main-agent:8080
+        scheme: http
+      httpRequestSchema:
+        promptFieldJsonPath: '{.prompt}'
     - name: database-mcp
       type: mcp_server
-      baseUrl: http://database-mcp:3000
+      kubernetesWorkloadName: database-mcp
+      baseUrl:
+        host: database-mcp:3000
+        scheme: http
     - name: api-mcp
       type: mcp_server
-      baseUrl: http://api-mcp:3000
+      kubernetesWorkloadName: api-mcp
+      baseUrl:
+        host: api-mcp:3000
+        scheme: http
     - name: filesystem-mcp
       type: mcp_server
-      baseUrl: http://filesystem-mcp:3000
+      kubernetesWorkloadName: filesystem-mcp
+      baseUrl:
+        host: filesystem-mcp:3000
+        scheme: http
 ```
 
 **Required:**
@@ -399,22 +425,35 @@ metadata:
   namespace: my-namespace
 spec:
   name: "Multi-Agent System"
-  authorizationServer: collab-realm
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
   apps:
     - name: orchestrator-agent
       type: agent
-      baseUrl: http://orchestrator:8080
+      kubernetesWorkloadName: orchestrator
+      baseUrl:
+        host: orchestrator:8080
+        scheme: http
+      httpRequestSchema:
+        promptFieldJsonPath: '{.prompt}'
     - name: research-agent
       type: agent
-      baseUrl: http://research:8080
+      kubernetesWorkloadName: research
+      baseUrl:
+        host: research:8080
+        scheme: http
     - name: writing-agent
       type: agent
-      baseUrl: http://writing:8080
+      kubernetesWorkloadName: writing
+      baseUrl:
+        host: writing:8080
+        scheme: http
     - name: tools-mcp
       type: mcp_server
-      baseUrl: http://tools-mcp:3000
+      kubernetesWorkloadName: tools-mcp
+      baseUrl:
+        host: tools-mcp:3000
+        scheme: http
 ```
 
 **Required:**
@@ -545,16 +584,23 @@ metadata:
   namespace: demo-mas
 spec:
   name: "Demo MAS"
-  authorizationServer: demo-realm
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
   apps:
     - name: demo-agent
       type: agent
-      baseUrl: http://demo-agent:8082
+      kubernetesWorkloadName: demo-agent
+      baseUrl:
+        host: demo-agent:8082
+        scheme: http
+      httpRequestSchema:
+        promptFieldJsonPath: '{.conversation}'
     - name: demo-mcp
       type: mcp_server
-      baseUrl: http://demo-mcp:3000
+      kubernetesWorkloadName: demo-mcp
+      baseUrl:
+        host: demo-mcp:3000
+        scheme: http
 ```
 
 ```bash

@@ -39,7 +39,6 @@ kubectl apply -f deployments/helm/casa-control-plane/crds/
 For `v1alpha1` → stable version upgrades:
 - Check if fields have been removed or renamed
 - Update existing CRD resources before applying the new CRD schema
-- The `authorizationServer` field is transitional and will be removed in a future version
 
 ## Upgrading Sidecars (Istio mode)
 

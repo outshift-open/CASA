@@ -29,38 +29,52 @@ Declares a Multi-Agent System: which applications belong to it, what types they 
 apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
-    name: production-mas
-    namespace: production-mas
+  name: production-mas
+  namespace: production-mas
 spec:
-    name: "Production Multi-Agent System"
-    authorizationServer: "production-realm"
-    enabledToolChecks:
-        - DETERMINISTIC_TOOL_SELECTED
-        - DETERMINISTIC_LLM_SELECTED_TOOLS
-        - AI_POWERED_TOOL_MATCH
-    apps:
-        - name: user-app
-          type: client
-          baseUrl: "http://user-app.production-mas.svc.cluster.local:8000"
-        - name: orchestrator-agent
-          type: agent
-          baseUrl: "http://orchestrator-agent.production-mas.svc.cluster.local:8000"
-        - name: filesystem-mcp
-          type: mcp_server
-          baseUrl: "http://filesystem-mcp.production-mas.svc.cluster.local:8080"
+  name: "Production Multi-Agent System"
+  enabledToolChecks:
+  - DETERMINISTIC_TOOL_SELECTED
+  - DETERMINISTIC_LLM_SELECTED_TOOLS
+  - AI_POWERED_TOOL_MATCH
+  llm_host: your-llm-host.example.com
+  apps:
+  - name: user-app
+    type: client
+    kubernetesWorkloadName: user-app
+    baseUrl:
+      host: user-app:8000
+      scheme: http
+  - name: orchestrator-agent
+    type: agent
+    kubernetesWorkloadName: orchestrator-agent
+    baseUrl:
+      host: orchestrator-agent:8000
+      scheme: http
+    httpRequestSchema:
+      promptFieldJsonPath: '{.prompt}'
+  - name: filesystem-mcp
+    type: mcp_server
+    kubernetesWorkloadName: filesystem-mcp
+    baseUrl:
+      host: filesystem-mcp:8080
+      scheme: http
 ```
 
 ### Field Reference
 
-| Field                      | Required           | Description                                 |
-| -------------------------- | ------------------ | ------------------------------------------- |
-| `spec.name`                | Yes                | Human-readable name                         |
-| `spec.authorizationServer` | Yes (transitional) | Keycloak realm name — scheduled for removal |
-| `spec.enabledToolChecks`   | No                 | List of tool check types to enable          |
-| `spec.apps`                | No                 | List of applications in the MAS             |
-| `spec.apps[].name`         | Yes                | Unique name within the MAS                  |
-| `spec.apps[].type`         | Yes                | One of: `agent`, `client`, `mcp_server`     |
-| `spec.apps[].baseUrl`      | Yes                | K8s service URL for this application        |
+| Field                                      | Required | Description                                                     |
+| ------------------------------------------ | -------- | --------------------------------------------------------------- |
+| `spec.name`                                | Yes      | Human-readable name                                             |
+| `spec.enabledToolChecks`                   | No       | List of tool check types to enable                              |
+| `spec.llm_host`                            | No       | LLM hostname used for eBPF LLM endpoint restriction             |
+| `spec.apps`                                | No       | List of applications in the MAS                                 |
+| `spec.apps[].name`                         | Yes      | Unique name within the MAS                                      |
+| `spec.apps[].type`                         | Yes      | One of: `agent`, `client`, `mcp_server`                         |
+| `spec.apps[].kubernetesWorkloadName`       | Yes      | Name of the Kubernetes workload (Deployment) for this app       |
+| `spec.apps[].baseUrl.host`                 | Yes      | `service-name:port` for this application                        |
+| `spec.apps[].baseUrl.scheme`               | Yes      | `http` or `https`                                               |
+| `spec.apps[].httpRequestSchema.promptFieldJsonPath` | No | JSONPath to the prompt field in the agent's request body (agents only) |
 
 **Allowed values for `enabledToolChecks`:**
 

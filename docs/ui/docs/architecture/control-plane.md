@@ -46,7 +46,6 @@ CASA uses a custom Keycloak image that includes the POIT HTTP-header protocol ma
 
 The custom image is published at `ghcr.io/outshift-open/CASA-keycloak`.
 
-> **Note:** The `authorizationServer` field in the `MultiAgentSystem` CRD maps to a Keycloak realm name. This field is transitional and is scheduled for removal in a future version.
 
 ### PostgreSQL
 

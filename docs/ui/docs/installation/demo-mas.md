@@ -39,56 +39,100 @@ Both agents share the same MCP server. CASA enforces separate policies for each 
 Edit `demo/helm/values.yaml`:
 
 ```yaml
-namespace: casa-demo   # target namespace
+namespace: casa-sidecar   # target namespace
 
 agentSafe:
+  replicas: 3
+  serviceName: demo-agent-safe
+  servicePort: 8082
   docker:
     registry: your-registry
-    image: demo-agent-safe
+    image: outshift-casa/demo-agent-safe
+    suffix: ''
   tagversion: latest
+  mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 agentCompromised:
+  replicas: 3
+  serviceName: demo-agent-compromised
+  servicePort: 8082
   docker:
     registry: your-registry
-    image: demo-agent-compromised
+    image: outshift-casa/demo-agent-compromised
+    suffix: ''
   tagversion: latest
+  mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 mcp:
+  replicas: 1
+  serviceName: casa-demo-mcp
+  servicePort: 3000
   docker:
     registry: your-registry
-    image: demo-mcp
+    image: outshift-casa/k8s-demo-mcp
+    suffix: ''
   tagversion: latest
 
 chatUis:
   - name: safe
     docker:
       registry: your-registry
-      image: chat-ui
+      image: outshift-casa/chat-ui
     tagversion: latest
+    agentUrl: /safe-agent
+    ingress:
+      enabled: true
+      className: "nginx"
+      apiDomainName: "your.domain.com"
+      domainPrefix: "casa-demo-safe"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
 
   - name: compromised
     docker:
       registry: your-registry
-      image: chat-ui
+      image: outshift-casa/chat-ui
     tagversion: latest
+    agentUrl: /compromised-agent
+    ingress:
+      enabled: true
+      className: "nginx"
+      apiDomainName: "your.domain.com"
+      domainPrefix: "casa-demo-compromised"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
 
 llmCredentials:
   apiBaseUrl: https://api.openai.com   # or your LiteLLM proxy
   apiKey: YOUR_OPENAI_KEY_HERE
+
+masSafe:
+  name: "casa Demo Safe"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""   # LLM hostname for eBPF restriction
+
+masCompromised:
+  name: "casa Demo Compromised"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""
 ```
 
 ## Enable Sidecar Injection
 
 ```bash
-kubectl create namespace casa-demo
-kubectl label namespace casa-demo istio-injection=enabled
+kubectl create namespace casa-sidecar
+kubectl label namespace casa-sidecar istio-injection=enabled
 ```
 
 ## Install the Demo
 
 ```bash
 helm install casa-mas demo/helm/ \
-  --namespace casa-demo \
+  --namespace casa-sidecar \
   -f demo/helm/values.yaml
 ```
 
@@ -101,7 +145,7 @@ make mas-helm-install
 Wait for pods:
 
 ```bash
-kubectl -n casa-demo wait --for=condition=ready pod --all --timeout=120s
+kubectl -n casa-sidecar wait --for=condition=ready pod --all --timeout=120s
 ```
 
 Expected pods:
@@ -121,11 +165,11 @@ Port-forward a chat UI and open it in your browser:
 
 ```bash
 # Safe agent chat UI
-kubectl -n casa-demo port-forward svc/chat-ui-safe 3001:80
+kubectl -n casa-sidecar port-forward svc/chat-ui-safe 3001:80
 # Open http://localhost:3001
 
 # Compromised agent chat UI
-kubectl -n casa-demo port-forward svc/chat-ui-compromised 3002:80
+kubectl -n casa-sidecar port-forward svc/chat-ui-compromised 3002:80
 # Open http://localhost:3002
 ```
 

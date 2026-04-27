@@ -38,7 +38,7 @@ The demo scenario:
 Port-forward the safe-agent chat UI and open it in your browser:
 
 ```bash
-kubectl -n casa-demo port-forward svc/chat-ui-safe 3001:80
+kubectl -n casa-sidecar port-forward svc/chat-ui-safe 3001:80
 # Open http://localhost:3001
 ```
 
@@ -97,16 +97,16 @@ View sidecar logs (pick the relevant pod):
 
 ```bash
 # Chat UI sidecar
-kubectl -n casa-demo logs -f deploy/chat-ui-safe -c istio-proxy 2>/dev/null || \
-kubectl -n casa-demo logs -f deploy/chat-ui-safe -c casa-sidecar
+kubectl -n casa-sidecar logs -f deploy/chat-ui-safe -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/chat-ui-safe -c casa-sidecar
 
 # Safe agent sidecar
-kubectl -n casa-demo logs -f deploy/demo-agent-safe -c istio-proxy 2>/dev/null || \
-kubectl -n casa-demo logs -f deploy/demo-agent-safe -c casa-sidecar
+kubectl -n casa-sidecar logs -f deploy/demo-agent-safe -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/demo-agent-safe -c casa-sidecar
 
 # MCP sidecar
-kubectl -n casa-demo logs -f deploy/casa-demo-mcp -c istio-proxy 2>/dev/null || \
-kubectl -n casa-demo logs -f deploy/casa-demo-mcp -c casa-sidecar
+kubectl -n casa-sidecar logs -f deploy/casa-demo-mcp -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/casa-demo-mcp -c casa-sidecar
 ```
 
 ## Cleanup
