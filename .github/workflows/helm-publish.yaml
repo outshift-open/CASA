@@ -1,0 +1,70 @@
+name: Helm Publish (OCI to GHCR)
+
+on:
+  workflow_call:
+    inputs:
+      chart-path:
+        description: Path to the chart directory (must contain Chart.yaml)
+        required: true
+        type: string
+      oci-repository:
+        description: OCI repository prefix under GHCR (charts will be pushed under this prefix)
+        required: false
+        type: string
+        default: helm
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Login to GHCR (OCI)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          helm dependency build "${{ inputs.chart-path }}"
+
+      - name: Package chart
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="${RUNNER_TEMP}/charts"
+          mkdir -p "$out_dir"
+          helm package "${{ inputs.chart-path }}" --destination "$out_dir"
+          pkg="$(ls -1 "$out_dir"/*.tgz | head -n 1)"
+          echo "package=$pkg" >> "$GITHUB_OUTPUT"
+
+      - name: Push chart to GHCR (OCI)
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="oci://ghcr.io/${{ github.repository_owner }}/${{ inputs.oci-repository }}"
+          echo "Pushing ${{ steps.package.outputs.package }} to $dest"
+          helm push "${{ steps.package.outputs.package }}" "$dest"
+
+      - name: Summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_name="$(helm show chart "${{ inputs.chart-path }}" | awk -F': ' '/^name:/{print $2; exit}')"
+          chart_version="$(helm show chart "${{ inputs.chart-path }}" | awk -F': ' '/^version:/{print $2; exit}')"
+          echo "Published: ghcr.io/${{ github.repository_owner }}/${{ inputs.oci-repository }}/${chart_name}:${chart_version}" >> "$GITHUB_STEP_SUMMARY"
