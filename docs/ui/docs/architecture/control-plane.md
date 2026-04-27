@@ -21,6 +21,7 @@ The production architecture decomposes this into separate microservices. That de
 The core of the control plane. Implemented in Python (FastAPI), backed by PostgreSQL.
 
 **Endpoints:**
+
 - `POST /oauth/token` — issues an initial token for a user input (client credentials flow)
 - `POST /oauth/token/exchange` — exchanges a token for a delegated, scope-limited token; runs tool checks
 - `POST /oauth/introspect` — validates a token and returns its claims
@@ -28,6 +29,7 @@ The core of the control plane. Implemented in Python (FastAPI), backed by Postgr
 - `GET/POST /mas` — Multi-Agent System management
 
 **Token exchange flow** (simplified):
+
 1. Agent requests token exchange for tool `filesystem:read`
 2. Auth Service checks: does the MAS have `DETERMINISTIC_TOOL_SELECTED` enabled? If so, is the tool in the token's allowed list?
 3. If semantic checks are enabled: does the tool match the embeddings/LLM-verified intent?
@@ -42,13 +44,14 @@ CASA uses a custom Keycloak image that includes the POIT HTTP-header protocol ma
 - Realm management (one realm per MAS in the current design)
 - Client credential management
 
-The custom image is published at `ghcr.io/outshift-open/identity-auth-server-keycloak`.
+The custom image is published at `ghcr.io/outshift-open/casa-auth-server-keycloak`.
 
 > **Note:** The `authorizationServer` field in the `MultiAgentSystem` CRD maps to a Keycloak realm name. This field is transitional and is scheduled for removal in a future version.
 
 ### PostgreSQL
 
 Two PostgreSQL instances are bundled:
+
 - `postgres-auth` — stores application registrations, MAS configuration, user inputs, tool metadata
 - `postgres-keycloak` — Keycloak's own storage
 
@@ -57,6 +60,7 @@ Both can be replaced with externally managed PostgreSQL by setting `postgresAuth
 ### CASA Explorer UI
 
 A React-based exploration and debug UI for:
+
 - Browsing token events and tool call decisions in real time
 - Inspecting token exchange traces correlated with user prompts
 - Viewing registered MAS applications and their status
@@ -72,6 +76,7 @@ Full HA configuration (including Keycloak clustering, PostgreSQL replication) is
 ## Namespace Isolation
 
 The control plane namespace (`casa-control-plane`) should have network policies that:
+
 - Allow inbound connections from MAS namespaces (for sidecar token operations)
 - Deny all other inbound traffic
 - Allow outbound to PostgreSQL and Keycloak only
