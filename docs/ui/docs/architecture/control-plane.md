@@ -12,7 +12,7 @@ The CASA control plane is the authoritative source for identity, policy, and aut
 
 The current release deploys a **monolithic auth service** — a single FastAPI application that handles token issuance, token exchange, token introspection, and MAS lifecycle management. This is intentional for the PoC/development phase.
 
-The production architecture (defined in `contrib/wip/it1/SPECS.md`) decomposes this into separate microservices. That decomposition is on the roadmap.
+The production architecture decomposes this into separate microservices. That decomposition is on the roadmap.
 
 ## Components
 

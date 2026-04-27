@@ -113,7 +113,7 @@ kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
 
 ## eBPF JWT Observability
 
-JWT extraction and flow logging with custom eBPF programs is described in `contrib/wip/it1/SPECS.md` Section 5.5. This feature is currently experimental and will be bundled in a future chart version.
+JWT extraction and flow logging with custom eBPF programs is experimental and will be bundled in a future chart version.
 
 ## Next Steps
 
