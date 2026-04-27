@@ -13,7 +13,7 @@ Reference for `deployments/helm/casa-control-plane/values.yaml`.
 ```yaml
 authService:
   image:
-    repository: ghcr.io/cisco-eti/identity-auth-server
+    repository: ghcr.io/outshift-open/identity-auth-server
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
@@ -61,7 +61,7 @@ authService:
 ```yaml
 uiExplorer:
   image:
-    repository: ghcr.io/cisco-eti/identity-auth-server-ui
+    repository: ghcr.io/outshift-open/identity-auth-server-ui
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1
@@ -129,7 +129,7 @@ postgresKeycloak:
 ```yaml
 keycloak:
   image:
-    repository: ghcr.io/cisco-eti/identity-auth-server-keycloak
+    repository: ghcr.io/outshift-open/identity-auth-server-keycloak
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 1

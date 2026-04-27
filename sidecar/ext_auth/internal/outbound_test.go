@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"testing"
 
-	identitysdk "github.com/cisco-eti/identity-auth-server/sdk/go"
-	"github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal"
-	"github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal/mocks"
+	identitysdk "github.com/outshift-open/identity-auth-server/sdk/go"
+	"github.com/outshift-open/identity-auth-server/sidecar/ext_auth/internal"
+	"github.com/outshift-open/identity-auth-server/sidecar/ext_auth/internal/mocks"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

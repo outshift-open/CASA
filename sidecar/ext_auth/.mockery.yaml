@@ -22,7 +22,7 @@ template: testify
 template-data:
   unroll-variadic: true
 packages:
-  github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal:
+  github.com/outshift-open/identity-auth-server/sidecar/ext_auth/internal:
     interfaces:
       KubernetesService: {}
       AuthServerClient: {}

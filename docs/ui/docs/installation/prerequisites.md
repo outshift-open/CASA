@@ -63,9 +63,9 @@ Minimum version: Cilium 1.14
 
 The CASA control plane images are published to GitHub Container Registry (GHCR):
 
-- `ghcr.io/cisco-eti/identity-auth-server` — auth service
-- `ghcr.io/cisco-eti/identity-auth-server-ui` — UI explorer
-- `ghcr.io/cisco-eti/identity-auth-server-keycloak` — custom Keycloak image
+- `ghcr.io/outshift-open/identity-auth-server` — auth service
+- `ghcr.io/outshift-open/identity-auth-server-ui` — UI explorer
+- `ghcr.io/outshift-open/identity-auth-server-keycloak` — custom Keycloak image
 
 These images are public. No registry authentication is required.
 

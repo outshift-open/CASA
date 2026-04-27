@@ -22,7 +22,7 @@ go get golang.org/x/net/context
 Put the package under your project folder and add the following in import:
 
 ```go
-import api "github.com/cisco-eti/identity-auth-server/sdk/go"
+import api "github.com/outshift-open/identity-auth-server/sdk/go"
 ```
 
 To use a proxy, set the environment variable `HTTP_PROXY`:

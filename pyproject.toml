@@ -72,8 +72,8 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/cisco-eti/identity-auth-server"
-"Bug Tracker" = "https://github.com/cisco-eti/identity-auth-server/issues"
+"Homepage" = "https://github.com/outshift-open/identity-auth-server"
+"Bug Tracker" = "https://github.com/outshift-open/identity-auth-server/issues"
 
 [build-system]
 requires = ["hatchling"]

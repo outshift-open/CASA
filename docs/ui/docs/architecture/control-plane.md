@@ -42,7 +42,7 @@ CASA uses a custom Keycloak image that includes the POIT HTTP-header protocol ma
 - Realm management (one realm per MAS in the current design)
 - Client credential management
 
-The custom image is published at `ghcr.io/cisco-eti/identity-auth-server-keycloak`.
+The custom image is published at `ghcr.io/outshift-open/identity-auth-server-keycloak`.
 
 > **Note:** The `authorizationServer` field in the `MultiAgentSystem` CRD maps to a Keycloak realm name. This field is transitional and is scheduled for removal in a future version.
 

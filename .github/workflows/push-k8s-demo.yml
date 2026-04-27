@@ -66,7 +66,7 @@ jobs:
   docker-build-push-agent-safe:
     name: Build & Push demo agent (safe)
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
+    uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
@@ -86,7 +86,7 @@ jobs:
   docker-build-push-agent-compromised:
     name: Build & Push demo agent (compromised)
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
+    uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
@@ -106,7 +106,7 @@ jobs:
   docker-build-push-k8s-mcp:
     name: Build & Push k8s demo mcp
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
+    uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
@@ -126,7 +126,7 @@ jobs:
   docker-build-push-chat-ui:
     name: Build & Push chat UI
     needs: [prepare-release]
-    uses: cisco-eti/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
+    uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
     secrets:
       vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
       vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}

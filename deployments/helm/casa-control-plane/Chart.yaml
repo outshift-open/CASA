@@ -23,8 +23,8 @@ keywords:
   - multi-agent
   - identity
   - auth
-home: https://github.com/cisco-eti/identity-auth-server
+home: https://github.com/outshift-open/identity-auth-server
 sources:
-  - https://github.com/cisco-eti/identity-auth-server
+  - https://github.com/outshift-open/identity-auth-server
 maintainers:
-  - name: cisco-eti
+  - name: outshift-open
