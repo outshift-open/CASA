@@ -6,7 +6,7 @@ title: Demo MAS Values
 
 # Demo MAS Helm Values
 
-Reference for `demo/k8s/helm/values.yaml`.
+Reference for `demo/helm/values.yaml`.
 
 The demo MAS chart deploys a client UI, an agent, and an MCP server into a specified namespace.
 

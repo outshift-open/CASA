@@ -119,7 +119,7 @@ docs/
 **Key config:**
 - `agent.mcp_server_url` — MCP server URL the agent will call
 - `agent.secret.openai_api_base` + `agent.secret.openai_api_key` — LLM endpoint config
-- Images are currently in a private ECR registry; users need to provide their own images or build from source in `demo/k8s/agent/` and `demo/k8s/mcp/`
+- Images are currently in a private ECR registry; users need to provide their own images or build from source in `demo/src/agent/` and `demo/src/mcp/`
 
 ### Istio vs Cilium Documentation Strategy
 

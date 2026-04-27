@@ -50,7 +50,7 @@ kubectl label namespace your-mas-namespace istio-injection=enabled
 ## Step 2: Deploy the Demo MAS
 
 ```bash
-cd demo/k8s/helm
+cd demo/helm
 helm install casa-mas -f values.yaml . --namespace your-mas-namespace
 ```
 

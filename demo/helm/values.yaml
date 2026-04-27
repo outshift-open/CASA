@@ -1,4 +1,4 @@
-namespace: zta-demo
+namespace: casa-demo
 
 agentSafe:
   replicas: 1
@@ -9,7 +9,7 @@ agentSafe:
     image: demo-agent-safe
     suffix: ''
   tagversion: latest
-  mcp_server_url: http://zta-demo-mcp:3000/mcp
+  mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 agentCompromised:
   replicas: 1
@@ -20,11 +20,11 @@ agentCompromised:
     image: demo-agent-compromised
     suffix: ''
   tagversion: latest
-  mcp_server_url: http://zta-demo-mcp:3000/mcp
+  mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 mcp:
   replicas: 1
-  serviceName: zta-demo-mcp
+  serviceName: casa-demo-mcp
   servicePort: 3000
   docker:
     registry: ""
@@ -43,7 +43,7 @@ chatUis:
       enabled: false
       className: "nginx"
       apiDomainName: ""
-      domainPrefix: "zta-demo-safe"
+      domainPrefix: "casa-demo-safe"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
   - name: compromised
@@ -56,7 +56,7 @@ chatUis:
       enabled: false
       className: "nginx"
       apiDomainName: ""
-      domainPrefix: "zta-demo-compromised"
+      domainPrefix: "casa-demo-compromised"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
 
@@ -65,14 +65,14 @@ llmCredentials:
   apiKey: ""
 
 masSafe:
-  name: "ZTA Demo Safe"
+  name: "CASA Demo Safe"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
   llm_host: ""
 
 masCompromised:
-  name: "ZTA Demo Compromised"
+  name: "CASA Demo Compromised"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH

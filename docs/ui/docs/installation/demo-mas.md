@@ -36,7 +36,7 @@ The user interacts entirely through the client UI — no curl or API calls neede
 
 ## Configure Values
 
-Edit `demo/k8s/helm/values.yaml`:
+Edit `demo/helm/values.yaml`:
 
 ```yaml
 namespace: casa-sidecar
@@ -86,9 +86,9 @@ kubectl label namespace casa-sidecar istio-injection=enabled
 ## Install the Demo
 
 ```bash
-helm install casa-mas demo/k8s/helm/ \
+helm install casa-mas demo/helm/ \
   --namespace casa-sidecar \
-  -f demo/k8s/helm/values.yaml
+  -f demo/helm/values.yaml
 ```
 
 Or using the Makefile:

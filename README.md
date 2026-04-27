@@ -11,10 +11,10 @@
   <br/>
 
   <p>
-    <a href="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg" alt="pytest"/></a>
-    <a href="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg" alt="pre-commit"/></a>
-    <a href="https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml/badge.svg" alt="Docs"/></a>
-    <a href="https://github.com/cisco-eti/identity-auth-server/releases"><img src="https://img.shields.io/github/v/release/cisco-eti/identity-auth-server?include_prereleases&label=release" alt="Release"/></a>
+    <a href="../../actions/workflows/pytest.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg" alt="pytest"/></a>
+    <a href="../../actions/workflows/pre-commit.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg" alt="pre-commit"/></a>
+    <a href="../../actions/workflows/docs.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml/badge.svg" alt="Docs"/></a>
+    <a href="../../releases"><img src="https://img.shields.io/github/v/release/cisco-eti/identity-auth-server?include_prereleases&label=release" alt="Release"/></a>
     <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"/></a>
   </p>
 
@@ -24,7 +24,6 @@
     <a href="https://istio.io/"><img src="https://img.shields.io/badge/Istio-Ready-466BB0?logo=istio&logoColor=white" alt="Istio Ready"/></a>
     <a href="https://cilium.io/"><img src="https://img.shields.io/badge/Cilium-Pending-F8C517?logo=cilium&logoColor=white" alt="Cilium Ready"/></a>
     <a href="https://www.keycloak.org/"><img src="https://img.shields.io/badge/Keycloak-IdP-4D6D6D?logo=keycloak&logoColor=white" alt="Keycloak"/></a>
-    <a href="https://cisco-eti.github.io/identity-auth-server/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github" alt="Docs"/></a>
   </p>
 </div>
 
@@ -213,8 +212,8 @@ spec:
 To explore CASA with the demo MAS, install it with Helm:
 
 ```bash
-# Edit demo/k8s/helm/values.yaml to add your OpenAI-compatible API key
-helm install casa-mas demo/k8s/helm/ \
+# Edit demo/helm/values.yaml to add your OpenAI-compatible API key
+helm install casa-mas demo/helm/ \
   --namespace casa-sidecar \
   --create-namespace
 ```
@@ -254,8 +253,9 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 | ----------------------------------------- | ------------------------------------------------------- |
 | `deployments/helm/casa-control-plane/` | CASA control plane Helm chart                            |
 | `deployments/k8s/crds/`                   | CRD examples and API reference                          |
-| `demo/k8s/helm/`                          | Demo MAS Helm chart (agent + MCP server)                |
-| `demo/src/agent/`                         | Demo agent source code                                  |
+| `demo/helm/`                              | Demo MAS Helm chart (agent + MCP server)                |
+| `demo/src/agent-safe/`                    | Demo safe agent source code                             |
+| `demo/src/agent-compromised/`             | Demo compromised agent source code                      |
 | `demo/src/mcp/`                           | Demo MCP server source code                             |
 | `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)                         |
 | `src/identity_auth_server/`               | Auth service Python source                              |

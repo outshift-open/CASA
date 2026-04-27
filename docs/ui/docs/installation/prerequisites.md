@@ -69,7 +69,7 @@ The CASA control plane images are published to GitHub Container Registry (GHCR):
 
 These images are public. No registry authentication is required.
 
-> **Note:** The demo MAS chart (`casa-mas`) uses private ECR images by default. To use the demo chart, you must either build your own images from `demo/src/agent/`, `demo/src/mcp/`, and `demo/src/client/`, or use the images from a registry you control. Update `demo/k8s/helm/values.yaml` with your registry and image paths.
+> **Note:** The demo MAS chart (`casa-mas`) uses private ECR images by default. To use the demo chart, you must either build your own images from `demo/src/agent/`, `demo/src/mcp/`, and `demo/src/client/`, or use the images from a registry you control. Update `demo/helm/values.yaml` with your registry and image paths.
 
 ## Storage
 

@@ -16,10 +16,10 @@ $ kubectl label namespace YOUR_NAMESPACE_HERE istio-injection=enabled
 
 ## 2. Deploy MAS
 
-First generate an OpenAI4o token and put it here `demo/k8s/helm/values.yaml`
+First generate an OpenAI4o token and put it here `demo/helm/values.yaml`
 
 ```sh
-$ cd demo/k8s/helm
+$ cd demo/helm
 $ helm install casa-mas -f values.yaml . --namespace YOUR_NAMESPACE_HERE
 ```
 

@@ -210,11 +210,11 @@ helm-status: # Show status of the CASA control-plane Helm release.
 .PHONY: helm-status
 
 mas-helm-install:
-> helm install casa-mas -f demo/k8s/helm/values.yaml ./demo/k8s/helm/ --namespace casa-sidecar
+> helm install casa-mas -f demo/helm/values.yaml ./demo/helm/ --namespace casa-sidecar
 .PHONY: mas-helm-install
 
 mas-helm-upgrade:
-> helm upgrade casa-mas -f demo/k8s/helm/values.yaml ./demo/k8s/helm/ --namespace casa-sidecar
+> helm upgrade casa-mas -f demo/helm/values.yaml ./demo/helm/ --namespace casa-sidecar
 .PHONY: mas-helm-upgrade
 
 mas-helm-uninstall:

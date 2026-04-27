@@ -688,4 +688,4 @@ After successful deployment:
 
 For more details, see:
 - [CRD_OPERATOR.md](./CRD_OPERATOR.md) - Complete operator documentation
-- [examples/](../../demo/k8s/) - More example configurations
+- [examples/](../../demo/) - More example configurations

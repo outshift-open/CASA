@@ -1,4 +1,4 @@
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: {{ .Release.Name }}-safe
@@ -25,7 +25,7 @@ spec:
       httpRequestSchema:
         promptFieldJsonPath: "{.conversation}"
 ---
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: {{ .Release.Name }}-compromised

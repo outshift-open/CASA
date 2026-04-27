@@ -77,8 +77,8 @@ jobs:
       runner-group: arc-runner-set
       image-name: "outshift-casa/demo-agent-safe"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
-      context: demo/k8s/agent-safe
-      dockerfile: demo/k8s/agent-safe/Dockerfile
+      context: demo/src/agent-safe
+      dockerfile: demo/src/agent-safe/Dockerfile
       ecr-enabled: true
       artifactory-devhub-enabled: true
       ghcr-enabled: false
@@ -97,8 +97,8 @@ jobs:
       runner-group: arc-runner-set
       image-name: "outshift-casa/demo-agent-compromised"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
-      context: demo/k8s/agent-compromised
-      dockerfile: demo/k8s/agent-compromised/Dockerfile
+      context: demo/src/agent-compromised
+      dockerfile: demo/src/agent-compromised/Dockerfile
       ecr-enabled: true
       artifactory-devhub-enabled: true
       ghcr-enabled: false
@@ -117,8 +117,8 @@ jobs:
       runner-group: arc-runner-set
       image-name: "outshift-casa/k8s-demo-mcp"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
-      context: demo/k8s/mcp
-      dockerfile: demo/k8s/mcp/Dockerfile
+      context: demo/src/mcp
+      dockerfile: demo/src/mcp/Dockerfile
       ecr-enabled: true
       artifactory-devhub-enabled: true
       ghcr-enabled: false
