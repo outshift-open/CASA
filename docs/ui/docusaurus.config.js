@@ -1,9 +1,25 @@
+/**
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 // @ts-check
 const { themes: prismThemes } = require("prism-react-renderer");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-    title: "ZTA — Zero Trust for Multi-Agent Systems",
+    title: "CASA — Continuous Agent Semantic Authorization",
     tagline:
         "Cloud-native Zero Trust authorization for MAS, with no code changes required.",
     favicon: "img/favicon.ico",
@@ -50,11 +66,11 @@ const config = {
     themeConfig:
         /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
         ({
-            image: "img/zta-social-card.png",
+            image: "img/casa-social-card.png",
             navbar: {
-                title: "ZTA",
+                title: "CASA",
                 logo: {
-                    alt: "ZTA Logo",
+                    alt: "CASA Logo",
                     src: "img/logo.svg",
                 },
                 items: [

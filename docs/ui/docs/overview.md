@@ -5,9 +5,9 @@ sidebar_position: 1
 title: Overview
 ---
 
-# ZTA — Zero Trust for Multi-Agent Systems
+# CASA — Continuous Agent Semantic Authorization
 
-ZTA is a cloud-native Kubernetes platform that enforces Zero Trust authorization for Multi-Agent Systems (MAS) without requiring code changes in the agents or MCP servers.
+CASA is a cloud-native Kubernetes platform that enforces Zero Trust authorization for Multi-Agent Systems (MAS) without requiring code changes in the agents or MCP servers.
 
 ## What problem does it solve?
 
@@ -15,7 +15,7 @@ AI applications increasingly delegate work to autonomous agents. Those agents ca
 
 Standard access control mechanisms (RBAC, OAuth scopes, API keys) are not built for this. They control _who_ can call _what_, but not _why_. An agent that has been granted access to a filesystem tool can use that tool for any purpose — including purposes the user never intended.
 
-ZTA adds **intent-scoped authorization**: every tool call is validated against the original user prompt. If the action does not match the intent, it is blocked before the tool executes — at the network level, not inside the application.
+CASA adds **intent-scoped authorization**: every tool call is validated against the original user prompt. If the action does not match the intent, it is blocked before the tool executes — at the network level, not inside the application.
 
 ## Key properties
 
@@ -26,6 +26,6 @@ ZTA adds **intent-scoped authorization**: every tool call is validated against t
 
 ## Where to go next
 
-- **New to ZTA?** Start with [Core Concepts — Multi-Agent Systems](/concepts/mas)
+- **New to CASA?** Start with [Core Concepts — Multi-Agent Systems](/concepts/mas)
 - **Ready to deploy?** Go to [Installation — Prerequisites](/installation/prerequisites)
 - **Want to understand the design?** Read [Architecture Overview](/architecture/architecture-overview)

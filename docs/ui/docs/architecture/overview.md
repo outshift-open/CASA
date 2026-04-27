@@ -6,7 +6,7 @@ title: Architecture Overview
 
 # Architecture Overview
 
-ZTA has two main layers: a **control plane** that manages identity and policy, and a **data plane** that enforces those policies at runtime.
+CASA has two main layers: a **control plane** that manages identity and policy, and a **data plane** that enforces those policies at runtime.
 
 ## Global Architecture
 
@@ -14,11 +14,11 @@ ZTA has two main layers: a **control plane** that manages identity and policy, a
 %%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph TB
     subgraph "Kubernetes Cluster"
-        subgraph "zta-control-plane"
+        subgraph "casa-control-plane"
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]
-            UI["ZTA Explorer UI"]
+            UI["CASA Explorer UI"]
             AUTH --> KC
             AUTH --> PG
             UI --> AUTH
@@ -27,17 +27,17 @@ graph TB
         subgraph "mas-namespace"
             subgraph "Client Pod"
                 CL["Client App"]
-                CLS["ZTA Sidecar"]
+                CLS["CASA Sidecar"]
                 CL -.->|intercepted| CLS
             end
             subgraph "Agent Pod"
                 AG["Agent"]
-                AGS["ZTA Sidecar"]
+                AGS["CASA Sidecar"]
                 AG -.->|intercepted| AGS
             end
             subgraph "MCP Server Pod"
                 MCP["MCP Server"]
-                MCPS["ZTA Sidecar"]
+                MCPS["CASA Sidecar"]
                 MCP -.->|intercepted| MCPS
             end
             CLS -->|"MCP/A2A"| AGS
@@ -69,25 +69,25 @@ graph TB
 
 ### Components
 
-![ZTA Components](/img/components.png)
+![CASA Components](/img/components.png)
 
 ## Component Summary
 
 ### Control Plane
 
-The control plane runs in the `zta-control-plane` namespace and handles:
+The control plane runs in the `casa-control-plane` namespace and handles:
 
 - **Token issuance** — OAuth2 client credentials flow (initial token for user input)
 - **Token exchange** — RFC 8693 token exchange for delegated, scope-limited tokens
 - **Token introspection** — validates tokens presented by sidecars
 - **Tool check orchestration** — runs deterministic and/or AI-powered checks on token exchange requests
-- **MAS lifecycle management** — reads `MultiAgentSystem` and `ZTAPolicy` CRDs, reconciles application state
+- **MAS lifecycle management** — reads `MultiAgentSystem` and `CASAPolicy` CRDs, reconciles application state
 
 See [Control Plane](control-plane.md) for full details.
 
-### ZTA Sidecar
+### CASA Sidecar
 
-Every pod in a ZTA-managed namespace gets an Envoy-based sidecar injected automatically. The sidecar:
+Every pod in a CASA-managed namespace gets an Envoy-based sidecar injected automatically. The sidecar:
 
 - Intercepts all inbound and outbound HTTP traffic via iptables rules
 - On **egress**: requests or exchanges tokens, injects `Authorization` header
@@ -95,7 +95,7 @@ Every pod in a ZTA-managed namespace gets an Envoy-based sidecar injected automa
 - Caches introspection results (30s TTL) to reduce control plane load
 - Enforces protocol restrictions (MCP, A2A only — no arbitrary HTTP)
 
-See [ZTA Sidecar](sidecar.md) for full details.
+See [CASA Sidecar](sidecar.md) for full details.
 
 ### eBPF Enforcement Layer
 
@@ -112,18 +112,18 @@ See [eBPF Enforcement](ebpf.md) for full details.
 
 ## Deployment Modes
 
-ZTA supports two dataplane options:
+CASA supports two dataplane options:
 
 | Mode | Sidecar Injection | L7 Enforcement | L4/L7 + eBPF | Status |
 |---|---|---|---|---|
 | **Istio** | Istio automatic injection | `ext_authz_middleware` (Go) | eBPF (node kernel) | Current |
-| **Cilium** | Node-level daemonset | ZTA sidecar (Envoy + Lua) | ZTAPolicy + eBPF (integrated) | Coming soon (Roadmap) |
+| **Cilium** | Node-level daemonset | CASA sidecar (Envoy + Lua) | CASAPolicy + eBPF (integrated) | Coming soon (Roadmap) |
 
 See [Deployment Modes](/deployment-modes/istio) for setup guides.
 
 ## Trust Model
 
-ZTA operates on a layered trust model:
+CASA operates on a layered trust model:
 
 1. **eBPF / L4-L7** — deny by default; only known endpoints may communicate
 2. **Sidecar / L7** — every request must carry a valid, non-expired token with correct scope

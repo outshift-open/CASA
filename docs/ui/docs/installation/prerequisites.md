@@ -6,7 +6,7 @@ title: Prerequisites
 
 # Prerequisites
 
-Before installing ZTA, ensure the following are in place.
+Before installing CASA, ensure the following are in place.
 
 ## Kubernetes Cluster
 
@@ -19,11 +19,11 @@ Before installing ZTA, ensure the following are in place.
 | Tool | Version | Purpose |
 |---|---|---|
 | `kubectl` | 1.26+ | Apply manifests and interact with the cluster |
-| `helm` | 3.10+ | Install ZTA charts |
+| `helm` | 3.10+ | Install CASA charts |
 
 ## Dataplane
 
-ZTA requires one of the following dataplanes to be installed and operational in your cluster.
+CASA requires one of the following dataplanes to be installed and operational in your cluster.
 
 ### Istio (for Istio deployment mode)
 
@@ -61,7 +61,7 @@ Minimum version: Cilium 1.14
 
 ## Container Registry Access
 
-The ZTA control plane images are published to GitHub Container Registry (GHCR):
+The CASA control plane images are published to GitHub Container Registry (GHCR):
 
 - `ghcr.io/cisco-eti/identity-auth-server` — auth service
 - `ghcr.io/cisco-eti/identity-auth-server-ui` — UI explorer
@@ -69,7 +69,7 @@ The ZTA control plane images are published to GitHub Container Registry (GHCR):
 
 These images are public. No registry authentication is required.
 
-> **Note:** The demo MAS chart (`zta-mas`) uses private ECR images by default. To use the demo chart, you must either build your own images from `demo/src/agent/`, `demo/src/mcp/`, and `demo/src/client/`, or use the images from a registry you control. Update `demo/k8s/helm/values.yaml` with your registry and image paths.
+> **Note:** The demo MAS chart (`casa-mas`) uses private ECR images by default. To use the demo chart, you must either build your own images from `demo/src/agent/`, `demo/src/mcp/`, and `demo/src/client/`, or use the images from a registry you control. Update `demo/helm/values.yaml` with your registry and image paths.
 
 ## Storage
 

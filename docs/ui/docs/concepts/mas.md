@@ -6,7 +6,7 @@ title: Multi-Agent Systems
 
 # Multi-Agent Systems
 
-A **Multi-Agent System (MAS)** in ZTA is a named, namespaced group of applications that collaborate to fulfill user requests. ZTA treats the MAS as the unit of policy configuration — you declare what applications are in the system and what rules apply, and ZTA enforces them.
+A **Multi-Agent System (MAS)** in CASA is a named, namespaced group of applications that collaborate to fulfill user requests. CASA treats the MAS as the unit of policy configuration — you declare what applications are in the system and what rules apply, and CASA enforces them.
 
 ## Application Types
 
@@ -37,14 +37,14 @@ graph LR
     style mcp_server_2 fill:#1e293b,stroke:#475569,color:#cbd5e1
 ```
 
-All inter-application communication is intercepted by ZTA sidecars, which:
+All inter-application communication is intercepted by CASA sidecars, which:
 1. Inject tokens on outbound requests
 2. Validate tokens on inbound requests
 3. Enforce that only allowed protocol paths are used
 
 ## MAS Configuration via CRD
 
-You declare a MAS using the `MultiAgentSystem` CRD. ZTA reads this and automatically:
+You declare a MAS using the `MultiAgentSystem` CRD. CASA reads this and automatically:
 - Registers the applications in the auth service
 - Configures token issuance scopes per application
 - Applies the declared `enabledToolChecks` to all token exchange requests within the MAS
@@ -52,7 +52,7 @@ You declare a MAS using the `MultiAgentSystem` CRD. ZTA reads this and automatic
 Example:
 
 ```yaml
-apiVersion: zta.io/v1alpha1
+apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
   name: my-mas
@@ -79,13 +79,13 @@ See [CRDs Reference](/configuration/crds-reference) for all available fields.
 
 ## No Code Changes Required
 
-MAS applications do not need to import any ZTA SDK or call any ZTA API directly. The sidecar handles all token operations transparently:
+MAS applications do not need to import any CASA SDK or call any CASA API directly. The sidecar handles all token operations transparently:
 
 - When your agent makes an HTTP request to an MCP server, the sidecar intercepts it, exchanges a token, and adds the `Authorization` header before forwarding
 - When your MCP server receives a request, the sidecar validates the token before the request reaches the application
 
-Your application code is unaware of ZTA.
+Your application code is unaware of CASA.
 
 ## Multiple MAS in One Cluster
 
-A single ZTA control plane can manage multiple MAS deployments, each in its own namespace. Policies are namespace-scoped — one MAS cannot access another MAS's tokens or tools without an explicit cross-namespace policy.
+A single CASA control plane can manage multiple MAS deployments, each in its own namespace. Policies are namespace-scoped — one MAS cannot access another MAS's tokens or tools without an explicit cross-namespace policy.

@@ -1,0 +1,112 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{{- $component := "auth-service" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-auth-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "casa-control-plane.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  replicas: {{ .Values.authService.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "casa-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "casa-control-plane.selectorLabels" (dict "Release" .Release "Chart" .Chart "component" $component) | nindent 8 }}
+        sidecar.istio.io/inject: "false"
+    spec:
+      {{- with .Values.authService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: auth-service
+          image: "{{ .Values.authService.image.repository }}:{{ .Values.authService.image.tag }}"
+          imagePullPolicy: {{ .Values.authService.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            # ── Database ──────────────────────────────────────────────────────
+            - name: DB_HOST
+              value: {{ default (include "casa-control-plane.postgresAuthHost" .) .Values.authService.database.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.authService.database.port | quote }}
+            - name: DB_USERNAME
+              value: {{ .Values.authService.database.username | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: db-password
+            - name: DB_NAME
+              value: {{ .Values.authService.database.name | quote }}
+            # ── Identity Provider (Keycloak) ──────────────────────────────────
+            - name: IDP_SERVER_URL
+              value: {{ default (include "casa-control-plane.keycloakUrl" .) .Values.authService.idp.serverUrl | quote }}
+            - name: IDP_ADMIN_USERNAME
+              value: {{ .Values.authService.idp.adminUsername | quote }}
+            - name: IDP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: idp-admin-password
+            # ── Auth Server self-URL ──────────────────────────────────────────
+            - name: AUTH_SERVER_URL
+              value: {{ default (include "casa-control-plane.authServiceUrl" .) .Values.authService.env.authServerUrl | quote }}
+            - name: OPENAI_GPT4o_API_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: openai-api-base-url
+            - name: OPENAI_GPT4o_API_JWT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: openai-api-jwt-token
+            - name: OPENAI_GPT4o_MODEL_ID
+              value: {{ .Values.authService.openai.modelId | quote }}
+            - name: PIPELINE_OPENAI_GPT4o_MODEL_ID
+              value: {{ .Values.authService.openai.pipelineModelId | quote }}
+            - name: LLM_API_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: llm-api-base-url
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-auth-service-secret
+                  key: llm-api-key
+            - name: LLM_MODEL_ID
+              value: {{ .Values.authService.openai.modelId | quote }}
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.authService.resources | nindent 12 }}

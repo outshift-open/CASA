@@ -1,0 +1,70 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.agentCompromised.serviceName }}
+  namespace: '{{ .Release.Namespace }}'
+  labels:
+    app: {{ .Values.agentCompromised.serviceName }}
+    version: v2
+spec:
+  replicas: {{ .Values.agentCompromised.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.agentCompromised.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.agentCompromised.serviceName }}
+        version: v2
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      {{- if .Values.agentCompromised.docker.registry }}
+      imagePullSecrets:
+        - name: regcred
+      {{- end }}
+      containers:
+      - name: {{ .Values.agentCompromised.serviceName }}
+        image: {{ if .Values.agentCompromised.docker.registry }}{{ .Values.agentCompromised.docker.registry }}/{{ end }}{{ .Values.agentCompromised.docker.image }}:{{ .Values.agentCompromised.tagversion }}
+        imagePullPolicy: {{ if .Values.agentCompromised.docker.registry }}Always{{ else }}Never{{ end }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+        ports:
+        - containerPort: {{ .Values.agentCompromised.servicePort }}
+          name: http
+        env:
+        - name: OPENAI_API_BASE
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-base-url
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-key
+        - name: MCP_SERVER_URL
+          value: "{{ .Values.agentCompromised.mcp_server_url }}"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

@@ -1,4 +1,4 @@
-module github.com/cisco-eti/zta-operator
+module github.com/cisco-eti/casa-operator
 
 go 1.23.0
 

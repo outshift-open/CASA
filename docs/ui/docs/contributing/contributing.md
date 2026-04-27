@@ -5,7 +5,7 @@ title: Contributing
 slug: /contributing
 ---
 
-# Contributing to ZTA
+# Contributing to CASA
 
 Thank you for considering a contribution. This guide explains how to set up a development environment and submit changes.
 
@@ -119,15 +119,15 @@ chore: update dependencies
 
 | Area | Location | Notes |
 |---|---|---|
-| Auth service source | `src/identity_auth_server/` | Python / FastAPI |
+| Auth service source | `src/casa_auth_server/` | Python / FastAPI |
 | Auth service tests | `test/` | pytest; unit + integration |
-| Control plane Helm chart | `deployments/k8s/helm/zta-control-plane/` | Helm v3 |
-| Demo MAS Helm chart | `demo/k8s/helm/` | Helm v3 |
+| Control plane Helm chart | `deployments/helm/casa-control-plane/` | Helm v3 |
+| Demo MAS Helm chart | `demo/helm/` | Helm v3 |
 | Demo agent | `demo/src/agent/` | Python |
 | Demo MCP server | `demo/src/mcp/` | Python |
 | Demo client UI | `demo/src/client/` | React |
 | ext-authz middleware | `ext_authz_middleware/` | Go |
-| ZTA Explorer UI | `zta-explorer-ui/` | React |
+| CASA Explorer UI | `casa-explorer-ui/` | React |
 | Documentation | `docs/ui/` | Docusaurus |
 | Architecture specs | `contrib/wip/it1/` | Internal reference |
 
@@ -139,4 +139,4 @@ For security vulnerabilities, do not open a public issue. Contact the maintainer
 
 ## License
 
-By contributing to ZTA, you agree that your contributions will be licensed under the Apache 2.0 License.
+By contributing to CASA, you agree that your contributions will be licensed under the Apache 2.0 License.

@@ -1,6 +1,6 @@
 [project]
-name = "identity_auth_server"
-description = "identity-auth-server"
+name = "casa_auth_server"
+description = "casa-auth-server"
 authors = [
     { name = "Ben Ryder", email = "beryder@cisco.com" },
     { name = "Chiara Troiani", email = "chtroian@cisco.com" },

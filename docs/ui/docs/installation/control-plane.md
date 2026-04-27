@@ -4,33 +4,33 @@ sidebar_position: 2
 title: Install Control Plane
 ---
 
-# Install the ZTA Control Plane
+# Install the CASA Control Plane
 
-The ZTA control plane is installed via the `zta-control-plane` Helm chart located at `deployments/k8s/helm/zta-control-plane/`.
+The CASA control plane is installed via the `casa-control-plane` Helm chart located at `deployments/helm/casa-control-plane/`.
 
 ## Basic Installation
 
 ```bash
-helm install zta deployments/k8s/helm/zta-control-plane \
-  --namespace zta-control-plane \
+helm install casa deployments/helm/casa-control-plane \
+  --namespace casa-control-plane \
   --create-namespace
 ```
 
 Wait for all pods to be ready:
 
 ```bash
-kubectl -n zta-control-plane wait --for=condition=ready pod --all --timeout=300s
+kubectl -n casa-control-plane wait --for=condition=ready pod --all --timeout=300s
 ```
 
 Expected pods:
 
 ```
 NAME                              READY   STATUS  
-zta-auth-service-...              1/1     Running  
-zta-ui-explorer-...               1/1     Running  
-zta-keycloak-...                  1/1     Running  
-zta-postgres-auth-...             1/1     Running  
-zta-postgres-keycloak-...         1/1     Running  
+casa-auth-service-...              1/1     Running  
+casa-ui-explorer-...               1/1     Running  
+casa-keycloak-...                  1/1     Running  
+casa-postgres-auth-...             1/1     Running  
+casa-postgres-keycloak-...         1/1     Running  
 ```
 
 ## Using the Makefile
@@ -46,10 +46,10 @@ make helm-upgrade
 make helm-uninstall
 ```
 
-The Makefile uses `HELM_RELEASE=zta` and `HELM_NAMESPACE=zta-control-plane` by default. Override with:
+The Makefile uses `HELM_RELEASE=casa` and `HELM_NAMESPACE=casa-control-plane` by default. Override with:
 
 ```bash
-make helm-install HELM_RELEASE=my-zta HELM_NAMESPACE=my-namespace
+make helm-install HELM_RELEASE=my-casa HELM_NAMESPACE=my-namespace
 ```
 
 ## Production Configuration
@@ -70,14 +70,14 @@ authService:
     enabled: true
     className: "nginx"
     apiDomainName: "internal.example.com"
-    domainPrefix: "zta-auth"
+    domainPrefix: "casa-auth"
 
 uiExplorer:
   ingress:
     enabled: true
     className: "nginx"
     apiDomainName: "internal.example.com"
-    domainPrefix: "zta"
+    domainPrefix: "casa"
 
 postgresAuth:
   enabled: false   # Use external PostgreSQL
@@ -100,8 +100,8 @@ keycloak:
 Install with the custom values:
 
 ```bash
-helm install zta deployments/k8s/helm/zta-control-plane \
-  --namespace zta-control-plane \
+helm install casa deployments/helm/casa-control-plane \
+  --namespace casa-control-plane \
   --create-namespace \
   -f values-prod.yaml
 ```
@@ -111,7 +111,7 @@ helm install zta deployments/k8s/helm/zta-control-plane \
 Check the auth service health:
 
 ```bash
-kubectl -n zta-control-plane port-forward svc/zta-auth-service 8000:8000 &
+kubectl -n casa-control-plane port-forward svc/casa-auth-service 8000:8000 &
 curl http://localhost:8000/health
 # Expected: {"status": "healthy"}
 ```
@@ -119,7 +119,7 @@ curl http://localhost:8000/health
 Access the UI:
 
 ```bash
-kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80 &
+kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80 &
 # Open http://localhost:8080 in your browser
 ```
 
@@ -128,9 +128,9 @@ kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80 &
 CRDs are included in the Helm chart and installed automatically. Verify they are present:
 
 ```bash
-kubectl get crd | grep zta.io
-# multiagentsystems.zta.io
-# ztapolicies.zta.io
+kubectl get crd | grep casa.io
+# multiagentsystems.casa.io
+# casapolicies.casa.io
 ```
 
 ## Next Step

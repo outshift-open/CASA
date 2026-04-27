@@ -1,3 +1,17 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 default_stages: [pre-commit, pre-push]
 exclude: "^demo/"
 repos:
@@ -26,7 +40,7 @@ repos:
       hooks:
           - id: check-added-large-files # Prevent giant files from being committed
             args: ["--maxkb=2500"] # Increase limit to 2.5MB
-            exclude: "^zta-explorer-ui/\\.yarn/releases/" # Yarn binaries are meant to be committed
+            exclude: "^casa-explorer-ui/\\.yarn/releases/" # Yarn binaries are meant to be committed
           - id: detect-private-key # Checks for the existence of private keys
             exclude: "^sdk/"
           - id: check-case-conflict # Check for files with names that would conflict on a case-insensitive filesystem

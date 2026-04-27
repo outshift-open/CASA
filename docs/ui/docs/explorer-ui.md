@@ -1,12 +1,12 @@
 ---
 id: explorer-ui
 sidebar_position: 2
-title: ZTA Explorer UI
+title: CASA Explorer UI
 ---
 
-# ZTA Explorer UI
+# CASA Explorer UI
 
-The ZTA Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces. It does not manage or modify any configuration.
+The CASA Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces. It does not manage or modify any configuration.
 
 ## Dashboard
 

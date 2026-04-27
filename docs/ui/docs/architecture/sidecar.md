@@ -1,19 +1,19 @@
 ---
 id: sidecar
 sidebar_position: 3
-title: ZTA Sidecar
+title: CASA Sidecar
 ---
 
-# ZTA Sidecar
+# CASA Sidecar
 
-The ZTA sidecar is an Envoy-based proxy that is automatically injected into every pod in a ZTA-managed namespace. It is the primary enforcement point for token validation and protocol restriction at L7.
+The CASA sidecar is an Envoy-based proxy that is automatically injected into every pod in a CASA-managed namespace. It is the primary enforcement point for token validation and protocol restriction at L7.
 
 ## Injection
 
 Sidecars are injected either by:
 
 - **Istio mode**: namespace label `istio-injection=enabled` triggers Istio's built-in sidecar injector. The `ext_authz_middleware` service (deployed separately) acts as the ext-authz filter backend.
-- **Cilium mode** *(coming soon)*: a ZTA node-level daemonset (deployed via Cilium) intercepts pod traffic without per-pod injection — no mutating webhook required.
+- **Cilium mode** *(coming soon)*: a CASA node-level daemonset (deployed via Cilium) intercepts pod traffic without per-pod injection — no mutating webhook required.
 
 An init container runs first to configure iptables rules that redirect all inbound and outbound TCP traffic through the sidecar ports.
 
@@ -78,7 +78,7 @@ Requests to paths that do not match allowed protocol patterns are rejected with 
 
 ## Istio ext-authz Middleware
 
-In Istio mode, the external authorization check is handled by the `ext_authz_middleware` — a Go gRPC service bundled in the `zta-control-plane` Helm chart. It:
+In Istio mode, the external authorization check is handled by the `ext_authz_middleware` — a Go gRPC service bundled in the `casa-control-plane` Helm chart. It:
 
 1. Receives authorization check requests from Envoy's ext_authz filter
 2. Extracts the trace ID from the `traceparent` header (W3C trace context)
@@ -86,4 +86,4 @@ In Istio mode, the external authorization check is handled by the `ext_authz_mid
 4. On subsequent requests: performs token-based access control (TBAC) verification
 5. Returns ALLOW or DENY to Envoy
 
-Telemetry and traces are visible in the **ZTA Explorer UI**.
+Telemetry and traces are visible in the **CASA Explorer UI**.

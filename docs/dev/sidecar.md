@@ -2,7 +2,7 @@
 
 You can use the comn-dev-use2-1 eks cluster.
 
-## 0. Create your own namespace that is not "zta-sidecar"!
+## 0. Create your own namespace that is not "casa-sidecar"!
 
 ```sh
 $ kubectl create ns YOUR_NAMESPACE_HERE
@@ -16,11 +16,11 @@ $ kubectl label namespace YOUR_NAMESPACE_HERE istio-injection=enabled
 
 ## 2. Deploy MAS
 
-First generate an OpenAI4o token and put it here `demo/k8s/helm/values.yaml`
+First generate an OpenAI4o token and put it here `demo/helm/values.yaml`
 
 ```sh
-$ cd demo/k8s/helm
-$ helm install zta-mas -f values.yaml . --namespace YOUR_NAMESPACE_HERE
+$ cd demo/helm
+$ helm install casa-mas -f values.yaml . --namespace YOUR_NAMESPACE_HERE
 ```
 
 ## 3. Deploy Our Custom Ext-Auth Filter
@@ -41,15 +41,15 @@ To disable any of them, set the relevant flag in `ext_authz_middleware/helm/ext-
 - `jaeger.jaeger.enabled: false`
 - `obi.enabled: false`
 
-Jaeger UI is available at `https://zta-jaeger.dev.outshift.ai` (requires DNS entry pointing to the nginx ingress ELB).
+Jaeger UI is available at `https://casa-jaeger.dev.outshift.ai` (requires DNS entry pointing to the nginx ingress ELB).
 
 ## A way to test this
 
 ```sh
-$ kubectl -n zta-sidecar exec -it $(kubectl -n zta-sidecar get pods -o custom-columns=NAME:.metadata.name --no-headers | grep ext-authz-middleware) -- wget -qO- \
+$ kubectl -n casa-sidecar exec -it $(kubectl -n casa-sidecar get pods -o custom-columns=NAME:.metadata.name --no-headers | grep ext-authz-middleware) -- wget -qO- \
   --header 'content-type: application/json' \
   --post-data '{"content": "Get the account summary and scheduled payments"}' \
-  http://zta-demo-agent:8082/chat
+  http://casa-demo-agent:8082/chat
 ```
 
 # TODO:
@@ -64,7 +64,7 @@ In the method `Check()` located in the file `ext_authz_middleware/main.go` we ne
 
 ### If it's the first request from a user
 
-1. Do token generation if it's the first time request from the user (this is equivalent to a client app), we call our zta-auth-server to create a user input (we need to add an endpoint, or you can simply call `/token` and then parse the returned JWT to get the user input ID)
+1. Do token generation if it's the first time request from the user (this is equivalent to a client app), we call our casa-auth-server to create a user input (we need to add an endpoint, or you can simply call `/token` and then parse the returned JWT to get the user input ID)
 2. Store a mapping between the TRACE_ID and the USER_INPUT_ID (or the initial prompt), it can be found in the generated token (or you can store the token too)
 
 ### If not

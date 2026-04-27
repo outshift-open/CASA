@@ -6,9 +6,9 @@ title: eBPF Enforcement
 
 # eBPF Enforcement
 
-ZTA uses eBPF for L4/L7 network enforcement and JWT observability. eBPF programs run at the kernel level on any Kubernetes node with eBPF enabled (kernel 5.8+), independently of the CNI.
+CASA uses eBPF for L4/L7 network enforcement and JWT observability. eBPF programs run at the kernel level on any Kubernetes node with eBPF enabled (kernel 5.8+), independently of the CNI.
 
-In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs. Observability and tracing are provided by the **ZTA Explorer UI** in both modes.
+In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs. Observability and tracing are provided by the **CASA Explorer UI** in both modes.
 
 ## What eBPF Handles
 
@@ -23,23 +23,23 @@ In the current **Istio deployment**, eBPF enforcement uses the node kernel direc
 | Token exchange | — | ✅ | ✅ |
 | Protocol enforcement (MCP/A2A) | — | ✅ | — |
 | L7 request/response logging | — | ✅ | — |
-| Flow logging | ✅ (ZTA Explorer UI) | — | — |
+| Flow logging | ✅ (CASA Explorer UI) | — | — |
 
 ⚠️ = partial or experimental
 
 ## Network Policies
 
-ZTA enforces network policies based on **workload identity**, not IP addresses. Policies survive pod restarts and reschedules without requiring IP-based rules.
+CASA enforces network policies based on **workload identity**, not IP addresses. Policies survive pod restarts and reschedules without requiring IP-based rules.
 
-Network policies are declared using the `ZTAPolicy` CRD. See [ZTAPolicy CRD](#ztapolicy-crd) below.
+Network policies are declared using the `CASAPolicy` CRD. See [CASAPolicy CRD](#casapolicy-crd) below.
 
 ### Deny-by-default
 
-All traffic in MAS namespaces is denied by default. Allowed flows are declared explicitly in a `ZTAPolicy`:
+All traffic in MAS namespaces is denied by default. Allowed flows are declared explicitly in a `CASAPolicy`:
 
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: agent-policy
   namespace: production-mas
@@ -54,8 +54,8 @@ spec:
   - name: my-mcp-server
     namespace: production-mas
     port: 8080
-  - name: zta-auth-service
-    namespace: zta-control-plane
+  - name: casa-auth-service
+    namespace: casa-control-plane
     port: 8443
 ```
 
@@ -64,8 +64,8 @@ spec:
 Agents are restricted to a single approved external LLM FQDN via the `llmEndpoint` field:
 
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: agent-policy
   namespace: production-mas
@@ -80,17 +80,17 @@ spec:
 
 Only the declared FQDN is reachable. All other external destinations are dropped.
 
-## ZTAPolicy CRD
+## CASAPolicy CRD
 
 :::caution In Development
-`ZTAPolicy` is currently in development and not yet available in the stable release. See [Concepts — CRDs](/concepts/crds) for full details.
+`CASAPolicy` is currently in development and not yet available in the stable release. See [Concepts — CRDs](/concepts/crds) for full details.
 :::
 
-The `ZTAPolicy` CRD provides a Kubernetes-native way to declare per-workload network policies. The ZTA operator reconciles these into network enforcement policies automatically:
+The `CASAPolicy` CRD provides a Kubernetes-native way to declare per-workload network policies. The CASA operator reconciles these into network enforcement policies automatically:
 
 ```yaml
-apiVersion: zta.io/v1alpha1
-kind: ZTAPolicy
+apiVersion: casa.io/v1alpha1
+kind: CASAPolicy
 metadata:
   name: agent-policy
   namespace: production-mas
@@ -105,8 +105,8 @@ spec:
   - name: filesystem-mcp
     namespace: production-mas
     port: 8080
-  - name: zta-auth-service
-    namespace: zta-control-plane
+  - name: casa-auth-service
+    namespace: casa-control-plane
     port: 8443
   llmEndpoint:
     fqdn: api.openai.com
@@ -129,7 +129,7 @@ Full JWT validation (claims, expiry, scopes) is **not** done in eBPF — the com
 Deeper eBPF flow observability (token-correlated flow logs) is available in the planned Cilium deployment mode.
 :::
 
-Observability and tracing for both deployment modes are provided by the **ZTA Explorer UI**, which surfaces:
+Observability and tracing for both deployment modes are provided by the **CASA Explorer UI**, which surfaces:
 - Real-time token event logs (issuance, exchange, introspection)
 - Tool check decisions and denial reasons
 - Per-MAS telemetry traces correlated with user prompts

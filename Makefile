@@ -8,9 +8,9 @@ endif
 PYTHON_VERSION = 3.12
 
 # Helm parameters (override with make helm-install HELM_RELEASE=my-release HELM_NAMESPACE=my-ns)
-HELM_CHART     = deployments/k8s/helm/zta-control-plane
-HELM_RELEASE  ?= zta-poc
-HELM_NAMESPACE ?= zta-dev
+HELM_CHART     = deployments/helm/casa-control-plane
+HELM_RELEASE  ?= casa-poc
+HELM_NAMESPACE ?= casa-dev
 
 # Strict and safe set of defaults for Makefile
 # see: https://tech.davis-hansson.com/p/make/
@@ -132,7 +132,7 @@ test-integration: # Run only integration tests.
 
 auth-server-run:
 > source .venv/bin/activate
-> uvicorn identity_auth_server.api.app:app --reload
+> uvicorn casa_auth_server.api.app:app --reload
 .PHONY: auth-server-run
 
 docker-build: # Build the Docker image.
@@ -160,13 +160,13 @@ keycloak-stop:
 > docker compose -f deployments/docker-compose/docker-compose.keycloak.yml down
 .PHONY: keycloak-stop
 
-ui-run: # Run the ZTA Explorer UI using Docker Compose.
-> @printf "$(YELLOW)Starting ZTA Explorer UI with Docker Compose$(NOCOLOR)\n"
+ui-run: # Run the CASA Explorer UI using Docker Compose.
+> @printf "$(YELLOW)Starting CASA Explorer UI with Docker Compose$(NOCOLOR)\n"
 > cd deployments/docker-compose && docker compose -f docker-compose.ui.yml up --build -d
 .PHONY: ui-run
 
-ui-stop: # Stop the ZTA Explorer UI.
-> @printf "$(YELLOW)Stopping ZTA Explorer UI$(NOCOLOR)\n"
+ui-stop: # Stop the CASA Explorer UI.
+> @printf "$(YELLOW)Stopping CASA Explorer UI$(NOCOLOR)\n"
 > cd deployments/docker-compose && docker compose -f docker-compose.ui.yml down
 .PHONY: ui-stop
 
@@ -176,7 +176,7 @@ generate-sdk:
 > ./scripts/generate_sdk.sh
 .PHONY: generate-sdk
 
-helm-lint: # Lint the ZTA control-plane Helm chart.
+helm-lint: # Lint the CASA control-plane Helm chart.
 > @printf "$(YELLOW)Linting Helm chart: $(HELM_CHART)$(NOCOLOR)\n"
 > helm lint $(HELM_CHART)
 .PHONY: helm-lint
@@ -186,39 +186,39 @@ helm-template: # Render Helm templates to stdout (dry-run).
 > helm template $(HELM_RELEASE) $(HELM_CHART) --namespace $(HELM_NAMESPACE)
 .PHONY: helm-template
 
-helm-install: # Install the ZTA control-plane chart (creates namespace if missing).
+helm-install: # Install the CASA control-plane chart (creates namespace if missing).
 > @printf "$(YELLOW)Installing Helm release $(HELM_RELEASE) in namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
 > helm install $(HELM_RELEASE) $(HELM_CHART) \
     --namespace $(HELM_NAMESPACE) \
     --create-namespace
 .PHONY: helm-install
 
-helm-upgrade: # Upgrade (or install) the ZTA control-plane chart.
+helm-upgrade: # Upgrade (or install) the CASA control-plane chart.
 > @printf "$(YELLOW)Upgrading Helm release $(HELM_RELEASE) in namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
 > helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) \
     --namespace $(HELM_NAMESPACE) \
     --create-namespace
 .PHONY: helm-upgrade
 
-helm-uninstall: # Uninstall the ZTA control-plane Helm release.
+helm-uninstall: # Uninstall the CASA control-plane Helm release.
 > @printf "$(RED)Uninstalling Helm release $(HELM_RELEASE) from namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
 > helm uninstall $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
 .PHONY: helm-uninstall
 
-helm-status: # Show status of the ZTA control-plane Helm release.
+helm-status: # Show status of the CASA control-plane Helm release.
 > helm status $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
 .PHONY: helm-status
 
 mas-helm-install:
-> helm install zta-mas -f demo/k8s/helm/values.yaml ./demo/k8s/helm/ --namespace zta-sidecar
+> helm install casa-mas -f demo/helm/values.yaml ./demo/helm/ --namespace casa-sidecar
 .PHONY: mas-helm-install
 
 mas-helm-upgrade:
-> helm upgrade zta-mas -f demo/k8s/helm/values.yaml ./demo/k8s/helm/ --namespace zta-sidecar
+> helm upgrade casa-mas -f demo/helm/values.yaml ./demo/helm/ --namespace casa-sidecar
 .PHONY: mas-helm-upgrade
 
 mas-helm-uninstall:
-> helm uninstall zta-mas  --namespace zta-sidecar
+> helm uninstall casa-mas  --namespace casa-sidecar
 .PHONY: mas-helm-uninstall
 
 ext-auth-generate-mocks:

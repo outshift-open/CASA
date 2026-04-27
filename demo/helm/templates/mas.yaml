@@ -1,0 +1,67 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: casa.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: {{ .Release.Name }}-safe
+  namespace: {{ .Release.Namespace }}
+spec:
+  name: {{ .Values.masSafe.name }}
+  enabledToolChecks: {{ toYaml .Values.masSafe.enabledToolChecks | nindent 4 }}
+  llm_host: {{ .Values.masSafe.llm_host }}
+  apps:
+    - name: {{ .Values.agentSafe.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.agentSafe.serviceName }}:{{ .Values.agentSafe.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.agentSafe.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+    - name: {{ .Values.mcp.serviceName }}
+      type: mcp_server
+      baseUrl:
+        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+---
+apiVersion: casa.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: {{ .Release.Name }}-compromised
+  namespace: {{ .Release.Namespace }}
+spec:
+  name: {{ .Values.masCompromised.name }}
+  enabledToolChecks: {{ toYaml .Values.masCompromised.enabledToolChecks | nindent 4 }}
+  llm_host: {{ .Values.masCompromised.llm_host }}
+  apps:
+    - name: {{ .Values.agentCompromised.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.agentCompromised.serviceName }}:{{ .Values.agentCompromised.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.agentCompromised.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+    - name: {{ .Values.mcp.serviceName }}
+      type: mcp_server
+      baseUrl:
+        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"

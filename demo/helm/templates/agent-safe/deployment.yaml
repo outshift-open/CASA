@@ -1,0 +1,70 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.agentSafe.serviceName }}
+  namespace: '{{ .Release.Namespace }}'
+  labels:
+    app: {{ .Values.agentSafe.serviceName }}
+    version: v1
+spec:
+  replicas: {{ .Values.agentSafe.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.agentSafe.serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.agentSafe.serviceName }}
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: "true"
+    spec:
+      {{- if .Values.agentSafe.docker.registry }}
+      imagePullSecrets:
+        - name: regcred
+      {{- end }}
+      containers:
+      - name: {{ .Values.agentSafe.serviceName }}
+        image: {{ if .Values.agentSafe.docker.registry }}{{ .Values.agentSafe.docker.registry }}/{{ end }}{{ .Values.agentSafe.docker.image }}:{{ .Values.agentSafe.tagversion }}
+        imagePullPolicy: {{ if .Values.agentSafe.docker.registry }}Always{{ else }}Never{{ end }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+        ports:
+        - containerPort: {{ .Values.agentSafe.servicePort }}
+          name: http
+        env:
+        - name: OPENAI_API_BASE
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-base-url
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llm-credentials
+              key: api-key
+        - name: MCP_SERVER_URL
+          value: "{{ .Values.agentSafe.mcp_server_url }}"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

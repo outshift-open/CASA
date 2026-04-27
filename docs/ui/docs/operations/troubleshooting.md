@@ -12,27 +12,27 @@ Common issues and how to resolve them.
 
 ### Auth service pod is not starting
 
-**Symptoms:** `zta-auth-service` pod in `Pending` or `CrashLoopBackOff` state
+**Symptoms:** `casa-auth-service` pod in `Pending` or `CrashLoopBackOff` state
 
 **Check:**
 
 ```bash
-kubectl -n zta-control-plane describe pod -l app=zta-auth-service
-kubectl -n zta-control-plane logs -l app=zta-auth-service --previous
+kubectl -n casa-control-plane describe pod -l app=casa-auth-service
+kubectl -n casa-control-plane logs -l app=casa-auth-service --previous
 ```
 
 **Common causes:**
 
 | Cause | Fix |
 |---|---|
-| PostgreSQL not ready | Wait for `zta-postgres-auth` pod to be ready, then restart the auth service pod |
+| PostgreSQL not ready | Wait for `casa-postgres-auth` pod to be ready, then restart the auth service pod |
 | Wrong database credentials | Check `authService.database.password` in values matches the actual postgres password |
-| Keycloak not ready | Check `zta-keycloak` pod status; auth service will retry but may crash first |
+| Keycloak not ready | Check `casa-keycloak` pod status; auth service will retry but may crash first |
 
 ### Keycloak pod is not starting
 
 ```bash
-kubectl -n zta-control-plane logs -l app=zta-keycloak
+kubectl -n casa-control-plane logs -l app=casa-keycloak
 ```
 
 Common issue: `postgres-keycloak` not ready. Keycloak waits for the database, but check for connection errors:
@@ -52,7 +52,7 @@ curl -v http://localhost:8000/health
 If the response is a 500, the auth service cannot connect to PostgreSQL or Keycloak. Check the pod logs:
 
 ```bash
-kubectl -n zta-control-plane logs deploy/zta-auth-service | tail -50
+kubectl -n casa-control-plane logs deploy/casa-auth-service | tail -50
 ```
 
 ---
@@ -68,7 +68,7 @@ The sidecar is failing-closed. Possible causes:
    ```bash
    # Check if auth service is accessible from the sidecar
    kubectl exec -n your-mas-namespace deploy/your-agent -c istio-proxy -- \
-     curl -s http://zta-auth-service.zta-control-plane.svc.cluster.local:8000/health
+     curl -s http://casa-auth-service.casa-control-plane.svc.cluster.local:8000/health
    ```
 
 2. **Token expired** — token TTL is 5 minutes; if the request is older, get a fresh token
@@ -76,13 +76,13 @@ The sidecar is failing-closed. Possible causes:
 3. **Wrong scope** — the token scope doesn't match the operation. Check the denial reason in auth service logs:
 
    ```bash
-   kubectl -n zta-control-plane logs deploy/zta-auth-service | grep "DENY\|denied\|403"
+   kubectl -n casa-control-plane logs deploy/casa-auth-service | grep "DENY\|denied\|403"
    ```
 
 4. **Tool check failure** — a deterministic or semantic check rejected the token exchange. Check:
 
    ```bash
-   kubectl -n zta-control-plane logs deploy/zta-auth-service | grep "tool_check"
+   kubectl -n casa-control-plane logs deploy/casa-auth-service | grep "tool_check"
    ```
 
 ### Sidecar not injected
@@ -110,21 +110,21 @@ kubectl rollout restart deploy/your-deployment -n your-mas-namespace
 
 ### Traffic being dropped unexpectedly
 
-Use the **ZTA Explorer UI** to inspect flow verdicts and token denials:
+Use the **CASA Explorer UI** to inspect flow verdicts and token denials:
 
 ```bash
-kubectl -n zta-control-plane port-forward svc/zta-ui-explorer 8080:80
+kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080 → Traces
 ```
 
-### Policy not created from ZTAPolicy CRD
+### Policy not created from CASAPolicy CRD
 
 ```bash
-# Check ZTAPolicy status
-kubectl describe ztap your-policy-name -n your-mas-namespace
+# Check CASAPolicy status
+kubectl describe casap your-policy-name -n your-mas-namespace
 
 # Look for error in status.message
-kubectl get ztap your-policy-name -n your-mas-namespace -o jsonpath='{.status.message}'
+kubectl get casap your-policy-name -n your-mas-namespace -o jsonpath='{.status.message}'
 ```
 
 ---
@@ -153,17 +153,17 @@ kubectl get mas your-mas-name -n your-mas-namespace -o jsonpath='{.status.messag
 
 ```bash
 # Control plane status
-kubectl -n zta-control-plane get pods
-kubectl -n zta-control-plane get events --sort-by=.lastTimestamp | tail -20
+kubectl -n casa-control-plane get pods
+kubectl -n casa-control-plane get events --sort-by=.lastTimestamp | tail -20
 
 # Auth service logs
-kubectl -n zta-control-plane logs deploy/zta-auth-service -f
+kubectl -n casa-control-plane logs deploy/casa-auth-service -f
 
 # All MAS resources
 kubectl get mas --all-namespaces
-kubectl get ztap --all-namespaces
+kubectl get casap --all-namespaces
 
 # Helm release status
-helm status zta --namespace zta-control-plane
-helm history zta --namespace zta-control-plane
+helm status casa --namespace casa-control-plane
+helm history casa --namespace casa-control-plane
 ```
