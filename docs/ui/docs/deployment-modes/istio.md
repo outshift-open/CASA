@@ -76,7 +76,7 @@ kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
 
 ## How the ext-authz Middleware Works
 
-The middleware (`ext_authz_middleware/main.go`) implements the Envoy External Authorization API (gRPC):
+The middleware (`sidecar/ext_auth/main.go`) implements the Envoy External Authorization API (gRPC):
 
 1. **First request in a trace** (identified by `traceparent` header):
    - Generates a new user input token by calling the CASA auth service

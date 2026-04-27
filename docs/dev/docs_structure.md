@@ -110,7 +110,6 @@ docs/
 **What to document vs omit:**
 - Document all top-level keys with their defaults and purpose
 - Omit internal helpers and template internals
-- Note that `authorizationServer` in MultiAgentSystem CRD is transitional (scheduled for removal)
 
 ### Demo MAS Chart (`casa-mas`)
 

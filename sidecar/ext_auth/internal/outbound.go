@@ -24,7 +24,7 @@ import (
 	"net/url"
 	"strings"
 
-	api "github.com/cisco-eti/identity-auth-server/sdk/go"
+	api "github.com/outshift-open/CASA/sdk/go"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/google/uuid"

@@ -142,7 +142,7 @@ auth-server-run:
 
 docker-build: # Build the Docker image.
 > @printf "$(YELLOW)Building Docker image$(NOCOLOR)\n"
-> docker build -f deployments/docker/Dockerfile -t identity-auth-server .
+> docker build -f deployments/docker/Dockerfile -t casa-auth-server .
 .PHONY: docker-build
 
 docker-run: # Run the application using Docker Compose.

@@ -18,7 +18,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	internal "github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal"
+	internal "github.com/outshift-open/CASA/sidecar/ext_auth/internal"
 	"github.com/stretchr/testify/assert"
 )
 

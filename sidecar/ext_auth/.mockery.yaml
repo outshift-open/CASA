@@ -14,15 +14,15 @@
 
 ---
 all: false
-dir: '{{.InterfaceDir}}/mocks'
-structname: '{{.InterfaceName}}'
+dir: "{{.InterfaceDir}}/mocks"
+structname: "{{.InterfaceName}}"
 filename: "{{.InterfaceName | snakecase}}.go"
 pkgname: mocks
 template: testify
 template-data:
-  unroll-variadic: true
+    unroll-variadic: true
 packages:
-  github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal:
-    interfaces:
-      KubernetesService: {}
-      AuthServerClient: {}
+    github.com/outshift-open/CASA/sidecar/ext_auth/internal:
+        interfaces:
+            KubernetesService: {}
+            AuthServerClient: {}

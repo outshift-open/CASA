@@ -1,11 +1,11 @@
-module github.com/cisco-eti/identity-auth-server/sidecar/ext_auth
+module github.com/outshift-open/CASA/sidecar/ext_auth
 
 go 1.25.0
 
-replace github.com/cisco-eti/identity-auth-server/sdk/go => ../../sdk/go
+replace github.com/outshift-open/CASA/sdk/go => ../../sdk/go
 
 require (
-	github.com/cisco-eti/identity-auth-server/sdk/go v0.0.0-00010101000000-000000000000
+	github.com/outshift-open/CASA/sdk/go v0.0.0-00010101000000-000000000000
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0
 	github.com/google/uuid v1.6.0
 	github.com/modelcontextprotocol/go-sdk v1.5.0

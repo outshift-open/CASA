@@ -24,11 +24,11 @@ const config = {
         "Cloud-native Zero Trust authorization for MAS, with no code changes required.",
     favicon: "img/favicon.ico",
 
-    url: "https://cisco-eti.github.io",
+    url: "https://outshift-open.github.io",
     baseUrl: "/",
 
-    organizationName: "cisco-eti",
-    projectName: "identity-auth-server",
+    organizationName: "outshift-open",
+    projectName: "CASA",
 
     onBrokenLinks: "warn",
     onBrokenMarkdownLinks: "warn",
@@ -52,7 +52,7 @@ const config = {
                 docs: {
                     sidebarPath: require.resolve("./sidebars.js"),
                     editUrl:
-                        "https://github.com/cisco-eti/identity-auth-server/tree/main/docs/ui/",
+                        "https://github.com/outshift-open/CASA/tree/main/docs/ui/",
                     routeBasePath: "/",
                 },
                 blog: false,
@@ -81,7 +81,7 @@ const config = {
                         label: "Docs",
                     },
                     {
-                        href: "https://github.com/cisco-eti/identity-auth-server",
+                        href: "https://github.com/outshift-open/CASA",
                         label: "GitHub",
                         position: "right",
                     },
@@ -109,7 +109,7 @@ const config = {
                         items: [
                             {
                                 label: "GitHub Issues",
-                                href: "https://github.com/cisco-eti/identity-auth-server/issues",
+                                href: "https://github.com/outshift-open/CASA/issues",
                             },
                             {
                                 label: "Contributing",
@@ -122,7 +122,7 @@ const config = {
                         items: [
                             {
                                 label: "GitHub",
-                                href: "https://github.com/cisco-eti/identity-auth-server",
+                                href: "https://github.com/outshift-open/CASA",
                             },
                         ],
                     },

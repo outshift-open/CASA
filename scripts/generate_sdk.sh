@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 AUTH_SRV_PORT=8778
 
 docker build -t casa-auth-temp -f deployments/docker/Dockerfile .
@@ -25,17 +24,17 @@ docker stop casa-auth-temp
 # docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g python -o /local/sdk/python --additional-properties=packageName=identity_auth_sdk
 
 rm -rvf "sdk/go" 2>&1 || true
-# docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g go -o /local/sdk/go --additional-properties=packageName=api --git-user-id cisco-eti --git-repo-id identity-auth-server/sdk/go --global-property apiTests=false,modelTests=false
+# docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate -i /local/openapi.json -g go -o /local/sdk/go --additional-properties=packageName=api --git-user-id outshift-open --git-repo-id CASA/sdk/go --global-property apiTests=false,modelTests=false
 docker run --rm \
-  -v "$(PWD):/local" \
-  openapitools/openapi-generator-cli generate \
-  -i /local/openapi.json \
-  -g go \
-  -o /local/sdk/go \
-  --additional-properties=packageName=api \
-  --git-user-id cisco-eti \
-  --git-repo-id identity-auth-server/sdk/go \
-  --global-property apiTests=false,modelTests=false
+    -v "$(PWD):/local" \
+    openapitools/openapi-generator-cli generate \
+    -i /local/openapi.json \
+    -g go \
+    -o /local/sdk/go \
+    --additional-properties=packageName=api \
+    --git-user-id outshift-open \
+    --git-repo-id CASA/sdk/go \
+    --global-property apiTests=false,modelTests=false
 
 docker rmi casa-auth-temp
 

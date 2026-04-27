@@ -12,11 +12,11 @@ A **Multi-Agent System (MAS)** in CASA is a named, namespaced group of applicati
 
 Every application in a MAS has one of three types:
 
-| Type | Description | Allowed outbound protocols |
-|---|---|---|
-| `agent` | An AI agent that calls LLMs, tools, and other agents | MCP, A2A |
-| `mcp_server` | A Model Context Protocol server that exposes tools | (receives MCP only) |
-| `client` | A user-facing application or trusted caller | MCP, A2A |
+| Type         | Description                                          | Allowed outbound protocols |
+| ------------ | ---------------------------------------------------- | -------------------------- |
+| `agent`      | An AI agent that calls LLMs, tools, and other agents | MCP, A2A                   |
+| `mcp_server` | A Model Context Protocol server that exposes tools   | (receives MCP only)        |
+| `client`     | A user-facing application or trusted caller          | MCP, A2A                   |
 
 ## MAS Topology
 
@@ -38,6 +38,7 @@ graph LR
 ```
 
 All inter-application communication is intercepted by CASA sidecars, which:
+
 1. Inject tokens on outbound requests
 2. Validate tokens on inbound requests
 3. Enforce that only allowed protocol paths are used
@@ -45,6 +46,7 @@ All inter-application communication is intercepted by CASA sidecars, which:
 ## MAS Configuration via CRD
 
 You declare a MAS using the `MultiAgentSystem` CRD. CASA reads this and automatically:
+
 - Registers the applications in the auth service
 - Configures token issuance scopes per application
 - Applies the declared `enabledToolChecks` to all token exchange requests within the MAS
@@ -59,20 +61,31 @@ metadata:
   namespace: my-mas
 spec:
   name: "My Multi-Agent System"
-  authorizationServer: "my-mas-realm"
   enabledToolChecks:
   - DETERMINISTIC_TOOL_SELECTED
   - DETERMINISTIC_LLM_SELECTED_TOOLS
+  llm_host: your-llm-host.example.com
   apps:
   - name: my-client
     type: client
-    baseUrl: "http://my-client.my-mas.svc.cluster.local:8000"
+    kubernetesWorkloadName: my-client
+    baseUrl:
+      host: my-client:8000
+      scheme: http
   - name: my-agent
     type: agent
-    baseUrl: "http://my-agent.my-mas.svc.cluster.local:8000"
+    kubernetesWorkloadName: my-agent
+    baseUrl:
+      host: my-agent:8000
+      scheme: http
+    httpRequestSchema:
+      promptFieldJsonPath: '{.prompt}'
   - name: my-mcp-server
     type: mcp_server
-    baseUrl: "http://my-mcp-server.my-mas.svc.cluster.local:8080"
+    kubernetesWorkloadName: my-mcp-server
+    baseUrl:
+      host: my-mcp-server:8080
+      scheme: http
 ```
 
 See [CRDs Reference](/configuration/crds-reference) for all available fields.

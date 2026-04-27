@@ -38,9 +38,9 @@ Checks are configured per MAS in the `MultiAgentSystem` CRD:
 
 ```yaml
 spec:
-  enabledToolChecks:
-  - DETERMINISTIC_TOOL_SELECTED
-  - DETERMINISTIC_LLM_SELECTED_TOOLS
+    enabledToolChecks:
+        - DETERMINISTIC_TOOL_SELECTED
+        - DETERMINISTIC_LLM_SELECTED_TOOLS
 ```
 
 You can enable one or both. If neither is specified, no checks run (all tool exchanges are approved).
@@ -57,8 +57,8 @@ For most production MAS deployments:
 
 ```yaml
 enabledToolChecks:
-- DETERMINISTIC_TOOL_SELECTED       # always recommended
-- DETERMINISTIC_LLM_SELECTED_TOOLS  # recommended if agents interact with untrusted MCP servers
+    - DETERMINISTIC_TOOL_SELECTED # always recommended
+    - DETERMINISTIC_LLM_SELECTED_TOOLS # recommended if agents interact with untrusted MCP servers
 ```
 
 Add `AI_POWERED_TOOL_MATCH` for high-security workflows where semantic intent validation is worth the latency trade-off.

@@ -8,44 +8,91 @@ title: Demo MAS Values
 
 Reference for `demo/helm/values.yaml`.
 
-The demo MAS chart deploys a client UI, an agent, and an MCP server into a specified namespace.
+The demo MAS chart deploys two agents (safe and compromised), a shared MCP server, and two chat-UI instances into a specified namespace.
 
 ## Full Values Reference
 
 ```yaml
-namespace: casa-sidecar        # Target namespace
+namespace: casa-sidecar     # target namespace
 
-client:
-  replicas: 1
-  serviceName: casa-demo-client
-  servicePort: 3001
-  docker:
-    registry: YOUR_REGISTRY_HERE      # e.g. ghcr.io/your-org
-    image: casa-demo-client
-    tagversion: latest
-  agent_a2a_url: http://casa-demo-agent:8082   # agent A2A endpoint
-
-agent:
-  replicas: 1
-  serviceName: casa-demo-agent
+agentSafe:
+  replicas: 3
+  serviceName: demo-agent-safe
   servicePort: 8082
   docker:
-    registry: YOUR_REGISTRY_HERE
-    image: casa-demo-agent
-    tagversion: latest
+    registry: ""            # e.g. 626007623524.dkr.ecr.us-east-2.amazonaws.com
+    image: outshift-casa/demo-agent-safe
+    suffix: ''
+  tagversion: latest
   mcp_server_url: http://casa-demo-mcp:3000/mcp
-  secret:
-    openai_api_base: https://api.openai.com   # replace with your LLM endpoint
-    openai_api_key: YOUR_OPENAI_KEY_HERE      # replace with your API key
+
+agentCompromised:
+  replicas: 3
+  serviceName: demo-agent-compromised
+  servicePort: 8082
+  docker:
+    registry: ""
+    image: outshift-casa/demo-agent-compromised
+    suffix: ''
+  tagversion: latest
+  mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 mcp:
   replicas: 1
   serviceName: casa-demo-mcp
   servicePort: 3000
   docker:
-    registry: YOUR_REGISTRY_HERE
-    image: casa-demo-mcp
+    registry: ""
+    image: outshift-casa/k8s-demo-mcp
+    suffix: ''
+  tagversion: latest
+
+chatUis:
+  - name: safe
+    docker:
+      registry: ""
+      image: outshift-casa/chat-ui
     tagversion: latest
+    agentUrl: /safe-agent
+    ingress:
+      enabled: false
+      className: "nginx"
+      apiDomainName: ""
+      domainPrefix: "casa-demo-safe"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+
+  - name: compromised
+    docker:
+      registry: ""
+      image: outshift-casa/chat-ui
+    tagversion: latest
+    agentUrl: /compromised-agent
+    ingress:
+      enabled: false
+      className: "nginx"
+      apiDomainName: ""
+      domainPrefix: "casa-demo-compromised"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+
+llmCredentials:
+  apiBaseUrl: ""            # e.g. https://api.openai.com
+  apiKey: ""                # your LLM API key (stored as K8s Secret)
+
+masSafe:
+  name: "casa Demo Safe"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""              # LLM hostname for eBPF LLM endpoint restriction
+
+masCompromised:
+  name: "casa Demo Compromised"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""
 ```
 
 ## Field Reference
@@ -53,59 +100,34 @@ mcp:
 | Field | Description |
 |---|---|
 | `namespace` | Kubernetes namespace to deploy into. Must exist and have sidecar injection enabled. |
-| `client.serviceName` | Kubernetes Service name for the client UI. Used by in-cluster DNS. |
-| `client.servicePort` | Port the client UI listens on. |
-| `client.docker.registry` | Container registry hostname. |
-| `client.docker.image` | Image name within the registry. |
-| `client.tagversion` | Image tag. |
-| `client.agent_a2a_url` | A2A endpoint of the agent. This is the only config the client UI needs. |
-| `agent.serviceName` | Kubernetes Service name for the agent. Used by in-cluster DNS. |
-| `agent.servicePort` | Port the agent listens on. |
-| `agent.docker.registry` | Container registry hostname. |
-| `agent.docker.image` | Image name within the registry. |
-| `agent.tagversion` | Image tag. |
-| `agent.mcp_server_url` | URL of the MCP server that the agent will call. |
-| `agent.secret.openai_api_base` | Base URL for the OpenAI-compatible LLM API. |
-| `agent.secret.openai_api_key` | API key for the LLM service. Stored as a Kubernetes Secret. |
-| `mcp.serviceName` | Kubernetes Service name for the MCP server. |
+| `agentSafe.replicas` | Number of replicas for the safe agent deployment. |
+| `agentSafe.serviceName` | K8s Service name for the safe agent. Used for in-cluster DNS. |
+| `agentSafe.servicePort` | Port the safe agent listens on (A2A endpoint). |
+| `agentSafe.docker.registry` | Container registry hostname. |
+| `agentSafe.docker.image` | Image name within the registry (e.g. `outshift-casa/demo-agent-safe`). |
+| `agentSafe.tagversion` | Image tag. |
+| `agentSafe.mcp_server_url` | Full MCP server URL the agent calls, including path (e.g. `http://casa-demo-mcp:3000/mcp`). |
+| `agentCompromised.*` | Same fields as `agentSafe.*`, for the compromised agent. |
+| `mcp.serviceName` | K8s Service name for the MCP server (e.g. `casa-demo-mcp`). |
 | `mcp.servicePort` | Port the MCP server listens on. |
+| `mcp.docker.image` | MCP server image name (e.g. `outshift-casa/k8s-demo-mcp`). |
+| `chatUis[].name` | Instance name (`safe` or `compromised`). Determines service name (`chat-ui-<name>`). |
+| `chatUis[].agentUrl` | Path prefix the chat UI routes agent calls to (proxied by Nginx). |
+| `chatUis[].ingress.enabled` | Set `true` to expose the chat UI via Ingress. |
+| `chatUis[].ingress.domainPrefix` | Subdomain prefix for the Ingress (e.g. `casa-demo-safe`). |
+| `chatUis[].ingress.annotations` | Ingress annotations (e.g. `cert-manager.io/cluster-issuer: letsencrypt`). |
+| `llmCredentials.apiBaseUrl` | Base URL for the OpenAI-compatible LLM API. |
+| `llmCredentials.apiKey` | API key for the LLM service. Stored as a Kubernetes Secret. |
+| `masSafe.name` | Human-readable name for the safe MAS (written to `MultiAgentSystem` CRD). |
+| `masSafe.enabledToolChecks` | Tool checks enabled for the safe MAS. |
+| `masSafe.llm_host` | LLM FQDN used for eBPF LLM endpoint restriction (e.g. `litellm.prod.example.com`). |
+| `masCompromised.*` | Same fields as `masSafe.*`, for the compromised MAS. |
 
 ## Building Your Own Images
 
-If you cannot access the default registry, build and push your own images:
-
 ```bash
-# Build demo client UI
-docker build -t your-registry/casa-demo-client:latest demo/src/client/
-docker push your-registry/casa-demo-client:latest
-
-# Build demo agent
-docker build -t your-registry/casa-demo-agent:latest demo/src/agent/
-docker push your-registry/casa-demo-agent:latest
-
-# Build demo MCP server
-docker build -t your-registry/casa-demo-mcp:latest demo/src/mcp/
-docker push your-registry/casa-demo-mcp:latest
-```
-
-Then update `values.yaml`:
-
-```yaml
-client:
-  docker:
-    registry: your-registry
-    image: casa-demo-client
-  tagversion: latest
-
-agent:
-  docker:
-    registry: your-registry
-    image: casa-demo-agent
-  tagversion: latest
-
-mcp:
-  docker:
-    registry: your-registry
-    image: casa-demo-mcp
-  tagversion: latest
+docker build -t your-registry/demo-agent-safe:latest         demo/src/agent-safe/
+docker build -t your-registry/demo-agent-compromised:latest  demo/src/agent-compromised/
+docker build -t your-registry/demo-mcp:latest                demo/src/mcp/
+docker build -t your-registry/chat-ui:latest                 demo/src/chat-ui/
 ```

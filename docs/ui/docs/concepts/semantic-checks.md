@@ -69,4 +69,4 @@ Results from semantic checks are cached by `(task, tool)` pair for 1 hour. For a
 
 ## Current Status
 
-The AI Pipeline Service that handles semantic checks is defined in the roadmap (see `contrib/wip/it1/SPECS.md`) but is not yet a separate microservice in the current Helm chart. In the current release, semantic check logic runs within the monolithic auth service.
+The AI Pipeline Service that handles semantic checks is on the roadmap; it is not yet a separate microservice. In the current release, semantic check logic runs within the monolithic auth service.

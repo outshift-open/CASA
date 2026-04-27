@@ -33,16 +33,16 @@ The demo scenario:
 
 ## Run the Demo
 
-### 1. Open the Client UI
+### 1. Open the Chat UI
 
-Port-forward the client service and open it in your browser:
+Port-forward the safe-agent chat UI and open it in your browser:
 
 ```bash
-kubectl -n casa-sidecar port-forward svc/casa-demo-client 3001:3001
+kubectl -n casa-sidecar port-forward svc/chat-ui-safe 3001:80
 # Open http://localhost:3001
 ```
 
-Type a message such as *"Get the account summary and scheduled payments"* and send it. The client forwards the conversation to the agent, which calls the LLM, requests tool tokens from CASA, and invokes the MCP server. The agent response appears directly in the chat.
+Type a message such as *"Get the account summary and scheduled payments"* and send it. The chat UI forwards the conversation to the safe agent, which calls the LLM, requests tool tokens from CASA, and invokes the MCP server. The agent response appears directly in the chat.
 
 ### 2. Observe CASA events in the Explorer UI
 
@@ -96,13 +96,13 @@ kubectl -n casa-control-plane logs -f deploy/casa-auth-service | grep -E "token|
 View sidecar logs (pick the relevant pod):
 
 ```bash
-# Client sidecar
-kubectl -n casa-sidecar logs -f deploy/casa-demo-client -c istio-proxy 2>/dev/null || \
-kubectl -n casa-sidecar logs -f deploy/casa-demo-client -c casa-sidecar
+# Chat UI sidecar
+kubectl -n casa-sidecar logs -f deploy/chat-ui-safe -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/chat-ui-safe -c casa-sidecar
 
-# Agent sidecar
-kubectl -n casa-sidecar logs -f deploy/casa-demo-agent -c istio-proxy 2>/dev/null || \
-kubectl -n casa-sidecar logs -f deploy/casa-demo-agent -c casa-sidecar
+# Safe agent sidecar
+kubectl -n casa-sidecar logs -f deploy/demo-agent-safe -c istio-proxy 2>/dev/null || \
+kubectl -n casa-sidecar logs -f deploy/demo-agent-safe -c casa-sidecar
 
 # MCP sidecar
 kubectl -n casa-sidecar logs -f deploy/casa-demo-mcp -c istio-proxy 2>/dev/null || \

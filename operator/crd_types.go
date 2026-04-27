@@ -15,7 +15,7 @@
 package main
 
 import (
-	identitysdk "github.com/cisco-eti/identity-auth-server/sdk/go"
+	identitysdk "github.com/outshift-open/CASA/sdk/go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

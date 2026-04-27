@@ -20,7 +20,7 @@ import (
 	"io"
 	"time"
 
-	identitysdk "github.com/cisco-eti/identity-auth-server/sdk/go"
+	identitysdk "github.com/outshift-open/CASA/sdk/go"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

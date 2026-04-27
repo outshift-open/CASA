@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/cisco-eti/identity-auth-server/sdk/go"
+	"github.com/outshift-open/CASA/sdk/go"
 	mock "github.com/stretchr/testify/mock"
 )
 

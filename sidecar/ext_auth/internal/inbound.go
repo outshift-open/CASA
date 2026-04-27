@@ -23,7 +23,7 @@ import (
 	"log/slog"
 	"strings"
 
-	authapi "github.com/cisco-eti/identity-auth-server/sdk/go"
+	authapi "github.com/outshift-open/CASA/sdk/go"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"

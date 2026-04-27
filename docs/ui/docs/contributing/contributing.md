@@ -22,19 +22,12 @@ Thank you for considering a contribution. This guide explains how to set up a de
 ### Clone and Initialize
 
 ```bash
-git clone https://github.com/cisco-eti/identity-auth-server.git
-cd identity-auth-server
+git clone https://github.com/outshift-open/CASA.git
+cd casa-auth-server
 make init
 ```
 
 `make init` creates a Python virtual environment, installs all dependencies (including dev tools), and sets up pre-commit hooks.
-
-### Set Up Environment
-
-```bash
-cp .env.sample .env
-# Edit .env with your local configuration
-```
 
 ### Run the Auth Service Locally
 
@@ -117,23 +110,23 @@ chore: update dependencies
 
 ## Repository Structure
 
-| Area | Location | Notes |
-|---|---|---|
-| Auth service source | `src/casa_auth_server/` | Python / FastAPI |
-| Auth service tests | `test/` | pytest; unit + integration |
-| Control plane Helm chart | `deployments/helm/casa-control-plane/` | Helm v3 |
-| Demo MAS Helm chart | `demo/helm/` | Helm v3 |
-| Demo agent | `demo/src/agent/` | Python |
-| Demo MCP server | `demo/src/mcp/` | Python |
-| Demo client UI | `demo/src/client/` | React |
-| ext-authz middleware | `ext_authz_middleware/` | Go |
-| CASA Explorer UI | `casa-explorer-ui/` | React |
-| Documentation | `docs/ui/` | Docusaurus |
-| Architecture specs | `contrib/wip/it1/` | Internal reference |
+| Area                     | Location                               | Notes                      |
+| ------------------------ | -------------------------------------- | -------------------------- |
+| Auth service source      | `src/casa_auth_server/`                | Python / FastAPI           |
+| Auth service tests       | `test/`                                | pytest; unit + integration |
+| Control plane Helm chart | `deployments/helm/casa-control-plane/` | Helm v3                    |
+| Demo MAS Helm chart      | `demo/helm/`                           | Helm v3                    |
+| Demo agent (safe)        | `demo/src/agent-safe/`                 | Python                     |
+| Demo agent (compromised) | `demo/src/agent-compromised/`          | Python                     |
+| Demo MCP server          | `demo/src/mcp/`                        | Python                     |
+| Demo chat UI             | `demo/src/chat-ui/`                    | React                      |
+| ext-authz middleware     | `sidecar/ext_auth/`                    | Go                         |
+| CASA Explorer UI         | `casa-explorer-ui/`                    | React                      |
+| Documentation            | `docs/ui/`                             | Docusaurus                 |
 
 ## Reporting Issues
 
-Please use [GitHub Issues](https://github.com/cisco-eti/identity-auth-server/issues) to report bugs or request features.
+Please use [GitHub Issues](https://github.com/outshift-open/CASA/issues) to report bugs or request features.
 
 For security vulnerabilities, do not open a public issue. Contact the maintainers directly via the repository security advisory process.
 

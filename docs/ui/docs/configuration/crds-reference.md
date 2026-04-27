@@ -21,12 +21,15 @@ Full field reference for the `casa.io/v1alpha1` CRDs. For conceptual explanation
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `name` | string | Yes | Human-readable display name for the MAS |
-| `authorizationServer` | string | Yes | Keycloak realm name. **Transitional — scheduled for removal.** |
 | `enabledToolChecks` | string[] | No | Tool check types to enable. See below. |
+| `llm_host` | string | No | LLM hostname for eBPF LLM endpoint restriction (e.g. `litellm.prod.example.com`) |
 | `apps` | object[] | No | Applications registered in this MAS |
 | `apps[].name` | string | Yes | Unique application name within the MAS |
 | `apps[].type` | string | Yes | `agent`, `client`, or `mcp_server` |
-| `apps[].baseUrl` | string | Yes | K8s service URL (`http://svc.ns.svc.cluster.local:port`) |
+| `apps[].kubernetesWorkloadName` | string | Yes | Name of the Kubernetes Deployment for this app |
+| `apps[].baseUrl.host` | string | Yes | `service-name:port` for this application |
+| `apps[].baseUrl.scheme` | string | Yes | `http` or `https` |
+| `apps[].httpRequestSchema.promptFieldJsonPath` | string | No | JSONPath to the prompt field in the agent's HTTP request body (agents only, e.g. `'{.conversation}'`) |
 
 **Allowed values for `enabledToolChecks`:**
 
@@ -55,24 +58,38 @@ metadata:
   namespace: production-mas
 spec:
   name: "Production Multi-Agent System"
-  authorizationServer: "production-realm"
   enabledToolChecks:
   - DETERMINISTIC_TOOL_SELECTED
   - DETERMINISTIC_LLM_SELECTED_TOOLS
   - AI_POWERED_TOOL_MATCH
+  llm_host: litellm.prod.example.com
   apps:
   - name: user-app
     type: client
-    baseUrl: "http://user-app.production-mas.svc.cluster.local:8000"
+    kubernetesWorkloadName: user-app
+    baseUrl:
+      host: user-app:8000
+      scheme: http
   - name: orchestrator-agent
     type: agent
-    baseUrl: "http://orchestrator-agent.production-mas.svc.cluster.local:8000"
+    kubernetesWorkloadName: orchestrator-agent
+    baseUrl:
+      host: orchestrator-agent:8000
+      scheme: http
+    httpRequestSchema:
+      promptFieldJsonPath: '{.conversation}'
   - name: filesystem-mcp
     type: mcp_server
-    baseUrl: "http://filesystem-mcp.production-mas.svc.cluster.local:8080"
+    kubernetesWorkloadName: filesystem-mcp
+    baseUrl:
+      host: filesystem-mcp:8080
+      scheme: http
   - name: database-mcp
     type: mcp_server
-    baseUrl: "http://database-mcp.production-mas.svc.cluster.local:8080"
+    kubernetesWorkloadName: database-mcp
+    baseUrl:
+      host: database-mcp:8080
+      scheme: http
 ```
 
 ---

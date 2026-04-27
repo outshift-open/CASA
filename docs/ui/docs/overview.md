@@ -7,25 +7,25 @@ title: Overview
 
 # CASA — Continuous Agent Semantic Authorization
 
-CASA is a cloud-native Kubernetes platform that enforces Zero Trust authorization for Multi-Agent Systems (MAS) without requiring code changes in the agents or MCP servers.
+CASA is a cloud-native Kubernetes platform that enforces intent-aware authorization for Multi-Agent Systems (MAS) at runtime - without requiring code changes to agents, tools or MCP servers.
 
 ## What problem does it solve?
 
-AI applications increasingly delegate work to autonomous agents. Those agents call tools, invoke other agents, and access external services — often in combinations that could not have been anticipated when the system was designed.
+With the rise of multi-agent systems and cross-vendor ecosystems, runtime authorization is required to maintain control over agent actions. AI systems are rapidly evolving into multi-agent systems where autonomous agents dynamically execute tasks across tools and services. Those agents call tools, invoke other agents, and access external service.These interactions are composed dynamically at runtime making it impossible to predefine all allowed behaviors.
 
-Standard access control mechanisms (RBAC, OAuth scopes, API keys) are not built for this. They control _who_ can call _what_, but not _why_. An agent that has been granted access to a filesystem tool can use that tool for any purpose — including purposes the user never intended.
+Standard access control mechanisms (RBAC, OAuth scopes, API keys) are not built for this. They authorize access (who can call what), but cannot govern intent (why an action is being taken). An agent that has been granted access to a filesystem tool can use that tool for any purpose — including purposes the user never intended.
 
-CASA adds **intent-scoped authorization**: every tool call is validated against the original user prompt. If the action does not match the intent, it is blocked before the tool executes — at the network level, not inside the application.
+CASA introduces intent-scoped authorization - evaluating every action against user prompt, task context, and policy constraints. If the action does not match the intent, it is blocked before the tool executes — at the network level, not inside the application.
 
-## Key properties
+## Key capabilities
 
-- **No code changes required** — enforcement is handled by sidecars and eBPF, not the application
+- **Adopt instantly with no code changes** — enforcement runs via sidecars and eBPF, fully decoupled from application logic
 - **Kubernetes-native** — deploy via Helm, configure via CRDs
 - **Graduated policy checks** — from fast deterministic validation to AI-powered intent matching
-- **Flexible dataplane** — works with Istio (current); eBPF enforcement is available on eBPF-enabled nodes; Cilium as a full integrated solution is on the roadmap
+- **Flexible enforcement layer** — integrates with existing service mesh and networking stacks, with deeper eBPF-based enforcement for advanced control
+- **Full observability** - every decision is logged and traceable, enabling audit and policy validation.
 
 ## Where to go next
 
-- **New to CASA?** Start with [Core Concepts — Multi-Agent Systems](/concepts/mas)
-- **Ready to deploy?** Go to [Installation — Prerequisites](/installation/prerequisites)
 - **Want to understand the design?** Read [Architecture Overview](/architecture/architecture-overview)
+- **Ready to deploy?** Go to [Installation — Prerequisites](/installation/prerequisites)

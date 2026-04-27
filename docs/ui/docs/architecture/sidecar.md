@@ -13,7 +13,7 @@ The CASA sidecar is an Envoy-based proxy that is automatically injected into eve
 Sidecars are injected either by:
 
 - **Istio mode**: namespace label `istio-injection=enabled` triggers Istio's built-in sidecar injector. The `ext_authz_middleware` service (deployed separately) acts as the ext-authz filter backend.
-- **Cilium mode** *(coming soon)*: a CASA node-level daemonset (deployed via Cilium) intercepts pod traffic without per-pod injection — no mutating webhook required.
+- **Cilium mode** _(coming soon)_: a CASA node-level daemonset (deployed via Cilium) intercepts pod traffic without per-pod injection — no mutating webhook required.
 
 An init container runs first to configure iptables rules that redirect all inbound and outbound TCP traffic through the sidecar ports.
 
@@ -45,12 +45,14 @@ flowchart TB
 ```
 
 **Inbound path (port 15001):**
+
 1. All incoming requests are intercepted
 2. The `ext_authz` filter calls the control plane to introspect the token in the `Authorization` header
 3. If the token is valid and scoped correctly: forward to the application
 4. If invalid or absent: return 403, fail closed
 
 **Outbound path (port 15002):**
+
 1. All outgoing requests are intercepted
 2. The Lua filter checks if a valid cached token exists
 3. If not, it requests a token exchange from the control plane
@@ -60,6 +62,7 @@ flowchart TB
 ## Token Caching
 
 Introspection results are cached locally for 30 seconds. This means:
+
 - Reduced load on the control plane during normal operation
 - If the control plane becomes unreachable, cached results continue to work for up to 30 seconds
 - After cache expiry, the sidecar **fails closed** — all requests are denied until the control plane recovers
@@ -68,11 +71,11 @@ Introspection results are cached locally for 30 seconds. This means:
 
 The sidecar enforces that agents only use allowed protocols:
 
-| App type | Allowed outbound protocols |
-|---|---|
-| `agent` | MCP, A2A |
-| `mcp_server` | (inbound MCP only) |
-| `client` | MCP, A2A |
+| App type     | Allowed outbound protocols |
+| ------------ | -------------------------- |
+| `agent`      | MCP, A2A                   |
+| `mcp_server` | (inbound MCP only)         |
+| `client`     | MCP, A2A                   |
 
 Requests to paths that do not match allowed protocol patterns are rejected with a 403 before the control plane is consulted.
 

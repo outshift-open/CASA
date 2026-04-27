@@ -11,10 +11,10 @@
   <br/>
 
   <p>
-    <a href="../../actions/workflows/pytest.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pytest.yml/badge.svg" alt="pytest"/></a>
-    <a href="../../actions/workflows/pre-commit.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/pre-commit.yml/badge.svg" alt="pre-commit"/></a>
-    <a href="../../actions/workflows/docs.yml"><img src="https://github.com/cisco-eti/identity-auth-server/actions/workflows/docs.yml/badge.svg" alt="Docs"/></a>
-    <a href="../../releases"><img src="https://img.shields.io/github/v/release/cisco-eti/identity-auth-server?include_prereleases&label=release" alt="Release"/></a>
+    <a href="../../actions/workflows/pytest.yml"><img src="https://github.com/outshift-open/CASA/actions/workflows/pytest.yml/badge.svg" alt="pytest"/></a>
+    <a href="../../actions/workflows/pre-commit.yml"><img src="https://github.com/outshift-open/CASA/actions/workflows/pre-commit.yml/badge.svg" alt="pre-commit"/></a>
+    <a href="../../actions/workflows/docs.yml"><img src="https://github.com/outshift-open/CASA/actions/workflows/docs.yml/badge.svg" alt="Docs"/></a>
+    <a href="../../releases"><img src="https://img.shields.io/github/v/release/outshift-open/CASA?include_prereleases&label=release" alt="Release"/></a>
     <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"/></a>
   </p>
 
@@ -104,12 +104,12 @@ graph TB
 
 ![CASA Components](docs/diagrams/components.png)
 
-| Component           | Description                                                                                                      |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Auth Service**    | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
+| Component            | Description                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Auth Service**     | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
 | **CASA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
-| **eBPF layer**      | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
-| **Keycloak**        | Identity provider backing token cryptography                                                                     |
+| **eBPF layer**       | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
+| **Keycloak**         | Identity provider backing token cryptography                                                                     |
 | **CASA Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                   |
 
 ---
@@ -192,21 +192,29 @@ The demo MAS uses the following `MultiAgentSystem` CRD spec:
 apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
-    name: my-mas
-    namespace: my-mas
+  name: my-mas
+  namespace: my-mas
 spec:
-    name: "My Multi-Agent System"
-    authorizationServer: "my-mas-realm"
-    enabledToolChecks:
-        - DETERMINISTIC_TOOL_SELECTED
-        - DETERMINISTIC_LLM_SELECTED_TOOLS
-    apps:
-        - name: my-agent
-          type: agent
-          baseUrl: "http://my-agent.my-mas.svc.cluster.local:8000"
-        - name: my-mcp-server
-          type: mcp_server
-          baseUrl: "http://my-mcp-server.my-mas.svc.cluster.local:8080"
+  name: "My Multi-Agent System"
+  enabledToolChecks:
+  - DETERMINISTIC_TOOL_SELECTED
+  - DETERMINISTIC_LLM_SELECTED_TOOLS
+  llm_host: your-llm-host.example.com
+  apps:
+  - name: my-agent
+    type: agent
+    kubernetesWorkloadName: my-agent
+    baseUrl:
+      host: my-agent:8000
+      scheme: http
+    httpRequestSchema:
+      promptFieldJsonPath: '{.prompt}'
+  - name: my-mcp-server
+    type: mcp_server
+    kubernetesWorkloadName: my-mcp-server
+    baseUrl:
+      host: my-mcp-server:8080
+      scheme: http
 ```
 
 To explore CASA with the demo MAS, install it with Helm:
@@ -249,25 +257,24 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 
 ## Repository Structure
 
-| Path                                      | Description                                             |
-| ----------------------------------------- | ------------------------------------------------------- |
+| Path                                   | Description                                              |
+| -------------------------------------- | -------------------------------------------------------- |
 | `deployments/helm/casa-control-plane/` | CASA control plane Helm chart                            |
-| `deployments/k8s/crds/`                   | CRD examples and API reference                          |
-| `demo/helm/`                              | Demo MAS Helm chart (agent + MCP server)                |
-| `demo/src/agent-safe/`                    | Demo safe agent source code                             |
-| `demo/src/agent-compromised/`             | Demo compromised agent source code                      |
-| `demo/src/mcp/`                           | Demo MCP server source code                             |
-| `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)                         |
-| `src/casa_auth_server/`               | Auth service Python source                              |
-| `casa-explorer-ui/`                        | CASA Explorer UI source (React, read-only observability) |
-| `docs/ui/`                                | Docusaurus documentation portal                         |
-| `contrib/wip/it1/`                        | Architecture specs and design documents                 |
+| `demo/helm/`                           | Demo MAS Helm chart (agent + MCP server)                 |
+| `demo/src/agent-safe/`                 | Demo safe agent source code                              |
+| `demo/src/agent-compromised/`          | Demo compromised agent source code                       |
+| `demo/src/mcp/`                        | Demo MCP server source code                              |
+| `sidecar/`                             | Sidecar elements (ext_auth, llm_proxy)                   |
+| `src/casa_auth_server/`                | Auth service Python source                               |
+| `casa-explorer-ui/`                    | CASA Explorer UI source (React, read-only observability) |
+| `docs/ui/`                             | Docusaurus documentation portal                          |
+| `docs/dev`                             | Architecture specs and design documents                  |
 
 ---
 
 ## Project Status
 
-**Alpha / PoC** — CASA is under active development. The current Helm chart (`v0.1.5`) deploys a monolithic auth service suitable for development and proof-of-concept use. The production architecture (microservices decomposition, HA, Redis caching, AI pipeline service) is defined in `contrib/wip/it1/SPECS.md` and is on the roadmap.
+**Alpha / PoC** — CASA is under active development. The current Helm chart (`v0.1.5`) deploys a monolithic auth service suitable for development and proof-of-concept use.
 
 The CRD API version is `v1alpha1` and field-level changes are possible before a stable release.
 

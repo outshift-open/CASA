@@ -23,8 +23,8 @@ import (
 	"os/signal"
 	"time"
 
-	identitysdk "github.com/cisco-eti/identity-auth-server/sdk/go"
-	"github.com/cisco-eti/identity-auth-server/sidecar/ext_auth/internal"
+	identitysdk "github.com/outshift-open/CASA/sdk/go"
+	"github.com/outshift-open/CASA/sidecar/ext_auth/internal"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

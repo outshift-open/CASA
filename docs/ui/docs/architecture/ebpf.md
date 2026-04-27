@@ -12,18 +12,18 @@ In the current **Istio deployment**, eBPF enforcement uses the node kernel direc
 
 ## What eBPF Handles
 
-| Capability | eBPF | Sidecar | Control Plane |
-|---|---|---|---|
-| Deny-by-default networking | ✅ | — | — |
-| Identity-based allow-lists | ✅ | — | — |
-| LLM endpoint restriction (FQDN) | ✅ | — | — |
-| JWT extraction from HTTP headers | ✅ | ✅ | — |
-| JWT signature fast-path check | ⚠️ (experimental) | ✅ | ✅ |
-| Token introspection (full) | — | ✅ | ✅ |
-| Token exchange | — | ✅ | ✅ |
-| Protocol enforcement (MCP/A2A) | — | ✅ | — |
-| L7 request/response logging | — | ✅ | — |
-| Flow logging | ✅ (CASA Explorer UI) | — | — |
+| Capability                       | eBPF                  | Sidecar | Control Plane |
+| -------------------------------- | --------------------- | ------- | ------------- |
+| Deny-by-default networking       | ✅                    | —       | —             |
+| Identity-based allow-lists       | ✅                    | —       | —             |
+| LLM endpoint restriction (FQDN)  | ✅                    | —       | —             |
+| JWT extraction from HTTP headers | ✅                    | ✅      | —             |
+| JWT signature fast-path check    | ⚠️ (experimental)     | ✅      | ✅            |
+| Token introspection (full)       | —                     | ✅      | ✅            |
+| Token exchange                   | —                     | ✅      | ✅            |
+| Protocol enforcement (MCP/A2A)   | —                     | ✅      | —             |
+| L7 request/response logging      | —                     | ✅      | —             |
+| Flow logging                     | ✅ (CASA Explorer UI) | —       | —             |
 
 ⚠️ = partial or experimental
 
@@ -41,22 +41,22 @@ All traffic in MAS namespaces is denied by default. Allowed flows are declared e
 apiVersion: casa.io/v1alpha1
 kind: CASAPolicy
 metadata:
-  name: agent-policy
-  namespace: production-mas
-spec:
-  targetRef:
-    kind: Deployment
-    name: my-agent
-  allowedProtocols:
-  - mcp
-  - a2a
-  allowedEndpoints:
-  - name: my-mcp-server
+    name: agent-policy
     namespace: production-mas
-    port: 8080
-  - name: casa-auth-service
-    namespace: casa-control-plane
-    port: 8443
+spec:
+    targetRef:
+        kind: Deployment
+        name: my-agent
+    allowedProtocols:
+        - mcp
+        - a2a
+    allowedEndpoints:
+        - name: my-mcp-server
+          namespace: production-mas
+          port: 8080
+        - name: casa-auth-service
+          namespace: casa-control-plane
+          port: 8443
 ```
 
 ### LLM endpoint restriction
@@ -67,15 +67,15 @@ Agents are restricted to a single approved external LLM FQDN via the `llmEndpoin
 apiVersion: casa.io/v1alpha1
 kind: CASAPolicy
 metadata:
-  name: agent-policy
-  namespace: production-mas
+    name: agent-policy
+    namespace: production-mas
 spec:
-  targetRef:
-    kind: Deployment
-    name: my-agent
-  llmEndpoint:
-    fqdn: api.openai.com
-    port: 443
+    targetRef:
+        kind: Deployment
+        name: my-agent
+    llmEndpoint:
+        fqdn: api.openai.com
+        port: 443
 ```
 
 Only the declared FQDN is reachable. All other external destinations are dropped.
@@ -92,25 +92,25 @@ The `CASAPolicy` CRD provides a Kubernetes-native way to declare per-workload ne
 apiVersion: casa.io/v1alpha1
 kind: CASAPolicy
 metadata:
-  name: agent-policy
-  namespace: production-mas
-spec:
-  targetRef:
-    kind: Deployment
-    name: orchestrator-agent
-  allowedProtocols:
-  - mcp
-  - a2a
-  allowedEndpoints:
-  - name: filesystem-mcp
+    name: agent-policy
     namespace: production-mas
-    port: 8080
-  - name: casa-auth-service
-    namespace: casa-control-plane
-    port: 8443
-  llmEndpoint:
-    fqdn: api.openai.com
-    port: 443
+spec:
+    targetRef:
+        kind: Deployment
+        name: orchestrator-agent
+    allowedProtocols:
+        - mcp
+        - a2a
+    allowedEndpoints:
+        - name: filesystem-mcp
+          namespace: production-mas
+          port: 8080
+        - name: casa-auth-service
+          namespace: casa-control-plane
+          port: 8443
+    llmEndpoint:
+        fqdn: api.openai.com
+        port: 443
 ```
 
 ## JWT Observability
@@ -130,6 +130,7 @@ Deeper eBPF flow observability (token-correlated flow logs) is available in the 
 :::
 
 Observability and tracing for both deployment modes are provided by the **CASA Explorer UI**, which surfaces:
+
 - Real-time token event logs (issuance, exchange, introspection)
 - Tool check decisions and denial reasons
 - Per-MAS telemetry traces correlated with user prompts

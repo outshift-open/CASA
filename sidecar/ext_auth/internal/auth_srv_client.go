@@ -20,7 +20,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	identitysdk "github.com/cisco-eti/identity-auth-server/sdk/go"
+	identitysdk "github.com/outshift-open/CASA/sdk/go"
 )
 
 type AuthServerClient interface {

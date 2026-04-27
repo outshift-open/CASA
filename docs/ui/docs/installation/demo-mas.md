@@ -6,19 +6,18 @@ title: Install Demo MAS
 
 # Install the Demo MAS
 
-The demo MAS deploys a complete Multi-Agent System that you can use to explore CASA enforcement in action. It is intended for learning and testing, not production use.
+The demo MAS deploys a complete Multi-Agent System you can use to explore CASA enforcement. It models a "safe" agent vs. a "compromised" agent interacting with the same MCP server, enforced by CASA.
 
 ## About the Demo
 
-The demo consists of three components:
-
 | Component | Source | Description |
 |---|---|---|
-| **Demo Client UI** | `demo/src/client/` | A chat web UI where users type prompts and receive agent responses |
-| **Demo Agent** | `demo/src/agent/` | A Python agent that receives user prompts, calls an LLM, and invokes tools via MCP |
+| **Agent Safe** | `demo/src/agent-safe/` | A well-behaved Python agent that calls the LLM and invokes tools via MCP |
+| **Agent Compromised** | `demo/src/agent-compromised/` | A Python agent that simulates prompt-injection behaviour |
 | **Demo MCP Server** | `demo/src/mcp/` | A Python MCP server exposing simple tools (account summary, scheduled payments) |
+| **Chat UI** | `demo/src/chat-ui/` | A shared React chat interface; two instances are deployed — one per agent |
 
-The user interacts entirely through the client UI — no curl or API calls needed. CASA intercepts all traffic between components and enforces intent-scoped authorization transparently.
+Both agents share the same MCP server. CASA enforces separate policies for each agent via two `MultiAgentSystem` CRDs (`masSafe` and `masCompromised`).
 
 ## Prerequisites
 
@@ -26,12 +25,13 @@ The user interacts entirely through the client UI — no curl or API calls neede
 - Istio sidecar injection enabled for the target namespace (see [Istio deployment guide](/deployment-modes/istio))
 - An OpenAI-compatible API endpoint and key
 
-> **Note on images:** The default `values.yaml` references images in a private ECR registry. To run the demo, build and push your own images:
+> **Note on images:** The default `values.yaml` references images in a private registry. Build and push your own:
 >
 > ```bash
-> docker build -t your-registry/casa-demo-client:latest demo/src/client/
-> docker build -t your-registry/casa-demo-agent:latest demo/src/agent/
-> docker build -t your-registry/casa-demo-mcp:latest   demo/src/mcp/
+> docker build -t your-registry/demo-agent-safe:latest         demo/src/agent-safe/
+> docker build -t your-registry/demo-agent-compromised:latest  demo/src/agent-compromised/
+> docker build -t your-registry/demo-mcp:latest                demo/src/mcp/
+> docker build -t your-registry/chat-ui:latest                 demo/src/chat-ui/
 > ```
 
 ## Configure Values
@@ -39,42 +39,87 @@ The user interacts entirely through the client UI — no curl or API calls neede
 Edit `demo/helm/values.yaml`:
 
 ```yaml
-namespace: casa-sidecar
+namespace: casa-sidecar   # target namespace
 
-client:
-  replicas: 1
-  serviceName: casa-demo-client
-  servicePort: 3001
-  docker:
-    registry: YOUR_REGISTRY_HERE      # e.g. ghcr.io/your-org
-    image: casa-demo-client
-    tagversion: latest
-  agent_a2a_url: http://casa-demo-agent:8082   # agent A2A endpoint
-
-agent:
-  replicas: 1
-  serviceName: casa-demo-agent
+agentSafe:
+  replicas: 3
+  serviceName: demo-agent-safe
   servicePort: 8082
   docker:
-    registry: YOUR_REGISTRY_HERE
-    image: casa-demo-agent
-    tagversion: latest
+    registry: your-registry
+    image: outshift-casa/demo-agent-safe
+    suffix: ''
+  tagversion: latest
   mcp_server_url: http://casa-demo-mcp:3000/mcp
-  secret:
-    openai_api_base: https://api.openai.com   # or your LiteLLM proxy
-    openai_api_key: YOUR_OPENAI_KEY_HERE
+
+agentCompromised:
+  replicas: 3
+  serviceName: demo-agent-compromised
+  servicePort: 8082
+  docker:
+    registry: your-registry
+    image: outshift-casa/demo-agent-compromised
+    suffix: ''
+  tagversion: latest
+  mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 mcp:
   replicas: 1
   serviceName: casa-demo-mcp
   servicePort: 3000
   docker:
-    registry: YOUR_REGISTRY_HERE
-    image: casa-demo-mcp
-    tagversion: latest
-```
+    registry: your-registry
+    image: outshift-casa/k8s-demo-mcp
+    suffix: ''
+  tagversion: latest
 
-The only config the client UI needs is `agent_a2a_url` — the A2A endpoint of the agent it will converse with.
+chatUis:
+  - name: safe
+    docker:
+      registry: your-registry
+      image: outshift-casa/chat-ui
+    tagversion: latest
+    agentUrl: /safe-agent
+    ingress:
+      enabled: true
+      className: "nginx"
+      apiDomainName: "your.domain.com"
+      domainPrefix: "casa-demo-safe"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+
+  - name: compromised
+    docker:
+      registry: your-registry
+      image: outshift-casa/chat-ui
+    tagversion: latest
+    agentUrl: /compromised-agent
+    ingress:
+      enabled: true
+      className: "nginx"
+      apiDomainName: "your.domain.com"
+      domainPrefix: "casa-demo-compromised"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+
+llmCredentials:
+  apiBaseUrl: https://api.openai.com   # or your LiteLLM proxy
+  apiKey: YOUR_OPENAI_KEY_HERE
+
+masSafe:
+  name: "casa Demo Safe"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""   # LLM hostname for eBPF restriction
+
+masCompromised:
+  name: "casa Demo Compromised"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""
+```
 
 ## Enable Sidecar Injection
 
@@ -106,52 +151,29 @@ kubectl -n casa-sidecar wait --for=condition=ready pod --all --timeout=120s
 Expected pods:
 
 ```
-NAME                          READY   STATUS
-casa-demo-client-...           1/1     Running
-casa-demo-agent-...            1/1     Running
-casa-demo-mcp-...              1/1     Running
-```
-
-## Register the Demo MAS with CASA
-
-Apply the `MultiAgentSystem` CRD:
-
-```bash
-kubectl apply -f - <<EOF
-apiVersion: casa.io/v1alpha1
-kind: MultiAgentSystem
-metadata:
-  name: demo-mas
-  namespace: casa-sidecar
-spec:
-  name: "CASA Demo MAS"
-  authorizationServer: "demo-realm"
-  enabledToolChecks:
-  - DETERMINISTIC_TOOL_SELECTED
-  - DETERMINISTIC_LLM_SELECTED_TOOLS
-  apps:
-  - name: demo-client
-    type: client
-    baseUrl: "http://casa-demo-client.casa-sidecar.svc.cluster.local:3001"
-  - name: demo-agent
-    type: agent
-    baseUrl: "http://casa-demo-agent.casa-sidecar.svc.cluster.local:8082"
-  - name: demo-mcp
-    type: mcp_server
-    baseUrl: "http://casa-demo-mcp.casa-sidecar.svc.cluster.local:3000"
-EOF
+NAME                                READY   STATUS
+demo-agent-safe-...                  1/1     Running
+demo-agent-compromised-...           1/1     Running
+casa-demo-mcp-...                    1/1     Running
+chat-ui-safe-...                     1/1     Running
+chat-ui-compromised-...              1/1     Running
 ```
 
 ## Open the Demo
 
-Port-forward the client UI and open it in your browser:
+Port-forward a chat UI and open it in your browser:
 
 ```bash
-kubectl -n casa-sidecar port-forward svc/casa-demo-client 3001:3001
+# Safe agent chat UI
+kubectl -n casa-sidecar port-forward svc/chat-ui-safe 3001:80
 # Open http://localhost:3001
+
+# Compromised agent chat UI
+kubectl -n casa-sidecar port-forward svc/chat-ui-compromised 3002:80
+# Open http://localhost:3002
 ```
 
-Type a message like *"Get the account summary and scheduled payments"* and send it. The client UI forwards the conversation to the agent, which calls the LLM, requests tool tokens from CASA, and invokes the MCP server.
+Type a message like *"Get the account summary and scheduled payments"* and send it. The chat UI forwards the conversation to the agent, which calls the LLM, requests tool tokens from CASA, and invokes the MCP server.
 
 ## View Enforcement Events
 
