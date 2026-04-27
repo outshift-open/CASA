@@ -63,9 +63,9 @@ Minimum version: Cilium 1.14
 
 The CASA control plane images are published to GitHub Container Registry (GHCR):
 
-- `ghcr.io/outshift-open/casa-auth-server` — auth service
-- `ghcr.io/outshift-open/casa-auth-server-ui` — UI explorer
-- `ghcr.io/outshift-open/casa-auth-server-keycloak` — custom Keycloak image
+- `ghcr.io/outshift-open/CASA` — auth service
+- `ghcr.io/outshift-open/CASA-ui` — UI explorer
+- `ghcr.io/outshift-open/CASA-keycloak` — custom Keycloak image
 
 These images are public. No registry authentication is required.
 

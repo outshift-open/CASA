@@ -11,10 +11,10 @@
   <br/>
 
   <p>
-    <a href="../../actions/workflows/pytest.yml"><img src="https://github.com/outshift-open/casa-auth-server/actions/workflows/pytest.yml/badge.svg" alt="pytest"/></a>
-    <a href="../../actions/workflows/pre-commit.yml"><img src="https://github.com/outshift-open/casa-auth-server/actions/workflows/pre-commit.yml/badge.svg" alt="pre-commit"/></a>
-    <a href="../../actions/workflows/docs.yml"><img src="https://github.com/outshift-open/casa-auth-server/actions/workflows/docs.yml/badge.svg" alt="Docs"/></a>
-    <a href="../../releases"><img src="https://img.shields.io/github/v/release/outshift-open/casa-auth-server?include_prereleases&label=release" alt="Release"/></a>
+    <a href="../../actions/workflows/pytest.yml"><img src="https://github.com/outshift-open/CASA/actions/workflows/pytest.yml/badge.svg" alt="pytest"/></a>
+    <a href="../../actions/workflows/pre-commit.yml"><img src="https://github.com/outshift-open/CASA/actions/workflows/pre-commit.yml/badge.svg" alt="pre-commit"/></a>
+    <a href="../../actions/workflows/docs.yml"><img src="https://github.com/outshift-open/CASA/actions/workflows/docs.yml/badge.svg" alt="Docs"/></a>
+    <a href="../../releases"><img src="https://img.shields.io/github/v/release/outshift-open/CASA?include_prereleases&label=release" alt="Release"/></a>
     <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache 2.0"/></a>
   </p>
 

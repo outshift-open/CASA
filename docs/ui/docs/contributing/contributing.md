@@ -22,7 +22,7 @@ Thank you for considering a contribution. This guide explains how to set up a de
 ### Clone and Initialize
 
 ```bash
-git clone https://github.com/outshift-open/casa-auth-server.git
+git clone https://github.com/outshift-open/CASA.git
 cd casa-auth-server
 make init
 ```
