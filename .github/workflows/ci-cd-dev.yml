@@ -318,7 +318,6 @@ jobs:
       secrets:
         github-app-id: ${{ secrets.GHA_APP_ID }}
         github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-        caller-github-token: ${{ secrets.GITHUB_TOKEN }}
         vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
         vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
@@ -340,6 +339,5 @@ jobs:
         secrets:
             github-app-id: ${{ secrets.GHA_APP_ID }}
             github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-            caller-github-token: ${{ secrets.GITHUB_TOKEN }}
             vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
             vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
