@@ -38,7 +38,7 @@ A typical flow involves:
 ## 2. Major System Components
 
 ### 2.1 Identity Auth Server (Backend Service)
-**Location**: `src/identity_auth_server/`
+**Location**: `src/casa_auth_server/`
 
 **Purpose**: Core authorization server implementing OAuth2 token flows with CASA-specific extensions.
 
@@ -131,7 +131,7 @@ A typical flow involves:
 
 ## 3. Programming Languages and Runtimes
 
-### Backend (identity_auth_server)
+### Backend (casa_auth_server)
 - **Language**: Python 3.12+ (strict version requirement: `>=3.12,<3.14`)
 - **Execution Model**: Interpreted, server-side
 - **Runtime Environment**:
@@ -296,10 +296,10 @@ A typical flow involves:
 
 ## 5. Code Organization and Layout
 
-### Backend Structure (`src/identity_auth_server/`)
+### Backend Structure (`src/casa_auth_server/`)
 
 ```
-identity_auth_server/
+casa_auth_server/
 ├── api/                    # API/Presentation Layer
 │   ├── app.py             # FastAPI application setup, CORS, middleware
 │   ├── dependencies.py    # DI container, singleton/scoped providers
@@ -2088,7 +2088,7 @@ jobs:
    ```python
    @pytest.fixture
    def mock_keycloak(mocker):
-       return mocker.patch('identity_auth_server.core.idp.keycloak_client.KeycloakClient')
+       return mocker.patch('casa_auth_server.core.idp.keycloak_client.KeycloakClient')
    ```
 
 3. **CI Service Orchestration**:
@@ -2102,7 +2102,7 @@ jobs:
 
 4. **Coverage Tracking**:
    ```bash
-   pytest --cov=identity_auth_server --cov-report=html
+   pytest --cov=casa_auth_server --cov-report=html
    ```
 
 5. **Contract Testing** (UI ↔ API):
@@ -3135,8 +3135,8 @@ from unittest.mock import Mock
 
 def test_token_exchange_with_valid_token(client: TestClient, mocker):
     # Mock external dependencies
-    mock_idp = mocker.patch('identity_auth_server.core.idp.keycloak_client')
-    mock_mcp = mocker.patch('identity_auth_server.services.mcp_discover')
+    mock_idp = mocker.patch('casa_auth_server.core.idp.keycloak_client')
+    mock_mcp = mocker.patch('casa_auth_server.services.mcp_discover')
 
     mock_idp.return_value.get_token.return_value = {"access_token": "new-token"}
     mock_mcp.return_value.discover_mcp_tools.return_value = [Tool(...)]
@@ -5102,7 +5102,7 @@ make keycloak-run  # Docker Compose
 
 # Terminal 2: Auth Server
 source .venv/bin/activate
-uvicorn identity_auth_server.api.app:app --reload
+uvicorn casa_auth_server.api.app:app --reload
 
 # Terminal 3: UI
 cd casa-explorer-ui

@@ -32,13 +32,13 @@ make generate-sdk      # Regenerate sdk/go/ from running server's OpenAPI spec (
 ## Gotchas
 
 - **macOS**: system `make` is 3.81 (too old); use `gmake` instead of `make`
-- **Python package name**: import as `identity_auth_server`, not `casa`
+- **Python package name**: import as `casa_auth_server`, not `casa`
 - `operator/` is Go, `sidecar/ext_auth/` is Go, `sidecar/llm_proxy/` and `sidecar/traceparent_injector/` are Rust — not Python
 
 ## Project Layout
 
 ```
-src/identity_auth_server/   # Main Python package (identity_auth_server)
+src/casa_auth_server/   # Main Python package (casa_auth_server)
   api/                      # FastAPI app; routes: app, authorization, k8s, k8s_crd,
                             #   multi_agent_system, scope, trace, user_input
   core/                     # Business logic, repositories, IDP client

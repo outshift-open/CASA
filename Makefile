@@ -132,7 +132,7 @@ test-integration: # Run only integration tests.
 
 auth-server-run:
 > source .venv/bin/activate
-> uvicorn identity_auth_server.api.app:app --reload
+> uvicorn casa_auth_server.api.app:app --reload
 .PHONY: auth-server-run
 
 docker-build: # Build the Docker image.

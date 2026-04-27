@@ -119,7 +119,7 @@ chore: update dependencies
 
 | Area | Location | Notes |
 |---|---|---|
-| Auth service source | `src/identity_auth_server/` | Python / FastAPI |
+| Auth service source | `src/casa_auth_server/` | Python / FastAPI |
 | Auth service tests | `test/` | pytest; unit + integration |
 | Control plane Helm chart | `deployments/helm/casa-control-plane/` | Helm v3 |
 | Demo MAS Helm chart | `demo/helm/` | Helm v3 |

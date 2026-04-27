@@ -258,7 +258,7 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 | `demo/src/agent-compromised/`             | Demo compromised agent source code                      |
 | `demo/src/mcp/`                           | Demo MCP server source code                             |
 | `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)                         |
-| `src/identity_auth_server/`               | Auth service Python source                              |
+| `src/casa_auth_server/`               | Auth service Python source                              |
 | `casa-explorer-ui/`                        | CASA Explorer UI source (React, read-only observability) |
 | `docs/ui/`                                | Docusaurus documentation portal                         |
 | `contrib/wip/it1/`                        | Architecture specs and design documents                 |

@@ -1,0 +1,292 @@
+# ruff: noqa: N806
+import os
+from abc import ABC, abstractmethod
+from typing import Annotated, Any, Callable, Generator, Generic, TypeVar
+
+from fastapi import Depends
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import Session
+
+from casa_auth_server.checks.checks import (
+    LlmSelectedToolsDeterministicCheck,
+    ToolIntentAICheck,
+    ToolSelectedDeterministicCheck,
+)
+from casa_auth_server.checks.factory import ToolCheckFactory
+from casa_auth_server.core.idp.idp_client import IdpClient
+from casa_auth_server.core.idp.keycloak_client import KeycloakClient
+from casa_auth_server.core.repositories.app import AppPostgresRepository, AppRepository
+from casa_auth_server.core.repositories.authorization_server import (
+    AuthorizationServerPostgresRepository,
+    AuthorizationServerRepository,
+)
+from casa_auth_server.core.repositories.multi_agent_system import (
+    MultiAgentSystemPostgresRepository,
+    MultiAgentSystemRepository,
+)
+from casa_auth_server.core.repositories.scope import ScopePostgresRepository, ScopeRepository
+from casa_auth_server.core.repositories.user_input import UserInputPostgresRepository
+from casa_auth_server.database.postgres.postgres import PostgresDB
+from casa_auth_server.k8s.k8s_query_service import K8sQueryService
+from casa_auth_server.k8s.repository import K8sMultiAgentSystemPostgresRepository
+from casa_auth_server.pipelines.conversation.tbac_components import TaskExtractor, TaskToToolMatcher
+from casa_auth_server.services.app_service import AppService
+from casa_auth_server.services.authorization_server import AuthorizationServerService
+from casa_auth_server.services.mas_service import MultiAgentSystemService
+from casa_auth_server.services.mcp_discover import McpDiscoverService
+from casa_auth_server.services.scope_service import ScopeService
+from casa_auth_server.services.user_input_service import UserInputService
+from casa_auth_server.telemetry.tracer import Tracer
+from casa_auth_server.telemetry.tracer_repository import TracerPostgresRepository, TracerRepository
+
+T = TypeVar("T")
+
+
+class Provider(ABC, Generic[T]):
+    @abstractmethod
+    def provide(self, func: Callable[..., T], *args, **kwargs) -> T:
+        pass
+
+
+def singleton(factory: Callable[..., T]) -> Callable[..., T]:
+    """Creates a singleton lifetime service, one instance is available throughout the whole lifetime of the application."""
+
+    class SingletonBase(Provider[T]):
+        def __init__(self) -> None:
+            self._instance: T | None = None
+
+        def provide(self, func: Callable[..., T], *args, **kwargs) -> T:
+            if func is not None and self._instance is None:
+                self._instance = func(*args, **kwargs)
+            return self._instance
+
+    Singleton = type("Singleton", (SingletonBase,), {"__call__": factory})
+    return Singleton()
+
+
+class ScopedProvider(ABC, Generic[T]):
+    @abstractmethod
+    def provide(self, func: Callable[..., T], *args, **kwargs) -> Generator[T, Any, None]:
+        pass
+
+
+def scoped(
+    factory: Callable[..., T],
+    after_yield_callback: Callable[[T], None] | None = None,
+    on_error_callback: Callable[[T, Exception], None] | None = None,
+    on_exit_callback: Callable[[T], None] | None = None,
+) -> Callable[..., T]:
+    """Creates a scoped lifetime service, it is created once per client request."""
+
+    class ScopedBase(ScopedProvider[T]):
+        def __init__(self) -> None:
+            pass
+
+        def provide(self, func: Callable[..., T], *args, **kwargs):
+            instance = func(*args, **kwargs)
+            try:
+                yield instance
+                if after_yield_callback:
+                    after_yield_callback(instance)
+            except Exception as e:
+                if on_error_callback:
+                    on_error_callback(instance, e)
+                raise e
+            finally:
+                if on_exit_callback is not None:
+                    on_exit_callback(instance)
+
+    Scoped = type("Scoped", (ScopedBase,), {"__call__": factory})
+    return Scoped()
+
+
+# TODO: think of a better way to create factories
+# mypy: disable-error-code="misc"
+class Container:
+    def provide_database(self: Provider[PostgresDB]):
+        return self.provide(lambda: PostgresDB())
+
+    get_database = singleton(factory=provide_database)
+
+    def provide_sessionmaker(self: Provider[sessionmaker], db: Annotated[PostgresDB, Depends(get_database)]):
+        return self.provide(lambda: sessionmaker(db.engine, class_=Session, expire_on_commit=False))
+
+    get_sessionmaker = singleton(factory=provide_sessionmaker)
+
+    def provide_session(
+        self: ScopedProvider[Session], session_maker: Annotated[sessionmaker, Depends(get_sessionmaker)]
+    ):
+        yield from self.provide(lambda: session_maker())
+
+    @staticmethod
+    def session_commit(session: Session):
+        session.commit()
+
+    @staticmethod
+    def session_rollback(session: Session, ex: Exception):
+        session.rollback()
+
+    @staticmethod
+    def exit_session(session: Session):
+        session.close()
+
+    get_session = scoped(
+        factory=provide_session,
+        after_yield_callback=session_commit,
+        on_error_callback=session_rollback,
+        on_exit_callback=exit_session,
+    )
+
+    def provide_task_tool_matcher(self: Provider[TaskToToolMatcher]):
+        return TaskToToolMatcher(
+            base_url=os.getenv("LLM_API_BASE", ""),
+            api_key=os.getenv("LLM_API_KEY", ""),
+            model_id=os.getenv("LLM_MODEL_ID", ""),
+        )
+
+    get_task_tool_matcher = singleton(factory=provide_task_tool_matcher)
+
+    @staticmethod
+    def get_app_repository(session: Annotated[Session, Depends(get_session)]):
+        return AppPostgresRepository(session)
+
+    @staticmethod
+    def get_auth_server_repository(session: Annotated[Session, Depends(get_session)]):
+        return AuthorizationServerPostgresRepository(session=session)
+
+    @staticmethod
+    def get_scope_repository(session: Annotated[Session, Depends(get_session)]):
+        return ScopePostgresRepository(session=session)
+
+    @staticmethod
+    def get_user_input_repository(session: Annotated[Session, Depends(get_session)]):
+        return UserInputPostgresRepository(session=session)
+
+    @staticmethod
+    def get_tracer_repository(session: Annotated[Session, Depends(get_session)]):
+        return TracerPostgresRepository(session=session)
+
+    @staticmethod
+    def get_mas_repository(session: Annotated[Session, Depends(get_session)]):
+        return MultiAgentSystemPostgresRepository(session=session)
+
+    @staticmethod
+    def get_k8s_mas_repository(session: Annotated[Session, Depends(get_session)]):
+        return K8sMultiAgentSystemPostgresRepository(session=session)
+
+    @staticmethod
+    def get_idp_client():
+        return KeycloakClient(
+            server_url=os.getenv("IDP_SERVER_URL", "http://localhost:8080/"),
+            username=os.getenv("IDP_ADMIN_USERNAME", "admin"),
+            password=os.getenv("IDP_ADMIN_PASSWORD", "admin"),
+        )
+
+    @staticmethod
+    def get_mcp_discover():
+        return McpDiscoverService()
+
+    @staticmethod
+    def get_tracer(tracer_repository: Annotated[TracerRepository, Depends(get_tracer_repository)]):
+        return Tracer(tracer_repository=tracer_repository)
+
+    @staticmethod
+    def get_tool_check_factory(task_tool_matcher: Annotated[TaskToToolMatcher, Depends(get_task_tool_matcher)]):
+        return ToolCheckFactory(
+            checks=[
+                ToolSelectedDeterministicCheck(),
+                LlmSelectedToolsDeterministicCheck(),
+                ToolIntentAICheck(task_tool_matcher),
+            ]
+        )
+
+    @staticmethod
+    def get_task_extractor():
+        return TaskExtractor(
+            base_url=os.getenv("LLM_API_BASE"),
+            api_key=os.getenv("LLM_API_KEY"),
+            model_id=os.getenv("LLM_MODEL_ID", ""),
+        )
+
+    @staticmethod
+    def get_authorization_service(
+        authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
+        app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
+        mcp_discover: Annotated[McpDiscoverService, Depends(get_mcp_discover)],
+        user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
+        tracer: Annotated[Tracer, Depends(get_tracer)],
+        tool_check_factory: Annotated[ToolCheckFactory, Depends(get_tool_check_factory)],
+        task_extractor: Annotated[TaskExtractor, Depends(get_task_extractor)],
+    ):
+        return AuthorizationServerService(
+            authorization_server_repository,
+            app_repository,
+            idp_client,
+            mcp_discover=mcp_discover,
+            user_input_repository=user_input_repository,
+            tracer=tracer,
+            tool_check_factory=tool_check_factory,
+            task_extractor=task_extractor,
+        )
+
+    @staticmethod
+    def get_app_service(
+        app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        scope_repository: Annotated[ScopeRepository, Depends(get_scope_repository)],
+        authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
+        mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
+    ):
+        return AppService(
+            app_repository,
+            scope_repository,
+            authorization_server_repository,
+            mas_repository=mas_repository,
+            idp_client=idp_client,
+            api_url=os.getenv("AUTH_SERVER_URL", "http://localhost:3000"),
+        )
+
+    @staticmethod
+    def get_scope_service(
+        scope_repository: Annotated[ScopeRepository, Depends(get_scope_repository)],
+        mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
+    ):
+        return ScopeService(scope_repository, mas_repository, idp_client)
+
+    @staticmethod
+    def get_mas_service(
+        mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
+        app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        authorization_server_repository: Annotated[AuthorizationServerRepository, Depends(get_auth_server_repository)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
+    ):
+        return MultiAgentSystemService(mas_repository, app_repository, authorization_server_repository, idp_client)
+
+    @staticmethod
+    def get_k8s_crd_service(
+        mas_service: Annotated[MultiAgentSystemService, Depends(get_mas_service)],
+        app_service: Annotated[AppService, Depends(get_app_service)],
+        idp_client: Annotated[IdpClient, Depends(get_idp_client)],
+        k8s_mas_repository: Annotated[K8sMultiAgentSystemPostgresRepository, Depends(get_k8s_mas_repository)],
+    ):
+        from casa_auth_server.k8s.k8s_crd_service import K8sCRDService
+
+        return K8sCRDService(mas_service, app_service, idp_client, k8s_mas_repository)
+
+    @staticmethod
+    def get_user_input_service(
+        user_input_repository: Annotated[UserInputPostgresRepository, Depends(get_user_input_repository)],
+        app_repository: Annotated[AppRepository, Depends(get_app_repository)],
+        task_extractor: Annotated[TaskExtractor, Depends(get_task_extractor)],
+    ):
+        return UserInputService(user_input_repository, app_repository, task_extractor)
+
+    @staticmethod
+    def get_k8s_query_service(
+        k8s_mas_repository: Annotated[K8sMultiAgentSystemPostgresRepository, Depends(get_k8s_mas_repository)],
+        auth_service: Annotated[AuthorizationServerService, Depends(get_authorization_service)],
+        tracer: Annotated[Tracer, Depends(get_tracer)],
+    ):
+        return K8sQueryService(k8s_mas_repository=k8s_mas_repository, auth_service=auth_service, tracer=tracer)

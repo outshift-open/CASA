@@ -25,4 +25,4 @@ EXPOSE 8000
 
 # Command to run the application
 # uv run automatically uses the venv created by uv sync
-CMD ["uv", "run", "uvicorn", "identity_auth_server.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "casa_auth_server.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
