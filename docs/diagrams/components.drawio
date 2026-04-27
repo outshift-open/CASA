@@ -191,7 +191,7 @@
     </mxCell>
 
     <!-- ═══════════════════════════════════════════════════ TITLE -->
-    <mxCell id="title" value="&lt;b style='font-size:22px;color:#f1f5f9;'CASA  &lt;span style='font-size:14px;color:#94a3b8;'&gt;Continuous Agent Semantic Authorization&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+    <mxCell id="title" value="&lt;b style='font-size:22px;color:#f1f5f9;'&gt;CASA&lt;/b&gt;  &lt;span style='font-size:14px;color:#94a3b8;'&gt;Continuous Agent Semantic Authorization&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
       <mxGeometry x="34" y="14" width="700" height="38" as="geometry" />
     </mxCell>
 
