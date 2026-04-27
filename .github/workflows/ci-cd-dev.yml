@@ -115,3 +115,34 @@ jobs:
             image-name: "outshift-casa/ext_auth_service"
             context: .
             dockerfile: deployments/docker/Dockerfile.extauth
+
+    ################################## Helm Publish (OCI to GHCR) #####################
+    ###################################################################################
+    call-helm-publish-casa-control-plane:
+        name: Helm publish casa-control-plane (OCI GHCR)
+        needs:
+            [
+                checkout,
+                call-docker-build-push-auth-service,
+                call-docker-build-push-ui-explorer,
+                call-docker-build-push-keycloak,
+                call-docker-build-push-operator,
+            ]
+        uses: ./.github/workflows/helm-publish.yaml
+        with:
+            chart-path: deployments/helm/casa-control-plane
+            oci-repository: helm
+
+    call-helm-publish-sidecar:
+        name: Helm publish sidecar (OCI GHCR)
+        needs:
+            [
+                checkout,
+                call-docker-build-push-wasm,
+                call-docker-build-push-llm-proxy-wasm,
+                call-docker-build-push-ext-auth-service,
+            ]
+        uses: ./.github/workflows/helm-publish.yaml
+        with:
+            chart-path: deployments/helm/sidecar
+            oci-repository: helm
