@@ -4,6 +4,7 @@ import {ThemeToggle} from '@/components/theme-toggle';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
 import {Button} from '@/components/ui/button';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 
 const routeTitles: Record<string, string> = {
     '/': 'Dashboard',
@@ -85,32 +86,69 @@ export function SiteHeader() {
                 ))}
             </div>
             <div className="ml-auto flex items-center gap-1">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
-                    title="Documentation"
-                >
-                    <BookOpen className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
-                    title="GitHub"
-                >
-                    <Github className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
-                    onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', {key: '?', bubbles: true}))}
-                    title="Keyboard shortcuts"
-                >
-                    <kbd className="text-xs font-mono font-semibold">?</kbd>
-                </Button>
-                <ThemeToggle />
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
+                                asChild
+                            >
+                                <a
+                                    href="https://sturdy-adventure-3qqek64.pages.github.io/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <BookOpen className="h-4 w-4" />
+                                </a>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Documentation</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
+                                asChild
+                            >
+                                <a
+                                    href="https://github.com/outshift-open/casa"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <Github className="h-4 w-4" />
+                                </a>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>GitHub</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span>
+                                <ThemeToggle />
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent>Change theme</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
+                                onClick={() =>
+                                    window.dispatchEvent(new KeyboardEvent('keydown', {key: '?', bubbles: true}))
+                                }
+                            >
+                                <kbd className="text-xs font-mono font-semibold">?</kbd>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Keyboard shortcuts</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
         </header>
     );
