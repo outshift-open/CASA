@@ -1,3 +1,3 @@
-module github.com/outshift-open/identity-auth-server/sdk/go
+module github.com/outshift-open/CASA/sdk/go
 
 go 1.23
