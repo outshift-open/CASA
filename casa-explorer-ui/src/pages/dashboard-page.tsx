@@ -80,15 +80,18 @@ function DonutChart({data, loading, emptyIcon, emptyText, unit, onSegmentClick}:
     const total = data.reduce((s, d) => s + d.value, 0);
     return (
         <div className="flex items-center justify-center gap-6 h-full">
-            <div className="w-[120px] h-[120px] flex-shrink-0">
+            <div className="w-[120px] h-[120px] flex-shrink-0 relative">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                    <span className="text-xl font-bold tabular-nums">{total}</span>
+                </div>
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={data}
                             cx="50%"
                             cy="50%"
-                            innerRadius={36}
-                            outerRadius={54}
+                            innerRadius={46}
+                            outerRadius={55}
                             paddingAngle={data.length > 1 ? 3 : 0}
                             dataKey="value"
                             onClick={
@@ -101,6 +104,7 @@ function DonutChart({data, loading, emptyIcon, emptyText, unit, onSegmentClick}:
                                 <Cell
                                     key={entry.name}
                                     fill={entry.color}
+                                    stroke="none"
                                     style={onSegmentClick ? {cursor: 'pointer'} : undefined}
                                 />
                             ))}
@@ -108,6 +112,8 @@ function DonutChart({data, loading, emptyIcon, emptyText, unit, onSegmentClick}:
                         <ChartTooltip
                             {...CHART_TOOLTIP_STYLE}
                             formatter={(value: number, name: string) => [value, name]}
+                            offset={20}
+                            wrapperStyle={{zIndex: 50}}
                         />
                     </PieChart>
                 </ResponsiveContainer>
@@ -228,8 +234,8 @@ export function DashboardPage() {
     const mcpDonutData = useMemo(
         () =>
             [
-                {name: 'Allowed', value: traceStats.allowed, color: '#22c55e'},
-                {name: 'Denied', value: traceStats.denied, color: '#ef4444'}
+                {name: 'Allowed', value: traceStats.allowed, color: '#00B98E'},
+                {name: 'Denied', value: traceStats.denied, color: '#E2415B'}
             ].filter((d) => d.value > 0),
         [traceStats]
     );
@@ -237,8 +243,8 @@ export function DashboardPage() {
     const blockTypeData = useMemo(
         () =>
             [
-                {name: 'Deterministic', value: traceStats.deterministicBlocks, color: '#f97316', icon: Cpu},
-                {name: 'Semantic', value: traceStats.aiBlocks, color: '#38bdf8', icon: Sparkles}
+                {name: 'Deterministic', value: traceStats.deterministicBlocks, color: '#F5A623', icon: Cpu},
+                {name: 'Semantic', value: traceStats.aiBlocks, color: '#00BCEB', icon: Sparkles}
             ].filter((d) => d.value > 0),
         [traceStats]
     );
