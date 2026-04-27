@@ -4,12 +4,12 @@
 ---
 name: CASA Control Plane CI/CD
 on:
-  push:
-    branches:
-      - main
-      - "feat/rename-to-casa"
-  workflow_dispatch:
-  workflow_call:
+    push:
+        branches:
+            - main
+            - "feat/rename-to-casa"
+    workflow_dispatch:
+    workflow_call:
 
 concurrency:
     group: ci-${{ github.ref }}
@@ -72,7 +72,7 @@ jobs:
             runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
             ### REQUIRED
             ### Docker image name
-            image-name: "identity-auth-server"
+            image-name: "casa-auth-server"
 
             ### path to where docker should copy files into image
             ### defaults to root of repository (.)
@@ -106,7 +106,7 @@ jobs:
             runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
             ### REQUIRED
             ### Docker image name
-            image-name: "identity-auth-server-ui"
+            image-name: "casa-auth-server-ui"
 
             ### path to where docker should copy files into image
             ### defaults to root of repository (.)
@@ -140,7 +140,7 @@ jobs:
             runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
             ### REQUIRED
             ### Docker image name
-            image-name: "identity-auth-server-keycloak"
+            image-name: "casa-auth-server-keycloak"
 
             ### path to where docker should copy files into image
             ### defaults to root of repository (.)
@@ -157,61 +157,61 @@ jobs:
             checkout-submodules: true
 
     call-docker-build-push-operator:
-      name: Call Docker Build CASA Operator
-      needs: [checkout]
-      uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
-      secrets:
-        vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-        vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-        github-app-id: ${{ secrets.GHA_APP_ID }}
-        github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-        caller-github-token: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-        image-name: "outshift-casa/casa-operator"
-        context: .
-        dockerfile: deployments/docker/Dockerfile.operator
-        ecr-enabled: true
-        artifactory-devhub-enabled: false
-        ghcr-enabled: false
+        name: Call Docker Build CASA Operator
+        needs: [checkout]
+        uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
+        secrets:
+            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+            github-app-id: ${{ secrets.GHA_APP_ID }}
+            github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+            caller-github-token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+            image-name: "outshift-casa/casa-operator"
+            context: .
+            dockerfile: deployments/docker/Dockerfile.operator
+            ecr-enabled: true
+            artifactory-devhub-enabled: false
+            ghcr-enabled: false
 
     call-docker-build-push-wasm:
-      name: Call Docker Build traceparent injector WASM plugin
-      needs: [checkout]
-      uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
-      secrets:
-        vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-        vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-        github-app-id: ${{ secrets.GHA_APP_ID }}
-        github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-        caller-github-token: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-        image-name: "outshift-casa/traceparent_injector_plugin"
-        context: sidecar/traceparent_injector
-        dockerfile: sidecar/traceparent_injector/Dockerfile
-        ecr-enabled: true
-        artifactory-devhub-enabled: false
-        ghcr-enabled: false
+        name: Call Docker Build traceparent injector WASM plugin
+        needs: [checkout]
+        uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
+        secrets:
+            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+            github-app-id: ${{ secrets.GHA_APP_ID }}
+            github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+            caller-github-token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+            image-name: "outshift-casa/traceparent_injector_plugin"
+            context: sidecar/traceparent_injector
+            dockerfile: sidecar/traceparent_injector/Dockerfile
+            ecr-enabled: true
+            artifactory-devhub-enabled: false
+            ghcr-enabled: false
 
     call-docker-build-push-llm-proxy-wasm:
-      name: Call Docker Build LLM proxy WASM plugin
-      needs: [checkout]
-      uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
-      secrets:
-        vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-        vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
-        github-app-id: ${{ secrets.GHA_APP_ID }}
-        github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-        caller-github-token: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
-        image-name: "outshift-casa/llm_proxy_plugin"
-        context: sidecar/llm_proxy
-        dockerfile: sidecar/llm_proxy/Dockerfile
-        ecr-enabled: true
-        artifactory-devhub-enabled: false
-        ghcr-enabled: false
+        name: Call Docker Build LLM proxy WASM plugin
+        needs: [checkout]
+        uses: outshift-open/gh-reusable-workflows/.github/workflows/build-push-docker.yaml@fix/ghcr-x-access-token-only
+        secrets:
+            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+            github-app-id: ${{ secrets.GHA_APP_ID }}
+            github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+            caller-github-token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            runner-group: ${{ vars.DEFAULT_ARC_RUNNERS }}
+            image-name: "outshift-casa/llm_proxy_plugin"
+            context: sidecar/llm_proxy
+            dockerfile: sidecar/llm_proxy/Dockerfile
+            ecr-enabled: true
+            artifactory-devhub-enabled: false
+            ghcr-enabled: false
 
     call-docker-build-push-ext-auth-service:
         name: Call Docker Build ext-auth service
@@ -299,24 +299,25 @@ jobs:
 
     # CASA Control Plane Deployment (Combined)
     call-trigger-cd-casa-control-plane:
-      name: Trigger CD CASA Control Plane
-      needs: [
-        call-docker-build-push-auth-service,
-        call-docker-build-push-ui-explorer,
-        call-docker-build-push-keycloak,
-        call-docker-build-push-operator,
-        call-helm-publish-casa-control-plane,
-        utils
-      ]
-      uses: outshift-open/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@fix/ghcr-x-access-token-only
-      with:
-        deployment-repo: "outshift-open/identity-auth-server-deployment"
-        client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/casa-control-plane", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "authService.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "uiExplorer.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "keycloak.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "operator.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
-      secrets:
-        github-app-id: ${{ secrets.GHA_APP_ID }}
-        github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
-        vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
-        vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
+        name: Trigger CD CASA Control Plane
+        needs:
+            [
+                call-docker-build-push-auth-service,
+                call-docker-build-push-ui-explorer,
+                call-docker-build-push-keycloak,
+                call-docker-build-push-operator,
+                call-helm-publish-casa-control-plane,
+                utils,
+            ]
+        uses: outshift-open/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@fix/ghcr-x-access-token-only
+        with:
+            deployment-repo: "outshift-open/casa-auth-server-deployment"
+            client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/casa-control-plane", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "authService.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "uiExplorer.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "keycloak.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "operator.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
+        secrets:
+            github-app-id: ${{ secrets.GHA_APP_ID }}
+            github-app-private-key: ${{ secrets.GHA_APP_PRIVATE_KEY }}
+            vault-approle-role-id: ${{ secrets.VAULT_APPROLE_ROLE_ID }}
+            vault-approle-secret-id: ${{ secrets.VAULT_APPROLE_SECRET_ID }}
 
     # CASA (ext-authz-middleware) Deployment
     call-trigger-cd-extauthz:
@@ -331,7 +332,7 @@ jobs:
             ]
         uses: outshift-open/gh-reusable-workflows/.github/workflows/trigger-deploy.yaml@fix/ghcr-x-access-token-only
         with:
-            deployment-repo: "outshift-open/identity-auth-server-deployment"
+            deployment-repo: "outshift-open/casa-auth-server-deployment"
             client-payload: '{"app-repository": "${{ github.repository }}", "values-file-path": "applications/casa-authz-middleware", "deployment-stage": "dev", "default-deployment": true, "updates": [{"property-path": "image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "llm_proxy.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}, {"property-path": "traceparent_injector.image.tag", "value": "${{ needs.utils.outputs.image-tag }}"}]}'
         secrets:
             github-app-id: ${{ secrets.GHA_APP_ID }}

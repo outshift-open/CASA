@@ -2,10 +2,10 @@ module github.com/outshift-open/casa-operator
 
 go 1.23.0
 
-replace github.com/outshift-open/identity-auth-server/sdk/go => ../sdk/go
+replace github.com/outshift-open/casa-auth-server/sdk/go => ../sdk/go
 
 require (
-	github.com/outshift-open/identity-auth-server/sdk/go v0.0.0-00010101000000-000000000000
+	github.com/outshift-open/casa-auth-server/sdk/go v0.0.0-00010101000000-000000000000
 	k8s.io/api v0.32.1
 	k8s.io/apimachinery v0.32.1
 	k8s.io/client-go v0.32.1

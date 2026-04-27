@@ -10,19 +10,19 @@ much longer to review, or result in it not being reviewed at all.
 
 ## Type of Change
 
-- [ ] Bugfix
-- [ ] New Feature
-- [ ] Breaking Change
-- [ ] Refactor
-- [ ] Documentation
-- [ ] Other (please describe)
+-   [ ] Bugfix
+-   [ ] New Feature
+-   [ ] Breaking Change
+-   [ ] Refactor
+-   [ ] Documentation
+-   [ ] Other (please describe)
 
 ## Checklist
 
-- [ ] I have read the [contributing guidelines](/outshift-open/identity-auth-server/blob/main/CONTRIBUTING.md)
-- [ ] Existing issues have been referenced (where applicable)
-- [ ] I have verified this change is not present in other open pull requests
-- [ ] Functionality is documented
-- [ ] All code style checks pass
-- [ ] New code contribution is covered by automated tests
-- [ ] All new and existing tests pass
+-   [ ] I have read the [contributing guidelines](/outshift-open/CASA/blob/main/CONTRIBUTING.md)
+-   [ ] Existing issues have been referenced (where applicable)
+-   [ ] I have verified this change is not present in other open pull requests
+-   [ ] Functionality is documented
+-   [ ] All code style checks pass
+-   [ ] New code contribution is covered by automated tests
+-   [ ] All new and existing tests pass

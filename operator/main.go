@@ -21,7 +21,7 @@ import (
 	"os"
 	"time"
 
-	identitysdk "github.com/outshift-open/identity-auth-server/sdk/go"
+	identitysdk "github.com/outshift-open/CASA/sdk/go"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"

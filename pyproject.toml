@@ -72,8 +72,8 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/outshift-open/identity-auth-server"
-"Bug Tracker" = "https://github.com/outshift-open/identity-auth-server/issues"
+"Homepage" = "https://github.com/outshift-open/CASA"
+"Bug Tracker" = "https://github.com/outshift-open/CASA/issues"
 
 [build-system]
 requires = ["hatchling"]
@@ -115,7 +115,7 @@ exclude = [".ipynb_checkpoints"]
 
 [tool.ruff.lint]
 select = ["I", "F", "N", "NPY", "RUF"]
-ignore = ["D"] # TODO: unable later
+ignore = ["D"]                         # TODO: unable later
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "F401", "F403"]

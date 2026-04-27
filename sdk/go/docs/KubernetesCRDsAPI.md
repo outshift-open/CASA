@@ -26,7 +26,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/outshift-open/identity-auth-server/sdk/go"
+	openapiclient "github.com/outshift-open/CASA/sdk/go"
 )
 
 func main() {
@@ -98,7 +98,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/outshift-open/identity-auth-server/sdk/go"
+	openapiclient "github.com/outshift-open/CASA/sdk/go"
 )
 
 func main() {

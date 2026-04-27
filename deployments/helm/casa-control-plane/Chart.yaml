@@ -19,12 +19,12 @@ type: application
 version: 0.1.14
 appVersion: "0.0.13"
 keywords:
-  - semantic-authorization
-  - multi-agent
-  - identity
-  - auth
-home: https://github.com/outshift-open/identity-auth-server
+    - semantic-authorization
+    - multi-agent
+    - identity
+    - auth
+home: https://github.com/outshift-open/casa-auth-server
 sources:
-  - https://github.com/outshift-open/identity-auth-server
+    - https://github.com/outshift-open/casa-auth-server
 maintainers:
-  - name: outshift-open
+    - name: outshift-open

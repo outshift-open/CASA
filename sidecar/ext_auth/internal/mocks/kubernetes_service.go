@@ -7,7 +7,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/outshift-open/identity-auth-server/sidecar/ext_auth/internal"
+	"github.com/outshift-open/CASA/sidecar/ext_auth/internal"
 	mock "github.com/stretchr/testify/mock"
 )
 

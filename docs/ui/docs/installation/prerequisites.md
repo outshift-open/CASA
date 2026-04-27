@@ -16,10 +16,10 @@ Before installing CASA, ensure the following are in place.
 
 ## CLI Tools
 
-| Tool | Version | Purpose |
-|---|---|---|
-| `kubectl` | 1.26+ | Apply manifests and interact with the cluster |
-| `helm` | 3.10+ | Install CASA charts |
+| Tool      | Version | Purpose                                       |
+| --------- | ------- | --------------------------------------------- |
+| `kubectl` | 1.26+   | Apply manifests and interact with the cluster |
+| `helm`    | 3.10+   | Install CASA charts                           |
 
 ## Dataplane
 
@@ -63,9 +63,9 @@ Minimum version: Cilium 1.14
 
 The CASA control plane images are published to GitHub Container Registry (GHCR):
 
-- `ghcr.io/outshift-open/identity-auth-server` — auth service
-- `ghcr.io/outshift-open/identity-auth-server-ui` — UI explorer
-- `ghcr.io/outshift-open/identity-auth-server-keycloak` — custom Keycloak image
+- `ghcr.io/outshift-open/casa-auth-server` — auth service
+- `ghcr.io/outshift-open/casa-auth-server-ui` — UI explorer
+- `ghcr.io/outshift-open/casa-auth-server-keycloak` — custom Keycloak image
 
 These images are public. No registry authentication is required.
 

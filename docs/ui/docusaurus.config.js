@@ -28,7 +28,7 @@ const config = {
     baseUrl: "/",
 
     organizationName: "outshift-open",
-    projectName: "identity-auth-server",
+    projectName: "CASA",
 
     onBrokenLinks: "warn",
     onBrokenMarkdownLinks: "warn",
@@ -52,7 +52,7 @@ const config = {
                 docs: {
                     sidebarPath: require.resolve("./sidebars.js"),
                     editUrl:
-                        "https://github.com/outshift-open/identity-auth-server/tree/main/docs/ui/",
+                        "https://github.com/outshift-open/CASA/tree/main/docs/ui/",
                     routeBasePath: "/",
                 },
                 blog: false,
@@ -81,7 +81,7 @@ const config = {
                         label: "Docs",
                     },
                     {
-                        href: "https://github.com/outshift-open/identity-auth-server",
+                        href: "https://github.com/outshift-open/CASA",
                         label: "GitHub",
                         position: "right",
                     },
@@ -109,7 +109,7 @@ const config = {
                         items: [
                             {
                                 label: "GitHub Issues",
-                                href: "https://github.com/outshift-open/identity-auth-server/issues",
+                                href: "https://github.com/outshift-open/CASA/issues",
                             },
                             {
                                 label: "Contributing",
@@ -122,7 +122,7 @@ const config = {
                         items: [
                             {
                                 label: "GitHub",
-                                href: "https://github.com/outshift-open/identity-auth-server",
+                                href: "https://github.com/outshift-open/CASA",
                             },
                         ],
                     },

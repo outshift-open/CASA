@@ -22,8 +22,8 @@ Thank you for considering a contribution. This guide explains how to set up a de
 ### Clone and Initialize
 
 ```bash
-git clone https://github.com/outshift-open/identity-auth-server.git
-cd identity-auth-server
+git clone https://github.com/outshift-open/casa-auth-server.git
+cd casa-auth-server
 make init
 ```
 
