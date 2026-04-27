@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant ioc (&:is(.ioc *));
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -115,6 +116,153 @@
   --sidebar-ring: #3d71d9;
 }
 
+html.ioc {
+  color-scheme: dark;
+}
+
+.ioc {
+  /*
+   * IOC theme — Cisco Cloud Control
+   * Source: ioc-color-palette.ts + ioc-demo.html
+   *
+   * Key values from demo:
+   *   --cisco-teal:   #00BCEB   (ring, active states, teal accent)
+   *   --cisco-blue-b: #2B82F6   (primary action buttons)
+   *   --text-1:       rgba(255,255,255,0.94)
+   *   --text-2:       rgba(255,255,255,0.55)
+   *   --text-3:       rgba(255,255,255,0.30)
+   *   --divider:      rgba(255,255,255,0.07)
+   *   --card-bg:      rgba(255,255,255,0.035)
+   *   --card-border:  rgba(255,255,255,0.09)
+   */
+  --radius: 0.6rem;
+
+  /* Base */
+  --background: transparent;
+  --foreground: rgba(255, 255, 255, 0.94);
+
+  /* Card = demo --card-bg + --card-border */
+  --card: rgba(255, 255, 255, 0.035);
+  --card-foreground: rgba(255, 255, 255, 0.94);
+
+  /* Popover (menus, dropdowns) */
+  --popover: #0C1B35;
+  --popover-foreground: rgba(255, 255, 255, 0.94);
+
+  /* Primary = Cisco blue-b (#2B82F6) — matches demo btn-exec */
+  --primary: #2B82F6;
+  --primary-foreground: #ffffff;
+
+  /* Secondary = translucent surface */
+  --secondary: rgba(255, 255, 255, 0.06);
+  --secondary-foreground: rgba(255, 255, 255, 0.94);
+
+  /* Muted = demo --text-2 / surface */
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: rgba(255, 255, 255, 0.55);
+
+  /* Accent = teal — active sidebar items, hover highlights */
+  --accent: rgba(0, 188, 235, 0.12);
+  --accent-foreground: #00BCEB;
+
+  /* Destructive = demo --red */
+  --destructive: #E2415B;
+
+  /* Border = demo --divider */
+  --border: rgba(255, 255, 255, 0.07);
+
+  /* Input = demo search bg */
+  --input: rgba(255, 255, 255, 0.05);
+
+  /* Ring = Cisco teal */
+  --ring: #00BCEB;
+
+  /* Charts — teal + blue family */
+  --chart-1: #00BCEB;
+  --chart-2: #2B82F6;
+  --chart-3: #40D0F4;
+  --chart-4: #1AC6F0;
+  --chart-5: #006B8A;
+
+  /* Sidebar — transparent so mesh gradient shows through */
+  --sidebar: transparent;
+  --sidebar-foreground: rgba(255, 255, 255, 0.94);
+  --sidebar-primary: #00BCEB;
+  --sidebar-primary-foreground: #020508;
+  /* Active sidebar item = demo s-icon.active background */
+  --sidebar-accent: rgba(0, 188, 235, 0.12);
+  --sidebar-accent-foreground: rgba(255, 255, 255, 0.94);
+  /* Sidebar border = demo --divider */
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: #00BCEB;
+}
+
+html.ioc,
+html.ioc body {
+  height: 100%;
+  min-height: 100vh;
+}
+
+html.ioc body {
+  /* Mesh color-field: diffuse blue atmosphere upper-left, void lower-right */
+  /* Exact values from ioc-demo.html body background */
+  background:
+    radial-gradient(ellipse 130% 90% at -15% -5%,  rgba(0, 70, 160, 0.50) 0%, rgba(0, 40, 100, 0.15) 45%, transparent 65%),
+    radial-gradient(ellipse  80% 60% at 60% 110%,  rgba(0, 30,  80, 0.30) 0%, transparent 60%),
+    linear-gradient(160deg, #07111F 0%, #050C18 40%, #030810 100%);
+  background-attachment: fixed;
+  /* Scrollbar — demo values: #1a2a3a thumb, #05080F track */
+  scrollbar-color: #1a2a3a #05080F;
+  scrollbar-width: thin;
+}
+
+html.ioc *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html.ioc *::-webkit-scrollbar-track {
+  background: #05080F;
+  border-radius: 4px;
+}
+html.ioc *::-webkit-scrollbar-thumb {
+  background: #1a2a3a;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+html.ioc *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: content-box;
+}
+
+/* ReactFlow IOC theme overrides */
+html.ioc .react-flow__controls {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+html.ioc .react-flow__controls-button {
+  background: rgba(8, 12, 22, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.7);
+}
+html.ioc .react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+html.ioc .react-flow__controls-button svg {
+  fill: rgba(255, 255, 255, 0.7);
+}
+html.ioc .react-flow__minimap {
+  background-color: rgba(8, 12, 22, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+}
+html.ioc .react-flow__background {
+  background-color: transparent !important;
+}
+html.ioc .react-flow__background pattern circle,
+html.ioc .react-flow__background pattern rect {
+  fill: rgba(255, 255, 255, 0.12) !important;
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
@@ -127,5 +275,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }

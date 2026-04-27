@@ -9,13 +9,15 @@ const buttonVariants = cva(
     {
         variants: {
             variant: {
-                default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+                default:
+                    'bg-primary text-primary-foreground hover:bg-primary/90 ioc:hover:shadow-[0_0_16px_rgba(43,130,246,0.35)]',
                 destructive:
                     'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
                 outline:
-                    'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
-                secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-                ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
+                    'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 ioc:bg-transparent ioc:border-[rgba(255,255,255,0.07)] ioc:text-[rgba(255,255,255,0.55)] ioc:hover:border-[rgba(255,255,255,0.20)] ioc:hover:text-[rgba(255,255,255,0.94)] ioc:hover:bg-transparent',
+                secondary:
+                    'bg-secondary text-secondary-foreground hover:bg-secondary/80 ioc:bg-[rgba(255,255,255,0.06)] ioc:border ioc:border-[rgba(255,255,255,0.07)] ioc:hover:bg-[rgba(255,255,255,0.10)]',
+                ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 ioc:text-[rgba(255,255,255,0.55)] ioc:hover:bg-[rgba(255,255,255,0.06)] ioc:hover:text-[rgba(255,255,255,0.94)]',
                 link: 'text-primary underline-offset-4 hover:underline'
             },
             size: {

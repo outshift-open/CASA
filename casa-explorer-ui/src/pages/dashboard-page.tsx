@@ -249,7 +249,9 @@ export function DashboardPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold">Dashboard</h1>
-                    <p className="text-muted-foreground">Overview of your CASA (Continuous Agent Semantic Authorization)</p>
+                    <p className="text-muted-foreground">
+                        Overview of your CASA (Continuous Agent Semantic Authorization)
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
                     {lastUpdatedLabel && (

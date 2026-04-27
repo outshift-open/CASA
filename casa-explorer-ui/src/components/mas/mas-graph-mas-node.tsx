@@ -15,7 +15,8 @@ export const MASGraphMASNode = memo(({data}: MASGraphMASNodeProps) => {
         <div
             className={cn(
                 'bg-primary text-primary-foreground rounded-xl border-2 border-primary shadow-lg',
-                'px-6 py-4 min-w-[200px]'
+                'px-6 py-4 min-w-[200px]',
+                'ioc:bg-gradient-to-br ioc:from-[#006B8A] ioc:to-[#00BCEB] ioc:border-[#00BCEB] ioc:shadow-[0_0_24px_rgba(0,188,235,0.30)]'
             )}
         >
             <div className="flex flex-col items-center gap-2">

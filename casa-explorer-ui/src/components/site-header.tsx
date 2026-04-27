@@ -60,7 +60,7 @@ export function SiteHeader() {
     }
 
     return (
-        <header className="flex h-14 shrink-0 items-center gap-1 border-b bg-background px-4 rounded-t-xl">
+        <header className="flex h-14 shrink-0 items-center gap-1 border-b bg-background px-4 rounded-t-xl ioc:backdrop-blur-xl ioc:bg-transparent ioc:border-b-0">
             <Button variant="ghost" size="icon" asChild>
                 <Link to="/">
                     <Home className="h-4 w-4" />
