@@ -137,8 +137,8 @@ jobs:
       runner-group: arc-runner-set
       image-name: "outshift-casa/chat-ui"
       image-custom-tag: ${{ needs.prepare-release.outputs.version }}
-      context: demo/chat-ui
-      dockerfile: demo/chat-ui/Dockerfile
+      context: demo/src/chat-ui
+      dockerfile: demo/src/chat-ui/Dockerfile
       ecr-enabled: true
       artifactory-devhub-enabled: true
       ghcr-enabled: false

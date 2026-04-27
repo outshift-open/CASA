@@ -16,7 +16,7 @@ Both agents connect to a shared MCP server (a fictitious banking app) and are ex
 | `agent-safe` | `demo/src/agent-safe/` | FastAPI agent, uses only authorized MCP tools |
 | `agent-compromised` | `demo/src/agent-compromised/` | FastAPI agent, attempts unauthorized tool calls |
 | `mcp` | `demo/src/mcp/` | FastMCP banking MCP server |
-| `chat-ui` | `demo/chat-ui/` | React chat interface, one instance per agent |
+| `chat-ui` | `demo/src/chat-ui/` | React chat interface, one instance per agent |
 | Helm chart | `demo/helm/` | Deploys all of the above plus `MultiAgentSystem` CRDs |
 
 ---
@@ -37,7 +37,7 @@ Both agents connect to a shared MCP server (a fictitious banking app) and are ex
 docker build -t demo-agent-safe    demo/src/agent-safe/
 docker build -t demo-agent-compromised demo/src/agent-compromised/
 docker build -t demo-mcp           demo/src/mcp/
-docker build -t chat-ui            demo/chat-ui/
+docker build -t chat-ui            demo/src/chat-ui/
 ```
 
 ---
