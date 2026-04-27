@@ -1,6 +1,6 @@
 # CASA — Continuous Agent Semantic Authorization
 
-Python FastAPI auth/authorization server for intent-scoped Zero Trust authorization of Multi-Agent Systems (MAS). Deployed on Kubernetes with Keycloak, PostgreSQL, Envoy sidecars, and Cilium eBPF enforcement.
+Python FastAPI auth/authorization server for intent-scoped continuous semantic authorization of Multi-Agent Systems (MAS). Deployed on Kubernetes with Keycloak, PostgreSQL, Envoy sidecars, and Cilium eBPF enforcement.
 
 ## Tech Stack
 
