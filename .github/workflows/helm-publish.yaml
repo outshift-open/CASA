@@ -36,6 +36,43 @@ jobs:
           set -euo pipefail
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+      - name: Add dependency repos
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          chart_yaml="${{ inputs.chart-path }}/Chart.yaml"
+          if [[ ! -f "$chart_yaml" ]]; then
+            echo "Missing Chart.yaml at: $chart_yaml" >&2
+            exit 1
+          fi
+
+          # Helm requires repositories to be present in repo config when dependencies use HTTP(S) repos.
+          # Extract repository URLs from Chart.yaml (best-effort, avoids extra tooling).
+          mapfile -t repo_urls < <(
+            grep -E '^[[:space:]]*repository:' "$chart_yaml" \
+              | sed -E 's/^[[:space:]]*repository:[[:space:]]*"?([^" ]+)"?.*/\1/' \
+              | sort -u
+          )
+
+          if (( ${#repo_urls[@]} == 0 )); then
+            echo "No dependency repositories found in $chart_yaml"
+            exit 0
+          fi
+
+          for url in "${repo_urls[@]}"; do
+            if [[ "$url" != http://* && "$url" != https://* ]]; then
+              echo "Skipping non-HTTP repo: $url"
+              continue
+            fi
+
+            name="repo-$(echo -n "$url" | sha256sum | cut -c1-8)"
+            echo "Adding Helm repo [$name] -> $url"
+            helm repo add "$name" "$url"
+          done
+
+          helm repo update
+
       - name: Build dependencies
         shell: bash
         run: |
