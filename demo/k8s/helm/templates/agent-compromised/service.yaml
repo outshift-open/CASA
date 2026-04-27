@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.agentCompromised.serviceName }}
+  namespace: '{{ .Release.Namespace }}'
+  labels:
+    app.kubernetes.io/name: {{ .Values.agentCompromised.serviceName }}
+    tier: backend
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: {{ .Values.agentCompromised.servicePort }}
+    targetPort: {{ .Values.agentCompromised.servicePort }}
+  type: ClusterIP
+  selector:
+    app: {{ .Values.agentCompromised.serviceName }}
