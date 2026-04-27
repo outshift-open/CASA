@@ -306,9 +306,6 @@ export function DashboardPage() {
                             </TooltipContent>
                         </Tooltip>
                     </CardHeader>
-                    <div className="px-4">
-                        <Separator />
-                    </div>
                     <CardContent className="flex-1 flex items-center justify-center px-4 py-4">
                         <DonutChart
                             data={mcpDonutData}
@@ -343,9 +340,6 @@ export function DashboardPage() {
                             </TooltipContent>
                         </Tooltip>
                     </CardHeader>
-                    <div className="px-4">
-                        <Separator />
-                    </div>
                     <CardContent className="flex-1 flex items-center justify-center px-4 py-4">
                         <DonutChart
                             data={blockTypeData}
@@ -383,9 +377,6 @@ export function DashboardPage() {
                             </TooltipContent>
                         </Tooltip>
                     </CardHeader>
-                    <div className="px-4">
-                        <Separator />
-                    </div>
                     <CardContent className="pt-4 px-4 pb-4">
                         {masLoading ? (
                             <Skeleton className="h-8 w-16" />
@@ -417,9 +408,6 @@ export function DashboardPage() {
                             </TooltipContent>
                         </Tooltip>
                     </CardHeader>
-                    <div className="px-4">
-                        <Separator />
-                    </div>
                     <CardContent className="pt-4 px-4 pb-4">
                         <div className="text-2xl font-bold text-muted-foreground">—</div>
                         <p className="text-xs text-muted-foreground mt-1">Coming soon</p>
@@ -445,9 +433,6 @@ export function DashboardPage() {
                         </TooltipContent>
                     </Tooltip>
                 </CardHeader>
-                <div className="px-4">
-                    <Separator />
-                </div>
                 <CardContent className="pt-4 px-4 pb-4">
                     {tracesLoading ? (
                         <div className="space-y-3">

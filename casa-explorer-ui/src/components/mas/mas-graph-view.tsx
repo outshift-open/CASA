@@ -273,7 +273,7 @@ function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground border rounded-lg p-3 bg-muted/20 ioc:bg-[rgba(255,255,255,0.04)] ioc:border-[rgba(255,255,255,0.07)]">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground border rounded-lg p-3 bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)]">
                 <span className="font-medium">Legend:</span>
                 <div className="flex items-center gap-1">
                     <Bot className="h-3 w-3" />
@@ -298,7 +298,7 @@ function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
             {/* Graph */}
             <div
                 ref={graphRef}
-                className="w-full h-[600px] border rounded-lg bg-background ioc:bg-[rgba(5,12,24,0.60)] ioc:backdrop-blur-sm ioc:border-[rgba(255,255,255,0.07)]"
+                className="w-full h-[600px] border rounded-lg bg-[rgba(5,12,24,0.60)] backdrop-blur-sm border-[rgba(255,255,255,0.07)]"
             >
                 <ReactFlow
                     nodes={nodes}
@@ -329,7 +329,7 @@ function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
                     />
                     <Panel
                         position="bottom-left"
-                        className="bg-background/80 backdrop-blur-sm p-2 rounded-lg text-xs ioc:bg-[rgba(8,12,22,0.85)] ioc:border ioc:border-[rgba(255,255,255,0.07)]"
+                        className="bg-[rgba(8,12,22,0.85)] backdrop-blur-sm p-2 rounded-lg text-xs border border-[rgba(255,255,255,0.07)]"
                     >
                         <div className="text-muted-foreground">
                             Showing {filteredApps.length} of {apps.length} agentic services

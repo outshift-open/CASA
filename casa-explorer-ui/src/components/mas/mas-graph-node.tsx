@@ -48,8 +48,8 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                             'bg-card text-card-foreground rounded-xl border shadow-md',
                             'px-4 py-3 min-w-[180px] cursor-pointer',
                             'hover:shadow-lg hover:border-primary/50 transition-all',
-                            'ioc:bg-[rgba(8,12,22,0.85)] ioc:border-[rgba(255,255,255,0.10)] ioc:backdrop-blur-sm',
-                            'ioc:hover:border-[rgba(0,188,235,0.45)] ioc:hover:shadow-[0_4px_20px_rgba(0,188,235,0.12)]',
+                            'bg-[rgba(8,12,22,0.85)] border-[rgba(255,255,255,0.10)] backdrop-blur-sm',
+                            'hover:border-[rgba(0,188,235,0.45)] hover:shadow-[0_4px_20px_rgba(0,188,235,0.12)]',
                             data.isHighlighted && 'ring-2 ring-primary shadow-primary/50'
                         )}
                         onClick={data.onClick}

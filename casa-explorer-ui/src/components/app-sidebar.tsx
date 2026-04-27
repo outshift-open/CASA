@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {useLocation} from 'react-router-dom';
 import {
-    Shield,
     Settings,
     LayoutDashboard,
     MoreVertical,
@@ -89,8 +88,8 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <NavLink to="/">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    <Shield className="size-4" />
+                                <div className="flex aspect-square size-8 items-center justify-center">
+                                    <img src="/logo.svg" alt="CASA" className="size-8" />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight ml-2">
                                     <span className="truncate font-semibold">CASA Explorer</span>
@@ -149,7 +148,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
                                 >
                                     <Avatar className="h-8 w-8 rounded-lg">
-                                        <AvatarFallback className="rounded-lg ioc:bg-gradient-to-br ioc:from-[#006B8A] ioc:to-[#00BCEB] ioc:text-white ioc:font-bold">
+                                        <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#006B8A] to-[#00BCEB] text-white font-bold">
                                             AS
                                         </AvatarFallback>
                                     </Avatar>
@@ -169,7 +168,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                                 <DropdownMenuLabel className="p-0 font-normal">
                                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                         <Avatar className="h-8 w-8 rounded-lg">
-                                            <AvatarFallback className="rounded-lg ioc:bg-gradient-to-br ioc:from-[#006B8A] ioc:to-[#00BCEB] ioc:text-white ioc:font-bold">
+                                            <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#006B8A] to-[#00BCEB] text-white font-bold">
                                                 AS
                                             </AvatarFallback>
                                         </Avatar>
@@ -204,7 +203,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                 onClick={toggleSidebar}
                 variant="ghost"
                 size="icon"
-                className="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 cursor-pointer rounded-full border bg-background shadow-md hover:bg-accent"
+                className="absolute top-1/2 -right-[7px] z-20 h-8 w-8 -translate-y-1/2 cursor-pointer rounded-full border border-sidebar-border bg-[#07111F] shadow-md hover:bg-accent"
             >
                 {state === 'collapsed' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>

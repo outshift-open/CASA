@@ -1,6 +1,5 @@
 import {useLocation, Link} from 'react-router-dom';
 import {ChevronRight, Home, BookOpen, Github} from 'lucide-react';
-import {ThemeToggle} from '@/components/theme-toggle';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
 import {Button} from '@/components/ui/button';
@@ -61,7 +60,7 @@ export function SiteHeader() {
     }
 
     return (
-        <header className="flex h-14 shrink-0 items-center gap-1 border-b bg-background px-4 rounded-t-xl ioc:backdrop-blur-xl ioc:bg-transparent ioc:border-b-0">
+        <header className="flex h-14 shrink-0 items-center gap-1 px-4 rounded-t-xl backdrop-blur-xl bg-transparent border-b border-[rgba(255,255,255,0.07)]">
             <Button variant="ghost" size="icon" asChild>
                 <Link to="/">
                     <Home className="h-4 w-4" />
@@ -124,14 +123,6 @@ export function SiteHeader() {
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>GitHub</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <span>
-                                <ThemeToggle />
-                            </span>
-                        </TooltipTrigger>
-                        <TooltipContent>Change theme</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>

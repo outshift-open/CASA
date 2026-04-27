@@ -863,10 +863,7 @@ export function AuthRequestsPage() {
                                     <XCircle className="h-3 w-3" /> Denied
                                 </Badge>
                             ) : (
-                                <Badge
-                                    variant="outline"
-                                    className="gap-1 border-green-500/50 text-green-600 dark:text-green-400"
-                                >
+                                <Badge variant="outline" className="gap-1 border-green-500/50 text-green-400">
                                     <CheckCircle2 className="h-3 w-3" /> Allowed
                                 </Badge>
                             )}

@@ -8,10 +8,9 @@ const alertVariants = cva(
     {
         variants: {
             variant: {
-                default:
-                    'bg-card text-card-foreground ioc:bg-[rgba(255,255,255,0.035)] ioc:border-[rgba(255,255,255,0.09)]',
+                default: 'bg-[rgba(255,255,255,0.035)] text-card-foreground border-[rgba(255,255,255,0.09)]',
                 destructive:
-                    'text-destructive bg-card [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90 ioc:bg-[rgba(226,65,91,0.08)] ioc:border-[rgba(226,65,91,0.25)] ioc:text-[#E2415B]'
+                    'text-[#E2415B] bg-[rgba(226,65,91,0.08)] [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/90 border-[rgba(226,65,91,0.25)]'
             }
         },
         defaultVariants: {

@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
     <>
         <ErrorBoundary>
-            <ThemeProvider attribute="class" defaultTheme="ioc" enableSystem={false} themes={['light', 'dark', 'ioc']}>
+            <ThemeProvider attribute="class" defaultTheme="ioc" enableSystem={false} themes={['ioc']}>
                 <QueryClientProvider client={queryClient}>
                     <App />
                 </QueryClientProvider>
