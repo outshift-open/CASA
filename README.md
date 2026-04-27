@@ -104,12 +104,12 @@ graph TB
 
 ![CASA Components](docs/diagrams/components.png)
 
-| Component           | Description                                                                                                      |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Auth Service**    | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
+| Component            | Description                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Auth Service**     | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
 | **CASA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
-| **eBPF layer**      | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
-| **Keycloak**        | Identity provider backing token cryptography                                                                     |
+| **eBPF layer**       | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
+| **Keycloak**         | Identity provider backing token cryptography                                                                     |
 | **CASA Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                   |
 
 ---
@@ -249,25 +249,24 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 
 ## Repository Structure
 
-| Path                                      | Description                                             |
-| ----------------------------------------- | ------------------------------------------------------- |
+| Path                                   | Description                                              |
+| -------------------------------------- | -------------------------------------------------------- |
 | `deployments/helm/casa-control-plane/` | CASA control plane Helm chart                            |
-| `deployments/k8s/crds/`                   | CRD examples and API reference                          |
-| `demo/helm/`                              | Demo MAS Helm chart (agent + MCP server)                |
-| `demo/src/agent-safe/`                    | Demo safe agent source code                             |
-| `demo/src/agent-compromised/`             | Demo compromised agent source code                      |
-| `demo/src/mcp/`                           | Demo MCP server source code                             |
-| `ext_authz_middleware/`                   | Istio ext-authz middleware (Go)                         |
-| `src/casa_auth_server/`               | Auth service Python source                              |
-| `casa-explorer-ui/`                        | CASA Explorer UI source (React, read-only observability) |
-| `docs/ui/`                                | Docusaurus documentation portal                         |
-| `contrib/wip/it1/`                        | Architecture specs and design documents                 |
+| `demo/helm/`                           | Demo MAS Helm chart (agent + MCP server)                 |
+| `demo/src/agent-safe/`                 | Demo safe agent source code                              |
+| `demo/src/agent-compromised/`          | Demo compromised agent source code                       |
+| `demo/src/mcp/`                        | Demo MCP server source code                              |
+| `sidecar/`                             | Sidecar elements (ext_auth, llm_proxy)                   |
+| `src/casa_auth_server/`                | Auth service Python source                               |
+| `casa-explorer-ui/`                    | CASA Explorer UI source (React, read-only observability) |
+| `docs/ui/`                             | Docusaurus documentation portal                          |
+| `docs/dev`                             | Architecture specs and design documents                  |
 
 ---
 
 ## Project Status
 
-**Alpha / PoC** — CASA is under active development. The current Helm chart (`v0.1.5`) deploys a monolithic auth service suitable for development and proof-of-concept use. The production architecture (microservices decomposition, HA, Redis caching, AI pipeline service) is defined in `contrib/wip/it1/SPECS.md` and is on the roadmap.
+**Alpha / PoC** — CASA is under active development. The current Helm chart (`v0.1.5`) deploys a monolithic auth service suitable for development and proof-of-concept use.
 
 The CRD API version is `v1alpha1` and field-level changes are possible before a stable release.
 
