@@ -3,8 +3,7 @@ import type React from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Input} from '@/components/ui/input';
 import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
+import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {DataTable} from '@/components/ui/data-table';
 import type {ColumnDef} from '@tanstack/react-table';
 import {
@@ -12,9 +11,8 @@ import {
     Search,
     List,
     LayoutGrid,
-    Table,
-    AppWindow,
     Network,
+    AppWindow,
     Wrench,
     Copy,
     Info,
@@ -79,9 +77,9 @@ interface MASAppsTableProps {
 
 export function MASAppsTable({mas, apps}: MASAppsTableProps) {
     const navigate = useNavigate();
-    const [view, setView] = useState<'table' | 'grid'>('table');
+    const [view, setView] = useState<'table' | 'grid' | 'graph'>('table');
     const [search, setSearch] = useState('');
-    const [typeFilter, setTypeFilter] = useState<string>('all');
+    const [selectedTypes, setSelectedTypes] = useState<Set<AppType>>(new Set(['agent', 'client', 'mcp_server']));
     const [selectedApp, setSelectedApp] = useState<App | null>(null);
     const [sheetTab, setSheetTab] = useState('info');
     const [toolSearch, setToolSearch] = useState('');
@@ -168,9 +166,18 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
         [openApp]
     );
 
+    const toggleType = useCallback((type: AppType) => {
+        setSelectedTypes((prev) => {
+            const next = new Set(prev);
+            if (next.has(type)) next.delete(type);
+            else next.add(type);
+            return next;
+        });
+    }, []);
+
     const filteredData = useMemo(() => {
         let result = apps || [];
-        if (typeFilter !== 'all') result = result.filter((app) => app.type === typeFilter);
+        result = result.filter((app) => selectedTypes.has(app.type));
         if (search)
             result = result.filter(
                 (app) =>
@@ -178,7 +185,7 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                     app.base_url.toLowerCase().includes(search.toLowerCase())
             );
         return result;
-    }, [apps, typeFilter, search]);
+    }, [apps, selectedTypes, search]);
 
     const hasData = apps && apps.length > 0;
 
@@ -199,125 +206,143 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
 
     return (
         <>
-            <Tabs defaultValue="table" className="w-full">
-                <TabsList>
-                    <TabsTrigger value="table">
-                        <Table className="mr-2 h-4 w-4" />
-                        Table
-                    </TabsTrigger>
-                    <TabsTrigger value="graph">
-                        <Network className="mr-2 h-4 w-4" />
-                        Graph
-                    </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="table" className="mt-4">
-                    <div className="space-y-3">
-                        {hasData && (
-                            <div className="flex items-center justify-between gap-2">
-                                <div className="relative w-1/2">
+            <div className="w-full">
+                <div className="mt-4 space-y-3">
+                    {hasData && (
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1">
+                                <div className="relative max-w-xs w-full">
                                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
-                                        placeholder="Search by agentic service name or type"
+                                        placeholder="Search agentic services..."
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         className="pl-9"
                                     />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Select value={typeFilter} onValueChange={setTypeFilter}>
-                                        <SelectTrigger className="w-[140px]">
-                                            <SelectValue placeholder="All Types" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Types</SelectItem>
-                                            <SelectItem value="agent">Agent</SelectItem>
-                                            <SelectItem value="client">Client</SelectItem>
-                                            <SelectItem value="mcp_server">MCP Server</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <ToggleGroup
-                                        type="single"
-                                        value={view}
-                                        onValueChange={(v) => v && setView(v as 'table' | 'grid')}
-                                        variant="outline"
-                                    >
-                                        <ToggleGroupItem value="table" aria-label="Table view">
-                                            <List className="h-4 w-4" />
-                                        </ToggleGroupItem>
-                                        <ToggleGroupItem value="grid" aria-label="Grid view">
-                                            <LayoutGrid className="h-4 w-4" />
-                                        </ToggleGroupItem>
-                                    </ToggleGroup>
-                                </div>
+                                <Button
+                                    variant={selectedTypes.has('agent') ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => toggleType('agent')}
+                                >
+                                    <Bot className="h-3 w-3" />
+                                    Agent
+                                </Button>
+                                <Button
+                                    variant={selectedTypes.has('client') ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => toggleType('client')}
+                                >
+                                    <AppWindow className="h-3 w-3" />
+                                    Client
+                                </Button>
+                                <Button
+                                    variant={selectedTypes.has('mcp_server') ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => toggleType('mcp_server')}
+                                >
+                                    <Server className="h-3 w-3" />
+                                    MCP Server
+                                </Button>
                             </div>
-                        )}
-                        {view === 'grid' ? (
-                            hasData ? (
-                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    {filteredData.map((app) => {
-                                        const Icon = APP_TYPE_ICONS[app.type];
-                                        return (
-                                            <Card
-                                                key={app.id}
-                                                className="cursor-pointer hover:bg-accent/50 transition-colors p-0"
-                                                onClick={() => openApp(app)}
-                                            >
-                                                <div className="flex items-center gap-3 p-3">
-                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
-                                                        <Icon className="h-4 w-4 text-primary" />
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <p className="text-sm font-semibold truncate">{app.name}</p>
-                                                            <Badge
-                                                                variant={APP_TYPE_VARIANTS[app.type]}
-                                                                className="text-xs shrink-0"
-                                                            >
-                                                                {APP_TYPE_LABELS[app.type]}
-                                                            </Badge>
+                            <div className="flex items-center gap-2">
+                                <ToggleGroup
+                                    type="single"
+                                    value={view}
+                                    onValueChange={(v) => v && setView(v as 'table' | 'grid' | 'graph')}
+                                    variant="outline"
+                                >
+                                    <ToggleGroupItem value="table" aria-label="Table view">
+                                        <List className="h-4 w-4" />
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem value="grid" aria-label="Grid view">
+                                        <LayoutGrid className="h-4 w-4" />
+                                    </ToggleGroupItem>
+                                    <ToggleGroupItem value="graph" aria-label="Graph view">
+                                        <Network className="h-4 w-4" />
+                                    </ToggleGroupItem>
+                                </ToggleGroup>
+                            </div>
+                        </div>
+                    )}
+                    {view !== 'graph' && (
+                        <>
+                            {view === 'grid' ? (
+                                hasData ? (
+                                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        {filteredData.map((app) => {
+                                            const Icon = APP_TYPE_ICONS[app.type];
+                                            return (
+                                                <Card
+                                                    key={app.id}
+                                                    className="cursor-pointer hover:bg-accent/50 transition-colors p-0"
+                                                    onClick={() => openApp(app)}
+                                                >
+                                                    <div className="flex items-center gap-3 p-3">
+                                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                                                            <Icon className="h-4 w-4 text-primary" />
                                                         </div>
-                                                        <p className="text-xs text-muted-foreground truncate">
-                                                            {app.base_url}
-                                                        </p>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-sm font-semibold truncate">
+                                                                    {app.name}
+                                                                </p>
+                                                                <Badge
+                                                                    variant={APP_TYPE_VARIANTS[app.type]}
+                                                                    className="text-xs shrink-0"
+                                                                >
+                                                                    {APP_TYPE_LABELS[app.type]}
+                                                                </Badge>
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground truncate">
+                                                                {app.base_url}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+                                                            <Wrench className="h-3 w-3" />
+                                                            <span>{app.tools.length}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
-                                                        <Wrench className="h-3 w-3" />
-                                                        <span>{app.tools.length}</span>
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-12 gap-3">
-                                    <AppWindow className="h-10 w-10 text-muted-foreground opacity-40" />
-                                    <div className="text-center">
-                                        <p className="text-sm font-medium">No agentic services found</p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            No agentic services are registered in this MAS
-                                        </p>
+                                                </Card>
+                                            );
+                                        })}
                                     </div>
-                                </div>
-                            )
-                        ) : (
-                            <DataTable
-                                columns={columns}
-                                data={filteredData}
-                                hideSearch
-                                searchValue={search}
-                                onSearchChange={setSearch}
-                                onRowClick={(row) => openApp(row)}
-                            />
-                        )}
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                                        <AppWindow className="h-10 w-10 text-muted-foreground opacity-40" />
+                                        <div className="text-center">
+                                            <p className="text-sm font-medium">No agentic services found</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                No agentic services are registered in this MAS
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
+                            ) : (
+                                <DataTable
+                                    columns={columns}
+                                    data={filteredData}
+                                    hideSearch
+                                    searchValue={search}
+                                    onSearchChange={setSearch}
+                                    onRowClick={(row) => openApp(row)}
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
+                {view === 'graph' && (
+                    <div className="mt-4">
+                        <MASGraphView
+                            mas={mas}
+                            apps={apps}
+                            onAppClick={openApp}
+                            searchTerm={search}
+                            selectedTypes={selectedTypes}
+                        />
                     </div>
-                </TabsContent>
-
-                <TabsContent value="graph" className="mt-4">
-                    <MASGraphView mas={mas} apps={apps} onAppClick={openApp} />
-                </TabsContent>
-            </Tabs>
+                )}
+            </div>
 
             <Sheet open={!!selectedApp} onOpenChange={(open) => !open && setSelectedApp(null)}>
                 <SheetContent
@@ -339,8 +364,8 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                     </SheetClose>
                                 </div>
                             </div>
-                            <SheetHeader className="px-6 pt-5 pb-4">
-                                <div className="flex items-center justify-between gap-3">
+                            <SheetHeader className="px-6 pt-5 pb-0">
+                                <div className="flex items-center justify-between gap-3 pb-4">
                                     <div className="flex items-center gap-3 min-w-0">
                                         {(() => {
                                             const Icon = APP_TYPE_DETAIL_ICONS[selectedApp.type];
@@ -357,26 +382,26 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                             </SheetDescription>
                                         </div>
                                     </div>
-                                    <Tabs value={sheetTab} onValueChange={setSheetTab} className="shrink-0">
-                                        <TabsList>
-                                            <TabsTrigger value="info">
-                                                <Info className="mr-1.5 h-3.5 w-3.5" />
-                                                Info
-                                            </TabsTrigger>
-                                            {selectedApp.type === 'mcp_server' && (
-                                                <TabsTrigger value="tools">
-                                                    <Wrench className="mr-1.5 h-3.5 w-3.5" />
-                                                    Tools
-                                                    {(selectedApp.tools?.length ?? 0) > 0 && (
-                                                        <span className="ml-1.5 text-xs text-muted-foreground">
-                                                            {selectedApp.tools.length}
-                                                        </span>
-                                                    )}
-                                                </TabsTrigger>
-                                            )}
-                                        </TabsList>
-                                    </Tabs>
                                 </div>
+                                <Tabs value={sheetTab} onValueChange={setSheetTab} className="w-full">
+                                    <TabsList variant="underline" className="justify-end">
+                                        <TabsTrigger value="info">
+                                            <Info className="mr-1.5 h-3.5 w-3.5" />
+                                            Info
+                                        </TabsTrigger>
+                                        {selectedApp.type === 'mcp_server' && (
+                                            <TabsTrigger value="tools">
+                                                <Wrench className="mr-1.5 h-3.5 w-3.5" />
+                                                Tools
+                                                {(selectedApp.tools?.length ?? 0) > 0 && (
+                                                    <span className="ml-1.5 text-xs text-muted-foreground">
+                                                        {selectedApp.tools.length}
+                                                    </span>
+                                                )}
+                                            </TabsTrigger>
+                                        )}
+                                    </TabsList>
+                                </Tabs>
                             </SheetHeader>
 
                             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">

@@ -68,7 +68,7 @@ export function MASDetailPage() {
                                         </CardDescription>
                                     </div>
                                     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-auto">
-                                        <TabsList>
+                                        <TabsList variant="underline">
                                             <TabsTrigger value="info">
                                                 <Info className="mr-2 h-4 w-4" />
                                                 Info

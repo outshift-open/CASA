@@ -1,4 +1,4 @@
-import {useMemo, useCallback, useState, useRef} from 'react';
+import {useMemo, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
 import ReactFlow, {
     Node,
@@ -16,9 +16,8 @@ import 'reactflow/dist/style.css';
 import {MASGraphMASNode} from './mas-graph-mas-node';
 import {MASGraphNode} from './mas-graph-node';
 import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
 import {Badge} from '@/components/ui/badge';
-import {Bot, AppWindow, Server, Download, Search, X, Network} from 'lucide-react';
+import {Bot, AppWindow, Server, Download, Network} from 'lucide-react';
 import {toPng} from 'html-to-image';
 import type {MAS} from '@/types/mas.types';
 import type {App, AppType} from '@/types/app.types';
@@ -27,6 +26,8 @@ interface MASGraphViewProps {
     mas: MAS;
     apps: App[];
     onAppClick?: (app: App) => void;
+    searchTerm?: string;
+    selectedTypes?: Set<AppType>;
 }
 
 const nodeTypes: NodeTypes = {
@@ -40,11 +41,15 @@ const APP_TYPE_ORDER: Record<AppType, number> = {
     mcp_server: 3
 };
 
-function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
+function MASGraphViewInner({
+    mas,
+    apps,
+    onAppClick,
+    searchTerm = '',
+    selectedTypes = new Set(['agent', 'client', 'mcp_server'])
+}: MASGraphViewProps) {
     const navigate = useNavigate();
     const graphRef = useRef<HTMLDivElement>(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedTypes, setSelectedTypes] = useState<Set<AppType>>(new Set(['agent', 'client', 'mcp_server']));
 
     // Filter apps based on search and selected types
     const filteredApps = useMemo(() => {
@@ -168,18 +173,6 @@ function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
         }
     }, []);
 
-    const toggleTypeFilter = useCallback((type: AppType) => {
-        setSelectedTypes((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(type)) {
-                newSet.delete(type);
-            } else {
-                newSet.add(type);
-            }
-            return newSet;
-        });
-    }, []);
-
     const exportToPng = useCallback(() => {
         if (graphRef.current) {
             toPng(graphRef.current, {
@@ -213,66 +206,7 @@ function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
 
     return (
         <div className="space-y-4">
-            {/* Controls Panel */}
-            <div className="flex flex-wrap items-center gap-2">
-                {/* Search */}
-                <div className="relative flex-1 min-w-[200px] max-w-xs">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search agentic services..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8 pr-8"
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    )}
-                </div>
-
-                {/* Type Filters */}
-                <div className="flex gap-2">
-                    <Button
-                        variant={selectedTypes.has('agent') ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleTypeFilter('agent')}
-                        className="cursor-pointer"
-                    >
-                        <Bot className="mr-1 h-3 w-3" />
-                        Agent
-                    </Button>
-                    <Button
-                        variant={selectedTypes.has('client') ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleTypeFilter('client')}
-                        className="cursor-pointer"
-                    >
-                        <AppWindow className="mr-1 h-3 w-3" />
-                        Client
-                    </Button>
-                    <Button
-                        variant={selectedTypes.has('mcp_server') ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleTypeFilter('mcp_server')}
-                        className="cursor-pointer"
-                    >
-                        <Server className="mr-1 h-3 w-3" />
-                        MCP Server
-                    </Button>
-                </div>
-
-                {/* Export Button */}
-                <Button variant="outline" size="sm" onClick={exportToPng} className="cursor-pointer ml-auto">
-                    <Download className="mr-1 h-3 w-3" />
-                    Export PNG
-                </Button>
-            </div>
-
-            {/* Legend */}
+            {/* Legend + Export */}
             <div className="flex items-center gap-4 text-xs text-muted-foreground border rounded-lg p-3 bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)]">
                 <span className="font-medium">Legend:</span>
                 <div className="flex items-center gap-1">
@@ -293,6 +227,10 @@ function MASGraphViewInner({mas, apps, onAppClick}: MASGraphViewProps) {
                         MCP Server
                     </Badge>
                 </div>
+                <Button variant="outline" size="sm" onClick={exportToPng} className="cursor-pointer ml-auto">
+                    <Download className="mr-1 h-3 w-3" />
+                    Export PNG
+                </Button>
             </div>
 
             {/* Graph */}
