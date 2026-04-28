@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 """Service layer for Multi-Agent System business logic."""
 
 import logging
-from typing import List, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -27,29 +26,28 @@ from casa_auth_server.core.repositories.multi_agent_system import MultiAgentSyst
 from casa_auth_server.core.types import AuthorizationServer, MultiAgentSystem, ToolCheckFlags
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 
 class MultiAgentSystemCreateRequest(BaseModel):
     """Request model for MAS creation."""
 
     name: str
-    enabled_tool_checks: Optional[ToolCheckFlags] = None
-    namespace: Optional[str] = None
-    k8s_name: Optional[str] = None
+    enabled_tool_checks: ToolCheckFlags | None = None
+    namespace: str | None = None
+    k8s_name: str | None = None
 
 
 class MultiAgentSystemUpdateRequest(BaseModel):
     """Request model for updating an existing MAS instance."""
 
     name: str
-    enabled_tool_checks: Optional[ToolCheckFlags] = None
+    enabled_tool_checks: ToolCheckFlags | None = None
 
 
 class MultiAgentSystemAppsBindingRequest(BaseModel):
     """Request model for binding/unbinding a list of apps to a MAS instance."""
 
-    app_ids: List[str]
+    app_ids: list[str]
 
 
 class MultiAgentSystemService:
@@ -139,7 +137,7 @@ class MultiAgentSystemService:
 
         return self._mas_repository.delete(mas)
 
-    def get_all_mas(self) -> List[MultiAgentSystem]:
+    def get_all_mas(self) -> list[MultiAgentSystem]:
         """Get all the existing Multi Agent Systems."""
         return self._mas_repository.get_all()
 

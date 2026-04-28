@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
 """Repository layer for Multi-Agent System persistence."""
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime
 
 from sqlmodel import Session, select
 
@@ -43,7 +42,7 @@ class MultiAgentSystemRepository(ABC):
         """Fetch a multi agent system by ID from the database."""
 
     @abstractmethod
-    def get_all(self) -> List[MultiAgentSystem]:
+    def get_all(self) -> list[MultiAgentSystem]:
         """Fetch all the mutli agent systems stored in the database."""
 
     @abstractmethod
@@ -72,7 +71,7 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
 
     def delete(self, mas: MultiAgentSystem):
         """Soft-delete a multi agent system by setting deleted_at."""
-        mas.deleted_at = datetime.now(timezone.utc)
+        mas.deleted_at = datetime.now(UTC)
         self._session.add(mas)
 
     def get_by_id(self, id: str) -> MultiAgentSystem:
@@ -85,7 +84,7 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
         except Exception as e:
             raise Exception(f"Error retrieving MAS with id '{id}': {e}") from e
 
-    def get_all(self) -> List[MultiAgentSystem]:
+    def get_all(self) -> list[MultiAgentSystem]:
         """Fetch all the mutli agent systems stored in the database."""
         try:
             mas_list = self._session.exec(select(MultiAgentSystem).where(MultiAgentSystem.deleted_at == None)).all()

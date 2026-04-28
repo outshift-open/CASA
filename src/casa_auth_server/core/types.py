@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
 
 # mypy: disable-error-code="call-arg"
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, IntFlag
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
 from sqlalchemy.orm import RelationshipProperty
 from sqlmodel import Column, Field, Integer, Relationship, SQLModel
-
-# pylint: disable=too-few-public-methods
 
 
 class AppType(str, Enum):
@@ -51,14 +49,14 @@ class ToolScope(SQLModel, table=True):
 class Tool(SQLModel, table=True):
     """MCP Tool model."""
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     name: str
     description: str
     input_schema: str
     output_schema: str
-    app_id: Optional[UUID] = Field(foreign_key="app.id")
+    app_id: UUID | None = Field(foreign_key="app.id")
     app: Optional["App"] = Relationship(back_populates="tools")
-    scopes: List["Scope"] = Relationship(
+    scopes: list["Scope"] = Relationship(
         back_populates="tools",
         link_model=ToolScope,
     )
@@ -67,11 +65,11 @@ class Tool(SQLModel, table=True):
 class Scope(SQLModel, table=True):
     """Scope model."""
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     name: str = Field(index=True, unique=True)
-    mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
+    mas_id: UUID | None = Field(foreign_key="multiagentsystem.id")
     mas: Optional["MultiAgentSystem"] = Relationship(back_populates="scopes")
-    tools: List[Tool] = Relationship(
+    tools: list[Tool] = Relationship(
         back_populates="scopes",
         link_model=ToolScope,
     )
@@ -87,9 +85,9 @@ class ToolCheckFlags(IntFlag):
 
 
 class App(SQLModel, table=True):
-    """Input model for creating an app."""
+    """ORM model representing a registered application."""
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     type: str
     name: str
     base_url: str
@@ -98,41 +96,41 @@ class App(SQLModel, table=True):
             "ClientCredentials", back_populates="app", uselist=False, foreign_keys="ClientCredentials.app_id"
         )
     )
-    tools: List["Tool"] = Relationship(back_populates="app")
-    mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
+    tools: list["Tool"] = Relationship(back_populates="app")
+    mas_id: UUID | None = Field(foreign_key="multiagentsystem.id")
     mas: Optional["MultiAgentSystem"] = Relationship(back_populates="apps")
-    deleted_at: Optional[datetime] = Field(default=None)
+    deleted_at: datetime | None = Field(default=None)
 
 
 class MultiAgentSystem(SQLModel, table=True):
     """An entity describing a multi agent system, which is a set of apps."""
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     name: str
-    k8s_name: Optional[str] = None  # Kubernetes metadata.name (lowercase with dashes)
-    apps: List["App"] = Relationship(back_populates="mas")
-    scopes: List["Scope"] = Relationship(back_populates="mas")
-    enabled_tool_checks: Optional[ToolCheckFlags] = Field(
+    k8s_name: str | None = None  # Kubernetes metadata.name (lowercase with dashes)
+    apps: list["App"] = Relationship(back_populates="mas")
+    scopes: list["Scope"] = Relationship(back_populates="mas")
+    enabled_tool_checks: ToolCheckFlags | None = Field(
         default=ToolCheckFlags.DETERMINISTIC_TOOL_SELECTED
         | ToolCheckFlags.DETERMINISTIC_LLM_SELECTED_TOOLS
         | ToolCheckFlags.AI_POWERED_TOOL_MATCH,
         sa_column=Column(Integer, nullable=False),
     )
-    authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
+    authorization_server_id: UUID | None = Field(foreign_key="authorizationserver.id")
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="multi_agent_systems")
-    namespace: Optional[str]
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    deleted_at: Optional[datetime] = Field(default=None)
+    namespace: str | None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    deleted_at: datetime | None = Field(default=None)
 
 
 class UserInput(SQLModel, table=True):
     """User Input model containing the user input prompt."""
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     prompt: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    app_id: Optional[UUID] = Field(foreign_key="app.id")
-    tag: Optional[str] = Field(index=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    app_id: UUID | None = Field(foreign_key="app.id")
+    tag: str | None = Field(index=True)
 
 
 class AuthorizationServer(SQLModel, table=True):
@@ -141,27 +139,27 @@ class AuthorizationServer(SQLModel, table=True):
     Represents an authorization server with a unique realm.
     """
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     realm: str
-    client_credentials: List["ClientCredentials"] = Relationship(
+    client_credentials: list["ClientCredentials"] = Relationship(
         back_populates="authorization_server", cascade_delete=True
     )
-    multi_agent_systems: List[MultiAgentSystem] = Relationship(back_populates="authorization_server")
+    multi_agent_systems: list[MultiAgentSystem] = Relationship(back_populates="authorization_server")
 
 
 class ClientCredentials(SQLModel, table=True):
     """SQLModel for client credentials."""
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     name: str
-    authorization_server_id: Optional[UUID] = Field(foreign_key="authorizationserver.id")
+    authorization_server_id: UUID | None = Field(foreign_key="authorizationserver.id")
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="client_credentials")
-    app_id: Optional[UUID] = Field(foreign_key="app.id")
+    app_id: UUID | None = Field(foreign_key="app.id")
     app: Optional["App"] = Relationship(
         sa_relationship=RelationshipProperty("App", back_populates="client_credentials")
     )
     client_id: str
-    client_secret: Optional[str] = Field(default=None)
+    client_secret: str | None = Field(default=None)
 
 
 class TokenRequestParams(SQLModel):
@@ -169,7 +167,7 @@ class TokenRequestParams(SQLModel):
 
     app: App
     grant_type: str
-    tools: List[Tool] = []
+    tools: list[Tool] = []
     act: App | None = None  # Act on behalf of another app
     other: dict | None = None
 
@@ -198,16 +196,16 @@ class TokenResponse(SQLModel):
 class TokenIntrospectResponse(BaseModel):
     """Pydantic model for the token introspection response."""
 
-    client_id: Optional[str] = None
-    scope: Optional[str] = None
-    sub: Optional[str] = None
-    act: Optional[ActorClaim] = None
-    other: Optional[dict] = None
-    exp: Optional[int] = None
-    user_input_id: Optional[str] = None
-    app_id: Optional[str] = None
-    mas_id: Optional[str] = None
-    tools: Optional[list[str]] = None
+    client_id: str | None = None
+    scope: str | None = None
+    sub: str | None = None
+    act: ActorClaim | None = None
+    other: dict | None = None
+    exp: int | None = None
+    user_input_id: str | None = None
+    app_id: str | None = None
+    mas_id: str | None = None
+    tools: list[str] | None = None
     active: bool
 
 

@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 import uuid
 from abc import ABC
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -28,7 +27,7 @@ class BaseEvent(BaseModel, ABC):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_input_id: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class TokenIssuedEvent(BaseEvent):
@@ -36,7 +35,7 @@ class TokenIssuedEvent(BaseEvent):
 
     token: str
     app_id: str
-    mas_id: Optional[str] = None
+    mas_id: str | None = None
     prompt: str
 
 
@@ -47,8 +46,8 @@ class TokenExchangedEvent(BaseEvent):
     act_token: str
     subject_app_id: str
     act_app_id: str
-    mas_id: Optional[str] = None
-    tools: Optional[list[str]]
+    mas_id: str | None = None
+    tools: list[str] | None
 
 
 class LLMCallStartedEvent(BaseEvent):
@@ -57,9 +56,9 @@ class LLMCallStartedEvent(BaseEvent):
     call_id: str
     token: str
     app_id: str
-    mas_id: Optional[str] = None
+    mas_id: str | None = None
     prompt: str
-    tools: Optional[str]
+    tools: str | None
 
 
 class LLMCallEndedEvent(BaseEvent):
@@ -68,9 +67,9 @@ class LLMCallEndedEvent(BaseEvent):
     call_id: str
     token: str
     app_id: str
-    mas_id: Optional[str] = None
+    mas_id: str | None = None
     response: str
-    tools: Optional[str]
+    tools: str | None
 
 
 class MCPToolBlockingReason(StrEnum):
@@ -97,8 +96,8 @@ class MCPCallStartedEvent(BaseEvent):
     token: str = ""
     caller_app_id: str = ""
     callee_app_id: str = ""
-    mas_id: Optional[str] = None
+    mas_id: str | None = None
     tool: str
     blocked: bool = False
-    blocking_type: Optional[MCPToolBlockingType] = None
-    blocking_reason: Optional[MCPToolBlockingReason] = None
+    blocking_type: MCPToolBlockingType | None = None
+    blocking_reason: MCPToolBlockingReason | None = None

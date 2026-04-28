@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
 # limitations under the License.
 
 import copy
+import logging
 
 from openai import OpenAI
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 TASK_EXTRACTION_PROMPT = """You are a request synthesizer.
 Your job is to convert a conversation — which may be a single message or a multi-turn
@@ -82,7 +85,6 @@ class TaskExtractor:
         # considering only the first tool call
         tool_blob_id = sample["metadata"]["request"]["conversation"]["tool_call_locations"][0] - 1
         conversation_blob = copy.deepcopy(raw_conversation_blob[:tool_blob_id])
-        # print(f"--- Conversation blob for item ID {sample.get('id', 'N/A')}:\n{conversation_blob}\n--- End of blob ---")
         # strip out all the 'tool_calls': None from the conversation blob
         for message in conversation_blob:
             message.pop("tool_calls", None)
@@ -101,9 +103,8 @@ class TaskExtractor:
                 timeout=REQUEST_TIMEOUT_SECONDS,
             )
             extracted_task = raw_response.choices[0].message.content
-            # print(f"Extracted task: {extracted_task}\n--- End of extracted task ---")
         except Exception as e:
-            print(f"[Task extraction] Error on item: {e}")
+            logger.error(f"Task extraction failed: {e}")
             extracted_task = None
         return extracted_task
 
@@ -150,12 +151,11 @@ Description: {tool_description}
             "max_output_tokens": MAX_OUTPUT_TOKENS,
             "text_format": TaskToolMatcherOutput,
         }
-        # print(f"Matcher input:\n{user_input}\n--- End of matcher input ---")
 
         try:
             raw_response = self.openai_client.responses.parse(**api_params, timeout=REQUEST_TIMEOUT_SECONDS)
             structured_response = raw_response.output_parsed
 
         except Exception as e:
-            print(f"[Matcher] Error on item: {e}")
+            logger.error(f"Task-tool matching failed: {e}")
         return structured_response

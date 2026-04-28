@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,15 +15,18 @@
 """Service layer for MCP Discovery operations."""
 
 import asyncio
+import logging
 
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
 from casa_auth_server.types import McpServer
 
+logger = logging.getLogger(__name__)
+
 
 class McpDiscoverService:
-    """Implementation of the McpAppToolCallService."""
+    """Service for discovering tools from MCP servers."""
 
     def discover_mcp_tools(self, mcp_server_url: str) -> McpServer:
         """Discover MCP tools from the given MCP server URL."""
@@ -45,7 +48,7 @@ class McpDiscoverService:
                         list_tools_response = await session.list_tools()
                         tools = list_tools_response.tools
                     except Exception as e:
-                        print(e)
+                        logger.warning(f"Failed to list tools from {mcp_server_url}: {e}")
 
                     # Get resources
                     resources = []
@@ -53,7 +56,7 @@ class McpDiscoverService:
                         list_resources_response = await session.list_resources()
                         resources = list_resources_response.resources
                     except Exception as e:
-                        print(e)
+                        logger.warning(f"Failed to list resources from {mcp_server_url}: {e}")
 
                     return McpServer(name="unknown", tools=tools, resources=resources)
 

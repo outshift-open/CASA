@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 """Type definitions for Identity Auth Server - Pipelines - Task Tool Matcher."""
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -67,5 +67,5 @@ class TaskToolMatchOutput(BaseModel):
     """Result of task tool matching."""
 
     task_tool_match: bool
-    reason: Optional[TaskToolMatchReason] = None
-    debug: Optional[dict[str, Any]] = None
+    reason: TaskToolMatchReason | None = None
+    debug: dict[str, Any] | None = None

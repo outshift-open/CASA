@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 """IdP client interface."""
 
 from abc import ABC, abstractmethod
-from typing import List
 
 from pydantic import BaseModel
 
@@ -29,8 +28,8 @@ class TokenPayload(BaseModel):
     sub: str
     act: ActorClaim | None = None
     extra: dict | None = None
-    scopes: List[str] = []
-    tools: List[str] = []
+    scopes: list[str] = []
+    tools: list[str] = []
 
 
 class IdpClient(ABC):

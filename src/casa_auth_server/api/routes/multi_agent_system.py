@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 """Routing module for MAS operations."""
 
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -76,7 +76,7 @@ def delete_mas(
 @router.get("/mas")
 def get_all_mas(
     mas_service: Annotated[MultiAgentSystemService, Depends(Container.get_mas_service)],
-) -> List[MultiAgentSystem]:
+) -> list[MultiAgentSystem]:
     """Get the list of all multi agent systems."""
     return mas_service.get_all_mas()
 
@@ -97,7 +97,7 @@ def get_mas_by_id(
 def get_mas_apps(
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
     mas_id: str,
-) -> List[AppViewModel]:
+) -> list[AppViewModel]:
     """Get all the apps related to a MAS."""
     apps = app_service.get_mas_apps(mas_id)
     return [AppViewModel.model_validate(app) for app in apps]

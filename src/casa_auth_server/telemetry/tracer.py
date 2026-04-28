@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 
 """Tracing service implementation."""
 
-from typing import Optional
 from uuid import UUID
 
 from casa_auth_server.core.events import BaseEvent
@@ -32,9 +31,7 @@ class Tracer:
         """Persist an event to the trace store."""
         self._tracer_repository.store_event(event)
 
-    def get_traces(
-        self, page: int, page_size: int, mas_id: Optional[UUID] = None, fetch_all: bool = False
-    ) -> TraceList:
+    def get_traces(self, page: int, page_size: int, mas_id: UUID | None = None, fetch_all: bool = False) -> TraceList:
         """Retrieve all traces in a paginated fashion."""
         if not fetch_all:
             if page < 1:

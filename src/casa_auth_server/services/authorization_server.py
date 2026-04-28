@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 import json
 import logging
 import re
-from typing import List, Optional, Self
+from typing import Self
 from urllib.parse import urlparse
 
 import jwt
@@ -51,7 +51,6 @@ from casa_auth_server.services.mcp_discover import McpDiscoverService
 from casa_auth_server.telemetry.tracer import Tracer
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 
 class TokenRequest(BaseModel):
@@ -59,8 +58,8 @@ class TokenRequest(BaseModel):
 
     client_id: str
     client_secret: str
-    user_input: Optional[str] = None
-    user_input_id: Optional[str] = None
+    user_input: str | None = None
+    user_input_id: str | None = None
 
     @model_validator(mode="after")
     def validate_user_input(self) -> Self:
@@ -76,9 +75,9 @@ class TokenExchangeRequest(BaseModel):
     client_secret: str
     subject_token: str
     subject_token_type: str
-    scope: Optional[str] = None
-    mcp_server_url: Optional[str] = None
-    tools: Optional[list[str]] = []
+    scope: str | None = None
+    mcp_server_url: str | None = None
+    tools: list[str] | None = []
 
     @field_validator("subject_token_type", mode="before")
     def validate_subject_token_type(cls, v: str) -> str:  # noqa: N805
@@ -94,8 +93,8 @@ class ProcessedTool(BaseModel):
 
     name: str
     blocked: bool = False
-    blocking_type: Optional[MCPToolBlockingType] = None
-    blocking_reason: Optional[MCPToolBlockingReason] = None
+    blocking_type: MCPToolBlockingType | None = None
+    blocking_reason: MCPToolBlockingReason | None = None
 
 
 class AuthorizationServerService:
@@ -112,7 +111,7 @@ class AuthorizationServerService:
         tool_check_factory: ToolCheckFactory,
         task_extractor: TaskExtractor,
     ):
-        """Store the backing session repository, keycloak manager, and client repository."""
+        """Initialize the service with its dependencies."""
         self.authorization_server_repository = authorization_server_repository
         self.app_repository = app_repository
         self.idp_client = idp_client
@@ -191,7 +190,7 @@ class AuthorizationServerService:
 
     def exchange_token(self, app_id: str, request: TokenExchangeRequest) -> TokenResponse:
         """Perform a token exchange and generate a JWT."""
-        subject_token = self._introspect_token(token=request.subject_token)
+        subject_token = self.introspect_token(token=request.subject_token)
         subject_app = self.app_repository.get_app_by_id(subject_token.app_id if subject_token.app_id else "")
         if subject_app is None:
             raise Exception("Invalid subject_token.")
@@ -215,7 +214,7 @@ class AuthorizationServerService:
 
         scopes: list[str] = []
         if request.scope:
-            scopes = [s for s in request.scope.split("") if s]
+            scopes = [s for s in request.scope.split(" ") if s]
 
         if approved_tools:
             scopes.append("call-tools")
@@ -274,7 +273,7 @@ class AuthorizationServerService:
         request: TokenExchangeRequest,
         subject_token: TokenIntrospectResponse,
         tool_check_flags: ToolCheckFlags | None,
-    ) -> List[ProcessedTool]:
+    ) -> list[ProcessedTool]:
         processed_tools = []
 
         if tool_check_flags is None:
@@ -318,30 +317,13 @@ class AuthorizationServerService:
 
         return processed_tools
 
-    def introspect_token(
-        self,
-        token: str,
-        tools: Optional[list[str]] = None,
-    ) -> TokenIntrospectResponse:
-        """Introspect a token and return its metadata.
-
-        Args:
-            token: The token to introspect.
-            tools: Optional list of tools to validate.
-
-        Returns:
-            Token introspection response with metadata.
-        """
-        response = self._introspect_token(token, tools)
-        return response
-
-    def _introspect_token(self, token: str, tools: Optional[list[str]] = None) -> TokenIntrospectResponse:
+    def introspect_token(self, token: str, tools: list[str] | None = None) -> TokenIntrospectResponse:
         """Introspect a token to check its validity and retrieve metadata."""
         # Decrypt the JWT token and extract claims without using Keycloak
         claims = jwt.decode(token, options={"verify_signature": False})
         sub = claims.get("sub")
 
-        print(f"[INTROSPECT] claims = {claims}")
+        logger.debug("Introspecting token claims")
 
         app_id = self._get_app_id_from_client_id(sub)
 
@@ -352,7 +334,7 @@ class AuthorizationServerService:
 
         mas_id = str(sub_app.mas_id) if sub_app.mas_id else None
 
-        act: Optional[ActorClaim] = None
+        act: ActorClaim | None = None
         act_str = claims.get("act")
         if act_str:
             act = ActorClaim.model_validate_json(act_str)

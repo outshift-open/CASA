@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ include relationships in the serialized model.
 """
 
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -44,8 +43,8 @@ class ToolViewModel(BaseModel):
     description: str
     input_schema: str
     output_schema: str
-    app_id: Optional[UUID]
-    scopes: List[ScopeViewModelMinimal]
+    app_id: UUID | None
+    scopes: list[ScopeViewModelMinimal]
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)
@@ -56,7 +55,7 @@ class MultiAgentSystemViewModel(BaseModel):
 
     id: UUID
     name: str
-    authorization_server_id: Optional[UUID]
+    authorization_server_id: UUID | None
     created_at: datetime
 
     # To be able to create an instance from a SQLModel
@@ -70,9 +69,9 @@ class AppViewModel(BaseModel):
     type: str
     name: str
     base_url: str
-    tools: List[ToolViewModel]
-    mas_id: Optional[UUID]
-    mas: Optional[MultiAgentSystemViewModel]
+    tools: list[ToolViewModel]
+    mas_id: UUID | None
+    mas: MultiAgentSystemViewModel | None
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)
@@ -83,9 +82,9 @@ class ScopeViewModel(BaseModel):
 
     id: UUID
     name: str
-    mas_id: Optional[UUID]
-    mas: Optional[MultiAgentSystemViewModel]
-    tools: List[ToolViewModel]
+    mas_id: UUID | None
+    mas: MultiAgentSystemViewModel | None
+    tools: list[ToolViewModel]
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)

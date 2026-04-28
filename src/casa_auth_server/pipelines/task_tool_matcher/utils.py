@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 import heapq
 import logging
-from typing import List
 
 import numpy as np
 from openai import OpenAI
@@ -35,7 +34,6 @@ class EmbeddingService:
 
     def __init__(self, config):
         """Initialize the embedding service."""
-        logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
         self.logger = logging.getLogger(__name__)
         self.client = OpenAI(
             api_key=config.get("OPENAI_TXT_EMB_3_LARGE_API_JWT_TOKEN"),
@@ -43,7 +41,7 @@ class EmbeddingService:
         )
         self.model_id = config.get("OPENAI_TXT_EMB_3_LARGE_MODEL_ID")
 
-    def get_embeddings(self, input: List[str]) -> List[np.ndarray]:
+    def get_embeddings(self, input: list[str]) -> list[np.ndarray]:
         """Get embeddings for a list of input texts.
 
         Args:
@@ -55,7 +53,7 @@ class EmbeddingService:
         response = self.client.embeddings.create(input=input, model=self.model_id).data
         return [np.array(data.embedding) for data in response]
 
-    def get_top_n_matches(self, task: np.ndarray, tools: np.ndarray, n: int = 1) -> List[EmbeddingTopNMatches]:
+    def get_top_n_matches(self, task: np.ndarray, tools: np.ndarray, n: int = 1) -> list[EmbeddingTopNMatches]:
         """Get the top N matches from the distance array.
 
         Args:

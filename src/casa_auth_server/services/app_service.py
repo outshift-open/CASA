@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 """Service layer for managing applications and their tools."""
 
 import logging
-from typing import List
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -37,7 +36,6 @@ from casa_auth_server.core.types import (
 )
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 
 class ToolRequest(BaseModel):
@@ -57,7 +55,7 @@ class AppRequest(BaseModel):
     name: str
     base_url: str
     mas_id: str
-    tools: List[ToolRequest] = []
+    tools: list[ToolRequest] = []
 
 
 class AppService:
@@ -171,11 +169,11 @@ class AppService:
             jwks_uri=f"{self.api_url}/{app.id}/oauth2/.well-known/jwks.json",
         )
 
-    def get_all_apps(self) -> List[App]:
+    def get_all_apps(self) -> list[App]:
         """Get all apps."""
         return self.app_repository.get_all_apps()
 
-    def get_mas_apps(self, mas_id: str) -> List[App]:
+    def get_mas_apps(self, mas_id: str) -> list[App]:
         """Get all apps in a MAS."""
         return self.app_repository.get_mas_apps(mas_id)
 

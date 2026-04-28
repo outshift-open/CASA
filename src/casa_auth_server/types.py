@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
 
 """Common type definitions for Identity Auth Server."""
 
-from typing import List
-
 from mcp import types as mcp_types
 from pydantic import BaseModel
 
@@ -23,14 +21,14 @@ from pydantic import BaseModel
 Task = str  # Type alias for task descriptions
 ToolName = str  # Type alias for tool names
 McpBadge = str  # Type alias for MCP identity badges containing tool objects
-McpResources = List[mcp_types.Resource]  # Type alias for list of MCP resource objects
+McpResources = list[mcp_types.Resource]  # Type alias for list of MCP resource objects
 McpServerName = str  # Type alias for MCP server names
-McpTools = List[mcp_types.Tool]  # Type alias for list of MCP tool objects
+McpTools = list[mcp_types.Tool]  # Type alias for list of MCP tool objects
 
 
 class McpServer(BaseModel):
     """MCP Server with tools and resources."""
 
     name: McpServerName
-    tools: List[mcp_types.Tool]
-    resources: List[mcp_types.Resource]
+    tools: list[mcp_types.Tool]
+    resources: list[mcp_types.Resource]

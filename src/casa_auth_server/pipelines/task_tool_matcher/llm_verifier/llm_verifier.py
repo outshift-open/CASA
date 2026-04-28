@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import logging
 import os
 
 import httpx
-from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
@@ -57,7 +56,6 @@ class LlmVerifierTaskToolMatcher(TaskToolMatcher):
         """Initialize the verifier matcher."""
         super().__init__()
         self.logger.setLevel(logging.DEBUG)
-        load_dotenv(".env")
         self.openai_client = OpenAI(
             api_key=os.getenv("OPENAI_GPT4o_API_JWT_TOKEN"),
             base_url=os.getenv("OPENAI_GPT4o_API_BASE_URL"),
@@ -76,7 +74,7 @@ class LlmVerifierTaskToolMatcher(TaskToolMatcher):
         self,
         input: TaskToolMatchInput,
     ) -> TaskToolMatchOutput:
-        """Basic solution that leverages embeddings to determine if a requested tool matches the given task.
+        """Use an LLM to determine if a requested tool matches the given task.
 
         Args:
             input (TaskToolMatchInput): The task description, requested tool, available tools, and MCP tools.
