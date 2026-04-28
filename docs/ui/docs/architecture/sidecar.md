@@ -47,7 +47,7 @@ flowchart TB
 **Inbound path (port 15001):**
 
 1. All incoming requests are intercepted
-2. The `ext_authz` filter calls the control plane to introspect the token in the `Authorization` header
+2. The `ext_authz` filter calls the runtime to introspect the token in the `Authorization` header
 3. If the token is valid and scoped correctly: forward to the application
 4. If invalid or absent: return 403, fail closed
 
@@ -55,7 +55,7 @@ flowchart TB
 
 1. All outgoing requests are intercepted
 2. The Lua filter checks if a valid cached token exists
-3. If not, it requests a token exchange from the control plane
+3. If not, it requests a token exchange from the runtime
 4. Injects the token as `Authorization: Bearer <token>`
 5. Enforces protocol restrictions (only MCP/A2A paths are allowed)
 
@@ -63,9 +63,9 @@ flowchart TB
 
 Introspection results are cached locally for 30 seconds. This means:
 
-- Reduced load on the control plane during normal operation
-- If the control plane becomes unreachable, cached results continue to work for up to 30 seconds
-- After cache expiry, the sidecar **fails closed** — all requests are denied until the control plane recovers
+- Reduced load on the runtime during normal operation
+- If the runtime becomes unreachable, cached results continue to work for up to 30 seconds
+- After cache expiry, the sidecar **fails closed** — all requests are denied until the runtime recovers
 
 ## Protocol Enforcement
 
@@ -77,11 +77,11 @@ The sidecar enforces that agents only use allowed protocols:
 | `mcp_server` | (inbound MCP only)         |
 | `client`     | MCP, A2A                   |
 
-Requests to paths that do not match allowed protocol patterns are rejected with a 403 before the control plane is consulted.
+Requests to paths that do not match allowed protocol patterns are rejected with a 403 before the runtime is consulted.
 
 ## Istio ext-authz Middleware
 
-In Istio mode, the external authorization check is handled by the `ext_authz_middleware` — a Go gRPC service bundled in the `casa-control-plane` Helm chart. It:
+In Istio mode, the external authorization check is handled by the `ext_authz_middleware` — a Go gRPC service bundled in the `casa-runtime` Helm chart. It:
 
 1. Receives authorization check requests from Envoy's ext_authz filter
 2. Extracts the trace ID from the `traceparent` header (W3C trace context)

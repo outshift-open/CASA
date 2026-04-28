@@ -151,7 +151,7 @@ spec:
     namespace: production-mas
     port: 8080
   - name: casa-auth-service
-    namespace: casa-control-plane
+    namespace: casa-runtime
     port: 8443
   llmEndpoint:
     fqdn: api.openai.com
@@ -174,7 +174,7 @@ spec:
   - mcp
   allowedEndpoints:
   - name: casa-auth-service
-    namespace: casa-control-plane
+    namespace: casa-runtime
     port: 8443
 ```
 
@@ -197,7 +197,7 @@ spec:
     namespace: production-mas
     port: 8080
   - name: casa-auth-service
-    namespace: casa-control-plane
+    namespace: casa-runtime
     port: 8443
   # No llmEndpoint — this agent cannot call external LLMs
 ```

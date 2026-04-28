@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ---
-name: CASA Control Plane CI/CD
+name: CASA Runtime CI/CD
 on:
     push:
         branches:
@@ -117,8 +117,8 @@ jobs:
 
     ################################## Helm Publish (OCI to GHCR) #####################
     ###################################################################################
-    call-helm-publish-casa-control-plane:
-        name: Helm publish casa-control-plane (OCI GHCR)
+    call-helm-publish-casa-runtime:
+        name: Helm publish casa-runtime (OCI GHCR)
         needs:
             [
                 checkout,
@@ -129,7 +129,7 @@ jobs:
             ]
         uses: ./.github/workflows/helm-publish.yaml
         with:
-            chart-path: deployments/helm/casa-control-plane
+            chart-path: deployments/helm/casa-runtime
             oci-repository: helm
 
     call-helm-publish-sidecar:

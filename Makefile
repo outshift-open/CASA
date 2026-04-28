@@ -8,7 +8,7 @@ endif
 PYTHON_VERSION = 3.12
 
 # Helm parameters (override with make helm-install HELM_RELEASE=my-release HELM_NAMESPACE=my-ns)
-HELM_CHART     = deployments/helm/casa-control-plane
+HELM_CHART     = deployments/helm/casa-runtime
 HELM_RELEASE  ?= casa-poc
 HELM_NAMESPACE ?= casa-dev
 
@@ -181,7 +181,7 @@ generate-sdk:
 > ./scripts/generate_sdk.sh
 .PHONY: generate-sdk
 
-helm-lint: # Lint the CASA control-plane Helm chart.
+helm-lint: # Lint the CASA runtime Helm chart.
 > @printf "$(YELLOW)Linting Helm chart: $(HELM_CHART)$(NOCOLOR)\n"
 > helm lint $(HELM_CHART)
 .PHONY: helm-lint
@@ -191,26 +191,26 @@ helm-template: # Render Helm templates to stdout (dry-run).
 > helm template $(HELM_RELEASE) $(HELM_CHART) --namespace $(HELM_NAMESPACE)
 .PHONY: helm-template
 
-helm-install: # Install the CASA control-plane chart (creates namespace if missing).
+helm-install: # Install the CASA runtime chart (creates namespace if missing).
 > @printf "$(YELLOW)Installing Helm release $(HELM_RELEASE) in namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
 > helm install $(HELM_RELEASE) $(HELM_CHART) \
     --namespace $(HELM_NAMESPACE) \
     --create-namespace
 .PHONY: helm-install
 
-helm-upgrade: # Upgrade (or install) the CASA control-plane chart.
+helm-upgrade: # Upgrade (or install) the CASA runtime chart.
 > @printf "$(YELLOW)Upgrading Helm release $(HELM_RELEASE) in namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
 > helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) \
     --namespace $(HELM_NAMESPACE) \
     --create-namespace
 .PHONY: helm-upgrade
 
-helm-uninstall: # Uninstall the CASA control-plane Helm release.
+helm-uninstall: # Uninstall the CASA runtime Helm release.
 > @printf "$(RED)Uninstalling Helm release $(HELM_RELEASE) from namespace $(HELM_NAMESPACE)$(NOCOLOR)\n"
 > helm uninstall $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
 .PHONY: helm-uninstall
 
-helm-status: # Show status of the CASA control-plane Helm release.
+helm-status: # Show status of the CASA runtime Helm release.
 > helm status $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
 .PHONY: helm-status
 

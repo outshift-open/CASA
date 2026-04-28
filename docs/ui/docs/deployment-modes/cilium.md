@@ -20,7 +20,7 @@ This is the **planned production architecture**, architecturally equivalent to I
 %%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph LR
     Application --> Sidecar["CASA Sidecar\n(Cilium node daemonset)"]
-    Sidecar --> CASA["CASA Control Plane"]
+    Sidecar --> CASA["CASA Runtime"]
     ZTP["CASAPolicy\n(L4/L7 enforcement)"] --> Sidecar
     eBPF["eBPF programs\n(JWT extraction, flow logging)"] --> Sidecar
 
@@ -39,7 +39,7 @@ graph LR
 ## Prerequisites
 
 - Cilium 1.14+ installed in your cluster
-- CASA control plane installed via the `casa-control-plane` Helm chart (includes all CASA components and subcharts)
+- CASA runtime installed via the `casa-runtime` Helm chart (includes all CASA components and subcharts)
 
 ## Step 1: Label the Namespace
 
@@ -75,7 +75,7 @@ spec:
     namespace: your-mas-namespace
     port: 8080
   - name: casa-auth-service
-    namespace: casa-control-plane
+    namespace: casa-runtime
     port: 8443
   llmEndpoint:
     fqdn: api.openai.com
@@ -107,7 +107,7 @@ kubectl exec -n your-mas-namespace deploy/my-agent -- curl -s https://api.anthro
 Token events, tool check decisions, and flow verdicts are visible in the **CASA Explorer UI**:
 
 ```bash
-kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
+kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080
 ```
 

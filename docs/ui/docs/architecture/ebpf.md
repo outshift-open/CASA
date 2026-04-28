@@ -12,7 +12,7 @@ In the current **Istio deployment**, eBPF enforcement uses the node kernel direc
 
 ## What eBPF Handles
 
-| Capability                       | eBPF                  | Sidecar | Control Plane |
+| Capability                       | eBPF                  | Sidecar | Runtime |
 | -------------------------------- | --------------------- | ------- | ------------- |
 | Deny-by-default networking       | ✅                    | —       | —             |
 | Identity-based allow-lists       | ✅                    | —       | —             |
@@ -55,7 +55,7 @@ spec:
           namespace: production-mas
           port: 8080
         - name: casa-auth-service
-          namespace: casa-control-plane
+          namespace: casa-runtime
           port: 8443
 ```
 
@@ -106,7 +106,7 @@ spec:
           namespace: production-mas
           port: 8080
         - name: casa-auth-service
-          namespace: casa-control-plane
+          namespace: casa-runtime
           port: 8443
     llmEndpoint:
         fqdn: api.openai.com

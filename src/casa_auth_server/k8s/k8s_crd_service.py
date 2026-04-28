@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 class K8sCRDService:
-    """Service for managing Kubernetes CRD resources in the CASA control plane."""
+    """Service for managing Kubernetes CRD resources in the CASA runtime."""
 
     def __init__(
         self,

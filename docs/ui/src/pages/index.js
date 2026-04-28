@@ -75,7 +75,7 @@ const features = [
         title: "Kubernetes-Native",
         description:
             "Deploy via Helm. Configure via CRDs. Works with Istio or Cilium. Fits naturally into your existing cloud-native stack.",
-        link: "/installation/control-plane",
+        link: "/installation/runtime",
     },
     {
         icon: "🔍",

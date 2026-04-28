@@ -62,8 +62,8 @@
 kind create cluster --name casa-poc
 cilium install && cilium status --wait
 
-# 2. Deploy control plane (auth service + postgres)
-kubectl apply -f https://raw.githubusercontent.com/your-org/casa-poc/main/deploy/control-plane.yaml
+# 2. Deploy runtime (auth service + postgres)
+kubectl apply -f https://raw.githubusercontent.com/your-org/casa-poc/main/deploy/runtime.yaml
 kubectl wait --for=condition=ready pod -n casa-dev -l app=casa-auth --timeout=300s
 
 # 3. Deploy sidecar injector
@@ -106,7 +106,7 @@ This section provides complete, working Kubernetes manifests you can deploy imme
 # Save this as casa-poc-minimal.yaml
 cat <<'EOF' > casa-poc-minimal.yaml
 ---
-# Namespace: casa-dev (Control Plane)
+# Namespace: casa-dev (Runtime)
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -697,7 +697,7 @@ A minimal viable Kubernetes deployment of a Zero Trust Authorization System for 
 **Architecture in 30 seconds:**
 - **Sidecar pattern**: Envoy proxy injected into agent/MCP pods
 - **Basic network enforcement**: Cilium with simple deny-by-default policies
-- **Token-based auth**: JWT tokens from simplified control plane
+- **Token-based auth**: JWT tokens from simplified runtime
 - **Protocol restrictions**: MCP protocol internal, single LLM endpoint external
 - **Minimal defense**: Sidecar + Basic eBPF enforcement
 
@@ -718,7 +718,7 @@ graph TB
         LLM[OpenAI LLM]
     end
 
-    subgraph "🟢 CASA Control Plane (casa-dev namespace)"
+    subgraph "🟢 CASA Runtime (casa-dev namespace)"
         AUTH[Auth Service<br/>1 pod - monolithic]
         KC[Keycloak<br/>1 pod]
         PG[(PostgreSQL<br/>1 pod)]
@@ -772,9 +772,9 @@ graph TB
 
 ## Component Breakdown
 
-### Control Plane (namespace: `casa-dev`)
+### Runtime (namespace: `casa-dev`)
 
-The control plane issues and validates tokens. In PoC, we collapse multiple services into a monolith.
+The runtime issues and validates tokens. In PoC, we collapse multiple services into a monolith.
 
 | Component | What It Does | Replicas | Resources | Notes |
 |-----------|-------------|----------|-----------|-------|
@@ -848,7 +848,7 @@ The PoC implements a streamlined version of the production token flow.
 |--------|-----------|-----|
 | **Token types** | 3 tokens (T1, T2, T3) | 2 tokens (LLM, Tool) |
 | **Exchange mechanism** | RFC 8693 full implementation | Simplified exchange |
-| **Validation layers** | eBPF + Sidecar + Control Plane | Sidecar + Control Plane |
+| **Validation layers** | eBPF + Sidecar + Runtime | Sidecar + Runtime |
 | **Tool checks** | 3 checks (deterministic + AI) | 1 check (tool exists?) |
 | **Caching** | Redis distributed cache | In-memory per-sidecar |
 
@@ -1227,7 +1227,7 @@ cilium install
 cilium status
 ```
 
-### Step 1: Deploy Control Plane
+### Step 1: Deploy Runtime
 
 ```bash
 # Create namespace
@@ -2063,7 +2063,7 @@ async def handle_mcp_request(
 
 ## Testing the PoC
 
-### 1. Verify Control Plane
+### 1. Verify Runtime
 
 ```bash
 # Check all pods running
@@ -2809,7 +2809,7 @@ kubectl exec -n casa-dev deployment/postgres -- \
 #### 9. Logs and Debugging
 
 ```bash
-# Stream all logs from control plane
+# Stream all logs from runtime
 kubectl logs -n casa-dev -l app=casa-auth --follow
 
 # Stream agent logs
@@ -3579,7 +3579,7 @@ async def call_llm_with_audit(prompt: str, casa_token: str):
 ### Path to Production
 
 1. **Phase 1: Working PoC** (1-2 weeks)
-   - ✅ Deploy control plane
+   - ✅ Deploy runtime
    - ✅ Sidecar injection working
    - ✅ Basic token flow (issue + validate)
    - ✅ Cilium policies enforcing deny-by-default
@@ -3622,7 +3622,7 @@ This section details the incremental steps to evolve the PoC into a production-r
 **Goal:** Eliminate single points of failure.
 
 **Changes:**
-1. **Scale control plane:**
+1. **Scale runtime:**
    ```yaml
    # Update deployments
    spec:
@@ -3865,7 +3865,7 @@ def issue_token(...):
     return token
 ```
 
-#### 5.2 Add mTLS for Sidecar ↔ Control Plane
+#### 5.2 Add mTLS for Sidecar ↔ Runtime
 ```yaml
 # Envoy TLS config
 transport_socket:
@@ -3879,7 +3879,7 @@ transport_socket:
       validation_context:
         trusted_ca: {filename: "/etc/certs/ca.crt"}
         match_subject_alt_names:
-        - exact: "casa-auth.casa-control-plane.svc"
+        - exact: "casa-auth.casa-runtime.svc"
 ```
 
 #### 5.3 Add Network Policy Hardening
@@ -3888,17 +3888,17 @@ transport_socket:
 apiVersion: cilium.io/v2
 kind:CiliumNetworkPolicy
 metadata:
-  name: control-plane-lockdown
-  namespace: casa-control-plane
+  name: runtime-lockdown
+  namespace: casa-runtime
 spec:
   endpointSelector:
     matchLabels:
-      tier: control-plane
+      tier: runtime
   egress:
   # Only allow internal cluster communication
   - toEndpoints:
     - matchLabels:
-        k8s:io.kubernetes.pod.namespace: casa-control-plane
+        k8s:io.kubernetes.pod.namespace: casa-runtime
   - toEndpoints:
     - matchLabels:
         k8s:io.kubernetes.pod.namespace: kube-system
@@ -4062,7 +4062,7 @@ Use this checklist to validate your system:
 
 ## Troubleshooting
 
-### Control Plane Issues
+### Runtime Issues
 
 ```bash
 # Postgres not starting
@@ -4175,7 +4175,7 @@ hubble observe --namespace dev-mas --verdict DROPPED
 
 3. **Harden security:**
    - Enable TLS for all services (use cert-manager)
-   - Add NetworkPolicies for control plane isolation
+   - Add NetworkPolicies for runtime isolation
    - Rotate JWT signing keys
    - Enable Cilium Hubble for flow visibility
 
@@ -4257,7 +4257,7 @@ hubble observe --namespace dev-mas --verdict DROPPED
 See **Migration Path: PoC → Production** section above for detailed 12-week plan.
 
 **Key milestones:**
-- [ ] Week 4: HA control plane deployed
+- [ ] Week 4: HA runtime deployed
 - [ ] Week 8: Telemetry + observability operational
 - [ ] Week 12: AI-powered checks enabled
 - [ ] Week 16: Production hardening complete
@@ -4379,7 +4379,7 @@ hubble observe --verdict DROPPED --follow
 
 ---
 
-### Pitfall 4: Control Plane Overload
+### Pitfall 4: Runtime Overload
 
 **Symptom:** Token issuance slow (>1s latency), timeouts.
 
@@ -4463,7 +4463,7 @@ Before moving from PoC to production, complete these items:
 
 - [ ] **Harden network policies** - Add more granular rules
   - Block pod-to-pod in same namespace
-  - Require mTLS for control plane
+  - Require mTLS for runtime
   - Add egress deny-by-default
 
 - [ ] **Enable audit logging** - Track all token operations
@@ -4493,7 +4493,7 @@ Before moving from PoC to production, complete these items:
     --set sentinel.enabled=true
   ```
 
-- [ ] **Scale control plane** - 3+ replicas per service
+- [ ] **Scale runtime** - 3+ replicas per service
   ```yaml
   replicas: 3
   affinity:
@@ -4572,7 +4572,7 @@ Before moving from PoC to production, complete these items:
 
 ### Performance (Important)
 
-- [ ] **Load test control plane** - Use k6 or Locust
+- [ ] **Load test runtime** - Use k6 or Locust
   ```javascript
   // k6 script
   import http from 'k6/http';
@@ -4624,7 +4624,7 @@ Before moving from PoC to production, complete these items:
   ```
 
 - [ ] **Data residency** - Region-specific deployment
-  - Deploy control plane in required region
+  - Deploy runtime in required region
   - Configure Cilium for geo-fencing
 
 - [ ] **Penetration testing** - Third-party security audit
@@ -4649,9 +4649,9 @@ Before moving from PoC to production, complete these items:
 
 - [ ] **CI/CD pipeline** - GitOps with ArgoCD
   ```bash
-  argocd app create casa-control-plane \
+  argocd app create casa-runtime \
     --repo https://github.com/your-org/casa-deploy \
-    --path control-plane \
+    --path runtime \
     --dest-namespace casa-prod \
     --dest-server https://kubernetes.default.svc
   ```
@@ -4706,7 +4706,7 @@ A: Set `ENABLE_AI_CHECKS=true` in auth service, add OpenAI API key, deploy embed
 
 **Q: Can I migrate from PoC to production without downtime?**
 A: Yes, using blue-green deployment:
-1. Deploy production control plane in new namespace (`casa-prod`)
+1. Deploy production runtime in new namespace (`casa-prod`)
 2. Migrate MAS one at a time (update sidecar auth URL)
 3. Run both systems in parallel during transition
 4. Decommission PoC once all workloads migrated
@@ -4768,7 +4768,7 @@ After deploying this PoC, you should be able to:
 1. **Deploy the PoC** (1-2 hours)
    ```bash
    kind create cluster --name casa-poc
-   kubectl apply -f control-plane.yaml
+   kubectl apply -f runtime.yaml
    kubectl apply -f data-plane.yaml
    ```
 

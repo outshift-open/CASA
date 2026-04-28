@@ -10,7 +10,7 @@ This document defines the information architecture and content decisions for the
 
 | Audience | Goal | Entry Point |
 |---|---|---|
-| Platform engineers / DevOps | Deploy CASA control plane into a K8s cluster | README → Installation |
+| Platform engineers / DevOps | Deploy CASA runtime into a K8s cluster | README → Installation |
 | MAS application developers | Register and configure a Multi-Agent System | README → Concepts → CRDs |
 | Security engineers | Understand trust model, policy checks, enforcement layers | Architecture → Concepts |
 | OSS contributors | Understand codebase and contribute | Contributing |
@@ -28,7 +28,7 @@ This document defines the information architecture and content decisions for the
 
 ### What Belongs in the Docs Portal
 
-- Deep architecture explanations (control plane components, sidecar internals, eBPF enforcement)
+- Deep architecture explanations (runtime components, sidecar internals, eBPF enforcement)
 - Full configuration reference (all Helm values, CRD fields)
 - Deployment mode guides (Istio vs Cilium)
 - Concept deep-dives (token flow, tool checks, MAS model)
@@ -54,7 +54,7 @@ docs/
 ├── Overview                        ← brief orientation, links to sections
 ├── Architecture
 │   ├── Overview                    ← global diagram + component summary
-│   ├── Control Plane               ← auth service, Keycloak, PostgreSQL, UI Explorer
+│   ├── Runtime               ← auth service, Keycloak, PostgreSQL, UI Explorer
 │   ├── CASA Sidecar                 ← Envoy-based, inbound/outbound, iptables, ext-authz
 │   └── eBPF Enforcement            ← Cilium L3/L4, JWT extraction, observability
 ├── Concepts
@@ -65,10 +65,10 @@ docs/
 │   └── Semantic Checks             ← AI_POWERED_TOOL_MATCH, embeddings, LLM verifier
 ├── Installation
 │   ├── Prerequisites               ← kubectl, helm, cluster requirements
-│   ├── Control Plane               ← helm install casa-control-plane
+│   ├── Runtime               ← helm install casa-runtime
 │   └── Demo MAS                    ← helm install casa-mas
 ├── Configuration
-│   ├── Control Plane Values        ← values.yaml field reference
+│   ├── Runtime Values        ← values.yaml field reference
 │   ├── Demo MAS Values             ← values.yaml field reference
 │   └── CRDs Reference              ← field-by-field for MultiAgentSystem and CASAPolicy
 ├── Deployment Modes
@@ -92,9 +92,9 @@ docs/
 
 ## 3. Packaging and Configuration Decisions
 
-### Control Plane Chart (`casa-control-plane`)
+### Runtime Chart (`casa-runtime`)
 
-**Present as:** A self-contained Helm chart that deploys the CASA control plane. All dependencies (PostgreSQL for auth, PostgreSQL for Keycloak, Keycloak) are bundled by default and can be disabled to use externally managed services.
+**Present as:** A self-contained Helm chart that deploys the CASA runtime. All dependencies (PostgreSQL for auth, PostgreSQL for Keycloak, Keycloak) are bundled by default and can be disabled to use externally managed services.
 
 **Dependency handling:**
 - `postgresAuth.enabled` / `postgresKeycloak.enabled` — set to `false` to use an external Postgres
@@ -188,10 +188,10 @@ Single Mermaid diagram showing:
 ### Optional Diagram — Token Flow Sequence (in `concepts/token-flow.md` only)
 
 Mermaid sequence diagram showing:
-1. User submits prompt → client sidecar requests token from control plane
+1. User submits prompt → client sidecar requests token from runtime
 2. Agent receives request → sidecar exchanges token for LLM-scoped token
 3. Agent calls LLM → eBPF validates token, forwards
-4. Agent requests MCP token → control plane runs tool checks
+4. Agent requests MCP token → runtime runs tool checks
 5. Agent calls MCP server → MCP sidecar introspects token, forwards
 
 No other diagrams needed for v1.
@@ -207,7 +207,7 @@ No other diagrams needed for v1.
 3. One-sentence description
 4. `## Why CASA` — problem statement (3 short paragraphs)
 5. `## Architecture` — Mermaid diagram + brief component list
-6. `## Core Concepts` — 6 definitions (Control Plane, MAS, CASA Sidecar, MultiAgentSystem CRD, Deterministic Checks, Semantic Checks)
+6. `## Core Concepts` — 6 definitions (Runtime, MAS, CASA Sidecar, MultiAgentSystem CRD, Deterministic Checks, Semantic Checks)
 7. `## Quick Start` — 5-step Helm deployment
 8. `## Repository Structure` — directory table
 9. `## Project Status` — alpha disclaimer

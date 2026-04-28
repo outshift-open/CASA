@@ -7,7 +7,7 @@ This document defines a production-ready Kubernetes architecture for deploying a
 **Key Architectural Decisions:**
 - **Sidecar-per-workload**: Every MCP server, User App, and Agent gets a Zero Trust sidecar proxy
 - **eBPF L3/L4 enforcement**: Cilium enforces deny-by-default networking with identity-aware policies
-- **Control plane separation**: CASA control plane manages token issuance, validation, and policy distribution
+- **Control plane separation**: CASA runtime manages token issuance, validation, and policy distribution
 - **Protocol restrictions**: Only MCP (internal) and A2A (agent-to-agent) protocols allowed internally; single OpenAI-compatible LLM endpoint externally
 - **Token-aware enforcement**: eBPF captures and validates JWT tokens at network layer where feasible
 
@@ -84,8 +84,8 @@ This document defines a production-ready Kubernetes architecture for deploying a
 
 ```mermaid
 graph TB
-    subgraph "Control Plane Namespace"
-        CASA[CASA Control Plane<br/>StatefulSet]
+    subgraph "Runtime Namespace"
+        CASA[CASA Runtime<br/>StatefulSet]
         KC[Keycloak IdP<br/>StatefulSet]
         PG[(PostgreSQL<br/>StatefulSet)]
         UI[CASA Explorer UI<br/>Deployment]
@@ -166,7 +166,7 @@ graph LR
         MCPS[MCP Sidecar]
     end
 
-    subgraph "Trust Boundary 3: Control Plane"
+    subgraph "Trust Boundary 3: Runtime"
         CASA[CASA Server]
         KC[Keycloak]
         PG[(Database)]
@@ -202,7 +202,7 @@ sequenceDiagram
     participant UserApp
     participant UASidecar as UserApp Sidecar
     participant eBPF as Cilium eBPF
-    participant CASA as CASA Control Plane
+    participant CASA as CASA Runtime
     participant Agent
     participant AgentSidecar as Agent Sidecar
     participant LLM as External LLM
@@ -264,7 +264,7 @@ The monolithic CASA server must be split to achieve:
 
 ```mermaid
 graph TB
-    subgraph "Control Plane Components"
+    subgraph "Runtime Components"
         AUTH[Auth Service<br/>Token Issuance & Exchange]
         POLICY[Policy Service<br/>MAS/Tool/Scope Management]
         PIPE[AI Pipeline Service<br/>Embeddings & LLM Verifier]
@@ -306,7 +306,7 @@ graph TB
 
 ### 3.3 Component Definitions
 
-#### 3.3.1 Auth Service (Control Plane)
+#### 3.3.1 Auth Service (Runtime)
 
 **Responsibilities:**
 - OAuth2 token generation (client credentials flow)
@@ -335,7 +335,7 @@ graph TB
 
 ---
 
-#### 3.3.2 Policy Service (Control Plane)
+#### 3.3.2 Policy Service (Runtime)
 
 **Responsibilities:**
 - CRUD operations for Apps, MAS, Tools, Scopes
@@ -362,7 +362,7 @@ graph TB
 
 ---
 
-#### 3.3.3 AI Pipeline Service (Control Plane)
+#### 3.3.3 AI Pipeline Service (Runtime)
 
 **Responsibilities:**
 - Task-to-tool matching (embeddings, LLM verifier, hybrid)
@@ -399,7 +399,7 @@ graph TB
 
 ---
 
-#### 3.3.4 Telemetry Service (Control Plane)
+#### 3.3.4 Telemetry Service (Runtime)
 
 **Responsibilities:**
 - High-volume event ingestion (token issued, exchanged, LLM calls, MCP calls)
@@ -425,7 +425,7 @@ graph TB
 
 ---
 
-#### 3.3.5 MCP Discovery Service (Control Plane)
+#### 3.3.5 MCP Discovery Service (Runtime)
 
 **Responsibilities:**
 - Asynchronous MCP tool discovery via HTTP streaming
@@ -457,12 +457,12 @@ graph TB
 - Token introspection caching (TTL 30s)
 - Protocol enforcement (MCP, A2A)
 - Request/response logging
-- Fail-closed: Deny traffic if CASA control plane unreachable
+- Fail-closed: Deny traffic if CASA runtime unreachable
 
 **Features:**
-- **Token Caching**: Cache introspection results to reduce control plane load
+- **Token Caching**: Cache introspection results to reduce runtime load
 - **Retry Logic**: Exponential backoff for transient failures
-- **Circuit Breaker**: Stop calling control plane if error rate > 50%
+- **Circuit Breaker**: Stop calling runtime if error rate > 50%
 - **Metrics**: Prometheus endpoint for request rates, latencies, cache hit ratio
 
 **Configuration (Annotations/Env Vars):**
@@ -480,7 +480,7 @@ graph TB
 
 **Ports:**
 - `15001` - Inbound proxy (from other sidecars)
-- `15002` - Outbound proxy (to other sidecars/control plane)
+- `15002` - Outbound proxy (to other sidecars/runtime)
 - `15003` - Admin/metrics endpoint
 
 ---
@@ -509,7 +509,7 @@ graph TB
 
 ### 4.1 Enforcement Layer Responsibility Table
 
-| Capability | Sidecar (L7) | eBPF (L3/L4) | Control Plane | Justification |
+| Capability | Sidecar (L7) | eBPF (L3/L4) | Runtime | Justification |
 |------------|--------------|--------------|---------------|---------------|
 | **Network Policy Enforcement** |
 | Deny-by-default | ❌ | ✅ | ❌ | eBPF blocks at kernel level (pre-userspace) |
@@ -517,7 +517,7 @@ graph TB
 | Protocol filtering (MCP/A2A) | ✅ | ⚠️ | ❌ | Sidecar inspects L7, eBPF sees L4 (TCP) |
 | Rate limiting | ✅ | ⚠️ | ❌ | Sidecar (per-request), eBPF (per-connection) |
 | **Token Operations** |
-| Token acquisition | ✅ | ❌ | ✅ | Sidecar requests from control plane |
+| Token acquisition | ✅ | ❌ | ✅ | Sidecar requests from runtime |
 | Token injection | ✅ | ❌ | ❌ | Sidecar adds Authorization header |
 | Token extraction | ✅ | ✅ | ❌ | Both extract for logging/validation |
 | Token validation (JWT decode) | ✅ | ⚠️ | ✅ | Sidecar fully validates, eBPF checks signature only |
@@ -530,12 +530,12 @@ graph TB
 | **Security Enforcement** |
 | Token scope validation | ✅ | ⚠️ | ✅ | Sidecar checks scopes, eBPF checks presence |
 | Tool authorization | ❌ | ❌ | ✅ | Control plane runs tool checks |
-| MCP auth header validation | ✅ | ❌ | ✅ | Sidecar extracts, control plane validates |
+| MCP auth header validation | ✅ | ❌ | ✅ | Sidecar extracts, runtime validates |
 | LLM endpoint restriction | ❌ | ✅ | ❌ | eBPF enforces single egress FQDN |
 | Token exfiltration prevention | ⚠️ | ✅ | ❌ | eBPF blocks unexpected egress |
 | **Advanced Features** |
 | JWT signature verification | ✅ | ✅ | ✅ | eBPF does fast path, sidecar full validation |
-| Token exchange | ✅ | ❌ | ✅ | Sidecar requests, control plane issues |
+| Token exchange | ✅ | ❌ | ✅ | Sidecar requests, runtime issues |
 | mTLS termination | ✅ | ❌ | ❌ | Sidecar handles TLS |
 
 **Legend:**
@@ -575,7 +575,7 @@ spec:
   - toEndpoints:
     - matchLabels:
         app: casa-auth-service  # Allow agent → CASA
-        namespace: casa-control-plane
+        namespace: casa-runtime
     toPorts:
     - ports:
       - port: "443"
@@ -597,7 +597,7 @@ spec:
 - Check basic claims (exp, iat) without full decode
 
 **Implementation:**
-1. **BPF Map**: Store JWK public keys (updated by control plane)
+1. **BPF Map**: Store JWK public keys (updated by runtime)
    ```c
    struct bpf_map_def SEC("maps") jwt_public_keys = {
        .type = BPF_MAP_TYPE_HASH,
@@ -651,11 +651,11 @@ spec:
 #### 4.2.3 Token Exchange in eBPF
 
 **Not Feasible:**
-- Token exchange requires calling control plane (network I/O from eBPF not allowed)
+- Token exchange requires calling runtime (network I/O from eBPF not allowed)
 - eBPF cannot maintain HTTP client connections
 - Delegation token generation needs cryptographic operations (Keycloak)
 
-**Verdict:** Token exchange MUST be handled by sidecar or control plane.
+**Verdict:** Token exchange MUST be handled by sidecar or runtime.
 
 #### 4.2.4 Flow Observability with Hubble
 
@@ -722,7 +722,7 @@ graph LR
         AUTHZ --> CACHE[(Local Cache<br/>Redis)]
         INJECT --> CACHE
 
-        AUTHZ -->|Introspect| CTRLPLANE[Control Plane<br/>Auth Service]
+        AUTHZ -->|Introspect| CTRLPLANE[Runtime<br/>Auth Service]
         INJECT -->|Exchange| CTRLPLANE
     end
 
@@ -859,7 +859,7 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: casa-auth-service.casa-control-plane.svc.cluster.local
+                address: casa-auth-service.casa-runtime.svc.cluster.local
                 port_value: 8443
 ```
 
@@ -945,7 +945,7 @@ sequenceDiagram
     participant APP as Application
     participant SIDECAR as CASA Sidecar
     participant CACHE as Local Cache
-    participant CTRL as Control Plane
+    participant CTRL as Runtime
 
     APP->>SIDECAR: Outbound HTTP Request
     SIDECAR->>SIDECAR: Check protocol (MCP/A2A)
@@ -973,7 +973,7 @@ sequenceDiagram
 ### 4.3.6 External Auth Service (ext_authz)
 
 **Responsibilities:**
-- Validate inbound tokens via control plane introspection
+- Validate inbound tokens via runtime introspection
 - Cache introspection results (30s TTL)
 - Enforce rate limits per token
 - Log authorization decisions to telemetry
@@ -1013,7 +1013,7 @@ func (s *AuthzServer) Check(ctx context.Context, req *CheckRequest) (*CheckRespo
         return &CheckResponse{Status: PERMISSION_DENIED}, nil
     }
 
-    // Call control plane introspection
+    // Call runtime introspection
     resp, err := s.ctrlPlaneClient.IntrospectToken(ctx, &IntrospectRequest{Token: token})
     if err != nil || !resp.Active {
         s.cache.Set(token, &CachedResult{Active: false}, 30*time.Second)
@@ -1103,7 +1103,7 @@ func (i *Injector) Inject(pod *corev1.Pod) (*corev1.Pod, error) {
             {Name: "admin", ContainerPort: 15003},
         },
         Env: []corev1.EnvVar{
-            {Name: "CASA_CONTROL_PLANE_URL", Value: "https://casa-auth-service.casa-control-plane.svc:8443"},
+            {Name: "CASA_CONTROL_PLANE_URL", Value: "https://casa-auth-service.casa-runtime.svc:8443"},
             {Name: "CASA_APP_TYPE", Value: appType},
             {Name: "CASA_APP_ID", Value: pod.Labels["casa.io/app-id"]},
             {Name: "CASA_ALLOWED_PROTOCOLS", Value: getAllowedProtocols(appType)},
@@ -1166,7 +1166,7 @@ graph TB
             ING[Ingress Controller<br/>nginx/Cilium]
         end
 
-        subgraph "casa-control-plane Namespace"
+        subgraph "casa-runtime Namespace"
             AUTH[Auth Service]
             POLICY[Policy Service]
             PIPE[AI Pipeline]
@@ -1243,7 +1243,7 @@ spec:
   egress: []   # Deny all egress
 ```
 
-#### 5.2.2 Allow User App → CASA Control Plane
+#### 5.2.2 Allow User App → CASA Runtime
 
 ```yaml
 apiVersion: cilium.io/v2
@@ -1259,7 +1259,7 @@ spec:
   - toEndpoints:
     - matchLabels:
         app: casa-auth-service
-        io.kubernetes.pod.namespace: casa-control-plane
+        io.kubernetes.pod.namespace: casa-runtime
     toPorts:
     - ports:
       - port: "8443"
@@ -1328,22 +1328,22 @@ spec:
 - Only allowed FQDNs resolve
 - All other egress is dropped
 
-#### 5.2.5 Control Plane Internal Communication
+#### 5.2.5 Runtime Internal Communication
 
 ```yaml
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: control-plane-mesh
-  namespace: casa-control-plane
+  name: runtime-mesh
+  namespace: casa-runtime
 spec:
   endpointSelector:
     matchLabels:
-      tier: control-plane
+      tier: runtime
   ingress:
   - fromEndpoints:
     - matchLabels:
-        tier: control-plane  # Allow control plane services to talk
+        tier: runtime  # Allow runtime services to talk
   - fromEndpoints:
     - matchLabels:
         io.kubernetes.pod.namespace: production-mas  # Allow MAS workloads
@@ -1351,7 +1351,7 @@ spec:
   egress:
   - toEndpoints:
     - matchLabels:
-        tier: control-plane
+        tier: runtime
   - toEndpoints:
     - matchLabels:
         app: postgresql
@@ -1367,7 +1367,7 @@ spec:
 - Example identities:
   - `1234` = `app=agent, namespace=production-mas, casa.io/enabled=true`
   - `5678` = `app=mcp-server, namespace=production-mas, casa.io/enabled=true`
-  - `9012` = `app=casa-auth-service, namespace=casa-control-plane`
+  - `9012` = `app=casa-auth-service, namespace=casa-runtime`
 
 **Policy Enforcement:**
 - eBPF programs match identities, not IP addresses
@@ -1400,7 +1400,7 @@ graph LR
     subgraph "Data Sources"
         HUBBLE[Cilium Hubble<br/>Flow Logs]
         SIDECAR[CASA Sidecars<br/>L7 Logs]
-        CTRL[Control Plane<br/>Token Events]
+        CTRL[Runtime<br/>Token Events]
     end
 
     subgraph "Aggregation"
@@ -1650,7 +1650,7 @@ char _license[] SEC("license") = "GPL";
 
 **NOT suitable for:**
 - Full JWT validation (expiry, claims, scopes)
-- Token exchange (requires control plane call)
+- Token exchange (requires runtime call)
 - Complex business logic
 
 ### 5.5.3 LLM Endpoint Enforcement eBPF
@@ -1773,8 +1773,8 @@ metadata:
 data:
   config.yaml: |
     app_id: "agent-abc-123"
-    control_plane_url: "https://casa-auth-service.casa-control-plane.svc.cluster.local:8443"
-    telemetry_url: "https://casa-telemetry-service.casa-control-plane.svc.cluster.local:8443"
+    runtime_url: "https://casa-auth-service.casa-runtime.svc.cluster.local:8443"
+    telemetry_url: "https://casa-telemetry-service.casa-runtime.svc.cluster.local:8443"
     allowed_protocols:
       - mcp
       - a2a
@@ -1783,7 +1783,7 @@ data:
     log_level: info
 ```
 
-### 6.2 StatefulSet: Control Plane Services
+### 6.2 StatefulSet: Runtime Services
 
 **Auth Service:**
 ```yaml
@@ -1791,7 +1791,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   serviceName: casa-auth-service
   replicas: 3
@@ -1802,7 +1802,7 @@ spec:
     metadata:
       labels:
         app: casa-auth-service
-        tier: control-plane
+        tier: runtime
     spec:
       containers:
       - name: auth-service
@@ -1817,7 +1817,7 @@ spec:
               name: casa-db-credentials
               key: url
         - name: KEYCLOAK_URL
-          value: "http://keycloak.casa-control-plane.svc.cluster.local:8080"
+          value: "http://keycloak.casa-runtime.svc.cluster.local:8080"
         resources:
           requests:
             cpu: 500m
@@ -1919,7 +1919,7 @@ casa-mas-system/
 ├── values-prod.yaml
 ├── values-dev.yaml
 ├── charts/
-│   ├── control-plane/
+│   ├── runtime/
 │   │   ├── Chart.yaml
 │   │   ├── templates/
 │   │   │   ├── auth-service.yaml
@@ -2120,7 +2120,7 @@ spec:
     namespace: production-mas
     port: 8080
   - name: casa-auth-service
-    namespace: casa-control-plane
+    namespace: casa-runtime
     port: 8443
   llmEndpoint:
     fqdn: api.openai.com
@@ -2170,7 +2170,7 @@ func (r *MultiAgentSystemReconciler) Reconcile(ctx context.Context, req ctrl.Req
         }
     }
 
-    // Phase 2: Register Apps in Control Plane
+    // Phase 2: Register Apps in Runtime
     appsReady := 0
     for _, appSpec := range mas.Spec.Apps {
         app, err := r.ControlPlaneClient.GetApp(ctx, appSpec.Name)
@@ -2244,7 +2244,7 @@ func (r *MultiAgentSystemReconciler) reconcileNetworkPolicies(ctx context.Contex
         }
     }
 
-    // Generate control plane access policies
+    // Generate runtime access policies
     controlPlanePolicy := r.generateControlPlaneAccessPolicy(mas)
     if err := r.Create(ctx, controlPlanePolicy); err != nil && !errors.IsAlreadyExists(err) {
         return err
@@ -2433,9 +2433,9 @@ spec:
         - --metrics-bind-address=:8080
         env:
         - name: CASA_CONTROL_PLANE_URL
-          value: "https://casa-auth-service.casa-control-plane.svc:8443"
+          value: "https://casa-auth-service.casa-runtime.svc:8443"
         - name: KEYCLOAK_URL
-          value: "http://keycloak.casa-control-plane.svc:8080"
+          value: "http://keycloak.casa-runtime.svc:8080"
         - name: KEYCLOAK_ADMIN_USER
           valueFrom:
             secretKeyRef:
@@ -2473,7 +2473,7 @@ global:
   imagePullPolicy: IfNotPresent
 
 controlPlane:
-  namespace: casa-control-plane
+  namespace: casa-runtime
 
   authService:
     replicas: 3
@@ -2652,7 +2652,7 @@ sidecar:
            command: ["pg_dump"]
    ```
 
-2. **Upgrade control plane**: Rolling update (RollingUpdate strategy)
+2. **Upgrade runtime**: Rolling update (RollingUpdate strategy)
    - Max unavailable: 1
    - Max surge: 1
 
@@ -2674,11 +2674,11 @@ sidecar:
 **Rollback Procedure:**
 ```bash
 # Rollback Helm release
-helm rollback casa-mas-system -n casa-control-plane
+helm rollback casa-mas-system -n casa-runtime
 
-# Verify control plane health
-kubectl get pods -n casa-control-plane
-kubectl logs -n casa-control-plane deployment/casa-auth-service
+# Verify runtime health
+kubectl get pods -n casa-runtime
+kubectl logs -n casa-runtime deployment/casa-auth-service
 
 # Verify sidecar connectivity
 kubectl exec -n production-mas deployment/agent-deployment -c casa-sidecar -- curl localhost:15003/health
@@ -2704,7 +2704,7 @@ graph TB
         JWT_SEC[jwt-signing-keys]
     end
 
-    subgraph "Control Plane Pods"
+    subgraph "Runtime Pods"
         AUTH[Auth Service]
         POLICY[Policy Service]
         AI[AI Pipeline]
@@ -2915,7 +2915,7 @@ vault secrets enable -version=2 -path=casa/kv kv
 vault kv put casa/kv/prod/database \
   username=casa_admin \
   password=$(openssl rand -base64 32) \
-  url=postgresql://postgres.casa-control-plane.svc.cluster.local:5432/casa
+  url=postgresql://postgres.casa-runtime.svc.cluster.local:5432/casa
 
 vault kv put casa/kv/prod/keycloak \
   admin_username=admin \
@@ -2948,7 +2948,7 @@ vault secrets enable -path=casa/database database
 vault write casa/database/config/postgresql \
   plugin_name=postgresql-database-plugin \
   allowed_roles="casa-readonly,casa-readwrite" \
-  connection_url="postgresql://{{username}}:{{password}}@postgres.casa-control-plane.svc.cluster.local:5432/casa" \
+  connection_url="postgresql://{{username}}:{{password}}@postgres.casa-runtime.svc.cluster.local:5432/casa" \
   username="vault-admin" \
   password="vault-admin-password"
 
@@ -3008,7 +3008,7 @@ path "auth/token/renew-self" {
 }
 
 # Allow cert-manager to access PKI
-path "pki/intermediate/control-plane/sign/casa-services" {
+path "pki/intermediate/runtime/sign/casa-services" {
   capabilities = ["create", "update"]
 }
 EOF
@@ -3016,13 +3016,13 @@ EOF
 # Create Kubernetes role bound to service accounts
 vault write auth/kubernetes/role/casa-auth-service \
   bound_service_account_names=casa-auth-service \
-  bound_service_account_namespaces=casa-control-plane \
+  bound_service_account_namespaces=casa-runtime \
   policies=casa-services \
   ttl=1h
 
 vault write auth/kubernetes/role/casa-policy-service \
   bound_service_account_names=casa-policy-service \
-  bound_service_account_namespaces=casa-control-plane \
+  bound_service_account_namespaces=casa-runtime \
   policies=casa-services \
   ttl=1h
 
@@ -3062,7 +3062,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
   name: vault-backend
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   provider:
     vault:
@@ -3084,7 +3084,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: casa-db-credentials
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -3111,7 +3111,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: keycloak-admin-credentials
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -3137,7 +3137,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: openai-api-key
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   refreshInterval: 1h
   secretStoreRef:
@@ -3159,7 +3159,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
   name: jwt-signing-keys
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   refreshInterval: 24h  # JWT keys rotated daily
   secretStoreRef:
@@ -3187,7 +3187,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
   annotations:
     vault.hashicorp.com/agent-inject: "true"
     vault.hashicorp.com/role: "casa-auth-service"
@@ -3196,7 +3196,7 @@ metadata:
       {{- with secret "casa/database/creds/casa-readwrite" -}}
       export DB_USERNAME="{{ .Data.username }}"
       export DB_PASSWORD="{{ .Data.password }}"
-      export DB_URL="postgresql://{{ .Data.username }}:{{ .Data.password }}@postgres.casa-control-plane:5432/casa"
+      export DB_URL="postgresql://{{ .Data.username }}:{{ .Data.password }}@postgres.casa-runtime:5432/casa"
       {{- end }}
 spec:
   serviceAccountName: casa-auth-service
@@ -3261,7 +3261,7 @@ template {
 | Database credentials (dynamic) | 8 hours (auto) | Vault Agent auto-renews lease | Zero downtime (Agent handles rotation) |
 | OpenAI API keys | 180 days | Manual update in Vault | Pods restart (AI Pipeline only) |
 | JWT signing keys | 365 days | Automated via CronJob | Rolling restart of Auth Service |
-| TLS certificates (control plane) | 90 days | cert-manager auto-renew | Rolling restart (30s downtime per pod) |
+| TLS certificates (runtime) | 90 days | cert-manager auto-renew | Rolling restart (30s downtime per pod) |
 | TLS certificates (sidecars) | 24 hours | SPIRE auto-rotate | Zero downtime (Envoy SDS hot-reload) |
 | Vault root token | Never (break-glass only) | Manual rotation procedure | No impact (not used in ops) |
 | Vault unseal keys | Never (stored in KMS) | N/A (auto-unseal) | No impact |
@@ -3272,7 +3272,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: rotate-jwt-keys
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   schedule: "0 2 * * 0"  # Every Sunday at 2 AM
   jobTemplate:
@@ -3307,7 +3307,7 @@ spec:
                 previous_public_key=@/tmp/old-public.pem
 
               # Trigger Auth Service rollout
-              kubectl rollout restart deployment/casa-auth-service -n casa-control-plane
+              kubectl rollout restart deployment/casa-auth-service -n casa-runtime
 
               echo "JWT keys rotated successfully"
           restartPolicy: OnFailure
@@ -3423,7 +3423,7 @@ kubectl apply -f bootstrap-sealed-secret.yaml
 ```
 casa-mas-gitops/
 ├── apps/                           # Application definitions
-│   ├── control-plane/
+│   ├── runtime/
 │   │   ├── argocd-application.yaml
 │   │   └── values/
 │   │       ├── values-dev.yaml
@@ -3458,7 +3458,7 @@ casa-mas-gitops/
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: casa-control-plane
+  name: casa-runtime
   namespace: argocd
 spec:
   generators:
@@ -3466,25 +3466,25 @@ spec:
       elements:
       - cluster: dev
         url: https://dev.k8s.example.com
-        namespace: casa-control-plane-dev
+        namespace: casa-runtime-dev
         replicaCount: "1"
         resources: small
         domain: dev.casa.example.com
       - cluster: staging
         url: https://staging.k8s.example.com
-        namespace: casa-control-plane-staging
+        namespace: casa-runtime-staging
         replicaCount: "2"
         resources: medium
         domain: staging.casa.example.com
       - cluster: prod
         url: https://prod.k8s.example.com
-        namespace: casa-control-plane
+        namespace: casa-runtime
         replicaCount: "3"
         resources: large
         domain: casa.example.com
   template:
     metadata:
-      name: 'casa-control-plane-{{cluster}}'
+      name: 'casa-runtime-{{cluster}}'
       labels:
         environment: '{{cluster}}'
     spec:
@@ -3568,7 +3568,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   replicas: 5
   revisionHistoryLimit: 3
@@ -3621,7 +3621,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: success-rate
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   args:
   - name: service-name
@@ -3644,7 +3644,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: latency-p95
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   args:
   - name: service-name
@@ -3672,7 +3672,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   selector:
     app: casa-auth-service
@@ -3685,7 +3685,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: casa-auth-service-blue
-  namespace: casa-control-plane
+  namespace: casa-runtime
   labels:
     app: casa-auth-service
     version: blue
@@ -3709,7 +3709,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: casa-auth-service-green
-  namespace: casa-control-plane
+  namespace: casa-runtime
   labels:
     app: casa-auth-service
     version: green
@@ -3742,11 +3742,11 @@ spec:
     syncOptions:
     - ApplyOutOfSyncOnly=true
   source:
-    path: apps/control-plane/auth-service
+    path: apps/runtime/auth-service
     repoURL: https://github.com/your-org/casa-mas-gitops
     targetRevision: main
   destination:
-    namespace: casa-control-plane
+    namespace: casa-runtime
     server: https://kubernetes.default.svc
   # Sync waves for blue-green:
   # Wave 0: Deploy green deployment (new version)
@@ -3761,7 +3761,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: casa-auth-service-smoke-test
-  namespace: casa-control-plane
+  namespace: casa-runtime
   annotations:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
@@ -3825,7 +3825,7 @@ spec:
         namespace: flux-system
       interval: 1m
   releaseName: casa-mas-system
-  targetNamespace: casa-control-plane
+  targetNamespace: casa-runtime
   install:
     createNamespace: true
     remediation:
@@ -3863,7 +3863,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: casa-control-plane
+  name: casa-runtime
   namespace: flux-system
 spec:
   interval: 10m
@@ -3876,11 +3876,11 @@ spec:
   - apiVersion: apps/v1
     kind: Deployment
     name: casa-auth-service
-    namespace: casa-control-plane
+    namespace: casa-runtime
   - apiVersion: apps/v1
     kind: StatefulSet
     name: postgresql
-    namespace: casa-control-plane
+    namespace: casa-runtime
   timeout: 10m
   retryInterval: 2m
   postBuild:
@@ -3930,7 +3930,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chartmuseum
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   replicas: 2
   selector:
@@ -4052,7 +4052,7 @@ spec:
   sourceRepos:
   - https://github.com/your-org/casa-mas-gitops
   destinations:
-  - namespace: 'casa-control-plane'
+  - namespace: 'casa-runtime'
     server: https://prod.k8s.example.com
   - namespace: 'production-mas'
     server: https://prod.k8s.example.com
@@ -4078,7 +4078,7 @@ spec:
     schedule: '0 0-6 * * *'  # Off-hours
     duration: 6h
     applications:
-    - 'casa-control-plane-*'
+    - 'casa-runtime-*'
 ```
 
 **GitHub Actions for Promotion:**
@@ -4101,7 +4101,7 @@ jobs:
     - name: Update production values
       run: |
         yq eval '.global.imageTag = "${{ github.event.inputs.version }}"' \
-          -i apps/control-plane/values/values-prod.yaml
+          -i apps/runtime/values/values-prod.yaml
 
     - name: Create PR
       uses: peter-evans/create-pull-request@v5
@@ -4130,7 +4130,7 @@ jobs:
 graph TB
     ROOT[Root CA<br/>Vault PKI Backend<br/>Validity: 10 years]
 
-    INT_CP[Intermediate CA: Control Plane<br/>Validity: 5 years]
+    INT_CP[Intermediate CA: Runtime<br/>Validity: 5 years]
     INT_DATA[Intermediate CA: Data Plane<br/>Validity: 5 years]
 
     LEAF_AUTH[Auth Service Cert<br/>Validity: 90 days]
@@ -4158,10 +4158,10 @@ graph TB
 | Component | Certificate Type | SAN (Subject Alternative Name) | Validity | Rotation |
 |-----------|-----------------|--------------------------------|----------|----------|
 | Root CA | Self-signed CA | `CN=CASA Root CA` | 10 years | Manual (key ceremony) |
-| Control Plane CA | Intermediate CA | `CN=CASA Control Plane CA` | 5 years | Manual (with root key) |
+| Runtime CA | Intermediate CA | `CN=CASA Runtime CA` | 5 years | Manual (with root key) |
 | Data Plane CA | Intermediate CA | `CN=CASA Data Plane CA` | 5 years | Manual (with root key) |
-| Auth Service | Server cert | `DNS:casa-auth-service.casa-control-plane.svc.cluster.local` | 90 days | cert-manager auto-renew |
-| Policy Service | Server cert | `DNS:casa-policy-service.casa-control-plane.svc.cluster.local` | 90 days | cert-manager auto-renew |
+| Auth Service | Server cert | `DNS:casa-auth-service.casa-runtime.svc.cluster.local` | 90 days | cert-manager auto-renew |
+| Policy Service | Server cert | `DNS:casa-policy-service.casa-runtime.svc.cluster.local` | 90 days | cert-manager auto-renew |
 | Agent Sidecar | Client+Server cert | `URI:spiffe://casa.io/ns/production-mas/sa/agent` | 24 hours | Envoy SDS auto-fetch |
 | MCP Sidecar | Client+Server cert | `URI:spiffe://casa.io/ns/production-mas/sa/mcp-server` | 24 hours | Envoy SDS auto-fetch |
 
@@ -4225,13 +4225,13 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: casa-control-plane-ca
-  namespace: casa-control-plane
+  name: casa-runtime-ca
+  namespace: casa-runtime
 spec:
-  secretName: casa-control-plane-ca-key-pair
+  secretName: casa-runtime-ca-key-pair
   duration: 43800h  # 5 years
   renewBefore: 8760h  # 1 year before expiry
-  commonName: "CASA Control Plane Intermediate CA"
+  commonName: "CASA Runtime Intermediate CA"
   isCA: true
   usages:
   - cert sign
@@ -4241,26 +4241,26 @@ spec:
     kind: ClusterIssuer
 ```
 
-**Control Plane Service Certificates:**
+**Runtime Service Certificates:**
 ```yaml
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: casa-auth-service-tls
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   secretName: casa-auth-service-tls
   duration: 2160h  # 90 days
   renewBefore: 360h  # 15 days before expiry
   subject:
     organizations:
-    - "CASA Control Plane"
+    - "CASA Runtime"
   commonName: casa-auth-service
   dnsNames:
   - casa-auth-service
-  - casa-auth-service.casa-control-plane
-  - casa-auth-service.casa-control-plane.svc
-  - casa-auth-service.casa-control-plane.svc.cluster.local
+  - casa-auth-service.casa-runtime
+  - casa-auth-service.casa-runtime.svc
+  - casa-auth-service.casa-runtime.svc.cluster.local
   ipAddresses:
   - 127.0.0.1
   usages:
@@ -4269,17 +4269,17 @@ spec:
   - server auth
   - client auth
   issuerRef:
-    name: casa-control-plane-ca
+    name: casa-runtime-ca
     kind: Issuer
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: casa-control-plane-ca
-  namespace: casa-control-plane
+  name: casa-runtime-ca
+  namespace: casa-runtime
 spec:
   ca:
-    secretName: casa-control-plane-ca-key-pair
+    secretName: casa-runtime-ca-key-pair
 ```
 
 #### 7.8.3 SPIFFE/SPIRE Integration for Sidecars
@@ -4365,7 +4365,7 @@ plugins {
   DataStore "sql" {
     plugin_data {
       database_type = "postgres"
-      connection_string = "postgresql://spire:password@postgres.casa-control-plane:5432/spire"
+      connection_string = "postgresql://spire:password@postgres.casa-runtime:5432/spire"
     }
   }
 
@@ -4566,7 +4566,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: certificate-expiry-alerts
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   groups:
   - name: certificates
@@ -4600,7 +4600,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: casa-ca-bundle
-  namespace: casa-control-plane
+  namespace: casa-runtime
 data:
   ca-bundle.crt: |
     # Root CA Certificate
@@ -4608,7 +4608,7 @@ data:
     MIIDXTCCAkWgAwIBAgIJAKZ... (Root CA)
     -----END CERTIFICATE-----
 
-    # Control Plane Intermediate CA
+    # Runtime Intermediate CA
     -----BEGIN CERTIFICATE-----
     MIIDXTCCAkWgAwIBAgIJAKZ... (CP Intermediate)
     -----END CERTIFICATE-----
@@ -4685,29 +4685,29 @@ vault write pki/config/urls \
     issuing_certificates="https://vault.vault.svc.cluster.local:8200/v1/pki/ca" \
     crl_distribution_points="https://vault.vault.svc.cluster.local:8200/v1/pki/crl"
 
-# Enable intermediate PKI for control plane
-vault secrets enable -path=pki/intermediate/control-plane pki
-vault secrets tune -max-lease-ttl=43800h pki/intermediate/control-plane
+# Enable intermediate PKI for runtime
+vault secrets enable -path=pki/intermediate/runtime pki
+vault secrets tune -max-lease-ttl=43800h pki/intermediate/runtime
 
 # Generate intermediate CSR
-vault write -format=json pki/intermediate/control-plane/intermediate/generate/internal \
-    common_name="CASA Control Plane Intermediate CA" \
-    | jq -r '.data.csr' > /tmp/control-plane.csr
+vault write -format=json pki/intermediate/runtime/intermediate/generate/internal \
+    common_name="CASA Runtime Intermediate CA" \
+    | jq -r '.data.csr' > /tmp/runtime.csr
 
 # Sign intermediate with root
 vault write -format=json pki/root/sign-intermediate \
-    csr=@/tmp/control-plane.csr \
+    csr=@/tmp/runtime.csr \
     format=pem_bundle \
     ttl=43800h \
-    | jq -r '.data.certificate' > /tmp/control-plane-signed.crt
+    | jq -r '.data.certificate' > /tmp/runtime-signed.crt
 
 # Set signed certificate
-vault write pki/intermediate/control-plane/intermediate/set-signed \
-    certificate=@/tmp/control-plane-signed.crt
+vault write pki/intermediate/runtime/intermediate/set-signed \
+    certificate=@/tmp/runtime-signed.crt
 
 # Create role for cert-manager
-vault write pki/intermediate/control-plane/roles/casa-services \
-    allowed_domains="casa-control-plane.svc.cluster.local" \
+vault write pki/intermediate/runtime/roles/casa-services \
+    allowed_domains="casa-runtime.svc.cluster.local" \
     allow_subdomains=true \
     max_ttl=2160h \
     key_type=rsa \
@@ -4731,11 +4731,11 @@ vault write auth/kubernetes/role/cert-manager \
 **Vault Policy for cert-manager:**
 ```hcl
 # Policy: cert-manager-policy
-path "pki/intermediate/control-plane/sign/casa-services" {
+path "pki/intermediate/runtime/sign/casa-services" {
   capabilities = ["create", "update"]
 }
 
-path "pki/intermediate/control-plane/issue/casa-services" {
+path "pki/intermediate/runtime/issue/casa-services" {
   capabilities = ["create", "update"]
 }
 
@@ -4856,7 +4856,7 @@ static_resources:
 - **Impact**: Attacker gains access to tools with stolen token
 - **Mitigation**:
   - eBPF blocks egress to non-allowed endpoints (only LLM allowed)
-  - Sidecar strips Authorization header from non-control-plane requests
+  - Sidecar strips Authorization header from non-runtime requests
   - Token has short TTL (5min)
   - Telemetry alerts on token reuse from different source IP
 
@@ -4887,12 +4887,12 @@ static_resources:
   - mTLS between sidecar and MCP server
   - Tool schemas validated against expected signature
 
-**Threat 5: Control Plane Compromise**
+**Threat 5: Runtime Compromise**
 - **Attack**: Attacker gains access to CASA Auth Service, issues arbitrary tokens
 - **Impact**: Complete system compromise
 - **Mitigation**:
   - Control plane isolated in separate namespace
-  - Network policies restrict ingress to control plane (only from MAS namespaces)
+  - Network policies restrict ingress to runtime (only from MAS namespaces)
   - Secrets encrypted at rest (KMS)
   - Audit logging of all token operations
   - Keycloak separated from CASA (separate secret store)
@@ -4922,8 +4922,8 @@ static_resources:
 |---------|-------|-------------------|-----------|
 | Deny-by-default networking | L3/L4 | eBPF (Cilium) | Fail-closed |
 | Protocol enforcement (MCP/A2A only) | L7 | Sidecar | Fail-closed |
-| Token validation | L7 | Sidecar + Control Plane | Fail-closed |
-| Tool authorization | Application | Control Plane | Fail-closed |
+| Token validation | L7 | Sidecar + Runtime | Fail-closed |
+| Tool authorization | Application | Runtime | Fail-closed |
 | LLM endpoint restriction | L3/L4 | eBPF (FQDN policy) | Fail-closed |
 | Token exfiltration prevention | L3/L4 | eBPF (egress block) | Fail-closed |
 | Audit logging | Application | All components | N/A (telemetry) |
@@ -4981,7 +4981,7 @@ Kubernetes Pod Security Standards (PSS) replace deprecated Pod Security Policies
 
 | Namespace | PSS Level | Enforcement | Justification |
 |-----------|-----------|-------------|---------------|
-| casa-control-plane | Restricted | Enforce | High-value targets, no privileged access needed |
+| casa-runtime | Restricted | Enforce | High-value targets, no privileged access needed |
 | production-mas | Restricted | Enforce | Untrusted workloads (agents, apps) must be isolated |
 | dev-mas | Baseline | Warn | Development flexibility with warnings |
 | kube-system | Privileged | Audit | System components may need host access |
@@ -4991,11 +4991,11 @@ Kubernetes Pod Security Standards (PSS) replace deprecated Pod Security Policies
 **PSS Label Application:**
 
 ```yaml
-# casa-control-plane namespace with Restricted PSS
+# casa-runtime namespace with Restricted PSS
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: casa-control-plane
+  name: casa-runtime
   labels:
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/enforce-version: v1.27
@@ -5007,7 +5007,7 @@ metadata:
 
 **Restricted PSS Requirements:**
 
-All pods in `casa-control-plane` and `production-mas` must:
+All pods in `casa-runtime` and `production-mas` must:
 
 1. **No Privileged Containers:**
    ```yaml
@@ -5063,7 +5063,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   template:
     spec:
@@ -5221,7 +5221,7 @@ spec:
     - apiGroups: [""]
       kinds: ["Pod"]
     namespaces:
-    - casa-control-plane
+    - casa-runtime
     - production-mas
 ```
 
@@ -5319,7 +5319,7 @@ spec:
     - apiGroups: [""]
       kinds: ["Pod"]
     namespaces:
-    - casa-control-plane
+    - casa-runtime
     - production-mas
 ```
 
@@ -5409,7 +5409,7 @@ data:
       condition: >
         (proc.name in (curl, wget, nc, ncat)) and
         (fd.name glob "*Authorization*" or fd.name glob "*Bearer*") and
-        not fd.net in (casa-auth-service.casa-control-plane.svc.cluster.local, api.openai.com)
+        not fd.net in (casa-auth-service.casa-runtime.svc.cluster.local, api.openai.com)
       output: >
         Token exfiltration attempt detected
         (user=%user.name command=%proc.cmdline container=%container.name
@@ -5422,7 +5422,7 @@ data:
       desc: Detect privilege escalation attempts in CASA namespaces
       condition: >
         spawned_process and
-        (container.ns in (casa-control-plane, production-mas)) and
+        (container.ns in (casa-runtime, production-mas)) and
         (proc.name in (sudo, su, setuid, chmod, chown))
       output: >
         Privilege escalation attempt
@@ -5610,10 +5610,10 @@ helm install trivy-operator aqua/trivy-operator \
 
 ```bash
 # Get vulnerability reports
-kubectl get vulnerabilityreports -n casa-control-plane
+kubectl get vulnerabilityreports -n casa-runtime
 
 # Get detailed report
-kubectl get vulnerabilityreport -n casa-control-plane \
+kubectl get vulnerabilityreport -n casa-runtime \
   deployment-casa-auth-service-casa-auth-service -o yaml
 
 # Example output:
@@ -5689,18 +5689,18 @@ spec:
       port: 53
 ```
 
-**3. Isolate Control Plane:**
+**3. Isolate Runtime:**
 
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: control-plane-isolation
-  namespace: casa-control-plane
+  name: runtime-isolation
+  namespace: casa-runtime
 spec:
   podSelector:
     matchLabels:
-      tier: control-plane
+      tier: runtime
   policyTypes:
   - Ingress
   ingress:
@@ -5751,7 +5751,7 @@ apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
   name: vault-backend
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   provider:
     vault:
@@ -5767,7 +5767,7 @@ spec:
       # TLS verification
       caBundle: <base64-encoded-ca-cert>
       # Namespace restriction
-      namespace: "casa-control-plane"
+      namespace: "casa-runtime"
 ```
 
 **Rotate Secrets Automatically:**
@@ -5777,7 +5777,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: rotate-db-credentials
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   schedule: "0 0 * * 0"  # Weekly
   jobTemplate:
@@ -5796,8 +5796,8 @@ spec:
               vault write database/rotate-role/casa-db-role
 
               # Restart deployments to pick up new credentials
-              kubectl rollout restart deployment/casa-auth-service -n casa-control-plane
-              kubectl rollout restart deployment/casa-policy-service -n casa-control-plane
+              kubectl rollout restart deployment/casa-auth-service -n casa-runtime
+              kubectl rollout restart deployment/casa-policy-service -n casa-runtime
 ```
 
 #### 8.4.7 RBAC Hardening
@@ -5810,13 +5810,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
 rules:
 # Read-only access to ConfigMaps
 - apiGroups: [""]
@@ -5836,7 +5836,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
 subjects:
 - kind: ServiceAccount
   name: casa-auth-service
@@ -5850,10 +5850,10 @@ roleRef:
 
 ```bash
 # List all RBAC permissions for a ServiceAccount
-kubectl auth can-i --list --as=system:serviceaccount:casa-control-plane:casa-auth-service
+kubectl auth can-i --list --as=system:serviceaccount:casa-runtime:casa-auth-service
 
 # Check specific permission
-kubectl auth can-i delete secrets --as=system:serviceaccount:casa-control-plane:casa-auth-service
+kubectl auth can-i delete secrets --as=system:serviceaccount:casa-runtime:casa-auth-service
 # Expected: no
 ```
 
@@ -5902,12 +5902,12 @@ kubectl auth can-i delete secrets --as=system:serviceaccount:casa-control-plane:
 | **eBPF (Cilium)** | Agent crash on node | Network policies not enforced | Kubernetes reschedules pods | Fail-closed (kernel rejects packets) |
 | **Keycloak** | Database connection lost | Token generation fails | Reconnect, use connection pool | Return 503, clients retry |
 | **PostgreSQL** | Primary down | All writes fail | Promote replica to primary | Read-only mode (introspection still works) |
-| **Redis** | Cache miss storm | High latency on control plane | Backpressure, rate limiting | Direct database queries (slower) |
+| **Redis** | Cache miss storm | High latency on runtime | Backpressure, rate limiting | Direct database queries (slower) |
 | **External LLM** | API rate limit | AI checks fail | Exponential backoff | Fallback to embeddings only |
 
 ### 9.2 Capacity Planning
 
-**Control Plane Scaling:**
+**Runtime Scaling:**
 - **Auth Service**: 500 tokens/sec per replica → 5 replicas = 2500 tokens/sec
 - **AI Pipeline**: 50 matches/sec per replica (LLM bottleneck) → 10 replicas = 500 matches/sec
 - **Telemetry**: 10k events/sec per replica → 5 replicas = 50k events/sec
@@ -5935,26 +5935,26 @@ kubectl auth can-i delete secrets --as=system:serviceaccount:casa-control-plane:
 **Diagnosis:**
 1. Check AI Pipeline Service latency:
    ```bash
-   kubectl logs -n casa-control-plane deployment/casa-ai-pipeline-service | grep "matcher_latency"
+   kubectl logs -n casa-runtime deployment/casa-ai-pipeline-service | grep "matcher_latency"
    ```
 2. Check external LLM API status (OpenAI status page)
 3. Check PostgreSQL connection pool exhaustion:
    ```bash
-   kubectl exec -n casa-control-plane statefulset/postgresql -- psql -c "SELECT count(*) FROM pg_stat_activity;"
+   kubectl exec -n casa-runtime statefulset/postgresql -- psql -c "SELECT count(*) FROM pg_stat_activity;"
    ```
 
 **Remediation:**
 1. Scale up AI Pipeline replicas:
    ```bash
-   kubectl scale deployment/casa-ai-pipeline-service -n casa-control-plane --replicas=20
+   kubectl scale deployment/casa-ai-pipeline-service -n casa-runtime --replicas=20
    ```
 2. Increase cache TTL for embeddings:
    ```bash
-   kubectl set env deployment/casa-ai-pipeline-service -n casa-control-plane EMBEDDING_CACHE_TTL=3600
+   kubectl set env deployment/casa-ai-pipeline-service -n casa-runtime EMBEDDING_CACHE_TTL=3600
    ```
 3. Fallback to embeddings-only matcher:
    ```bash
-   kubectl set env deployment/casa-ai-pipeline-service -n casa-control-plane MATCHER_TYPE=embeddings
+   kubectl set env deployment/casa-ai-pipeline-service -n casa-runtime MATCHER_TYPE=embeddings
    ```
 
 #### Runbook 2: Sidecar Not Injecting
@@ -5970,7 +5970,7 @@ kubectl auth can-i delete secrets --as=system:serviceaccount:casa-control-plane:
    ```
 2. Check webhook pod logs:
    ```bash
-   kubectl logs -n casa-control-plane deployment/casa-sidecar-webhook
+   kubectl logs -n casa-runtime deployment/casa-sidecar-webhook
    ```
 3. Verify pod has annotation:
    ```bash
@@ -5980,7 +5980,7 @@ kubectl auth can-i delete secrets --as=system:serviceaccount:casa-control-plane:
 **Remediation:**
 1. Restart webhook:
    ```bash
-   kubectl rollout restart deployment/casa-sidecar-webhook -n casa-control-plane
+   kubectl rollout restart deployment/casa-sidecar-webhook -n casa-runtime
    ```
 2. Manually patch pod (workaround):
    ```bash
@@ -6124,9 +6124,9 @@ class MCPProtocolValidator:
         return ValidationResult(valid=True)
 
     def validate_token(self, token: str, required_tool: str) -> bool:
-        # Call CASA control plane for introspection
+        # Call CASA runtime for introspection
         response = requests.post(
-            f"{self.control_plane_url}/oauth/introspect",
+            f"{self.runtime_url}/oauth/introspect",
             json={"token": token, "requested_tool": required_tool},
             timeout=1.0
         )
@@ -6642,7 +6642,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: casa-auth-service
-  namespace: casa-control-plane
+  namespace: casa-runtime
   labels:
     monitoring: casa
 spec:
@@ -7584,7 +7584,7 @@ spec:
         - name: GF_DATABASE_TYPE
           value: postgres
         - name: GF_DATABASE_HOST
-          value: postgresql.casa-control-plane.svc.cluster.local:5432
+          value: postgresql.casa-runtime.svc.cluster.local:5432
         - name: GF_DATABASE_NAME
           value: grafana
         - name: GF_DATABASE_USER
@@ -7755,11 +7755,11 @@ data:
           },
           {
             "id": 5,
-            "title": "Control Plane CPU Usage",
+            "title": "Runtime CPU Usage",
             "type": "graph",
             "targets": [
               {
-                "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace='casa-control-plane'}[5m]))",
+                "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace='casa-runtime'}[5m]))",
                 "legendFormat": "{{ pod }}"
               }
             ],
@@ -7848,7 +7848,7 @@ graph TB
 **Target State (Microservices):**
 ```mermaid
 graph TB
-    subgraph "Control Plane"
+    subgraph "Runtime"
         AUTH_SVC[Auth Service<br/>StatefulSet]
         POLICY_SVC[Policy Service<br/>Deployment]
         AI_SVC[AI Pipeline Service<br/>Deployment]
@@ -8032,7 +8032,7 @@ migration:
 **Validation:**
 ```bash
 # Verify microservices are receiving traffic
-kubectl logs -n casa-control-plane deployment/casa-auth-service --tail=100 | grep "token_exchange_request"
+kubectl logs -n casa-runtime deployment/casa-auth-service --tail=100 | grep "token_exchange_request"
 
 # Compare response times (should be similar)
 # Monolith P95 latency
@@ -8042,7 +8042,7 @@ curl -s 'http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95,rate(
 curl -s 'http://prometheus:9090/api/v1/query?query=histogram_quantile(0.95,rate(casa_auth_token_exchange_duration_seconds_bucket{service_version="microservice"}[5m]))'
 
 # Verify NO production traffic served by microservices
-kubectl logs -n casa-control-plane deployment/casa-auth-service | grep "response_sent" | wc -l
+kubectl logs -n casa-runtime deployment/casa-auth-service | grep "response_sent" | wc -l
 # Expected: 0 (shadowing doesn't send responses)
 ```
 
@@ -8051,10 +8051,10 @@ kubectl logs -n casa-control-plane deployment/casa-auth-service | grep "response
 # Disable shadowing
 helm upgrade casa-mas-system ./charts/casa-mas-system \
   --set migration.shadowMode.enabled=false \
-  --namespace casa-control-plane
+  --namespace casa-runtime
 
 # Delete microservice deployments (optional)
-kubectl delete deployment -n casa-control-plane -l migration-phase=shadow
+kubectl delete deployment -n casa-runtime -l migration-phase=shadow
 ```
 
 ---
@@ -8182,7 +8182,7 @@ curl -X PATCH http://feature-flags:8080/api/flags/auth-service-v2 \
   -d '{"traffic_split": {"microservice": 0, "monolith": 100}}'
 
 # Verify traffic shifted back
-kubectl exec -n casa-control-plane deployment/envoy-gateway -- \
+kubectl exec -n casa-runtime deployment/envoy-gateway -- \
   curl -s localhost:19000/config_dump | jq '.configs[] | select(.["@type"] | contains("RouteConfiguration"))'
 ```
 
@@ -8242,14 +8242,14 @@ if (( $(echo "$DIFF > 0.03" | bc -l) )); then
 fi
 
 # 4. Check no database errors
-DB_ERRORS=$(kubectl logs -n casa-control-plane deployment/casa-auth-service --tail=1000 | grep -c "database connection error" || true)
+DB_ERRORS=$(kubectl logs -n casa-runtime deployment/casa-auth-service --tail=1000 | grep -c "database connection error" || true)
 if [ $DB_ERRORS -gt 5 ]; then
   echo "ERROR: Too many database errors: ${DB_ERRORS}"
   exit 1
 fi
 
 # 5. Verify no memory leaks
-MEMORY_USAGE=$(kubectl top pod -n casa-control-plane -l app=casa-auth-service --no-headers | awk '{print $3}' | sed 's/Mi//' | head -1)
+MEMORY_USAGE=$(kubectl top pod -n casa-runtime -l app=casa-auth-service --no-headers | awk '{print $3}' | sed 's/Mi//' | head -1)
 if [ $MEMORY_USAGE -gt 4000 ]; then
   echo "WARNING: High memory usage: ${MEMORY_USAGE}Mi (threshold: 4000Mi)"
 fi
@@ -8393,7 +8393,7 @@ echo "=== Decommissioning CASA Monolith ==="
 
 # Step 1: Scale down to 1 replica
 echo "Step 1/5: Scaling to 1 replica..."
-kubectl scale deployment/casa-monolith -n casa-control-plane --replicas=1
+kubectl scale deployment/casa-monolith -n casa-runtime --replicas=1
 sleep 48h  # 48-hour soak
 
 # Step 2: Verify zero traffic
@@ -8406,19 +8406,19 @@ fi
 
 # Step 3: Scale to zero
 echo "Step 3/5: Scaling to 0 replicas..."
-kubectl scale deployment/casa-monolith -n casa-control-plane --replicas=0
+kubectl scale deployment/casa-monolith -n casa-runtime --replicas=0
 sleep 168h  # 7-day grace period
 
 # Step 4: Archive images
 echo "Step 4/5: Archiving container images..."
-MONOLITH_IMAGE=$(kubectl get deployment/casa-monolith -n casa-control-plane -o jsonpath='{.spec.template.spec.containers[0].image}')
+MONOLITH_IMAGE=$(kubectl get deployment/casa-monolith -n casa-runtime -o jsonpath='{.spec.template.spec.containers[0].image}')
 docker pull $MONOLITH_IMAGE
 docker save $MONOLITH_IMAGE | gzip > casa-monolith-$(date +%Y%m%d).tar.gz
 aws s3 cp casa-monolith-*.tar.gz s3://casa-backups/decommissioned-images/
 
 # Step 5: Delete deployment
 echo "Step 5/5: Deleting deployment..."
-kubectl delete deployment/casa-monolith -n casa-control-plane
+kubectl delete deployment/casa-monolith -n casa-runtime
 
 echo "✅ Monolith decommissioned successfully"
 echo "Emergency rollback: docker load < casa-monolith-*.tar.gz && kubectl apply -f monolith-backup.yaml"
@@ -8756,11 +8756,11 @@ while True:
 - PagerDuty alert
 
 ## Step 1: Identify affected service
-kubectl get pods -n casa-control-plane -l migration-phase=active
+kubectl get pods -n casa-runtime -l migration-phase=active
 # Look for CrashLoopBackOff or high restart count
 
 ## Step 2: Check recent deployments
-kubectl rollout history deployment/casa-auth-service -n casa-control-plane
+kubectl rollout history deployment/casa-auth-service -n casa-runtime
 
 ## Step 3: Rollback traffic (FAST)
 # Option A: Feature flag (preferred)
@@ -8768,10 +8768,10 @@ curl -X PATCH http://feature-flags:8080/api/flags/auth-service-v2 \
   -d '{"traffic_split": {"microservice": 0, "monolith": 100}}'
 
 # Option B: Helm rollback
-helm rollback casa-mas-system -n casa-control-plane
+helm rollback casa-mas-system -n casa-runtime
 
 # Option C: kubectl rollout undo
-kubectl rollout undo deployment/casa-auth-service -n casa-control-plane
+kubectl rollout undo deployment/casa-auth-service -n casa-runtime
 
 ## Step 4: Verify rollback
 # Check traffic shifted
@@ -8782,7 +8782,7 @@ curl -s http://prometheus:9090/api/v1/query?query='sum(rate(casa_auth_token_issu
 curl -s http://prometheus:9090/api/v1/query?query='sum(rate(casa_auth_token_exchanged_total{result="failed"}[5m])) / sum(rate(casa_auth_token_exchanged_total[5m]))'
 
 ## Step 5: Root cause analysis (post-incident)
-kubectl logs -n casa-control-plane deployment/casa-auth-service --previous --tail=1000 > incident.log
+kubectl logs -n casa-runtime deployment/casa-auth-service --previous --tail=1000 > incident.log
 # Analyze logs, identify bug, create Jira ticket
 ```
 
@@ -8792,7 +8792,7 @@ kubectl logs -n casa-control-plane deployment/casa-auth-service --previous --tai
 
 | Criterion | Target | Measurement |
 |-----------|--------|-------------|
-| All services migrated | 100% | `kubectl get deployment -n casa-control-plane -l app=monolith` returns 0 pods |
+| All services migrated | 100% | `kubectl get deployment -n casa-runtime -l app=monolith` returns 0 pods |
 | Error rate unchanged | < 1% regression | Compare 7-day average before/after |
 | Latency unchanged | < 10% regression | P95 latency before/after |
 | Zero downtime | 0 seconds | No 5xx errors during migration |
@@ -8809,7 +8809,7 @@ kubectl logs -n casa-control-plane deployment/casa-auth-service --previous --tai
 echo "=== Post-Migration Validation ==="
 
 # 1. Verify monolith decommissioned
-MONOLITH_PODS=$(kubectl get pods -n casa-control-plane -l app=casa-monolith --no-headers | wc -l)
+MONOLITH_PODS=$(kubectl get pods -n casa-runtime -l app=casa-monolith --no-headers | wc -l)
 if [ $MONOLITH_PODS -ne 0 ]; then
   echo "❌ Monolith still running: ${MONOLITH_PODS} pods"
   exit 1
@@ -8839,10 +8839,10 @@ fi
 echo "✅ Latency maintained: ${AFTER_LATENCY}s"
 
 # 4. Verify all microservices healthy
-UNHEALTHY=$(kubectl get pods -n casa-control-plane -l tier=control-plane --field-selector=status.phase!=Running --no-headers | wc -l)
+UNHEALTHY=$(kubectl get pods -n casa-runtime -l tier=runtime --field-selector=status.phase!=Running --no-headers | wc -l)
 if [ $UNHEALTHY -ne 0 ]; then
   echo "❌ Unhealthy pods detected: ${UNHEALTHY}"
-  kubectl get pods -n casa-control-plane -l tier=control-plane --field-selector=status.phase!=Running
+  kubectl get pods -n casa-runtime -l tier=runtime --field-selector=status.phase!=Running
   exit 1
 fi
 echo "✅ All pods healthy"
@@ -8948,7 +8948,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-runtime.svc.cluster.local:8443';
 
 export default function () {
   const payload = JSON.stringify({
@@ -9029,7 +9029,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-runtime.svc.cluster.local:8443';
 const ENABLE_AI_CHECKS = __ENV.ENABLE_AI_CHECKS === 'true';
 
 export default function () {
@@ -9200,7 +9200,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-runtime.svc.cluster.local:8443';
 
 export default function () {
   const response = http.post(`${BASE_URL}/oauth/token`, JSON.stringify({
@@ -9259,7 +9259,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-control-plane.svc.cluster.local:8443';
+const BASE_URL = __ENV.BASE_URL || 'https://casa-auth-service.casa-runtime.svc.cluster.local:8443';
 
 export default function () {
   const response = http.post(`${BASE_URL}/oauth/token`, JSON.stringify({
@@ -9323,7 +9323,7 @@ jobs:
     - name: Deploy to test cluster
       run: |
         kubectl apply -k test/k8s/
-        kubectl wait --for=condition=ready pod -l app=casa-auth-service -n casa-control-plane --timeout=300s
+        kubectl wait --for=condition=ready pod -l app=casa-auth-service -n casa-runtime --timeout=300s
 
     - name: Run baseline test
       run: |
@@ -9520,7 +9520,7 @@ Example:
   Storage: Use gp3 with 16,000 baseline + provisioned 9,000 = 25,000 IOPS
 
 Connections = Active_services * Connections_per_service
-  Active_services = 15 (5 control plane services * 3 replicas)
+  Active_services = 15 (5 runtime services * 3 replicas)
   Connections_per_service = 10 (connection pool)
 
   Total = 15 * 10 = 150 connections
@@ -9573,7 +9573,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: casa-auth-service-hpa
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -9634,7 +9634,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: casa-ai-pipeline-hpa
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -9715,13 +9715,13 @@ data:
 
 #### 10.2.6 Vertical Pod Autoscaler (VPA) Recommendations
 
-**VPA for Control Plane Services:**
+**VPA for Runtime Services:**
 ```yaml
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: casa-auth-service-vpa
-  namespace: casa-control-plane
+  namespace: casa-runtime
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -9745,7 +9745,7 @@ spec:
 **VPA Recommendations Viewer:**
 ```bash
 # Get VPA recommendations
-kubectl describe vpa casa-auth-service-vpa -n casa-control-plane
+kubectl describe vpa casa-auth-service-vpa -n casa-runtime
 
 # Output example:
 # Recommendation:
@@ -9803,7 +9803,7 @@ kubectl describe vpa casa-auth-service-vpa -n casa-control-plane
 | Metric | 100 pods | 500 pods | 1000 pods | 5000 pods |
 |--------|----------|----------|-----------|-----------|
 | Token Generation Rate | 500/sec | 2500/sec | 5000/sec | 25000/sec |
-| Control Plane Nodes | 3 | 5 | 10 | 30 |
+| Runtime Nodes | 3 | 5 | 10 | 30 |
 | Worker Nodes | 5 | 15 | 30 | 150 |
 | PostgreSQL Storage | 50GB | 200GB | 500GB | 2TB |
 | Monthly Cost (AWS) | $2k | $8k | $15k | $70k |
@@ -9838,7 +9838,7 @@ spec:
       mode: one
       selector:
         namespaces:
-        - casa-control-plane
+        - casa-runtime
         labelSelectors:
           app: casa-auth-service
       duration: 30s
@@ -9851,7 +9851,7 @@ spec:
       mode: all
       selector:
         namespaces:
-        - casa-control-plane
+        - casa-runtime
         labelSelectors:
           app: casa-auth-service
       delay:
@@ -9867,7 +9867,7 @@ spec:
       mode: one
       selector:
         namespaces:
-        - casa-control-plane
+        - casa-runtime
         labelSelectors:
           app: casa-ai-pipeline-service
       stressors:
@@ -9884,7 +9884,7 @@ spec:
       mode: one
       selector:
         namespaces:
-        - casa-control-plane
+        - casa-runtime
         labelSelectors:
           app: postgresql
       duration: 2m
@@ -9900,7 +9900,7 @@ helm install chaos-mesh chaos-mesh/chaos-mesh --namespace=chaos-testing --create
 kubectl apply -f chaos-test-suite.yaml
 
 # Monitor during chaos
-watch kubectl get pods -n casa-control-plane
+watch kubectl get pods -n casa-runtime
 
 # Verify resilience
 kubectl logs -n chaos-testing -l app=chaos-test-monitor
@@ -9910,7 +9910,7 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 
 
 
-### Phase 1: Control Plane Foundation (Weeks 1-4)
+### Phase 1: Runtime Foundation (Weeks 1-4)
 
 **Goals:**
 - Deploy monolithic CASA server to Kubernetes
@@ -9919,7 +9919,7 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 
 **Deliverables:**
 1. Helm chart for monolithic CASA server
-2. CiliumNetworkPolicy for control plane isolation
+2. CiliumNetworkPolicy for runtime isolation
 3. PostgreSQL StatefulSet with backup automation
 4. Keycloak StatefulSet with admin realm
 5. End-to-end test: User app → CASA → Keycloak → Token
@@ -9948,7 +9948,7 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 **Success Criteria:**
 - Sidecars auto-inject on pods with `casa.io/enabled=true`
 - Sidecars enforce MCP protocol (block HTTP to non-MCP endpoints)
-- Sidecar cache reduces control plane load by 80%
+- Sidecar cache reduces runtime load by 80%
 
 ---
 
@@ -9973,7 +9973,7 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 
 ---
 
-### Phase 4: Control Plane Decomposition (Weeks 13-16)
+### Phase 4: Runtime Decomposition (Weeks 13-16)
 
 **Goals:**
 - Split monolithic CASA into microservices
@@ -10101,14 +10101,14 @@ kubectl logs -n chaos-testing -l app=chaos-test-monitor
 **Complete MultiAgentSystem with 3 Apps:**
 
 ```bash
-# 1. Install control plane
+# 1. Install runtime
 helm install casa-system ./charts/casa-mas-system \
-  --namespace casa-control-plane \
+  --namespace casa-runtime \
   --create-namespace \
   --values values-prod.yaml
 
-# 2. Wait for control plane ready
-kubectl wait --for=condition=ready pod -l tier=control-plane -n casa-control-plane --timeout=300s
+# 2. Wait for runtime ready
+kubectl wait --for=condition=ready pod -l tier=runtime -n casa-runtime --timeout=300s
 
 # 3. Create MAS namespace
 kubectl create namespace production-mas
@@ -10266,7 +10266,7 @@ hubble observe --namespace production-mas --last 100
 
 | Phase | Duration | Key Deliverable | Risk |
 |-------|----------|-----------------|------|
-| 1: Control Plane | 4 weeks | Monolith deployed to K8s | Medium (Keycloak integration) |
+| 1: Runtime | 4 weeks | Monolith deployed to K8s | Medium (Keycloak integration) |
 | 2: Sidecar Injection | 4 weeks | Sidecar proxy + webhook | High (Envoy complexity) |
 | 3: eBPF Integration | 4 weeks | Cilium policies + Hubble | Medium (eBPF expertise) |
 | 4: Protocol Enforcement | 3 weeks | MCP/A2A validators | Medium (Edge cases) |
@@ -10322,7 +10322,7 @@ hubble observe --namespace production-mas --last 100
 
 ### Validation Checklist (Pre-Production)
 
-- [ ] All control plane services have ≥3 replicas (HA)
+- [ ] All runtime services have ≥3 replicas (HA)
 - [ ] Default deny policy active in all MAS namespaces
 - [ ] Sidecar injection validated with 10+ test pods
 - [ ] MCP protocol violations logged and blocked (test suite passing)
@@ -10369,7 +10369,7 @@ networking:
   disableDefaultCNI: true
   podSubnet: 10.244.0.0/16
 nodes:
-- role: control-plane
+- role: runtime
 - role: worker
 - role: worker
 EOF
@@ -10390,20 +10390,20 @@ kubectl wait --for=condition=ready pod -l k8s-app=cilium -n kube-system --timeou
 # PostgreSQL
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install postgresql bitnami/postgresql \
-  --namespace casa-control-plane \
+  --namespace casa-runtime \
   --create-namespace \
   --set auth.postgresPassword=demo123
 
 # Keycloak
 helm install keycloak bitnami/keycloak \
-  --namespace casa-control-plane \
+  --namespace casa-runtime \
   --set auth.adminPassword=admin \
   --set postgresql.enabled=false \
   --set externalDatabase.host=postgresql \
   --set externalDatabase.password=demo123
 ```
 
-**Step 3: Deploy CASA Control Plane**
+**Step 3: Deploy CASA Runtime**
 ```bash
 # Clone repo (hypothetical)
 git clone https://github.com/your-org/casa-mas-system
@@ -10411,13 +10411,13 @@ cd casa-mas-system
 
 # Deploy with Helm
 helm install casa-mas-system ./charts/casa-mas-system \
-  --namespace casa-control-plane \
+  --namespace casa-runtime \
   --set global.environment=demo \
   --set controlPlane.replicas=1 \
   --set sidecar.injection.enabled=true
 
 # Wait for deployment
-kubectl wait --for=condition=available deployment --all -n casa-control-plane --timeout=300s
+kubectl wait --for=condition=available deployment --all -n casa-runtime --timeout=300s
 ```
 
 **Step 4: Create Sample MAS**
@@ -10459,7 +10459,7 @@ kubectl get pods -n demo-mas
 **Step 6: Test Token Flow**
 ```bash
 # Port-forward to auth service
-kubectl port-forward -n casa-control-plane svc/casa-auth-service 8443:8443 &
+kubectl port-forward -n casa-runtime svc/casa-auth-service 8443:8443 &
 
 # Generate token
 curl -k -X POST https://localhost:8443/oauth/token \
@@ -10724,15 +10724,15 @@ Use ArgoCD for GitOps-based deployments.
 
 For most workloads, this is acceptable. High-throughput services may notice the impact.
 
-**Q5: What happens if the control plane is down?**
+**Q5: What happens if the runtime is down?**
 
-**A:** Sidecars have a 30-second token cache. During this window, cached introspection results are used. After cache expiry, sidecars fail-closed (deny all requests) until the control plane recovers. This is intentional: availability is secondary to security in a Zero Trust model.
+**A:** Sidecars have a 30-second token cache. During this window, cached introspection results are used. After cache expiry, sidecars fail-closed (deny all requests) until the runtime recovers. This is intentional: availability is secondary to security in a Zero Trust model.
 
 ### Technical Questions
 
 **Q6: Why not validate tokens in eBPF instead of the sidecar?**
 
-**A:** eBPF has limited CPU budget and cannot parse complex JSON (JWT payload). eBPF can extract the token from HTTP headers and check signature validity, but full validation (claims, expiry, scopes) must happen in userspace (sidecar or control plane).
+**A:** eBPF has limited CPU budget and cannot parse complex JSON (JWT payload). eBPF can extract the token from HTTP headers and check signature validity, but full validation (claims, expiry, scopes) must happen in userspace (sidecar or runtime).
 
 **Q7: How do you handle token rotation?**
 
@@ -10781,7 +10781,7 @@ Blue-green deployment is recommended for major version upgrades.
 
 **A:**
 1. Check sidecar logs: `kubectl logs <pod> -c casa-sidecar`
-2. Check control plane logs: `kubectl logs -n casa-control-plane deployment/casa-auth-service`
+2. Check runtime logs: `kubectl logs -n casa-runtime deployment/casa-auth-service`
 3. Check Hubble flows: `hubble observe --pod <pod-name>`
 4. Check telemetry: Query PostgreSQL `traces` table for user_input_id
 5. Check AI pipeline: Verify LLM API is reachable
@@ -10816,7 +10816,7 @@ Estimated cost: ~$120k/month (AWS).
 **A:**
 Multiple layers:
 1. **eBPF egress blocking**: Agent cannot send tokens to external endpoints
-2. **Sidecar stripping**: Sidecar removes Authorization headers from non-control-plane requests
+2. **Sidecar stripping**: Sidecar removes Authorization headers from non-runtime requests
 3. **Short TTL**: 5-minute expiry limits damage
 4. **Telemetry alerts**: Anomaly detection on token reuse patterns
 

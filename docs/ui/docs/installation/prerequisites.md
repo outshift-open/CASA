@@ -12,7 +12,7 @@ Before installing CASA, ensure the following are in place.
 
 - **Version:** Kubernetes 1.26+
 - **Tested on:** kind, EKS, GKE, AKS
-- **Node requirements:** At least 2 nodes with 4 CPU / 8 GB RAM each for the control plane + a demo MAS
+- **Node requirements:** At least 2 nodes with 4 CPU / 8 GB RAM each for the runtime + a demo MAS
 
 ## CLI Tools
 
@@ -61,7 +61,7 @@ Minimum version: Cilium 1.14
 
 ## Container Registry Access
 
-The CASA control plane images are published to GitHub Container Registry (GHCR):
+The CASA runtime images are published to GitHub Container Registry (GHCR):
 
 - `ghcr.io/outshift-open/CASA` — auth service
 - `ghcr.io/outshift-open/CASA-ui` — UI explorer
@@ -73,7 +73,7 @@ These images are public. No registry authentication is required.
 
 ## Storage
 
-The control plane requires persistent volumes for PostgreSQL. Your cluster must have a default StorageClass that supports `ReadWriteOnce` volumes, or you must specify a `storageClass` in the Helm values.
+The runtime requires persistent volumes for PostgreSQL. Your cluster must have a default StorageClass that supports `ReadWriteOnce` volumes, or you must specify a `storageClass` in the Helm values.
 
 Check the default StorageClass:
 
@@ -83,4 +83,4 @@ kubectl get storageclass
 
 ## Next Step
 
-[Install the Control Plane →](control-plane.md)
+[Install the Runtime →](runtime.md)

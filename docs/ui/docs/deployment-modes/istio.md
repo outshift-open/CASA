@@ -17,7 +17,7 @@ This is the **currently deployed mode** for existing CASA cluster environments.
 graph LR
     Application --> Envoy["Envoy (Istio sidecar)"]
     Envoy --> ext_authz["ext_authz_middleware (Go gRPC)"]
-    ext_authz --> CASA["CASA Control Plane"]
+    ext_authz --> CASA["CASA Runtime"]
 
     style Application fill:#1e293b,stroke:#475569,color:#cbd5e1
     style Envoy fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
@@ -35,7 +35,7 @@ graph LR
 ## Prerequisites
 
 - Istio 1.17+ installed in your cluster
-- CASA control plane installed via the `casa-control-plane` Helm chart (includes ext_authz_middleware and all subcharts)
+- CASA runtime installed via the `casa-runtime` Helm chart (includes ext_authz_middleware and all subcharts)
 
 ## Step 1: Label the Namespace
 
@@ -70,7 +70,7 @@ kubectl -n your-mas-namespace exec -it \
 Then open the CASA Explorer UI to view the resulting token events and tool check decisions:
 
 ```bash
-kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
+kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080
 ```
 
