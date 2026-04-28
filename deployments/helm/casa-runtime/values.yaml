@@ -214,3 +214,165 @@ operator:
     limits:
       memory: "128Mi"
       cpu: "100m"
+
+# ─── Sidecar (ext-auth enforcement) ──────────────────────────────────────────
+# Set enabled: true to deploy ext-auth, EnvoyFilter, and WasmPlugins alongside
+# the control plane. Requires Istio. Set to false for plain Docker / Cilium
+# deployments where enforcement is handled separately.
+sidecar:
+  enabled: false
+  # When empty, authServerHost is auto-derived to:
+  # "<release>-auth-service.<namespace>.svc.cluster.local"
+  # Override when the auth-service is in a different release or namespace.
+  authServerHost: ""
+  authServerPort: "8000"
+  authServerScheme: "http"
+  replicaCount: 1
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  podLabels:
+    sidecar.istio.io/inject: "false"
+  resources: {}
+  llm_proxy:
+    image:
+      repository: ""
+      tag: ""
+      pullPolicy: IfNotPresent
+      pullSecret: ""
+  traceparent_injector:
+    image:
+      repository: ""
+      tag: ""
+      pullPolicy: IfNotPresent
+      pullSecret: ""
+  otelcollector:
+    fullnameOverride: otel-collector-opentelemetry-collector
+    mode: deployment
+    podLabels:
+      sidecar.istio.io/inject: "false"
+    image:
+      repository: "otel/opentelemetry-collector-k8s"
+    config:
+      exporters:
+        otlp:
+          endpoint: jaeger:4317
+          tls:
+            insecure: true
+      extensions:
+        health_check:
+          endpoint: ${env:MY_POD_IP}:13133
+      receivers:
+        jaeger:
+          protocols:
+            grpc:
+              endpoint: ${env:MY_POD_IP}:14250
+            thrift_http:
+              endpoint: ${env:MY_POD_IP}:14268
+            thrift_compact:
+              endpoint: ${env:MY_POD_IP}:6831
+        otlp:
+          protocols:
+            grpc:
+              endpoint: ${env:MY_POD_IP}:4317
+            http:
+              endpoint: ${env:MY_POD_IP}:4318
+      service:
+        extensions:
+          - health_check
+        pipelines:
+          traces:
+            exporters:
+              - otlp
+            processors:
+              - batch
+            receivers:
+              - otlp
+              - jaeger
+  jaeger:
+    fullnameOverride: jaeger
+    jaeger:
+      podLabels:
+        sidecar.istio.io/inject: "false"
+      ingress:
+        enabled: false
+    collector:
+      enabled: true
+      podLabels:
+        sidecar.istio.io/inject: "false"
+    query:
+      enabled: true
+      podLabels:
+        sidecar.istio.io/inject: "false"
+    agent:
+      enabled: true
+      podLabels:
+        sidecar.istio.io/inject: "false"
+    allInOne:
+      enabled: false
+    storage:
+      type: memory
+    ingester:
+      enabled: false
+  opentelemetry-ebpf-instrumentation:
+    podLabels:
+      sidecar.istio.io/inject: "false"
+    serviceAccount:
+      name: "obi"
+    image:
+      tag: "v0.8.0"
+      pullPolicy: Always
+    privileged: true
+    extraCapabilities:
+      - NET_ADMIN
+      - SYS_RESOURCE
+      - SYS_ADMIN
+    volumeMounts:
+      - mountPath: /sys/kernel/security
+        name: kernel-security
+        readOnly: true
+      - name: cgroup
+        mountPath: /sys/fs/cgroup
+      - mountPath: /sys/fs/bpf
+        name: kernel-bpf
+    volumes:
+      - name: kernel-security
+        hostPath:
+          path: /sys/kernel/security
+          type: Directory
+      - name: cgroup
+        hostPath:
+          path: /sys/fs/cgroup
+      - name: kernel-bpf
+        hostPath:
+          path: /sys/fs/bpf
+          type: Directory
+    config:
+      data:
+        discovery:
+          instrument:
+            - k8s_pod_name: "casa-demo-*"
+            - k8s_pod_name: "demo-agent-*"
+        routes:
+          unmatched: heuristic
+        attributes:
+          kubernetes:
+            enable: true
+        network:
+          enable: true
+        ebpf:
+          track_request_headers: true
+          context_propagation: "all"
+    env:
+      OTEL_EBPF_BPF_CONTEXT_PROPAGATION: "all"
+      OTEL_EXPORTER_OTLP_ENDPOINT: ""
+      OTEL_EBPF_BPF_TRACK_REQUEST_HEADERS: "true"
+      OTEL_EBPF_LOG_LEVEL: info
+      OTEL_EBPF_METRICS_FEATURES: "application,application_span_otel,application_process,application_service_graph,ebpf,application_host"
+      OTEL_EBPF_PROMETHEUS_FEATURES: "application,application_span_otel,application_process,application_service_graph,ebpf,application_host"
+      OTEL_EBPF_BPF_DEBUG: "false"
+      OTEL_EBPF_TRACE_PRINTER: "text"
+      OTEL_EBPF_NAME_RESOLVER_SOURCES: "dns,k8s"
+      OTEL_EBPF_KUBE_METADATA_ENABLE: "true"

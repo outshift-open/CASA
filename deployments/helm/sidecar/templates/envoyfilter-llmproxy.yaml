@@ -29,6 +29,6 @@ spec:
   vmConfig:
     env:
     - name: AUTH_SERVER_HOST
-      value: {{ .Values.authServerHost }}
+      value: {{ default (printf "%s-auth-service.%s.svc.cluster.local" .Release.Name .Release.Namespace) .Values.authServerHost | quote }}
     - name: AUTH_SERVER_PORT
       value: {{ .Values.authServerPort | default "8000" | quote }}
