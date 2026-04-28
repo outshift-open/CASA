@@ -6,7 +6,7 @@ title: Architecture Overview
 
 # Architecture Overview
 
-CASA has two main layers: a **control plane** that manages identity and policy, and a **data plane** that enforces those policies at runtime.
+CASA has two main layers: a **runtime** that manages identity and policy, and a **data plane** that enforces those policies at runtime.
 
 ## Global Architecture
 
@@ -14,7 +14,7 @@ CASA has two main layers: a **control plane** that manages identity and policy, 
 %%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph TB
     subgraph "Kubernetes Cluster"
-        subgraph "casa-control-plane"
+        subgraph "casa-runtime"
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]
@@ -73,9 +73,9 @@ graph TB
 
 ## Component Summary
 
-### Control Plane
+### Runtime
 
-The control plane runs in the `casa-control-plane` namespace and handles:
+The runtime runs in the `casa-runtime` namespace and handles:
 
 - **Token issuance** — OAuth2 client credentials flow (initial token for user input)
 - **Token exchange** — RFC 8693 token exchange for delegated, scope-limited tokens
@@ -83,7 +83,7 @@ The control plane runs in the `casa-control-plane` namespace and handles:
 - **Tool check orchestration** — runs deterministic and/or AI-powered checks on token exchange requests
 - **MAS lifecycle management** — reads `MultiAgentSystem` and `CASAPolicy` CRDs, reconciles application state
 
-See [Control Plane](control-plane.md) for full details.
+See [Runtime](runtime.md) for full details.
 
 ### CASA Sidecar
 
@@ -92,7 +92,7 @@ Every pod in a CASA-managed namespace gets an Envoy-based sidecar injected autom
 - Intercepts all inbound and outbound HTTP traffic via iptables rules
 - On **egress**: requests or exchanges tokens, injects `Authorization` header
 - On **ingress**: introspects presented tokens, allows or denies the request
-- Caches introspection results (30s TTL) to reduce control plane load
+- Caches introspection results (30s TTL) to reduce runtime load
 - Enforces protocol restrictions (MCP, A2A only — no arbitrary HTTP)
 
 See [CASA Sidecar](sidecar.md) for full details.

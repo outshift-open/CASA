@@ -64,7 +64,7 @@ Supporting Infrastructure:
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
-│  CASA Control Plane                  │  ← AUTHORIZATION
+│  CASA Runtime                  │  ← AUTHORIZATION
 │  • Auth Service  • Policy Service   │
 │  • Schema Registry                  │
 └─────────────────────────────────────┘
@@ -109,7 +109,7 @@ graph TB
     end
 
     subgraph "Kubernetes Cluster"
-        subgraph "CASA Control Plane Namespace"
+        subgraph "CASA Runtime Namespace"
             direction TB
             AUTH[🔐 Auth Service<br/>Token issuance]
             POLICY[📋 Policy Service<br/>MAS/App config]
@@ -311,7 +311,7 @@ graph LR
 - Invoked on every message
 - Examples: Content filtering, basic TBAC
 
-**Central CE Pool** (shared control plane):
+**Central CE Pool** (shared runtime):
 - Thorough analysis (100ms-2s)
 - Invoked for high-value operations
 - Examples: Evidence verification, compliance auditing, memory curation
@@ -573,7 +573,7 @@ If a compromised agent tries to:
 ```
 casa-ioc-system/
 ├── charts/
-│   ├── control-plane/           # Auth, Policy, Telemetry
+│   ├── runtime/           # Auth, Policy, Telemetry
 │   ├── cognitive-engines/       # CE pool + Schema Registry
 │   └── sidecar/                 # Sidecar injector
 ├── crds/
@@ -833,7 +833,7 @@ graph TB
 ## 13. Implementation Roadmap
 
 ### Phase 1: Foundation (4 weeks)
-- ✅ Deploy CASA control plane (Auth, Policy, Telemetry)
+- ✅ Deploy CASA runtime (Auth, Policy, Telemetry)
 - ✅ Configure Cilium eBPF (deny-by-default policies)
 - ✅ Inject sidecars (L7 validation only)
 - ✅ Validate token flow (issuance, exchange, introspection)

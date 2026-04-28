@@ -26,7 +26,7 @@ const sidebars = {
       label: 'Architecture',
       items: [
         'architecture/architecture-overview',
-        'architecture/control-plane',
+        'architecture/runtime',
         'architecture/sidecar',
         'architecture/ebpf',
       ],
@@ -47,7 +47,7 @@ const sidebars = {
       label: 'Installation',
       items: [
         'installation/prerequisites',
-        'installation/install-control-plane',
+        'installation/install-runtime',
         'installation/install-demo-mas',
       ],
     },
@@ -55,7 +55,7 @@ const sidebars = {
       type: 'category',
       label: 'Configuration',
       items: [
-        'configuration/control-plane-values',
+        'configuration/runtime-values',
         'configuration/mas-values',
         'configuration/crds-reference',
       ],

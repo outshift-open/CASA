@@ -62,7 +62,7 @@ demo/
 deployments/
   docker/                   # Dockerfiles for all components
   docker-compose/           # docker-compose.yml, keycloak, demo, ui variants
-  helm/                     # Helm charts: casa-control-plane, sidecar
+  helm/                     # Helm charts: casa-runtime, sidecar
 test/                       # Test stubs (no unit tests yet; integration/ and pipelines/ have structure)
 docs/
   dev/                      # Internal developer notes, sequence diagrams, deployment guide

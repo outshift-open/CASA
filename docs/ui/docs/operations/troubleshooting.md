@@ -8,7 +8,7 @@ title: Troubleshooting
 
 Common issues and how to resolve them.
 
-## Control Plane Issues
+## Runtime Issues
 
 ### Auth service pod is not starting
 
@@ -17,8 +17,8 @@ Common issues and how to resolve them.
 **Check:**
 
 ```bash
-kubectl -n casa-control-plane describe pod -l app=casa-auth-service
-kubectl -n casa-control-plane logs -l app=casa-auth-service --previous
+kubectl -n casa-runtime describe pod -l app=casa-auth-service
+kubectl -n casa-runtime logs -l app=casa-auth-service --previous
 ```
 
 **Common causes:**
@@ -32,7 +32,7 @@ kubectl -n casa-control-plane logs -l app=casa-auth-service --previous
 ### Keycloak pod is not starting
 
 ```bash
-kubectl -n casa-control-plane logs -l app=casa-keycloak
+kubectl -n casa-runtime logs -l app=casa-keycloak
 ```
 
 Common issue: `postgres-keycloak` not ready. Keycloak waits for the database, but check for connection errors:
@@ -52,7 +52,7 @@ curl -v http://localhost:8000/health
 If the response is a 500, the auth service cannot connect to PostgreSQL or Keycloak. Check the pod logs:
 
 ```bash
-kubectl -n casa-control-plane logs deploy/casa-auth-service | tail -50
+kubectl -n casa-runtime logs deploy/casa-auth-service | tail -50
 ```
 
 ---
@@ -63,12 +63,12 @@ kubectl -n casa-control-plane logs deploy/casa-auth-service | tail -50
 
 The sidecar is failing-closed. Possible causes:
 
-1. **Token introspection failing** — control plane unreachable
+1. **Token introspection failing** — runtime unreachable
 
    ```bash
    # Check if auth service is accessible from the sidecar
    kubectl exec -n your-mas-namespace deploy/your-agent -c istio-proxy -- \
-     curl -s http://casa-auth-service.casa-control-plane.svc.cluster.local:8000/health
+     curl -s http://casa-auth-service.casa-runtime.svc.cluster.local:8000/health
    ```
 
 2. **Token expired** — token TTL is 5 minutes; if the request is older, get a fresh token
@@ -76,13 +76,13 @@ The sidecar is failing-closed. Possible causes:
 3. **Wrong scope** — the token scope doesn't match the operation. Check the denial reason in auth service logs:
 
    ```bash
-   kubectl -n casa-control-plane logs deploy/casa-auth-service | grep "DENY\|denied\|403"
+   kubectl -n casa-runtime logs deploy/casa-auth-service | grep "DENY\|denied\|403"
    ```
 
 4. **Tool check failure** — a deterministic or semantic check rejected the token exchange. Check:
 
    ```bash
-   kubectl -n casa-control-plane logs deploy/casa-auth-service | grep "tool_check"
+   kubectl -n casa-runtime logs deploy/casa-auth-service | grep "tool_check"
    ```
 
 ### Sidecar not injected
@@ -113,7 +113,7 @@ kubectl rollout restart deploy/your-deployment -n your-mas-namespace
 Use the **CASA Explorer UI** to inspect flow verdicts and token denials:
 
 ```bash
-kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
+kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080 → Traces
 ```
 
@@ -153,17 +153,17 @@ kubectl get mas your-mas-name -n your-mas-namespace -o jsonpath='{.status.messag
 
 ```bash
 # Control plane status
-kubectl -n casa-control-plane get pods
-kubectl -n casa-control-plane get events --sort-by=.lastTimestamp | tail -20
+kubectl -n casa-runtime get pods
+kubectl -n casa-runtime get events --sort-by=.lastTimestamp | tail -20
 
 # Auth service logs
-kubectl -n casa-control-plane logs deploy/casa-auth-service -f
+kubectl -n casa-runtime logs deploy/casa-auth-service -f
 
 # All MAS resources
 kubectl get mas --all-namespaces
 kubectl get casap --all-namespaces
 
 # Helm release status
-helm status casa --namespace casa-control-plane
-helm history casa --namespace casa-control-plane
+helm status casa --namespace casa-runtime
+helm history casa --namespace casa-runtime
 ```

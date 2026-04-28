@@ -1,16 +1,16 @@
 # MAS Deployment Guide - From Scratch
 
-This guide walks through deploying a Multi-Agent System (MAS) from scratch, assuming you have already deployed the CASA control plane (auth-service, operator, Keycloak, etc.).
+This guide walks through deploying a Multi-Agent System (MAS) from scratch, assuming you have already deployed the CASA runtime (auth-service, operator, Keycloak, etc.).
 
 ## Prerequisites
 
 ### Already Deployed (via CI/CD)
-- ✅ CASA Control Plane in `casa-control-plane-dev` namespace:
+- ✅ CASA Runtime in `casa-runtime-dev` namespace:
   - Auth-service
   - Operator
   - Keycloak
   - PostgreSQL
-  - Ext-authz middleware (protects control plane namespace only)
+  - Ext-authz middleware (protects runtime namespace only)
 
 ### What You Need to Deploy
 - [ ] Enable Istio sidecar injection for your MAS namespace
@@ -265,10 +265,10 @@ kubectl get mas my-mas -n my-namespace -o yaml | grep -A10 "status:"
 
 ```bash
 # Check operator logs
-kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator
+kubectl logs -n casa-runtime-dev deployment/casa-operator -c operator
 
 # Check auth-service logs
-kubectl logs -n casa-control-plane-dev deployment/casa-auth-service -c auth-service
+kubectl logs -n casa-runtime-dev deployment/casa-auth-service -c auth-service
 ```
 
 ## Step 5: Verify Keycloak Registration
@@ -279,7 +279,7 @@ Your MAS should now have a realm in Keycloak with registered clients.
 
 ```bash
 # Port-forward to Keycloak
-kubectl port-forward -n casa-control-plane-dev svc/keycloak 8080:8080
+kubectl port-forward -n casa-runtime-dev svc/keycloak 8080:8080
 
 # Open browser: http://localhost:8080/admin
 # Login with admin credentials
@@ -634,7 +634,7 @@ kubectl get mas demo-mas -n demo-mas -o jsonpath='{.status}' | jq
 # }
 
 # Check operator logs
-kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator --tail=20
+kubectl logs -n casa-runtime-dev deployment/casa-operator -c operator --tail=20
 # Should show successful sync
 ```
 
@@ -644,7 +644,7 @@ kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator --ta
 
 **Check operator logs:**
 ```bash
-kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator --tail=50
+kubectl logs -n casa-runtime-dev deployment/casa-operator -c operator --tail=50
 ```
 
 **Common issues:**
@@ -656,7 +656,7 @@ kubectl logs -n casa-control-plane-dev deployment/casa-operator -c operator --ta
 
 **Check auth-service logs:**
 ```bash
-kubectl logs -n casa-control-plane-dev deployment/casa-auth-service -c auth-service --tail=50
+kubectl logs -n casa-runtime-dev deployment/casa-auth-service -c auth-service --tail=50
 ```
 
 **Common issues:**

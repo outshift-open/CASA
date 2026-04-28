@@ -11,7 +11,7 @@ CASA defines two CRDs in the `casa.io/v1alpha1` API group:
 - `MultiAgentSystem` — declares the applications in a MAS and the tool checks to apply _(fully supported)_
 - `CASAPolicy` — declares per-workload protocol and LLM endpoint policies, reconciled into network enforcement _(in development)_
 
-Both are installed as part of the `casa-control-plane` Helm chart.
+Both are installed as part of the `casa-runtime` Helm chart.
 
 ## MultiAgentSystem
 
@@ -127,7 +127,7 @@ spec:
           namespace: production-mas
           port: 8080
         - name: casa-auth-service
-          namespace: casa-control-plane
+          namespace: casa-runtime
           port: 8443
     llmEndpoint:
         fqdn: api.openai.com

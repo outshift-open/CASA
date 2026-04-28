@@ -8,19 +8,19 @@ title: Upgrade
 
 Guidelines for upgrading CASA components.
 
-## Upgrading the Control Plane Chart
+## Upgrading the Runtime Chart
 
 Before upgrading, check the release notes for breaking changes.
 
 ```bash
 # Dry-run to preview changes
-helm upgrade casa deployments/helm/casa-control-plane \
-  --namespace casa-control-plane \
+helm upgrade casa deployments/helm/casa-runtime \
+  --namespace casa-runtime \
   --dry-run
 
 # Upgrade
-helm upgrade casa deployments/helm/casa-control-plane \
-  --namespace casa-control-plane
+helm upgrade casa deployments/helm/casa-runtime \
+  --namespace casa-runtime
 
 # Or using the Makefile
 make helm-upgrade
@@ -33,7 +33,7 @@ Rolling upgrades are safe for the auth service (stateless). Keycloak and Postgre
 CRDs are not automatically upgraded by `helm upgrade`. Apply them manually:
 
 ```bash
-kubectl apply -f deployments/helm/casa-control-plane/crds/
+kubectl apply -f deployments/helm/casa-runtime/crds/
 ```
 
 For `v1alpha1` → stable version upgrades:
@@ -42,7 +42,7 @@ For `v1alpha1` → stable version upgrades:
 
 ## Upgrading Sidecars (Istio mode)
 
-The ext-authz middleware is bundled in the `casa-control-plane` chart and upgrades automatically with `helm upgrade`. After a control plane upgrade, trigger a rolling restart of your MAS workloads so Istio re-injects with the latest configuration:
+The ext-authz middleware is bundled in the `casa-runtime` chart and upgrades automatically with `helm upgrade`. After a runtime upgrade, trigger a rolling restart of your MAS workloads so Istio re-injects with the latest configuration:
 
 ```bash
 kubectl rollout restart deploy/your-agent -n your-mas-namespace
@@ -51,7 +51,7 @@ kubectl rollout restart deploy/your-mcp-server -n your-mas-namespace
 
 ## Upgrading Sidecars (Cilium mode — coming soon)
 
-Update the mutating webhook by upgrading the control plane chart (the webhook is bundled). Then restart MAS workloads to get the new sidecar version:
+Update the mutating webhook by upgrading the runtime chart (the webhook is bundled). Then restart MAS workloads to get the new sidecar version:
 
 ```bash
 kubectl rollout restart deploy/your-agent -n your-mas-namespace
@@ -68,18 +68,18 @@ The auth service applies database migrations automatically on startup using Alem
 If a migration fails:
 
 ```bash
-kubectl -n casa-control-plane logs deploy/casa-auth-service | grep -i "migration\|alembic"
+kubectl -n casa-runtime logs deploy/casa-auth-service | grep -i "migration\|alembic"
 ```
 
 ## Rolling Back
 
 ```bash
 # Roll back to the previous chart version
-helm rollback casa --namespace casa-control-plane
+helm rollback casa --namespace casa-runtime
 
 # Or to a specific revision
-helm history casa --namespace casa-control-plane
-helm rollback casa 3 --namespace casa-control-plane
+helm history casa --namespace casa-runtime
+helm rollback casa 3 --namespace casa-runtime
 ```
 
 CRD rollbacks are not supported by Helm. If you need to roll back CRD schema changes, apply the previous CRD manifests manually.

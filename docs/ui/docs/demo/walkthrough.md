@@ -27,7 +27,7 @@ The demo scenario:
 
 ## Prerequisites
 
-- CASA control plane running (see [Install Control Plane](/installation/control-plane))
+- CASA runtime running (see [Install Runtime](/installation/runtime))
 - Demo MAS deployed and sidecar injection enabled (see [Install Demo MAS](/installation/demo-mas))
 - `MultiAgentSystem` CRD applied
 
@@ -47,7 +47,7 @@ Type a message such as *"Get the account summary and scheduled payments"* and se
 ### 2. Observe CASA events in the Explorer UI
 
 ```bash
-kubectl -n casa-control-plane port-forward svc/casa-ui-explorer 8080:80
+kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080
 ```
 
@@ -90,7 +90,7 @@ During the above request, CASA:
 View auth service logs during the request:
 
 ```bash
-kubectl -n casa-control-plane logs -f deploy/casa-auth-service | grep -E "token|tool|check"
+kubectl -n casa-runtime logs -f deploy/casa-auth-service | grep -E "token|tool|check"
 ```
 
 View sidecar logs (pick the relevant pod):

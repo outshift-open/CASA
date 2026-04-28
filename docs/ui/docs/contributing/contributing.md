@@ -114,7 +114,7 @@ chore: update dependencies
 | ------------------------ | -------------------------------------- | -------------------------- |
 | Auth service source      | `src/casa_auth_server/`                | Python / FastAPI           |
 | Auth service tests       | `test/`                                | pytest; unit + integration |
-| Control plane Helm chart | `deployments/helm/casa-control-plane/` | Helm v3                    |
+| Control plane Helm chart | `deployments/helm/casa-runtime/` | Helm v3                    |
 | Demo MAS Helm chart      | `demo/helm/`                           | Helm v3                    |
 | Demo agent (safe)        | `demo/src/agent-safe/`                 | Python                     |
 | Demo agent (compromised) | `demo/src/agent-compromised/`          | Python                     |

@@ -3,9 +3,9 @@
 **Purpose:** Minimum information needed to design and deploy a Zero Trust Authorization System for Multi-Agent Systems in Kubernetes.
 
 **What this guide covers:**
-1. System components (control plane + data plane)
+1. System components (runtime + data plane)
 2. Token flow (how auth actually works)
-3. Responsibility model (eBPF vs Sidecar vs Control Plane)
+3. Responsibility model (eBPF vs Sidecar vs Runtime)
 4. Network policy (deny-by-default with Cilium)
 5. Packaging (Helm + CRDs + Operators)
 6. Deployment architecture (namespaces, services, infrastructure)
@@ -25,11 +25,11 @@ A production-ready Kubernetes deployment of a Zero Trust Authorization System fo
 **Architecture in 30 seconds:**
 - **Sidecar pattern**: Envoy proxy injected into every pod (agents, MCP servers, user apps)
 - **Network enforcement**: Cilium eBPF enforces deny-by-default at L3/L4
-- **Token-based auth**: JWT tokens issued by control plane, validated at multiple layers
+- **Token-based auth**: JWT tokens issued by runtime, validated at multiple layers
 - **Protocol restrictions**: Only MCP and A2A protocols internally; single LLM endpoint externally
-- **Defense in depth**: eBPF → Sidecar → Control Plane, each validates independently
+- **Defense in depth**: eBPF → Sidecar → Runtime, each validates independently
 
-**Key insight:** The sidecar intercepts ALL traffic, eBPF blocks at kernel level, control plane makes AI-powered authorization decisions.
+**Key insight:** The sidecar intercepts ALL traffic, eBPF blocks at kernel level, runtime makes AI-powered authorization decisions.
 
 ### System Architecture (One Diagram to Rule Them All)
 
@@ -40,7 +40,7 @@ graph TB
         LLM[OpenAI LLM]
     end
 
-    subgraph "🟢 CASA Control Plane (casa-control-plane namespace)"
+    subgraph "🟢 CASA Runtime (casa-runtime namespace)"
         AUTH[Auth Service<br/>3-20 pods]
         POLICY[Policy Service<br/>3 pods]
         AI[AI Pipeline<br/>3-10 pods]
@@ -105,7 +105,7 @@ graph TB
 **Read this diagram:**
 - 🔴 Red = Untrusted (user input, external LLM)
 - 🟡 Yellow = Partially trusted (your workloads with sidecars)
-- 🟢 Green = Fully trusted (control plane)
+- 🟢 Green = Fully trusted (runtime)
 - ⚫ Black/Red = Enforcement layer (eBPF blocks at kernel)
 
 **Critical paths:**
@@ -117,7 +117,7 @@ graph TB
 
 ## Step 1: Understand the Components
 
-### Control Plane (namespace: `casa-control-plane`)
+### Runtime (namespace: `casa-runtime`)
 The brains of the operation. Runs as stateless services (except PostgreSQL).
 
 | Service | What It Does | Scale |
@@ -157,7 +157,7 @@ Your actual workloads. Every pod gets a sidecar injected automatically.
 
 **Sidecar responsibilities:**
 - Intercept ALL pod traffic (iptables redirect)
-- Request/cache tokens from control plane
+- Request/cache tokens from runtime
 - Inject `Authorization: Bearer <token>` headers
 - Validate L7 protocol (only MCP/A2A allowed)
 - Log requests to telemetry
@@ -236,7 +236,7 @@ sequenceDiagram
 | **T2** (LLM) | `llm-access` | 15 min | Agent → LLM | Restricted: ONLY for LLM calls, logged |
 | **T3** (Tool) | `call-tools`, `tools=[...]` | 5 min | Agent → MCP | Most restrictive: specific tools only |
 
-**Key insight:** Token exchange happens at sidecar, validation at control plane, enforcement at eBPF. Defense in depth.
+**Key insight:** Token exchange happens at sidecar, validation at runtime, enforcement at eBPF. Defense in depth.
 
 📖 **Full sequence:** [SPECS.md §2.3](./SPECS.md#23-data-flow-sequence-token-acquisition-to-tool-execution)
 ---
@@ -245,11 +245,11 @@ sequenceDiagram
 
 Understanding the division of labor prevents design mistakes.
 
-| Security Function | eBPF (L3/L4) | Sidecar (L7) | Control Plane |
+| Security Function | eBPF (L3/L4) | Sidecar (L7) | Runtime |
 |-------------------|--------------|--------------|---------------|
 | **Network blocking** | ✅ Deny-by-default | ❌ | ❌ |
 | **Protocol validation** | ⚠️ See TCP only | ✅ Parse MCP/A2A | ❌ |
-| **Token acquisition** | ❌ | ✅ Request from control plane | ✅ Issue tokens |
+| **Token acquisition** | ❌ | ✅ Request from runtime | ✅ Issue tokens |
 | **Token injection** | ❌ | ✅ Add to headers | ❌ |
 | **Token validation** | ⚠️ Basic checks | ✅ Full JWT decode | ✅ Introspection |
 | **FQDN filtering** | ✅ Block non-LLM egress | ❌ | ❌ |
@@ -306,7 +306,7 @@ spec:
   - toEndpoints:
     - matchLabels:
         app: casa-auth-service
-        k8s:io.kubernetes.pod.namespace: casa-control-plane
+        k8s:io.kubernetes.pod.namespace: casa-runtime
     toPorts:
     - ports:
       - port: "443"
@@ -343,7 +343,7 @@ casa-system/
 ├── Chart.yaml
 ├── values.yaml
 ├── charts/
-│   ├── control-plane/         # Auth, Policy, AI Pipeline, Telemetry services
+│   ├── runtime/         # Auth, Policy, AI Pipeline, Telemetry services
 │   ├── infrastructure/        # PostgreSQL, Redis, Keycloak
 │   └── observability/         # Prometheus, Grafana, Loki
 └── templates/
@@ -354,8 +354,8 @@ casa-system/
 
 **Install:**
 ```bash
-helm install casa-control-plane casa/casa-system \
-  --namespace casa-control-plane \
+helm install casa-runtime casa/casa-system \
+  --namespace casa-runtime \
   --create-namespace
 ```
 
@@ -410,7 +410,7 @@ spec:
 
 ---
 
-## Step 6: Control Plane Components (What You're Deploying)
+## Step 6: Runtime Components (What You're Deploying)
 
 ### Core Services
 
@@ -433,7 +433,7 @@ spec:
 ### Namespace Layout
 
 ```
-casa-control-plane/    # All control plane services
+casa-runtime/    # All runtime services
 casa-system/           # Operators, CRDs, injector webhook
 production-mas/       # Your MAS workloads (agents, MCP servers)
 staging-mas/          # Staging environment (isolated)
@@ -457,9 +457,9 @@ observability/        # Prometheus, Grafana, Loki
 | **Token exfiltration** | Compromised agent sends token to `evil.com` | eBPF blocks egress (FQDN not in allowlist) | L3/L4 |
 | **LLM misuse** | Agent bypasses tool checks by calling LLM directly with user token | Token scope validation: Only `llm-access` scope tokens allowed to LLM | L7 (Sidecar) |
 | **Lateral movement** | Compromised pod tries to reach other pods/services | Deny-by-default policy: No network access unless explicitly allowed | L3/L4 |
-| **Unauthorized tools** | Agent requests dangerous tool ("filesystem:delete_all") | AI pipeline checks if tool matches user's task intent (embeddings + LLM verifier) | Control Plane |
+| **Unauthorized tools** | Agent requests dangerous tool ("filesystem:delete_all") | AI pipeline checks if tool matches user's task intent (embeddings + LLM verifier) | Runtime |
 | **Protocol smuggling** | Agent sends non-MCP traffic to MCP server | Sidecar validates protocol (only MCP/A2A allowed) | L7 (Sidecar) |
-| **Token replay** | Attacker reuses stolen token | Short TTL (5 min) + token binding to workload identity | Control Plane |
+| **Token replay** | Attacker reuses stolen token | Short TTL (5 min) + token binding to workload identity | Runtime |
 
 ### Trust Boundaries
 
@@ -477,7 +477,7 @@ graph LR
     end
 
     subgraph "🟢 Fully Trusted"
-        CASA[Control Plane]
+        CASA[Runtime]
         KC[Keycloak]
         PG[(Database)]
     end
@@ -495,7 +495,7 @@ graph LR
     style KC fill:#95e1d3
 ```
 
-**Key principle:** Never trust workloads (agents, MCP servers). Always validate at control plane.
+**Key principle:** Never trust workloads (agents, MCP servers). Always validate at runtime.
 
 📖 **Attack scenarios:** [SPECS.md §8](./SPECS.md#8-security--threat-model)
 
@@ -550,7 +550,7 @@ All configurations managed as code in Git:
 
 ```
 casa-gitops/
-├── control-plane/        # Helm values for CASA services
+├── runtime/        # Helm values for CASA services
 ├── mas-workloads/
 │   ├── production-mas/   # MultiAgentSystem CRD + app deployments
 │   └── staging-mas/
@@ -584,8 +584,8 @@ casa-gitops/
 - ✅ Keycloak issues JWT tokens via client credentials flow
 - ✅ Auth Service exchanges tokens (RFC 8693)
 
-### Phase 2: Control Plane (Weeks 5-8)
-**Goal:** Complete all control plane services
+### Phase 2: Runtime (Weeks 5-8)
+**Goal:** Complete all runtime services
 
 1. Build Policy Service (CRUD for apps/MAS/tools)
 2. Build AI Pipeline Service (embeddings matcher)
@@ -620,7 +620,7 @@ casa-gitops/
 1. Deploy Prometheus + Grafana + Loki + Tempo
 2. Configure Hubble (eBPF flow logs)
 3. Build CASA Explorer UI (admin dashboard)
-4. Implement RBAC for control plane APIs
+4. Implement RBAC for runtime APIs
 5. Secrets management (Vault + External Secrets Operator)
 6. Disaster recovery (backups, restore procedures)
 
@@ -693,7 +693,7 @@ casa-gitops/
 | **What if eBPF isn't available?** | ⚠️ Fallback to iptables | Lose performance, keep security |
 | **Can I run without sidecars?** | ❌ No | Sidecars are mandatory for token injection |
 | **How do I add a new tool?** | ✅ Register in Policy Service | Operator auto-syncs to MCP Discovery |
-| **Can agents bypass tool checks?** | ❌ No | Even if agent has token, control plane validates intent |
+| **Can agents bypass tool checks?** | ❌ No | Even if agent has token, runtime validates intent |
 | **What if AI Pipeline is down?** | ⚠️ Tool checks fail, tokens denied | Design: Fail secure, not fail open |
 | **Can I use this for non-MAS workloads?** | ✅ Yes | Just don't enable tool checks, use as auth gateway |
 | **Do I need GPUs for AI Pipeline?** | ❌ No | Embeddings API is external (OpenAI), LLM is external |
@@ -715,9 +715,9 @@ helm install cilium cilium/cilium \
   --set hubble.enabled=true \
   --set hubble.relay.enabled=true
 
-# 2. Install CASA Control Plane
-helm install casa-control-plane casa/casa-system \
-  --namespace casa-control-plane \
+# 2. Install CASA Runtime
+helm install casa-runtime casa/casa-system \
+  --namespace casa-runtime \
   --create-namespace
 
 # 3. Create your first Multi-Agent System
@@ -739,7 +739,7 @@ EOF
 
 # 4. Verify
 kubectl get mas -n production-mas
-kubectl get pods -n casa-control-plane
+kubectl get pods -n casa-runtime
 hubble observe --namespace production-mas
 ```
 
@@ -758,7 +758,7 @@ spec:
     image: my-agent:v1.0
     env:
     - name: CASA_AUTH_URL
-      value: "https://casa-auth-service.casa-control-plane.svc"
+      value: "https://casa-auth-service.casa-runtime.svc"
 ```
 
 **What happens automatically:**
@@ -814,15 +814,15 @@ spec:
 **Control plane upgrade:**
 ```bash
 # 1. Upgrade Helm chart (rolling update)
-helm upgrade casa-control-plane casa/casa-system \
-  --namespace casa-control-plane \
+helm upgrade casa-runtime casa/casa-system \
+  --namespace casa-runtime \
   --version 2.0.0
 
 # 2. Verify health
-kubectl rollout status deployment/casa-auth-service -n casa-control-plane
+kubectl rollout status deployment/casa-auth-service -n casa-runtime
 
 # 3. Check metrics
-curl https://casa-auth-service.casa-control-plane.svc/metrics
+curl https://casa-auth-service.casa-runtime.svc/metrics
 ```
 
 **Sidecar upgrade (per-MAS):**
@@ -847,7 +847,7 @@ curl https://casa-auth-service.casa-control-plane.svc/metrics
 
 **DR procedure:**
 1. Restore PostgreSQL from snapshot
-2. Redeploy control plane via Helm
+2. Redeploy runtime via Helm
 3. Operator reconciles MultiAgentSystem CRDs
 4. Workloads auto-reconnect
 
@@ -891,7 +891,7 @@ curl https://casa-auth-service.casa-control-plane.svc/metrics
 ### Enforcement Layers (Defense in Depth)
 1. **eBPF (L3/L4):** Blocks at kernel → Deny-by-default, FQDN filtering
 2. **Sidecar (L7):** Validates protocol → Only MCP/A2A allowed, adds tokens
-3. **Control Plane:** Authorizes tools → AI verifies task-tool match
+3. **Runtime:** Authorizes tools → AI verifies task-tool match
 
 ### Key Commands
 ```bash
@@ -905,7 +905,7 @@ kubectl get pods -n production-mas -o jsonpath='{.items[0].spec.containers[*].na
 hubble observe --namespace production-mas --verdict DENIED
 
 # Check token metrics
-kubectl port-forward -n casa-control-plane svc/casa-auth-service 9090:9090
+kubectl port-forward -n casa-runtime svc/casa-auth-service 9090:9090
 curl localhost:9090/metrics | grep casa_token
 
 # View CiliumNetworkPolicies

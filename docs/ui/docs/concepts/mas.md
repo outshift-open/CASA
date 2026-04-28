@@ -101,4 +101,4 @@ Your application code is unaware of CASA.
 
 ## Multiple MAS in One Cluster
 
-A single CASA control plane can manage multiple MAS deployments, each in its own namespace. Policies are namespace-scoped — one MAS cannot access another MAS's tokens or tools without an explicit cross-namespace policy.
+A single CASA runtime can manage multiple MAS deployments, each in its own namespace. Policies are namespace-scoped — one MAS cannot access another MAS's tokens or tools without an explicit cross-namespace policy.

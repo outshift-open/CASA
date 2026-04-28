@@ -37,7 +37,7 @@ Modern AI applications are increasingly composed of agents, MCP servers, and orc
 
 CASA addresses this by introducing **intent-scoped authorization**: every tool call made by an agent must be validated against the original user intent. If an agent tries to invoke a filesystem write tool when the user only asked for a balance summary, CASA blocks it — at the network level, before the tool executes.
 
-Enforcement happens through sidecars injected into each MAS pod and an eBPF-based network layer, both orchestrated by the CASA control plane. MAS applications are configured through Kubernetes CRDs and require no SDK integration or code modifications.
+Enforcement happens through sidecars injected into each MAS pod and an eBPF-based network layer, both orchestrated by the CASA runtime. MAS applications are configured through Kubernetes CRDs and require no SDK integration or code modifications.
 
 ---
 
@@ -49,7 +49,7 @@ Enforcement happens through sidecars injected into each MAS pod and an eBPF-base
 %%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph TB
     subgraph "Kubernetes Cluster"
-        subgraph "casa-control-plane"
+        subgraph "casa-runtime"
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]
@@ -148,7 +148,7 @@ Token-level trace for each user session: token issuance, LLM selection events, a
 
 ## Core Concepts
 
-**Control Plane** — The CASA control plane (`casa-control-plane` namespace) handles agent identity (CIMD - Client ID Metadata), token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.
+**Runtime** — The CASA runtime (`casa-runtime` namespace) handles agent identity (CIMD - Client ID Metadata), token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.
 
 **Multi-Agent System (MAS)** — A named group of applications (agents, MCP servers, and clients) that interact with each other inside a Kubernetes namespace. Each MAS is described by a `MultiAgentSystem` CRD.
 
@@ -172,18 +172,18 @@ Token-level trace for each user session: token issuance, LLM selection events, a
 
 > Note: Currently only Istio is supported. Cilium support is on the roadmap.
 
-### 1. Install the CASA Control Plane
+### 1. Install the CASA Runtime
 
 ```bash
-helm install casa deployments/helm/casa-control-plane \
-  --namespace casa-control-plane \
+helm install casa deployments/helm/casa-runtime \
+  --namespace casa-runtime \
   --create-namespace
 ```
 
 Wait for all pods to be ready:
 
 ```bash
-kubectl -n casa-control-plane wait --for=condition=ready pod --all --timeout=300s
+kubectl -n casa-runtime wait --for=condition=ready pod --all --timeout=300s
 ```
 
 ### 2. Install the Demo MAS
@@ -245,11 +245,11 @@ kubectl label namespace my-mas casa.io/injection=enabled
 ### 4. Verify
 
 ```bash
-# Check control plane health
-kubectl -n casa-control-plane get pods
+# Check runtime health
+kubectl -n casa-runtime get pods
 
 # Test token issuance
-kubectl -n casa-control-plane port-forward svc/casa-auth-service 8000:8000 &
+kubectl -n casa-runtime port-forward svc/casa-auth-service 8000:8000 &
 curl http://localhost:8000/health
 ```
 
@@ -261,7 +261,7 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 
 | Path                                   | Description                                              |
 | -------------------------------------- | -------------------------------------------------------- |
-| `deployments/helm/casa-control-plane/` | CASA control plane Helm chart                            |
+| `deployments/helm/casa-runtime/` | CASA runtime Helm chart                            |
 | `demo/helm/`                           | Demo MAS Helm chart (agent + MCP server)                 |
 | `demo/src/agent-safe/`                 | Demo safe agent source code                              |
 | `demo/src/agent-compromised/`          | Demo compromised agent source code                       |

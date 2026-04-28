@@ -26,7 +26,7 @@ sequenceDiagram
     participant User
     participant Client
     participant ClientSidecar as Client Sidecar
-    participant CASA as CASA Control Plane
+    participant CASA as CASA Runtime
     participant Agent
     participant AgentSidecar as Agent Sidecar
     participant LLM as External LLM
@@ -89,4 +89,4 @@ Applications are not aware of token operations. The sidecar handles everything:
 - On egress: intercepts the request, performs the token exchange, injects the token, forwards
 - On ingress: intercepts the request, introspects the token, allows or denies
 
-Your application code never sees tokens, never calls the control plane, and never needs to handle auth errors from CASA.
+Your application code never sees tokens, never calls the runtime, and never needs to handle auth errors from CASA.

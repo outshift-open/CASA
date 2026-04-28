@@ -23,7 +23,7 @@ Both agents connect to a shared MCP server (a fictitious banking app) and are ex
 
 ## Prerequisites
 
-- Kubernetes cluster with CASA control plane installed (see [control plane setup](../docs/ui/docs/installation/control-plane.md))
+- Kubernetes cluster with CASA runtime installed (see [runtime setup](../docs/ui/docs/installation/runtime.md))
 - Helm 3.x
 - An OpenAI-compatible LLM endpoint and API key
 - Container images built and pushed (or local registry configured)

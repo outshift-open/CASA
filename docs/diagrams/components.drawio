@@ -102,11 +102,11 @@
       <mxGeometry x="30" y="60" width="1290" height="840" as="geometry" />
     </mxCell>
 
-    <!-- CASA Control Plane namespace -->
+    <!-- CASA Runtime namespace -->
     <mxCell id="cp_border" value="" style="rounded=1;arcSize=3;strokeColor=#6366f1;strokeWidth=2;fillColor=#1e1b4b;fillOpacity=20;" vertex="1" parent="1">
       <mxGeometry x="60" y="120" width="330" height="700" as="geometry" />
     </mxCell>
-    <mxCell id="cp_label" value="CASA-CONTROL-PLANE" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#6366f1;fontSize=11;fontFamily=Courier New;fontStyle=1;" vertex="1" parent="1">
+    <mxCell id="cp_label" value="CASA-RUNTIME" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#6366f1;fontSize=11;fontFamily=Courier New;fontStyle=1;" vertex="1" parent="1">
       <mxGeometry x="70" y="128" width="310" height="22" as="geometry" />
     </mxCell>
 
