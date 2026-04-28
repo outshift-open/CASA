@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 import logging
 import re
-from typing import List
 
 import numpy as np
 from dotenv import dotenv_values
@@ -62,7 +61,7 @@ class HybridTaskToolMatcher(TaskToolMatcher):
         )
         self.model_id = config.get("PIPELINE_OPENAI_GPT4o_MODEL_ID")
         self.embedding_service = EmbeddingService(config)
-        self.tool_names: List[str] = []
+        self.tool_names: list[str] = []
         self.tuning = False
 
     def set_tuning_mode(self) -> None:

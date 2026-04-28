@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
@@ -30,17 +30,17 @@ class Trace(SQLModel, table=True):  # type: ignore[call-arg]
     """SQLModel for storing event traces."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
-    user_input_id: Optional[UUID] = Field(foreign_key="userinput.id")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    user_input_id: UUID | None = Field(foreign_key="userinput.id")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
     event_type: str
-    event: Dict[str, Any] = Field(sa_column=Column(JSON))
+    event: dict[str, Any] = Field(sa_column=Column(JSON))
 
 
 class TraceList(BaseModel):
     """Paginated list of events."""
 
-    items: Dict[str, List[Trace]]
+    items: dict[str, list[Trace]]
     total: int
     page: int
     page_size: int
@@ -54,7 +54,7 @@ class TracerRepository(ABC):
         """Stores an event in the database."""
 
     @abstractmethod
-    def get_all(self, page: int, page_size: int, mas_id: Optional[UUID] = None, fetch_all: bool = False) -> TraceList:
+    def get_all(self, page: int, page_size: int, mas_id: UUID | None = None, fetch_all: bool = False) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
         pass
 
@@ -87,7 +87,7 @@ class TracerPostgresRepository(TracerRepository):
         self._session.add(trace)
 
     def get_all(
-        self, page: int = 0, page_size: int = 100, mas_id: Optional[UUID] = None, fetch_all: bool = False
+        self, page: int = 0, page_size: int = 100, mas_id: UUID | None = None, fetch_all: bool = False
     ) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
         mas_filter = Trace.event["mas_id"].as_string() == str(mas_id) if mas_id is not None else True  # type: ignore[assignment]
@@ -107,7 +107,7 @@ class TracerPostgresRepository(TracerRepository):
         traces = self._session.exec(traces_qry).all()
         total = self._session.exec(total_qry).one()
 
-        items: Dict[str, List[Trace]] = defaultdict(list)
+        items: dict[str, list[Trace]] = defaultdict(list)
         for trace in traces:
             items[str(trace.user_input_id)].append(trace)
 

@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
 """Service layer for managing Kubernetes CRD resources (MultiAgentSystem)."""
 
 import logging
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -60,7 +59,7 @@ class K8sCRDService:
         self._idp_client = idp_client
         self._k8s_mas_repository = k8s_mas_repository
 
-    def _convert_tool_checks_to_flags(self, checks: List[ToolCheckType]) -> ToolCheckFlags:
+    def _convert_tool_checks_to_flags(self, checks: list[ToolCheckType]) -> ToolCheckFlags:
         """Convert list of tool check types to ToolCheckFlags."""
         flags = ToolCheckFlags.NONE
         for check in checks:
@@ -72,7 +71,7 @@ class K8sCRDService:
                 flags |= ToolCheckFlags.AI_POWERED_TOOL_MATCH
         return flags
 
-    def _convert_flags_to_tool_checks(self, flags: ToolCheckFlags) -> List[ToolCheckType]:
+    def _convert_flags_to_tool_checks(self, flags: ToolCheckFlags) -> list[ToolCheckType]:
         """Convert ToolCheckFlags to list of tool check types."""
         checks = []
         if flags & ToolCheckFlags.DETERMINISTIC_TOOL_SELECTED:
@@ -106,7 +105,7 @@ class K8sCRDService:
         status = MultiAgentSystemStatus(
             phase=MASPhase.ACTIVE,
             apps_ready=len(apps),
-            last_sync_time=datetime.now(timezone.utc),
+            last_sync_time=datetime.now(UTC),
         )
 
         return MultiAgentSystemCRD(
@@ -130,9 +129,9 @@ class K8sCRDService:
         mas: MultiAgentSystem,
         k8s_name: str,
         namespace: str,
-        workload_names: Optional[dict] = None,
-        prompt_field_json_paths: Optional[dict] = None,
-        llm_host: Optional[str] = None,
+        workload_names: dict | None = None,
+        prompt_field_json_paths: dict | None = None,
+        llm_host: str | None = None,
     ) -> K8sMultiAgentSystemCRD:
         """Build K8sMultiAgentSystemCRD SQLModel record linked to an existing MAS."""
         apps = self._app_service.get_mas_apps(str(mas.id))
@@ -234,7 +233,7 @@ class K8sCRDService:
             crd.status = MultiAgentSystemStatus(
                 phase=MASPhase.ACTIVE,
                 apps_ready=len(existing_apps),
-                last_sync_time=datetime.now(timezone.utc),
+                last_sync_time=datetime.now(UTC),
                 message=f"MAS already exists with {len(existing_apps)} apps",
                 credentials=credentials if credentials else None,
             )
@@ -306,7 +305,7 @@ class K8sCRDService:
         crd.status = MultiAgentSystemStatus(
             phase=MASPhase.ACTIVE if created_apps else MASPhase.FAILED,
             apps_ready=len(created_apps),
-            last_sync_time=datetime.now(timezone.utc),
+            last_sync_time=datetime.now(UTC),
             message=f"Created {len(created_apps)}/{len(request.spec.apps)} apps successfully",
             credentials=credentials if credentials else None,
         )

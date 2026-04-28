@@ -14,10 +14,11 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.12,<3.14"
 classifiers = [
-    "License :: Other/Proprietary License",
+    "License :: OSI Approved :: Apache Software License",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
 ]
 version = "0.0.11"
@@ -114,8 +115,8 @@ extend-include = ["*.ipynb"]
 exclude = [".ipynb_checkpoints"]
 
 [tool.ruff.lint]
-select = ["I", "F", "N", "NPY", "RUF"]
-ignore = ["D"]                         # TODO: unable later
+select = ["I", "F", "N", "NPY", "RUF", "UP"]
+ignore = ["D"]                         # TODO: enable later
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["D104", "F401", "F403"]

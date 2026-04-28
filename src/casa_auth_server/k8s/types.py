@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 
 # mypy: disable-error-code="call-arg"
 
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
+from typing import Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Column, Field, Integer, Relationship, SQLModel
@@ -29,7 +29,7 @@ class K8sAppSpec(SQLModel, table=True):
 
     __tablename__ = "K8sAppSpec"
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     name: str = Field(description="Name of the application")
     type: AppType = Field(
         description="Type of the application",
@@ -44,11 +44,11 @@ class K8sAppSpec(SQLModel, table=True):
     )
     url_host: str = Field(description="The host of the app base url", index=True)
     url_scheme: str = Field(description="The scheme of the app base url")
-    prompt_field_json_path: Optional[str] = Field(description="The prompt field JSON path in the HTTP request schema")
-    kubernetes_workload_name: Optional[str] = Field(description="Name of the Kubernetes workload running the app.")
-    mas_crd_id: Optional[UUID] = Field(foreign_key="K8sMultiAgentSystemCRD.id")
+    prompt_field_json_path: str | None = Field(description="The prompt field JSON path in the HTTP request schema")
+    kubernetes_workload_name: str | None = Field(description="Name of the Kubernetes workload running the app.")
+    mas_crd_id: UUID | None = Field(foreign_key="K8sMultiAgentSystemCRD.id")
     mas_crd: Optional["K8sMultiAgentSystemCRD"] = Relationship(back_populates="app_specs")
-    app_id: Optional[UUID] = Field(foreign_key="app.id")
+    app_id: UUID | None = Field(foreign_key="app.id")
 
 
 class K8sMultiAgentSystemMetadata(SQLModel, table=True):
@@ -56,12 +56,12 @@ class K8sMultiAgentSystemMetadata(SQLModel, table=True):
 
     __tablename__ = "K8sMultiAgentSystemMetadata"
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     name: str = Field(description="Resource name")
-    uid: Optional[str] = Field(default=None, description="Kubernetes UID")
-    resource_version: Optional[str] = Field(default=None, description="Resource version", alias="resourceVersion")
-    generation: Optional[int] = Field(default=None, description="Generation number")
-    mas_crd_id: Optional[UUID] = Field(foreign_key="K8sMultiAgentSystemCRD.id")
+    uid: str | None = Field(default=None, description="Kubernetes UID")
+    resource_version: str | None = Field(default=None, description="Resource version", alias="resourceVersion")
+    generation: int | None = Field(default=None, description="Generation number")
+    mas_crd_id: UUID | None = Field(foreign_key="K8sMultiAgentSystemCRD.id")
     mas_crd: Optional["K8sMultiAgentSystemCRD"] = Relationship(back_populates="mas_metadata")
 
 
@@ -70,27 +70,27 @@ class K8sMultiAgentSystemCRD(SQLModel, table=True):
 
     __tablename__ = "K8sMultiAgentSystemCRD"
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     api_version: str = Field(default="casa.io/v1alpha1", description="API version", alias="apiVersion")
     kind: str = Field(default="MultiAgentSystem", description="Resource kind")
     namespace: str = Field(description="Kubernetes namespace", index=True)
-    mas_metadata: Optional[K8sMultiAgentSystemMetadata] = Relationship(back_populates="mas_crd")
+    mas_metadata: K8sMultiAgentSystemMetadata | None = Relationship(back_populates="mas_crd")
     name: str = Field(description="Display name of the Multi-Agent System", unique=True)
-    enabled_tool_checks: Optional[ToolCheckFlags] = Field(
+    enabled_tool_checks: ToolCheckFlags | None = Field(
         default=ToolCheckFlags.DETERMINISTIC_TOOL_SELECTED
         | ToolCheckFlags.DETERMINISTIC_LLM_SELECTED_TOOLS
         | ToolCheckFlags.AI_POWERED_TOOL_MATCH,
         sa_column=Column(Integer, nullable=False),
     )
-    llm_host: Optional[str] = Field(default=None)
-    app_specs: List[K8sAppSpec] = Relationship(back_populates="mas_crd")
-    mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
+    llm_host: str | None = Field(default=None)
+    app_specs: list[K8sAppSpec] = Relationship(back_populates="mas_crd")
+    mas_id: UUID | None = Field(foreign_key="multiagentsystem.id")
 
 
 class K8sTokenCache(SQLModel, table=True):
     __tablename__ = "K8sTokenCache"
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     namespace: str = Field(description="Kubernetes namespace")
     trace_id: str = Field(index=True)
     app_host: str = Field()
@@ -106,18 +106,18 @@ class K8sTokenCache(SQLModel, table=True):
         ),
     )
     access_token: str = Field()
-    tool: Optional[str] = Field(default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    tool: str | None = Field(default=None)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class K8sLlmCallMapping(SQLModel, table=True):
     __tablename__ = "K8sLlmCallMapping"
 
-    id: Optional[UUID] = Field(default_factory=uuid4, primary_key=True)
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     namespace: str
     trace_id: str
-    mas_id: Optional[UUID] = Field(foreign_key="multiagentsystem.id")
-    app_id: Optional[UUID] = Field(foreign_key="app.id")
-    user_input_id: Optional[UUID] = Field(foreign_key="userinput.id")
-    token: Optional[str] = Field(default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    mas_id: UUID | None = Field(foreign_key="multiagentsystem.id")
+    app_id: UUID | None = Field(foreign_key="app.id")
+    user_input_id: UUID | None = Field(foreign_key="userinput.id")
+    token: str | None = Field(default=None)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 """Trace API endpoints."""
 
-from typing import Annotated, Optional
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -40,7 +40,7 @@ class LLMCallStartedRequest(BaseModel):
 
     call_id: str
     prompt: str
-    tools: Optional[str] = None
+    tools: str | None = None
 
 
 class LLMCallEndedRequest(BaseModel):
@@ -48,7 +48,7 @@ class LLMCallEndedRequest(BaseModel):
 
     call_id: str
     response: str
-    tools: Optional[str] = None
+    tools: str | None = None
 
 
 @router.post("/trace/llm/call_start", generate_unique_id_function=lambda _: "trace_llm_call_start")
@@ -108,7 +108,7 @@ def get_traces(
     tracer: Annotated[Tracer, Depends(Container.get_tracer)],
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    mas_id: Optional[UUID] = Query(None),
+    mas_id: UUID | None = Query(None),
     all: bool = Query(False),
 ):
     """Retrieve paginated traces for all source app calls."""

@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
 """PostgreSQL implementation of AppRepository."""
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
@@ -42,11 +41,11 @@ class AppRepository(ABC):
         """Retrieve a app by app_id."""
 
     @abstractmethod
-    def get_all_apps(self) -> List[App]:
+    def get_all_apps(self) -> list[App]:
         """Retrieve all apps."""
 
     @abstractmethod
-    def get_mas_apps(self, mas_id: str) -> List[App]:
+    def get_mas_apps(self, mas_id: str) -> list[App]:
         """Retrieve all apps in a MAS."""
 
     @abstractmethod
@@ -99,7 +98,7 @@ class AppPostgresRepository(AppRepository):
         except Exception as e:
             raise Exception(f"Error retrieving app with id '{app_id}': {e}") from e
 
-    def get_all_apps(self) -> List[App]:
+    def get_all_apps(self) -> list[App]:
         """Retrieve all apps."""
         try:
             apps = self._session.exec(select(App).where(App.deleted_at == None).options(joinedload(App.mas))).all()
@@ -120,7 +119,7 @@ class AppPostgresRepository(AppRepository):
     def delete_app(self, app: App) -> None:
         """Soft-delete an app by setting deleted_at."""
         try:
-            app.deleted_at = datetime.now(timezone.utc)
+            app.deleted_at = datetime.now(UTC)
             self._session.add(app)
         except Exception as e:
             raise Exception(f"Error deleting app with id '{app.id}': {e}") from e

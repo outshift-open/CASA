@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 """Routing module for Scope operations."""
 
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -44,7 +44,7 @@ def create_scope(
 @router.get("/scopes")
 def get_scopes(
     scope_service: Annotated[ScopeService, Depends(Container.get_scope_service)],
-) -> List[ScopeViewModel]:
+) -> list[ScopeViewModel]:
     """Get all scopes."""
     scopes = scope_service.get_all_scopes()
     return [ScopeViewModel.model_validate(scope) for scope in scopes]

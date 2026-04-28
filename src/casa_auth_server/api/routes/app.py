@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 """Routing module for App operations."""
 
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -41,7 +41,7 @@ def create_app(
 @router.get("/apps")
 def get_apps(
     app_service: Annotated[AppService, Depends(Container.get_app_service)],
-) -> List[AppViewModel]:
+) -> list[AppViewModel]:
     """Get all Apps."""
     apps = app_service.get_all_apps()
     return [AppViewModel.model_validate(app) for app in apps]

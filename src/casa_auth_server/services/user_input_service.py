@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import logging
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -23,13 +22,12 @@ from casa_auth_server.core.types import UserInput
 from casa_auth_server.pipelines.conversation.tbac_components import TaskExtractor
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 
 class CreateUserInputRequest(BaseModel):
     prompt: str
     app_id: str
-    tag: Optional[str] = None
+    tag: str | None = None
 
 
 class UserInputService:

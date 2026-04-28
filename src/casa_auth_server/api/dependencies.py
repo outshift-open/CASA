@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 # ruff: noqa: N806
 import os
 from abc import ABC, abstractmethod
-from typing import Annotated, Any, Callable, Generator, Generic, TypeVar
+from collections.abc import Callable, Generator
+from typing import Annotated, Any, TypeVar
 
 from fastapi import Depends
 from sqlalchemy.orm import sessionmaker
@@ -56,13 +57,13 @@ from casa_auth_server.telemetry.tracer_repository import TracerPostgresRepositor
 T = TypeVar("T")
 
 
-class Provider(ABC, Generic[T]):
+class Provider[T](ABC):
     @abstractmethod
     def provide(self, func: Callable[..., T], *args, **kwargs) -> T:
         pass
 
 
-def singleton(factory: Callable[..., T]) -> Callable[..., T]:
+def singleton[T](factory: Callable[..., T]) -> Callable[..., T]:
     """Creates a singleton lifetime service, one instance is available throughout the whole lifetime of the application."""
 
     class SingletonBase(Provider[T]):
@@ -78,7 +79,7 @@ def singleton(factory: Callable[..., T]) -> Callable[..., T]:
     return Singleton()
 
 
-class ScopedProvider(ABC, Generic[T]):
+class ScopedProvider[T](ABC):
     @abstractmethod
     def provide(self, func: Callable[..., T], *args, **kwargs) -> Generator[T, Any, None]:
         pass

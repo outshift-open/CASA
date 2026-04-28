@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 """PostgreSQL implementation of AppRepository."""
 
 from abc import ABC, abstractmethod
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -34,11 +33,11 @@ class K8sMultiAgentSystemRepository(ABC):
     """Interface for K8sMultiAgentSystemRepository."""
 
     @abstractmethod
-    def get_mas_by_app_host(self, namespace: str, app_host: str) -> Optional[K8sMultiAgentSystemCRD]:
+    def get_mas_by_app_host(self, namespace: str, app_host: str) -> K8sMultiAgentSystemCRD | None:
         """get_mas_by_app_host."""
 
     @abstractmethod
-    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> Optional[K8sMultiAgentSystemCRD]:
+    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> K8sMultiAgentSystemCRD | None:
         """get_mas_by_workload_name."""
 
     @abstractmethod
@@ -47,8 +46,8 @@ class K8sMultiAgentSystemRepository(ABC):
 
     @abstractmethod
     def load_token(
-        self, namespace: str, trace_id: str, app_host: str, app_type: AppType, tool: Optional[str]
-    ) -> Optional[K8sTokenCache]:
+        self, namespace: str, trace_id: str, app_host: str, app_type: AppType, tool: str | None
+    ) -> K8sTokenCache | None:
         """Load a token from the cache."""
 
     @abstractmethod
@@ -56,7 +55,7 @@ class K8sMultiAgentSystemRepository(ABC):
         """Persist a new K8sMultiAgentSystemCRD (and its metadata/app_specs) to the database."""
 
     @abstractmethod
-    def get_k8s_crd_by_mas_id(self, mas_id: UUID) -> Optional[K8sMultiAgentSystemCRD]:
+    def get_k8s_crd_by_mas_id(self, mas_id: UUID) -> K8sMultiAgentSystemCRD | None:
         """Retrieve a K8sMultiAgentSystemCRD by its linked MultiAgentSystem id."""
 
     @abstractmethod
@@ -83,7 +82,7 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
         """Initialize the repository with a database session."""
         self._session = session
 
-    def get_mas_by_app_host(self, namespace: str, app_host: str) -> Optional[K8sMultiAgentSystemCRD]:
+    def get_mas_by_app_host(self, namespace: str, app_host: str) -> K8sMultiAgentSystemCRD | None:
         """Retrieve a MAS by app host."""
         try:
             crd = self._session.exec(
@@ -96,7 +95,7 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
         except Exception as e:
             raise Exception(f"Error retrieving MAS with app url '{app_host}': {e}") from e
 
-    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> Optional[K8sMultiAgentSystemCRD]:
+    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> K8sMultiAgentSystemCRD | None:
         """Retrieve a MAS by app workload name."""
         try:
             crd = self._session.exec(
@@ -118,8 +117,8 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
             raise Exception(f"Error storing token: {e}") from e
 
     def load_token(
-        self, namespace: str, trace_id: str, app_host: str, app_type: AppType, tool: Optional[str]
-    ) -> Optional[K8sTokenCache]:
+        self, namespace: str, trace_id: str, app_host: str, app_type: AppType, tool: str | None
+    ) -> K8sTokenCache | None:
         """Load a token from the cache."""
         try:
             query = (
@@ -150,7 +149,7 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
         except Exception as e:
             raise Exception(f"Error creating K8s CRD: {e}") from e
 
-    def get_k8s_crd_by_mas_id(self, mas_id: UUID) -> Optional[K8sMultiAgentSystemCRD]:
+    def get_k8s_crd_by_mas_id(self, mas_id: UUID) -> K8sMultiAgentSystemCRD | None:
         """Retrieve a K8sMultiAgentSystemCRD by its mas_id."""
         try:
             result = self._session.exec(select(K8sMultiAgentSystemCRD).where(K8sMultiAgentSystemCRD.mas_id == mas_id))

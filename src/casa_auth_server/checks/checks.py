@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -61,7 +61,6 @@ class ToolIntentAICheck(BaseToolCheck):
 
     flag = ToolCheckFlags.AI_POWERED_TOOL_MATCH
 
-    # def __init__(self, task_tool_matcher: TaskToolMatcher, task_tool_matcher: TaskToToolMatcher):
     def __init__(self, task_tool_matcher: TaskToToolMatcher):
         """Initialize with a task-tool matcher."""
         self.task_tool_matcher = task_tool_matcher

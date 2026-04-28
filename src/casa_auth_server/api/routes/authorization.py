@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 """Routing module for Session operations."""
 
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form
 
@@ -90,7 +90,7 @@ def token_exchange(
 def introspect(
     auth_service: Annotated[AuthorizationServerService, Depends(Container.get_authorization_service)],
     token: Annotated[str, Form()],
-    tools: Annotated[Optional[list[str]], Form()] = None,
+    tools: Annotated[list[str] | None, Form()] = None,
 ) -> TokenIntrospectResponse:
     """Introspect a token and evaluate it against the requested tools."""
     return auth_service.introspect_token(token, tools)

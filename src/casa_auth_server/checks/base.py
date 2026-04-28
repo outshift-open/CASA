@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -28,7 +27,7 @@ from casa_auth_server.types import McpServer
 class Payload(BaseModel):
     """Payload for tool check evaluation."""
 
-    llm_selected_tools: List[str]
+    llm_selected_tools: list[str]
     requested_tool: str
     mcp_server: McpServer
     user_input: UserInput
@@ -38,17 +37,13 @@ class CheckResult(BaseModel):
     """Result of a tool check evaluation."""
 
     satisfied: bool = True
-    blocking_type: Optional[MCPToolBlockingType] = None
-    blocking_reason: Optional[MCPToolBlockingReason] = None
-    reasoning: Optional[str] = None
+    blocking_type: MCPToolBlockingType | None = None
+    blocking_reason: MCPToolBlockingReason | None = None
+    reasoning: str | None = None
 
 
 class BaseToolCheck(ABC):
     """Base class for tool access checks."""
-
-    def __init__(self):
-        """Initialize the tool check."""
-        pass
 
     @abstractmethod
     def is_satisfied(self, payload: Payload) -> CheckResult:
@@ -71,8 +66,8 @@ class AndToolCheck(BaseToolCheck):
     """Check that combines two checks with AND logic."""
 
     flag = ToolCheckFlags.NONE
-    first: Optional[BaseToolCheck]
-    second: Optional[BaseToolCheck]
+    first: BaseToolCheck | None
+    second: BaseToolCheck | None
 
     def is_satisfied(self, payload: Payload) -> CheckResult:
         """Check if both checks are satisfied."""

@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 
 import json
 import logging
-from typing import Dict, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -35,14 +34,14 @@ class CacheTokenStoreRequest(BaseModel):
     app_host: str
     app_type: AppType
     access_token: str
-    tool: Optional[str] = None
+    tool: str | None = None
 
 
 class CacheTokenLoadRequest(BaseModel):
     trace_id: str
     app_host: str
     app_type: AppType
-    tool: Optional[str] = None
+    tool: str | None = None
 
 
 class LlmCallMappingStoreRequest(BaseModel):
@@ -69,13 +68,13 @@ class K8sQueryService:
         self._auth_service = auth_service
         self._tracer = tracer
 
-    def get_mas_by_app_host(self, namespace: str, app_host: str) -> Optional[K8sMultiAgentSystemCRDViewModel]:
+    def get_mas_by_app_host(self, namespace: str, app_host: str) -> K8sMultiAgentSystemCRDViewModel | None:
         mas = self._k8s_mas_repository.get_mas_by_app_host(namespace, app_host)
         if mas is None:
             return None
         return K8sMultiAgentSystemCRDViewModel.model_validate(mas)
 
-    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> Optional[K8sMultiAgentSystemCRDViewModel]:
+    def get_mas_by_workload_name(self, namespace: str, workload_name: str) -> K8sMultiAgentSystemCRDViewModel | None:
         mas = self._k8s_mas_repository.get_mas_by_workload_name(namespace, workload_name)
         if mas is None:
             return None
@@ -92,7 +91,7 @@ class K8sQueryService:
         )
         return self._k8s_mas_repository.store_token(token)
 
-    def load_token(self, namespace: str, request: CacheTokenLoadRequest) -> Optional[TokenResponse]:
+    def load_token(self, namespace: str, request: CacheTokenLoadRequest) -> TokenResponse | None:
         token = self._k8s_mas_repository.load_token(
             namespace=namespace,
             trace_id=request.trace_id,
@@ -130,7 +129,7 @@ class K8sQueryService:
         if mapping is None:
             raise Exception("Invalid call ID")
 
-        tools: Optional[str] = None
+        tools: str | None = None
         content: str = ""
 
         if request.response != "":
@@ -151,7 +150,7 @@ class K8sQueryService:
         self._tracer.record_event(event)
         return event
 
-    def _get_tools_from_litellm_response(self, response: Dict) -> Optional[str]:
+    def _get_tools_from_litellm_response(self, response: dict) -> str | None:
         if "choices" in response and len(response["choices"]) > 0:
             choice = response["choices"][0]
             if "message" in choice and "tool_calls" in choice["message"]:
@@ -159,7 +158,7 @@ class K8sQueryService:
                 return json.dumps(tools)
         return None
 
-    def _get_content_from_litellm_response(self, response: Dict) -> str:
+    def _get_content_from_litellm_response(self, response: dict) -> str:
         if "choices" in response and len(response["choices"]) > 0:
             choice = response["choices"][0]
             if "message" in choice and "content" in choice["message"]:

@@ -1,4 +1,4 @@
-# Copyright 2026 Google LLC
+# Copyright 2025 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
 
 """Tool check factory module."""
 
-from typing import List
-
 from casa_auth_server.checks.base import AndToolCheck, BaseToolCheck
 from casa_auth_server.core.types import ToolCheckFlags
 
@@ -23,7 +21,7 @@ from casa_auth_server.core.types import ToolCheckFlags
 class ToolCheckFactory:
     """Factory that builds a composite tool check from a list of registered checks."""
 
-    def __init__(self, checks: List[BaseToolCheck]):
+    def __init__(self, checks: list[BaseToolCheck]):
         """Initialize the factory with a list of tool checks."""
         self._checks = checks
 
