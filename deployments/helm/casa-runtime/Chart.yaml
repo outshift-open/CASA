@@ -16,8 +16,15 @@ apiVersion: v2
 name: casa-runtime
 description: CASA Control Plane — auth-service, UI explorer, Keycloak, PostgreSQL
 type: application
-version: 0.1.14
+version: 0.1.15
 appVersion: "0.0.13"
+
+dependencies:
+  - name: ext-auth-service
+    version: "0.1.9"
+    repository: "file://../sidecar"
+    alias: sidecar
+    condition: sidecar.enabled
 keywords:
     - semantic-authorization
     - multi-agent

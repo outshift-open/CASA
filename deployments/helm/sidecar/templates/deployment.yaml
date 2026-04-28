@@ -63,7 +63,7 @@ spec:
               protocol: TCP
           env:
             - name: AUTH_SERVER_HOST
-              value: {{ .Values.authServerHost }}:{{ .Values.authServerPort | default "8000" }}
+              value: {{ default (printf "%s-auth-service.%s.svc.cluster.local" .Release.Name .Release.Namespace) .Values.authServerHost }}:{{ .Values.authServerPort | default "8000" }}
             - name: AUTH_SERVER_SCHEME
               value: {{ .Values.authServerScheme | default "http" }}
             - name: K8S_NAMESPACE

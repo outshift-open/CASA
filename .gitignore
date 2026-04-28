@@ -292,3 +292,4 @@ demo/k8s/helm/values-test.yaml
 .bruno/
 values-local.yaml
 LOCAL_SETUP.md
+local-setup.sh
