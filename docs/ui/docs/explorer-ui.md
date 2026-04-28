@@ -1,12 +1,12 @@
 ---
 id: explorer-ui
 sidebar_position: 2
-title: CASA Explorer UI
+title: Explorer UI
 ---
 
-# CASA Explorer UI
+# Explorer UI
 
-The CASA Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces. It does not manage or modify any configuration.
+The Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces. It does not manage or modify any configuration.
 
 ## Dashboard
 

@@ -116,4 +116,4 @@ Open the safe chat UI and ask:
 - `"What is my account balance?"` — authorized, succeeds.
 - `"Transfer $500 to account 999."` — if the compromised agent attempts this without it being in its declared intent, CASA blocks it.
 
-The CASA Explorer UI shows the authorization trace for each request.
+The Explorer UI shows the authorization trace for each request.

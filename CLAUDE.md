@@ -23,7 +23,7 @@ make docker-run        # Start full stack via Docker Compose
 make docker-stop       # Stop Docker Compose stack
 make keycloak-run      # Start Keycloak only (docker-compose.keycloak.yml)
 make demo-run          # Start demo agents + LiteLLM
-make ui-run            # Start CASA Explorer UI (docker-compose.ui.yml)
+make ui-run            # Start Explorer UI (docker-compose.ui.yml)
 make demo-data         # Seed demo data (requires running backend)
 make demo-data-reset   # Clear + reseed demo data
 make generate-sdk      # Regenerate sdk/go/ from running server's OpenAPI spec (:8000)

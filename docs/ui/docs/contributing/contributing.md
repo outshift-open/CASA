@@ -121,7 +121,7 @@ chore: update dependencies
 | Demo MCP server          | `demo/src/mcp/`                        | Python                     |
 | Demo chat UI             | `demo/src/chat-ui/`                    | React                      |
 | ext-authz middleware     | `sidecar/ext_auth/`                    | Go                         |
-| CASA Explorer UI         | `casa-explorer-ui/`                    | React                      |
+| Explorer UI         | `casa-explorer-ui/`                    | React                      |
 | Documentation            | `docs/ui/`                             | Docusaurus                 |
 
 ## Reporting Issues

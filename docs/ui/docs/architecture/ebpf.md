@@ -8,7 +8,7 @@ title: eBPF Enforcement
 
 CASA uses eBPF for L4/L7 network enforcement and JWT observability. eBPF programs run at the kernel level on any Kubernetes node with eBPF enabled (kernel 5.8+), independently of the CNI.
 
-In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs. Observability and tracing are provided by the **CASA Explorer UI** in both modes.
+In the current **Istio deployment**, eBPF enforcement uses the node kernel directly. The planned **[Cilium deployment mode](/deployment-modes/cilium)** (roadmap) provides a more integrated experience: Cilium's daemonset manages both the CNI and the eBPF programs. Observability and tracing are provided by the **Explorer UI** in both modes.
 
 ## What eBPF Handles
 
@@ -23,7 +23,7 @@ In the current **Istio deployment**, eBPF enforcement uses the node kernel direc
 | Token exchange                   | —                     | ✅      | ✅            |
 | Protocol enforcement (MCP/A2A)   | —                     | ✅      | —             |
 | L7 request/response logging      | —                     | ✅      | —             |
-| Flow logging                     | ✅ (CASA Explorer UI) | —       | —             |
+| Flow logging                     | ✅ (Traces)      | —       | —             |
 
 ⚠️ = partial or experimental
 
@@ -129,7 +129,7 @@ Full JWT validation (claims, expiry, scopes) is **not** done in eBPF — the com
 Deeper eBPF flow observability (token-correlated flow logs) is available in the planned Cilium deployment mode.
 :::
 
-Observability and tracing for both deployment modes are provided by the **CASA Explorer UI**, which surfaces:
+Observability and tracing for both deployment modes are provided by the **[Traces](traces.md)** component, which keeps state and instruments eBPF tracing, and by the **Explorer UI**, which surfaces that data:
 
 - Real-time token event logs (issuance, exchange, introspection)
 - Tool check decisions and denial reasons

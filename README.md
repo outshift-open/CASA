@@ -53,10 +53,13 @@ graph TB
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]
-            UI["CASA Explorer UI"]
+            UI["Explorer UI"]
+            TRACES["Traces\n(State & eBPF Instrumentation)"]
             AUTH --> KC
             AUTH --> PG
+            TRACES --> PG
             UI --> AUTH
+            UI --> TRACES
         end
 
         subgraph "mas-namespace"
@@ -83,6 +86,7 @@ graph TB
         EBPF -.->|enforces| CLS
         EBPF -.->|enforces| AGS
         EBPF -.->|enforces| MCPS
+        EBPF -.->|"trace events"| TRACES
     end
 
     CLS & AGS & MCPS -->|"Token ops"| AUTH
@@ -98,8 +102,9 @@ graph TB
     style AGS  fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
     style MCP  fill:#1e293b,stroke:#475569,color:#cbd5e1
     style MCPS fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
-    style EBPF fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
-    style LLM  fill:#422006,stroke:#ffe66d,color:#f1f5f9
+    style EBPF   fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
+    style LLM    fill:#422006,stroke:#ffe66d,color:#f1f5f9
+    style TRACES fill:#1e1b4b,stroke:#818cf8,color:#f1f5f9
 ```
 
 ### Components
@@ -112,13 +117,14 @@ graph TB
 | **CASA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
 | **eBPF layer**       | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
 | **Keycloak**         | Identity provider backing token cryptography                                                                     |
-| **CASA Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                   |
+| **Traces**      | Persists domain event traces and eBPF flow data; exposes query API for the Explorer UI                                |
+| **Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                        |
 
 ---
 
-## CASA Explorer UI
+## Explorer UI
 
-The CASA Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces.
+The Explorer UI is a read-only observability UI for browsing token events, tool check decisions, and authorization traces.
 
 ### Dashboard
 

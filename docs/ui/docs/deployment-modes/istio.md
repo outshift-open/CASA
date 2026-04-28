@@ -30,7 +30,7 @@ graph LR
 1. Istio's sidecar injector automatically adds an Envoy proxy to each pod in labeled namespaces
 2. Envoy's `ext_authz` filter sends every request to the `ext_authz_middleware` service for authorization
 3. The middleware performs token operations (generation, validation) by calling the CASA auth service
-4. Telemetry and traces are surfaced in the **CASA Explorer UI**
+4. Telemetry and traces are surfaced in the **Explorer UI**
 
 ## Prerequisites
 
@@ -67,7 +67,7 @@ kubectl -n your-mas-namespace exec -it \
   http://casa-demo-agent:8082/chat
 ```
 
-Then open the CASA Explorer UI to view the resulting token events and tool check decisions:
+Then open the Explorer UI to view the resulting token events and tool check decisions:
 
 ```bash
 kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80
@@ -95,5 +95,5 @@ The `traceparent` header follows the [W3C Trace Context](https://www.w3.org/TR/t
 | Injection | Istio automatic injection | Node-level daemonset |
 | Auth enforcement | ext_authz_middleware (Go) | CASA sidecar Lua filter |
 | L4/L7 + eBPF | eBPF (node kernel) | CASAPolicy + eBPF (integrated) |
-| Observability | CASA Explorer UI | CASA Explorer UI |
+| Observability | Explorer UI | Explorer UI |
 | Status | Current | Coming soon (Roadmap) |

@@ -12,7 +12,7 @@ Cilium deployment mode is **not yet available**. This page describes the planned
 
 In Cilium mode, CASA uses Cilium's node-level daemonset for both sidecar traffic interception and eBPF enforcement — no per-pod injection webhook is needed.
 
-This is the **planned production architecture**, architecturally equivalent to Istio + eBPF but with tighter Cilium integration. Observability is provided by the **CASA Explorer UI** in both modes.
+This is the **planned production architecture**, architecturally equivalent to Istio + eBPF but with tighter Cilium integration. Observability is provided by the **Explorer UI** in both modes.
 
 ## How It Works
 
@@ -104,7 +104,7 @@ kubectl exec -n your-mas-namespace deploy/my-agent -- curl -s https://api.anthro
 
 ## Observability
 
-Token events, tool check decisions, and flow verdicts are visible in the **CASA Explorer UI**:
+Token events, tool check decisions, and flow verdicts are visible in the **Explorer UI**:
 
 ```bash
 kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80

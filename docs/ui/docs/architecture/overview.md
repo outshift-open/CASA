@@ -18,10 +18,13 @@ graph TB
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]
-            UI["CASA Explorer UI"]
+            UI["Explorer UI"]
+            TRACES["Traces\n(State & eBPF Instrumentation)"]
             AUTH --> KC
             AUTH --> PG
+            TRACES --> PG
             UI --> AUTH
+            UI --> TRACES
         end
 
         subgraph "mas-namespace"
@@ -48,6 +51,7 @@ graph TB
         EBPF -.->|enforces| CLS
         EBPF -.->|enforces| AGS
         EBPF -.->|enforces| MCPS
+        EBPF -.->|"trace events"| TRACES
     end
 
     CLS & AGS & MCPS -->|"Token ops"| AUTH
@@ -63,8 +67,9 @@ graph TB
     style AGS  fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
     style MCP  fill:#1e293b,stroke:#475569,color:#cbd5e1
     style MCPS fill:#1a2e05,stroke:#84cc16,color:#f1f5f9
-    style EBPF fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
-    style LLM  fill:#422006,stroke:#ffe66d,color:#f1f5f9
+    style EBPF   fill:#450a0a,stroke:#ff6b6b,color:#f1f5f9
+    style LLM    fill:#422006,stroke:#ffe66d,color:#f1f5f9
+    style TRACES fill:#1e1b4b,stroke:#818cf8,color:#f1f5f9
 ```
 
 ### Components
@@ -109,6 +114,16 @@ The eBPF enforcement layer operates at the kernel level on eBPF-enabled Kubernet
 In Istio mode, eBPF enforcement uses the node kernel and is available when nodes have eBPF enabled. The [Cilium deployment mode](/deployment-modes/cilium) (roadmap) provides a fully integrated eBPF + sidecar solution via the Cilium daemonset.
 
 See [eBPF Enforcement](ebpf.md) for full details.
+
+### Traces
+
+The Traces component persists all domain event traces and correlates them with eBPF flow data:
+
+- **State persistence** — stores token issuance, exchange, and tool check records in PostgreSQL
+- **eBPF instrumentation** — receives JWT/flow events from the eBPF layer and correlates them with token metadata
+- **Query API** — exposes trace data consumed by the Explorer UI
+
+See [Traces](traces.md) for full details.
 
 ## Deployment Modes
 
