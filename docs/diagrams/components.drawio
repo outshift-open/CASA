@@ -3,98 +3,6 @@
     <mxCell id="0" />
     <mxCell id="1" parent="0" />
 
-    <!-- ═══════════════════════════════════════════════════ ARROWS (back layer) -->
-
-    <!-- UI → Auth Service -->
-    <mxCell id="a1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#34d399;strokeWidth=2;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="ui_box" target="auth_box" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Auth → Keycloak -->
-    <mxCell id="a2" value="token crypto" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#4ecdc4;strokeWidth=2;endArrow=block;endFill=1;fontColor=#94a3b8;fontSize=11;fontFamily=Helvetica;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="auth_box" target="kc_box" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- KC → PostgreSQL -->
-    <mxCell id="a3" value="state" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#4ecdc4;strokeWidth=2;endArrow=block;endFill=1;fontColor=#94a3b8;fontSize=11;fontFamily=Helvetica;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="kc_box" target="pg_box" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Client App -.→ Client Sidecar -->
-    <mxCell id="a4" value="intercepts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=8 4;strokeColor=#84cc16;strokeWidth=2;endArrow=open;endFill=0;fontColor=#84cc16;fontSize=11;fontFamily=Helvetica;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="c_app" target="c_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Agent -.→ Agent Sidecar -->
-    <mxCell id="a5" value="intercepts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=8 4;strokeColor=#84cc16;strokeWidth=2;endArrow=open;endFill=0;fontColor=#84cc16;fontSize=11;fontFamily=Helvetica;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="ag_app" target="ag_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- MCP -.→ MCP Sidecar -->
-    <mxCell id="a6" value="intercepts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=8 4;strokeColor=#84cc16;strokeWidth=2;endArrow=open;endFill=0;fontColor=#84cc16;fontSize=11;fontFamily=Helvetica;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="mcp_app" target="mcp_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Client Sidecar → Agent Sidecar: MCP/A2A -->
-    <mxCell id="a7" value="MCP/A2A" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#84cc16;strokeWidth=2;endArrow=block;endFill=1;fontColor=#84cc16;fontSize=12;fontFamily=Helvetica;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="c_side" target="ag_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- Agent Sidecar → MCP Sidecar: MCP -->
-    <mxCell id="a8" value="MCP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#84cc16;strokeWidth=2;endArrow=block;endFill=1;fontColor=#84cc16;fontSize=12;fontFamily=Helvetica;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="ag_side" target="mcp_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- All Sidecars → Auth Service: Token ops (routed via bottom-left) -->
-    <mxCell id="a9" value="Token ops" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#4ecdc4;strokeWidth=2;endArrow=block;endFill=1;fontColor=#4ecdc4;fontSize=12;fontFamily=Helvetica;fontStyle=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="c_side" target="auth_box" parent="1">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="400" y="555" />
-          <mxPoint x="400" y="305" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="a10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#4ecdc4;strokeWidth=2;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="ag_side" target="auth_box" parent="1">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="408" y="545" />
-          <mxPoint x="408" y="305" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-    <mxCell id="a11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#4ecdc4;strokeWidth=2;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="mcp_side" target="auth_box" parent="1">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="416" y="535" />
-          <mxPoint x="416" y="305" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-
-    <!-- Agent Sidecar → External LLM: LLM calls -->
-    <mxCell id="a12" value="LLM calls" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#ffe66d;strokeWidth=2;endArrow=block;endFill=1;fontColor=#ffe66d;fontSize=12;fontFamily=Helvetica;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="ag_side" target="llm_box" parent="1">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="1210" y="545" />
-          <mxPoint x="1210" y="330" />
-          <mxPoint x="1360" y="330" />
-        </Array>
-      </mxGeometry>
-    </mxCell>
-
-    <!-- eBPF → Client Sidecar -->
-    <mxCell id="a13" value="enforces" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=8 4;strokeColor=#ff6b6b;strokeWidth=2;endArrow=open;endFill=0;fontColor=#ff6b6b;fontSize=10;fontFamily=Helvetica;exitX=0.2;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" source="ebpf_bar" target="c_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <!-- eBPF → Agent Sidecar -->
-    <mxCell id="a14" value="enforces" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=8 4;strokeColor=#ff6b6b;strokeWidth=2;endArrow=open;endFill=0;fontColor=#ff6b6b;fontSize=10;fontFamily=Helvetica;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" source="ebpf_bar" target="ag_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-    <!-- eBPF → MCP Sidecar -->
-    <mxCell id="a15" value="enforces" style="edgeStyle=orthogonalEdgeStyle;rounded=0;dashed=1;dashPattern=8 4;strokeColor=#ff6b6b;strokeWidth=2;endArrow=open;endFill=0;fontColor=#ff6b6b;fontSize=10;fontFamily=Helvetica;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" source="ebpf_bar" target="mcp_side" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
     <!-- ═══════════════════════════════════════════════════ CONTAINERS -->
 
     <!-- Kubernetes outer boundary (dashed rectangle) -->
@@ -133,21 +41,6 @@
     <!-- Traces -->
     <mxCell id="traces_box" value="&lt;b&gt;Traces&lt;/b&gt;&lt;br/&gt;&lt;font color='#94a3b8' style='font-size: 11px;'&gt;State &amp;amp; eBPF Instrumentation&lt;/font&gt;" style="rounded=1;arcSize=12;strokeColor=#818cf8;strokeWidth=2;fillColor=#1e1b4b;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="90" y="582" width="270" height="66" as="geometry" />
-    </mxCell>
-
-    <!-- Traces → PostgreSQL -->
-    <mxCell id="a_traces_pg" value="state" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#4ecdc4;strokeWidth=2;endArrow=block;endFill=1;fontColor=#94a3b8;fontSize=11;fontFamily=Helvetica;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="traces_box" target="pg_box" parent="1">
-      <mxGeometry relative="1" as="geometry" />
-    </mxCell>
-
-    <!-- eBPF → Traces -->
-    <mxCell id="a_ebpf_traces" value="trace events" style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;dashPattern=8 4;strokeColor=#ff6b6b;strokeWidth=2;endArrow=open;endFill=0;fontColor=#ff6b6b;fontSize=10;fontFamily=Helvetica;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" source="ebpf_bar" target="traces_box" parent="1">
-      <mxGeometry relative="1" as="geometry">
-        <Array as="points">
-          <mxPoint x="430" y="740" />
-          <mxPoint x="430" y="615" />
-        </Array>
-      </mxGeometry>
     </mxCell>
 
     <!-- MAS Namespace -->
