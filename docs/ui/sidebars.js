@@ -29,6 +29,7 @@ const sidebars = {
         'architecture/runtime',
         'architecture/sidecar',
         'architecture/ebpf',
+        'architecture/traces',
       ],
     },
     {

@@ -56,7 +56,7 @@ Two PostgreSQL instances are bundled:
 
 Both can be replaced with externally managed PostgreSQL by setting `postgresAuth.enabled: false` / `postgresKeycloak.enabled: false` in `values.yaml`.
 
-### CASA Explorer UI
+### Explorer UI
 
 A React-based exploration and debug UI for:
 
@@ -65,6 +65,16 @@ A React-based exploration and debug UI for:
 - Viewing registered MAS applications and their status
 
 The UI connects to the auth service via an Nginx reverse proxy (when `uiExplorer.nginx.apiProxyEnabled: true`).
+
+### Traces
+
+The Traces component records all domain events and correlates them with eBPF flow data from the kernel layer:
+
+- **State persistence** — stores token issuance, exchange, introspection, and tool check records in PostgreSQL
+- **eBPF instrumentation** — receives JWT/flow events from the eBPF layer and correlates them with token metadata
+- **Query API** — exposes trace records via `/trace`, consumed by the Explorer UI
+
+See [Traces](traces.md) for full details.
 
 ## High Availability
 

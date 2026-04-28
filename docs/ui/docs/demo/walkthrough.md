@@ -51,7 +51,7 @@ kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80
 # Open http://localhost:8080
 ```
 
-In the CASA Explorer UI, you should see:
+In the Explorer UI, you should see:
 - A user input event correlated with your prompt
 - Token exchange events for T1 → T2 (LLM) and T1 → T3 (each tool)
 - ALLOW decisions for `get_account_summary` and `get_scheduled_payments`
@@ -64,7 +64,7 @@ If `AI_POWERED_TOOL_MATCH` is enabled in the MAS configuration, send a narrower 
 
 If the agent attempts to also call a write tool, CASA blocks it.
 
-**Expected behavior:** The write tool call is rejected with 403. The agent returns a partial result using only the approved tools. In the CASA Explorer UI, you should see:
+**Expected behavior:** The write tool call is rejected with 403. The agent returns a partial result using only the approved tools. In the Explorer UI, you should see:
 - A DENY event for the write tool
 - The check that failed: `AI_POWERED_TOOL_MATCH` — "filesystem:write does not match user intent: get account summary"
 

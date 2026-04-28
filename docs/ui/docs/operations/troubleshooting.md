@@ -110,7 +110,7 @@ kubectl rollout restart deploy/your-deployment -n your-mas-namespace
 
 ### Traffic being dropped unexpectedly
 
-Use the **CASA Explorer UI** to inspect flow verdicts and token denials:
+Use the **Explorer UI** to inspect flow verdicts and token denials:
 
 ```bash
 kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80

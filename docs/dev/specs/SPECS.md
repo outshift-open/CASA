@@ -88,7 +88,7 @@ graph TB
         CASA[CASA Runtime<br/>StatefulSet]
         KC[Keycloak IdP<br/>StatefulSet]
         PG[(PostgreSQL<br/>StatefulSet)]
-        UI[CASA Explorer UI<br/>Deployment]
+        UI[Explorer UI<br/>Deployment]
 
         CASA --> KC
         CASA --> PG

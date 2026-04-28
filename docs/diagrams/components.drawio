@@ -104,14 +104,14 @@
 
     <!-- CASA Runtime namespace -->
     <mxCell id="cp_border" value="" style="rounded=1;arcSize=3;strokeColor=#6366f1;strokeWidth=2;fillColor=#1e1b4b;fillOpacity=20;" vertex="1" parent="1">
-      <mxGeometry x="60" y="120" width="330" height="700" as="geometry" />
+      <mxGeometry x="60" y="120" width="330" height="780" as="geometry" />
     </mxCell>
     <mxCell id="cp_label" value="CASA-RUNTIME" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontColor=#6366f1;fontSize=11;fontFamily=Courier New;fontStyle=1;" vertex="1" parent="1">
       <mxGeometry x="70" y="128" width="310" height="22" as="geometry" />
     </mxCell>
 
-    <!-- CASA Explorer UI -->
-    <mxCell id="ui_box" value="&lt;b&gt;CASA Explorer UI&lt;/b&gt;&lt;br/&gt;&lt;font color='#94a3b8' style='font-size: 11px;'&gt;Admin Dashboard&lt;/font&gt;" style="rounded=1;arcSize=12;strokeColor=#34d399;strokeWidth=2;fillColor=#064e3b;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
+    <!-- Explorer UI -->
+    <mxCell id="ui_box" value="&lt;b&gt;Explorer UI&lt;/b&gt;&lt;br/&gt;&lt;font color='#94a3b8' style='font-size: 11px;'&gt;Admin Dashboard&lt;/font&gt;" style="rounded=1;arcSize=12;strokeColor=#34d399;strokeWidth=2;fillColor=#064e3b;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="90" y="165" width="270" height="66" as="geometry" />
     </mxCell>
 
@@ -128,6 +128,26 @@
     <!-- PostgreSQL -->
     <mxCell id="pg_box" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br/&gt;&lt;font color='#94a3b8' style='font-size: 11px;'&gt;State Store&lt;/font&gt;" style="rounded=1;arcSize=12;strokeColor=#60a5fa;strokeWidth=2;fillColor=#1e3a5f;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
       <mxGeometry x="90" y="482" width="270" height="66" as="geometry" />
+    </mxCell>
+
+    <!-- Traces -->
+    <mxCell id="traces_box" value="&lt;b&gt;Traces&lt;/b&gt;&lt;br/&gt;&lt;font color='#94a3b8' style='font-size: 11px;'&gt;State &amp;amp; eBPF Instrumentation&lt;/font&gt;" style="rounded=1;arcSize=12;strokeColor=#818cf8;strokeWidth=2;fillColor=#1e1b4b;fontColor=#f1f5f9;fontSize=14;fontFamily=Helvetica;align=center;verticalAlign=middle;html=1;" vertex="1" parent="1">
+      <mxGeometry x="90" y="582" width="270" height="66" as="geometry" />
+    </mxCell>
+
+    <!-- Traces → PostgreSQL -->
+    <mxCell id="a_traces_pg" value="state" style="edgeStyle=orthogonalEdgeStyle;rounded=0;strokeColor=#4ecdc4;strokeWidth=2;endArrow=block;endFill=1;fontColor=#94a3b8;fontSize=11;fontFamily=Helvetica;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="traces_box" target="pg_box" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- eBPF → Traces -->
+    <mxCell id="a_ebpf_traces" value="trace events" style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;dashPattern=8 4;strokeColor=#ff6b6b;strokeWidth=2;endArrow=open;endFill=0;fontColor=#ff6b6b;fontSize=10;fontFamily=Helvetica;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" source="ebpf_bar" target="traces_box" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="430" y="740" />
+          <mxPoint x="430" y="615" />
+        </Array>
+      </mxGeometry>
     </mxCell>
 
     <!-- MAS Namespace -->

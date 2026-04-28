@@ -73,7 +73,7 @@ A typical flow involves:
 
 ---
 
-### 2.3 CASA Explorer UI (Web Frontend)
+### 2.3 Explorer UI (Web Frontend)
 **Location**: `casa-explorer-ui/`
 
 **Purpose**: Administrative web interface for managing applications, multi-agent systems, and viewing system state.
@@ -2209,7 +2209,7 @@ The project includes comprehensive demo applications showcasing the complete CAS
 **Full Stack Demo** (`docker-compose.demo.yml`):
 ```yaml
 services:
-  ui:            # CASA Explorer UI (port 5600)
+  ui:            # Explorer UI (port 5600)
   litellm:       # LiteLLM proxy for LLM calls (port 4000)
   mcp-server:    # Sample MCP server (port 3000)
   agent:         # Untrusted agent (port 8082)
@@ -2308,7 +2308,7 @@ evaluation/
    - Exposes port 8080
 
 3. **`docker-compose.ui.yml`**:
-   - CASA Explorer UI
+   - Explorer UI
    - Exposes port 1234
 
 4. **`docker-compose.demo.yml`**:
@@ -5953,7 +5953,7 @@ The system has a solid foundation. With focused effort on security, performance,
 
 ### React Application Structure
 
-#### CASA Explorer UI Implementation
+#### Explorer UI Implementation
 
 **Technology Stack**:
 - React 19.2 (latest with concurrent features)

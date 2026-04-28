@@ -619,7 +619,7 @@ casa-gitops/
 
 1. Deploy Prometheus + Grafana + Loki + Tempo
 2. Configure Hubble (eBPF flow logs)
-3. Build CASA Explorer UI (admin dashboard)
+3. Build Explorer UI (admin dashboard)
 4. Implement RBAC for runtime APIs
 5. Secrets management (Vault + External Secrets Operator)
 6. Disaster recovery (backups, restore procedures)

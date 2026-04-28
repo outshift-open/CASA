@@ -89,4 +89,4 @@ In Istio mode, the external authorization check is handled by the `ext_authz_mid
 4. On subsequent requests: performs token-based access control (TBAC) verification
 5. Returns ALLOW or DENY to Envoy
 
-Telemetry and traces are visible in the **CASA Explorer UI**.
+Telemetry and traces are visible in the **Explorer UI**.
