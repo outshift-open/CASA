@@ -3,6 +3,8 @@
 
   <h1>CASA — Continuous Agent Semantic Authorization</h1>
 
+  <h2>CASA checks every agent tool call against the user’s original intent before the tool runs.</h2>
+
   <p>
     <strong>Intent-scoped authorization for Kubernetes Multi-Agent Systems —<br/>
     enforced at the network layer, with no code changes required in your agents.</strong>
@@ -146,7 +148,7 @@ Token-level trace for each user session: token issuance, LLM selection events, a
 
 ## Core Concepts
 
-**Control Plane** — The CASA control plane (`casa-control-plane` namespace) handles agent identity (CIMD - Client Id Metadata), token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.
+**Control Plane** — The CASA control plane (`casa-control-plane` namespace) handles agent identity (CIMD - Client ID Metadata), token issuance, token exchange, tool check orchestration, and MAS lifecycle management. It is deployed as a Helm chart.
 
 **Multi-Agent System (MAS)** — A named group of applications (agents, MCP servers, and clients) that interact with each other inside a Kubernetes namespace. Each MAS is described by a `MultiAgentSystem` CRD.
 
