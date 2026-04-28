@@ -1,90 +1,32 @@
-import {useLocation, Link} from 'react-router-dom';
-import {ChevronRight, Home, BookOpen, Github} from 'lucide-react';
-import {useMAS} from '@/hooks/use-mas';
-import {useTraces} from '@/hooks/use-traces';
+import {BookOpen, Github, ChevronDown, User, Bell, LogOut} from 'lucide-react';
+import {GlobalSearch} from '@/components/global-search';
 import {Button} from '@/components/ui/button';
+import {Avatar, AvatarFallback} from '@/components/ui/avatar';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
-
-const routeTitles: Record<string, string> = {
-    '/': 'Dashboard',
-    '/mas': 'Multi-Agent Systems',
-    '/auth-requests': 'Auth Requests',
-    '/settings': 'Settings'
-};
-
-const routeRedirects: Record<string, string> = {
-    '/mas': '/mas'
-};
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 export function SiteHeader() {
-    const location = useLocation();
-    const {data: masData} = useMAS();
-
-    const pathSegments = location.pathname.split('/').filter(Boolean);
-    const isAuthRequestDetail = pathSegments[0] === 'auth-requests' && pathSegments.length === 2;
-    const authRequestId = isAuthRequestDetail ? pathSegments[1] : undefined;
-    const {data: tracesData} = useTraces(undefined, 1, 100, !!authRequestId);
-    const authRequestPrompt = authRequestId
-        ? tracesData?.items?.[authRequestId]?.find((t) => t.event_type === 'TokenIssuedEvent')?.event.prompt
-        : undefined;
-
-    const breadcrumbs: Array<{label: string; path: string; isLast: boolean}> = [];
-
-    let currentPath = '';
-    pathSegments.forEach((segment, index) => {
-        currentPath += `/${segment}`;
-        const isLast = index === pathSegments.length - 1;
-
-        let label = routeTitles[currentPath] || segment;
-
-        if (segment === 'create') {
-            label = 'Create';
-        } else if (segment === 'edit') {
-            label = 'Edit';
-        } else if (pathSegments[index - 1] === 'mas' && segment !== 'create') {
-            const mas = masData?.find((m) => m.id === segment);
-            label = mas?.name || segment;
-        } else if (pathSegments[index - 1] === 'auth-requests') {
-            label = authRequestPrompt || segment;
-        }
-
-        breadcrumbs.push({
-            label,
-            path: routeRedirects[currentPath] || currentPath,
-            isLast
-        });
-    });
-
-    if (breadcrumbs.length === 0) {
-        breadcrumbs.push({label: 'Dashboard', path: '/', isLast: true});
-    }
-
     return (
-        <header className="flex h-14 shrink-0 items-center gap-1 px-4 rounded-t-xl backdrop-blur-xl bg-transparent border-b border-[rgba(255,255,255,0.07)]">
-            <Button variant="ghost" size="icon" asChild>
-                <Link to="/">
-                    <Home className="h-4 w-4" />
-                </Link>
-            </Button>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            <div className="flex items-center gap-1">
-                {breadcrumbs.map((crumb, index) => (
-                    <div key={crumb.path} className="flex items-center gap-1">
-                        {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                        {crumb.isLast ? (
-                            <span className="text-base font-semibold">{crumb.label}</span>
-                        ) : (
-                            <Link
-                                to={crumb.path}
-                                className="text-base text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                                {crumb.label}
-                            </Link>
-                        )}
-                    </div>
-                ))}
+        <header className="flex h-14 shrink-0 items-center justify-between px-5 border-b border-[rgba(255,255,255,0.07)] bg-background">
+            {/* Left: logo + name */}
+            <div className="flex items-center gap-2.5">
+                <img src="/logo.svg" alt="CASA" className="size-8" />
+                <span className="text-base font-semibold text-foreground/90 tracking-tight">
+                    Continuous Agent Semantic Authorization
+                </span>
             </div>
-            <div className="ml-auto flex items-center gap-1">
+
+            {/* Right: icons + user */}
+            <div className="flex items-center gap-2">
+                <GlobalSearch />
+                <div className="w-px h-5 bg-[rgba(255,255,255,0.1)] mx-1" />
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -140,6 +82,57 @@ export function SiteHeader() {
                         <TooltipContent>Keyboard shortcuts</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
+
+                <div className="w-px h-5 bg-[rgba(255,255,255,0.1)] mx-1" />
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            className="group flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-accent data-[state=open]:bg-accent transition-colors cursor-pointer"
+                        >
+                            <Avatar className="h-8 w-8 rounded-lg">
+                                <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#006B8A] to-[#00BCEB] text-white font-bold">
+                                    AS
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="grid text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">Admin</span>
+                                <span className="truncate text-xs text-muted-foreground">admin@casa.local</span>
+                            </div>
+                            <ChevronDown className="ml-auto size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="min-w-56 rounded-lg" side="bottom" align="end" sideOffset={6}>
+                        <DropdownMenuLabel className="p-0 font-normal">
+                            <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                                <Avatar className="h-8 w-8 rounded-lg">
+                                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#006B8A] to-[#00BCEB] text-white font-bold">
+                                        AS
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="grid flex-1 text-left text-sm leading-tight">
+                                    <span className="truncate font-semibold">Admin</span>
+                                    <span className="truncate text-xs text-muted-foreground">admin@casa.local</span>
+                                </div>
+                            </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem disabled className="cursor-pointer">
+                            <User className="mr-2 h-4 w-4" />
+                            Account
+                        </DropdownMenuItem>
+                        <DropdownMenuItem disabled className="cursor-pointer">
+                            <Bell className="mr-2 h-4 w-4" />
+                            Notifications
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem disabled className="cursor-pointer">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Log out
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </header>
     );

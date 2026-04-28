@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
     searchValue?: string;
     onSearchChange?: (value: string) => void;
     onRowClick?: (row: TData) => void;
+    getRowClassName?: (row: TData) => string;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,7 +41,8 @@ export function DataTable<TData, TValue>({
     filterSlot,
     searchValue,
     onSearchChange,
-    onRowClick
+    onRowClick,
+    getRowClassName
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -129,7 +131,8 @@ export function DataTable<TData, TValue>({
                                     data-state={row.getIsSelected() && 'selected'}
                                     className={cn(
                                         'transition-colors hover:bg-muted/50',
-                                        onRowClick && 'cursor-pointer'
+                                        onRowClick && 'cursor-pointer',
+                                        getRowClassName?.(row.original)
                                     )}
                                     onClick={() => onRowClick?.(row.original)}
                                 >

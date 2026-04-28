@@ -211,6 +211,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
 
     let borderClass = 'border-muted';
     let expandedBgClass = 'bg-muted/10';
+    let rowBgClass = '';
     let icon: React.ReactNode = null;
     let summary: React.ReactNode = null;
 
@@ -265,6 +266,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         const tools = parseToolsList(event.tools);
         borderClass = 'border-blue-500/30';
         expandedBgClass = 'bg-blue-500/5';
+        rowBgClass = 'bg-blue-500/5';
         icon = <Brain className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
         summary = (
             <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
@@ -289,6 +291,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         const selectedTools = parseToolsList(event.tools);
         borderClass = 'border-blue-500/30';
         expandedBgClass = 'bg-blue-500/5';
+        rowBgClass = 'bg-blue-500/5';
         icon = <BrainCircuit className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
         summary = (
             <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
@@ -309,6 +312,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         const reasonDescription = event.blocking_reason ? BLOCKING_REASON_DESCRIPTIONS[event.blocking_reason] : null;
         borderClass = blocked ? 'border-destructive/40' : 'border-green-500/40';
         expandedBgClass = blocked ? 'bg-destructive/5' : 'bg-green-500/5';
+        rowBgClass = blocked ? 'bg-destructive/5' : 'bg-green-500/5';
         icon = blocked ? (
             <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 flex-shrink-0" />
         ) : (
@@ -367,7 +371,7 @@ function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNa
         <div className={`border-l-2 ml-2 ${borderClass}`}>
             <button
                 type="button"
-                className="w-full flex items-start gap-2 py-1.5 pl-4 hover:bg-muted/30 transition-colors text-left cursor-pointer"
+                className={`w-full flex items-start gap-2 py-1.5 pl-4 hover:bg-muted/30 transition-colors text-left cursor-pointer ${rowBgClass}`}
                 onClick={() => setExpanded((v) => !v)}
             >
                 {expanded ? (
@@ -725,7 +729,9 @@ export function AuthRequestsPage() {
                 id: t.id,
                 userInputId: t.user_input_id,
                 tool: t.event.tool ?? '—',
-                callerAppName: t.event.caller_app_id ?? null,
+                callerAppName: t.event.caller_app_id
+                    ? (appNameMap[t.event.caller_app_id] ?? t.event.caller_app_id)
+                    : null,
                 calleeAppName: t.event.callee_app_id
                     ? (appNameMap[t.event.callee_app_id] ?? t.event.callee_app_id)
                     : null,
@@ -781,6 +787,25 @@ export function AuthRequestsPage() {
                 cell: ({row}) => (
                     <div className="flex justify-center">
                         <code className="font-mono text-sm font-medium">{row.getValue('tool')}</code>
+                    </div>
+                )
+            },
+            {
+                accessorKey: 'callerAppName',
+                header: ({column}) => (
+                    <div className="flex justify-center">
+                        <Button
+                            variant="ghost"
+                            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                            className="cursor-pointer"
+                        >
+                            Caller <ArrowUpDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
+                ),
+                cell: ({row}) => (
+                    <div className="flex justify-center">
+                        <span className="text-sm text-muted-foreground">{row.getValue('callerAppName') ?? '—'}</span>
                     </div>
                 )
             },
@@ -1102,6 +1127,10 @@ export function AuthRequestsPage() {
                                 setSelectedUserInputId(row.userInputId);
                                 setSelectedMasId(row.masId);
                                 setSelectedMasName(row.masName);
+                            }}
+                            getRowClassName={(row) => {
+                                if (row.userInputId !== selectedUserInputId) return '';
+                                return 'border-l-2 border-b-0 border-[rgba(0,188,235,0.5)]';
                             }}
                         />
                     )}
