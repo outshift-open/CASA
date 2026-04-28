@@ -1,25 +1,8 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {useMASApps} from '@/hooks/use-mas';
-import {MASAppsTable, MASGraphView} from '@/components/mas';
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
+import {MASAppsTable} from '@/components/mas';
 import {Card, CardContent} from '@/components/ui/card';
 import {Skeleton} from '@/components/ui/skeleton';
-import {Table, Network, AppWindow} from 'lucide-react';
+import {AppWindow} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
 
 interface MASAppsTabProps {
@@ -51,24 +34,7 @@ export function MASAppsTab({mas}: MASAppsTabProps) {
                     </CardContent>
                 </Card>
             ) : apps && apps.length > 0 ? (
-                <Tabs defaultValue="table" className="w-full">
-                    <TabsList>
-                        <TabsTrigger value="table">
-                            <Table className="mr-2 h-4 w-4" />
-                            Table
-                        </TabsTrigger>
-                        <TabsTrigger value="graph">
-                            <Network className="mr-2 h-4 w-4" />
-                            Graph
-                        </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="table" className="mt-4">
-                        <MASAppsTable apps={apps} />
-                    </TabsContent>
-                    <TabsContent value="graph" className="mt-4">
-                        <MASGraphView mas={mas} apps={apps} />
-                    </TabsContent>
-                </Tabs>
+                <MASAppsTable mas={mas} apps={apps} />
             ) : (
                 <Card>
                     <CardContent className="pt-6">

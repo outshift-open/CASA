@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {memo} from 'react';
 import {Handle, Position} from 'reactflow';
 import {Bot, AppWindow, Server} from 'lucide-react';
@@ -64,6 +48,8 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                             'bg-card text-card-foreground rounded-xl border shadow-md',
                             'px-4 py-3 min-w-[180px] cursor-pointer',
                             'hover:shadow-lg hover:border-primary/50 transition-all',
+                            'bg-[rgba(8,12,22,0.85)] border-[rgba(255,255,255,0.10)] backdrop-blur-sm',
+                            'hover:border-[rgba(0,188,235,0.45)] hover:shadow-[0_4px_20px_rgba(0,188,235,0.12)]',
                             data.isHighlighted && 'ring-2 ring-primary shadow-primary/50'
                         )}
                         onClick={data.onClick}
@@ -90,7 +76,7 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                 <TooltipContent side="right" className="max-w-xs">
                     <div className="space-y-2">
                         <div className="font-semibold">{data.name}</div>
-                        <div className="text-xs text-background/70">{APP_TYPE_LABELS[data.type]}</div>
+                        <div className="text-xs text-foreground/70">{APP_TYPE_LABELS[data.type]}</div>
                         {data.tools && data.tools.length > 0 ? (
                             <div className="mt-2">
                                 <div className="text-xs font-medium mb-1">Tools:</div>
@@ -99,19 +85,19 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                                         <li key={idx} className="truncate">
                                             • {tool.name}
                                             {tool.scopes && tool.scopes.length > 0 && (
-                                                <span className="text-background/60 ml-1">
+                                                <span className="text-foreground/60 ml-1">
                                                     ({tool.scopes.map((s) => s.name).join(', ')})
                                                 </span>
                                             )}
                                         </li>
                                     ))}
                                     {data.tools.length > 5 && (
-                                        <li className="text-background/60">...and {data.tools.length - 5} more</li>
+                                        <li className="text-foreground/60">...and {data.tools.length - 5} more</li>
                                     )}
                                 </ul>
                             </div>
                         ) : (
-                            <div className="text-xs text-background/70">No tools configured</div>
+                            <div className="text-xs text-foreground/70">No tools configured</div>
                         )}
                     </div>
                 </TooltipContent>

@@ -1,33 +1,43 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import {useParams} from 'react-router-dom';
+import {useParams, useSearchParams} from 'react-router-dom';
 import {useMASById, useMASApps} from '@/hooks/use-mas';
+import {useTraces} from '@/hooks/use-traces';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
-import {MASInfoTab, MASAppsTab, MASTracesTab} from '@/components/mas';
-import {Info, Activity, AppWindow, Tags} from 'lucide-react';
-import {useState} from 'react';
+import {MASInfoTab, MASAppsTab, MASTracesTab, MASDenyConditionsTab} from '@/components/mas';
+import {Info, Activity, AppWindow, Tags, ShieldAlert} from 'lucide-react';
+
+const FLAG_DETERMINISTIC_TOOL_SELECTED = 1 << 0;
+const FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS = 1 << 1;
+const FLAG_AI_POWERED_TOOL_MATCH = 1 << 2;
+const TOTAL_CHECKS = 3;
 
 export function MASDetailPage() {
     const {id} = useParams<{id: string}>();
+    const [searchParams, setSearchParams] = useSearchParams();
     const {data: mas, isLoading, error, refetch} = useMASById(id || '');
-    useMASApps(id || '');
-    const [activeTab, setActiveTab] = useState('info');
+    const {data: apps} = useMASApps(id || '');
+    const {data: tracesData} = useTraces(id, 1, 1);
+
+    const VALID_TABS = ['info', 'deny_conditions', 'apps', 'traces'];
+    const tabParam = searchParams.get('tab');
+    const activeTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : 'info';
+
+    const handleTabChange = (tab: string) => {
+        if (tab === 'info') {
+            searchParams.delete('tab');
+            setSearchParams(searchParams, {replace: true});
+        } else {
+            setSearchParams({tab}, {replace: true});
+        }
+    };
+
+    const enabledChecks = mas?.enabled_tool_checks ?? 0;
+    const enabledCount = [
+        FLAG_DETERMINISTIC_TOOL_SELECTED,
+        FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS,
+        FLAG_AI_POWERED_TOOL_MATCH
+    ].filter((f) => (enabledChecks & f) !== 0).length;
 
     return (
         <>
@@ -57,15 +67,27 @@ export function MASDetailPage() {
                                             Multi-Agent System configuration and agentic services
                                         </CardDescription>
                                     </div>
-                                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-                                        <TabsList>
+                                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-auto">
+                                        <TabsList variant="underline">
                                             <TabsTrigger value="info">
                                                 <Info className="mr-2 h-4 w-4" />
                                                 Info
                                             </TabsTrigger>
+                                            <TabsTrigger value="deny_conditions">
+                                                <ShieldAlert className="mr-2 h-4 w-4" />
+                                                Deny Conditions
+                                                <span className="ml-1.5 text-xs text-muted-foreground">
+                                                    {enabledCount}/{TOTAL_CHECKS}
+                                                </span>
+                                            </TabsTrigger>
                                             <TabsTrigger value="apps">
                                                 <AppWindow className="mr-2 h-4 w-4" />
                                                 Agentic Services
+                                                {apps && (
+                                                    <span className="ml-1.5 text-xs text-muted-foreground">
+                                                        {apps.length}
+                                                    </span>
+                                                )}
                                             </TabsTrigger>
                                             <TabsTrigger
                                                 value="scopes"
@@ -73,17 +95,23 @@ export function MASDetailPage() {
                                                 className="opacity-40 cursor-not-allowed"
                                             >
                                                 <Tags className="mr-2 h-4 w-4" />
-                                                Scopes
+                                                Auth Scopes
                                             </TabsTrigger>
                                             <TabsTrigger value="traces">
                                                 <Activity className="mr-2 h-4 w-4" />
                                                 Traces
+                                                {tracesData && tracesData.total > 0 && (
+                                                    <span className="ml-1.5 text-xs text-muted-foreground">
+                                                        {tracesData.total}
+                                                    </span>
+                                                )}
                                             </TabsTrigger>
                                         </TabsList>
                                     </Tabs>
                                 </CardHeader>
                                 <CardContent>
-                                    {activeTab === 'info' && <MASInfoTab mas={mas} />}
+                                    {activeTab === 'info' && <MASInfoTab mas={mas} onTabChange={handleTabChange} />}
+                                    {activeTab === 'deny_conditions' && <MASDenyConditionsTab mas={mas} />}
                                     {activeTab === 'apps' && <MASAppsTab mas={mas} />}
                                     {activeTab === 'traces' && <MASTracesTab masId={id || ''} />}
                                 </CardContent>

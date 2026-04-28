@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 /* eslint-disable react-hooks/incompatible-library */
 import {useState, ReactNode} from 'react';
 import {
@@ -45,6 +29,7 @@ interface DataTableProps<TData, TValue> {
     searchValue?: string;
     onSearchChange?: (value: string) => void;
     onRowClick?: (row: TData) => void;
+    getRowClassName?: (row: TData) => string;
 }
 
 export function DataTable<TData, TValue>({
@@ -56,7 +41,8 @@ export function DataTable<TData, TValue>({
     filterSlot,
     searchValue,
     onSearchChange,
-    onRowClick
+    onRowClick,
+    getRowClassName
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -145,7 +131,8 @@ export function DataTable<TData, TValue>({
                                     data-state={row.getIsSelected() && 'selected'}
                                     className={cn(
                                         'transition-colors hover:bg-muted/50',
-                                        onRowClick && 'cursor-pointer'
+                                        onRowClick && 'cursor-pointer',
+                                        getRowClassName?.(row.original)
                                     )}
                                     onClick={() => onRowClick?.(row.original)}
                                 >

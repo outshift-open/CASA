@@ -1,6 +1,6 @@
 # CASA Explorer UI
 
-Modern UI for the CASA (Continuous Agent Semantic Authorization) Authorization Server built with React, TypeScript, and shadcn/ui.
+Modern UI for the CASA (Continuous Agent Semantic Authorization) Server built with React, TypeScript, and shadcn/ui.
 
 ## Tech Stack
 

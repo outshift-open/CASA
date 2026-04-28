@@ -1,60 +1,19 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import * as React from 'react';
 import {useLocation} from 'react-router-dom';
-import {
-    Shield,
-    Settings,
-    LayoutDashboard,
-    MoreVertical,
-    AppWindow,
-    User,
-    Bell,
-    LogOut,
-    ChevronLeft,
-    ChevronRight,
-    Network,
-    Tags
-} from 'lucide-react';
+import {LayoutDashboard, ChevronLeft, ChevronRight, Network, Tags, Activity} from 'lucide-react';
 import {NavLink} from 'react-router-dom';
 
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
-    SidebarHeader,
-    SidebarRail,
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
     SidebarGroup,
-    SidebarSeparator,
     useSidebar
 } from '@/components/ui/sidebar';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import {Button} from '@/components/ui/button';
-import {Avatar, AvatarFallback} from '@/components/ui/avatar';
 
 const mainNavItems = [
     {
@@ -68,19 +27,13 @@ const mainNavItems = [
         icon: Network
     },
     {
-        title: 'Agentic Services',
-        url: '/agentic-services',
-        icon: AppWindow
+        title: 'Auth Requests',
+        url: '/auth-requests',
+        icon: Activity
     }
 ];
 
-const bottomNavItems = [
-    {
-        title: 'Settings',
-        url: '/settings',
-        icon: Settings
-    }
-];
+const bottomNavItems: {title: string; url: string; icon: React.ElementType}[] = [];
 
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
     const {toggleSidebar, state} = useSidebar();
@@ -101,23 +54,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
 
     return (
         <Sidebar collapsible="icon" {...props}>
-            <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <NavLink to="/">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    <Shield className="size-4" />
-                                </div>
-                                <div className="grid flex-1 text-left text-sm leading-tight ml-2">
-                                    <span className="truncate font-semibold">CASA Explorer</span>
-                                </div>
-                            </NavLink>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="pt-2">
                 <SidebarGroup>
                     <SidebarMenu>
                         {mainNavItems.map((item) => (
@@ -132,12 +69,12 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                         ))}
                         <SidebarMenuItem>
                             <SidebarMenuButton
-                                tooltip="Scopes (coming soon)"
+                                tooltip="Auth scopes (coming soon)"
                                 disabled
                                 className="opacity-40 cursor-not-allowed"
                             >
                                 <Tags />
-                                <span>Scopes</span>
+                                <span>Auth Scopes</span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     </SidebarMenu>
@@ -156,69 +93,12 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
-                <SidebarSeparator className="mx-0" />
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton
-                                    size="lg"
-                                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
-                                >
-                                    <Avatar className="h-8 w-8 rounded-lg">
-                                        <AvatarFallback className="rounded-lg">AS</AvatarFallback>
-                                    </Avatar>
-                                    <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">Admin</span>
-                                        <span className="truncate text-xs text-muted-foreground">admin@casa.local</span>
-                                    </div>
-                                    <MoreVertical className="ml-auto size-4" />
-                                </SidebarMenuButton>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                                side="right"
-                                align="end"
-                                sideOffset={4}
-                            >
-                                <DropdownMenuLabel className="p-0 font-normal">
-                                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                                        <Avatar className="h-8 w-8 rounded-lg">
-                                            <AvatarFallback className="rounded-lg">AS</AvatarFallback>
-                                        </Avatar>
-                                        <div className="grid flex-1 text-left text-sm leading-tight">
-                                            <span className="truncate font-semibold">Admin</span>
-                                            <span className="truncate text-xs text-muted-foreground">
-                                                admin@casa.local
-                                            </span>
-                                        </div>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem disabled className="cursor-pointer">
-                                    <User className="mr-2 h-4 w-4" />
-                                    Account
-                                </DropdownMenuItem>
-                                <DropdownMenuItem disabled className="cursor-pointer">
-                                    <Bell className="mr-2 h-4 w-4" />
-                                    Notifications
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem disabled className="cursor-pointer">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Log out
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </SidebarMenuItem>
-                </SidebarMenu>
             </SidebarFooter>
-            <SidebarRail />
             <Button
                 onClick={toggleSidebar}
                 variant="ghost"
                 size="icon"
-                className="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 cursor-pointer rounded-full border bg-background shadow-md hover:bg-accent"
+                className="absolute top-1/2 -right-[7px] z-20 h-8 w-8 -translate-y-1/2 cursor-pointer rounded-full border border-sidebar-border bg-[#07111F] shadow-md hover:bg-accent"
             >
                 {state === 'collapsed' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>

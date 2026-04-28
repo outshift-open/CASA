@@ -106,6 +106,11 @@ clean: _clean-env update # Clean up the dist folder and the re-create the virtua
 > rm -rf dist/
 .PHONY: clean
 
+update: # Sync Python dependencies after pyproject.toml changes.
+> @printf "$(YELLOW)Syncing dependencies$(NOCOLOR)\n"
+> uv sync --extra dev
+.PHONY: update
+
 check: # Run all the pre-commit checks on the repo.
 > @printf "$(YELLOW)Running code checkers$(NOCOLOR)\n"
 > $(VENV_ACTIVATE)

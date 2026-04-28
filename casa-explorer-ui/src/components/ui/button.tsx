@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import * as React from 'react';
 import {cva, type VariantProps} from 'class-variance-authority';
 import {Slot} from 'radix-ui';
@@ -21,17 +5,18 @@ import {Slot} from 'radix-ui';
 import {cn} from '@/lib/utils';
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all cursor-pointer disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all cursor-pointer disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
     {
         variants: {
             variant: {
-                default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-                destructive:
-                    'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+                default:
+                    'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_0_16px_rgba(43,130,246,0.35)]',
+                destructive: 'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20',
                 outline:
-                    'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
-                secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-                ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
+                    'border bg-transparent border-[rgba(255,255,255,0.07)] text-[rgba(255,255,255,0.55)] hover:border-[rgba(255,255,255,0.20)] hover:text-[rgba(255,255,255,0.94)] hover:bg-transparent',
+                secondary:
+                    'bg-[rgba(255,255,255,0.06)] text-secondary-foreground border border-[rgba(255,255,255,0.07)] hover:bg-[rgba(255,255,255,0.10)]',
+                ghost: 'text-[rgba(255,255,255,0.55)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[rgba(255,255,255,0.94)]',
                 link: 'text-primary underline-offset-4 hover:underline'
             },
             size: {

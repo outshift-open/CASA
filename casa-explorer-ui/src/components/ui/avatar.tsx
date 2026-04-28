@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 'use client';
 
 import * as React from 'react';
@@ -56,7 +40,7 @@ function AvatarFallback({className, ...props}: React.ComponentProps<typeof Avata
         <AvatarPrimitive.Fallback
             data-slot="avatar-fallback"
             className={cn(
-                'bg-muted text-muted-foreground flex size-full items-center justify-center rounded-full text-sm group-data-[size=sm]/avatar:text-xs',
+                'bg-[rgba(255,255,255,0.10)] text-[rgba(255,255,255,0.94)] flex size-full items-center justify-center rounded-full text-sm group-data-[size=sm]/avatar:text-xs',
                 className
             )}
             {...props}
@@ -69,7 +53,7 @@ function AvatarBadge({className, ...props}: React.ComponentProps<'span'>) {
         <span
             data-slot="avatar-badge"
             className={cn(
-                'bg-primary text-primary-foreground ring-background absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full ring-2 select-none',
+                'bg-primary text-primary-foreground ring-[#050C18] absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full ring-2 select-none',
                 'group-data-[size=sm]/avatar:size-2 group-data-[size=sm]/avatar:[&>svg]:hidden',
                 'group-data-[size=default]/avatar:size-2.5 group-data-[size=default]/avatar:[&>svg]:size-2',
                 'group-data-[size=lg]/avatar:size-3 group-data-[size=lg]/avatar:[&>svg]:size-2',
