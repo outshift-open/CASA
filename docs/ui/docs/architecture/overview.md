@@ -14,7 +14,7 @@ CASA has two main layers: a **runtime** that manages identity and policy, and a 
 %%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph TB
     subgraph "Kubernetes Cluster"
-        subgraph "casa-runtime"
+        subgraph "CASA RUNTIME"
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]

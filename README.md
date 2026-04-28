@@ -49,7 +49,7 @@ Enforcement happens through sidecars injected into each MAS pod and an eBPF-base
 %%{init: {'theme': 'base', 'themeVariables': {'background': '#f0fdf4', 'edgeLabelBackground': '#f0fdf4'}}}%%
 graph TB
     subgraph "Kubernetes Cluster"
-        subgraph "casa-runtime"
+        subgraph "CASA RUNTIME"
             AUTH["Auth Service\n(Token Issuance & Exchange)"]
             KC["Keycloak IdP"]
             PG[("PostgreSQL")]
@@ -274,7 +274,7 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 | `demo/src/mcp/`                        | Demo MCP server source code                              |
 | `sidecar/`                             | Sidecar elements (ext_auth, llm_proxy)                   |
 | `src/casa_auth_server/`                | Auth service Python source                               |
-| `casa-explorer-ui/`                    | CASA Explorer UI source (React, read-only observability) |
+| `casa-explorer-ui/`                    | Explorer UI source (React, read-only observability)      |
 | `docs/ui/`                             | Docusaurus documentation portal                          |
 | `docs/dev`                             | Architecture specs and design documents                  |
 

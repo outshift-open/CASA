@@ -5,7 +5,7 @@ graph TB
     end
 
     subgraph "Kubernetes Cluster"
-        subgraph "CASA Control Plane Namespace"
+        subgraph "CASA Runtime Namespace"
             AUTH[🔐 Auth Service<br/>Token issuance]
             POLICY[📋 Policy Service<br/>MAS/App config]
             SCHEMA[📚 Schema Registry<br/>L9 contracts]
