@@ -37,3 +37,9 @@ test/
 # Development files
 .pre-commit-config.yaml
 Makefile
+
+# Node dependencies — host-installed binaries are platform-specific and must not
+# be copied into the container; each stage runs yarn install inside Alpine.
+**/node_modules
+**/.yarn/cache
+**/.yarn/install-state.gz
