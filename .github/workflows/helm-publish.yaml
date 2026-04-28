@@ -1,0 +1,107 @@
+name: Helm Publish (OCI to GHCR)
+
+on:
+  workflow_call:
+    inputs:
+      chart-path:
+        description: Path to the chart directory (must contain Chart.yaml)
+        required: true
+        type: string
+      oci-repository:
+        description: OCI repository prefix under GHCR (charts will be pushed under this prefix)
+        required: false
+        type: string
+        default: helm
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Login to GHCR (OCI)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Add dependency repos
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          chart_yaml="${{ inputs.chart-path }}/Chart.yaml"
+          if [[ ! -f "$chart_yaml" ]]; then
+            echo "Missing Chart.yaml at: $chart_yaml" >&2
+            exit 1
+          fi
+
+          # Helm requires repositories to be present in repo config when dependencies use HTTP(S) repos.
+          # Extract repository URLs from Chart.yaml (best-effort, avoids extra tooling).
+          mapfile -t repo_urls < <(
+            grep -E '^[[:space:]]*repository:' "$chart_yaml" \
+              | sed -E 's/^[[:space:]]*repository:[[:space:]]*"?([^" ]+)"?.*/\1/' \
+              | sort -u
+          )
+
+          if (( ${#repo_urls[@]} == 0 )); then
+            echo "No dependency repositories found in $chart_yaml"
+            exit 0
+          fi
+
+          for url in "${repo_urls[@]}"; do
+            if [[ "$url" != http://* && "$url" != https://* ]]; then
+              echo "Skipping non-HTTP repo: $url"
+              continue
+            fi
+
+            name="repo-$(echo -n "$url" | sha256sum | cut -c1-8)"
+            echo "Adding Helm repo [$name] -> $url"
+            helm repo add "$name" "$url"
+          done
+
+          helm repo update
+
+      - name: Build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          helm dependency build "${{ inputs.chart-path }}"
+
+      - name: Package chart
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          out_dir="${RUNNER_TEMP}/charts"
+          mkdir -p "$out_dir"
+          helm package "${{ inputs.chart-path }}" --destination "$out_dir"
+          pkg="$(ls -1 "$out_dir"/*.tgz | head -n 1)"
+          echo "package=$pkg" >> "$GITHUB_OUTPUT"
+
+      - name: Push chart to GHCR (OCI)
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="oci://ghcr.io/${{ github.repository_owner }}/${{ inputs.oci-repository }}"
+          echo "Pushing ${{ steps.package.outputs.package }} to $dest"
+          helm push "${{ steps.package.outputs.package }}" "$dest"
+
+      - name: Summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_name="$(helm show chart "${{ inputs.chart-path }}" | awk -F': ' '/^name:/{print $2; exit}')"
+          chart_version="$(helm show chart "${{ inputs.chart-path }}" | awk -F': ' '/^version:/{print $2; exit}')"
+          echo "Published: ghcr.io/${{ github.repository_owner }}/${{ inputs.oci-repository }}/${chart_name}:${chart_version}" >> "$GITHUB_STEP_SUMMARY"
