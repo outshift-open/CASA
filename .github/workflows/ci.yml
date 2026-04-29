@@ -7,6 +7,7 @@ on:
     push:
         branches:
             - main
+            - update-doc
     workflow_dispatch:
     workflow_call:
 
@@ -144,4 +145,57 @@ jobs:
         uses: ./.github/workflows/helm-publish.yaml
         with:
             chart-path: deployments/helm/sidecar
+            oci-repository: helm
+
+    ################################## Demo images (temporary — remove after PR) ####
+    ###################################################################################
+    call-docker-build-push-demo-agent-safe:
+        name: Call Docker Build Demo Agent Safe
+        needs: [checkout]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/agent-safe"
+            context: demo/src/agent-safe
+            dockerfile: demo/src/agent-safe/Dockerfile
+
+    call-docker-build-push-demo-agent-compromised:
+        name: Call Docker Build Demo Agent Compromised
+        needs: [checkout]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/agent-compromised"
+            context: demo/src/agent-compromised
+            dockerfile: demo/src/agent-compromised/Dockerfile
+
+    call-docker-build-push-demo-mcp:
+        name: Call Docker Build Demo MCP Server
+        needs: [checkout]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/mcp"
+            context: demo/src/mcp
+            dockerfile: demo/src/mcp/Dockerfile
+
+    call-docker-build-push-demo-chat-ui:
+        name: Call Docker Build Demo Chat UI
+        needs: [checkout]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/chat-ui"
+            context: demo/src/chat-ui
+            dockerfile: demo/src/chat-ui/Dockerfile
+
+    call-helm-publish-demo:
+        name: Helm publish casa-demo (OCI GHCR)
+        needs:
+            [
+                checkout,
+                call-docker-build-push-demo-agent-safe,
+                call-docker-build-push-demo-agent-compromised,
+                call-docker-build-push-demo-mcp,
+                call-docker-build-push-demo-chat-ui,
+            ]
+        uses: ./.github/workflows/helm-publish.yaml
+        with:
+            chart-path: demo/helm
             oci-repository: helm
