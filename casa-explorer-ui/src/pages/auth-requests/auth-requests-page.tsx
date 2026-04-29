@@ -154,7 +154,8 @@ function EventTimestamp({createdAt}: {createdAt: string}) {
     const time = new Date(createdAt).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
+        second: '2-digit',
+        hour12: false
     });
     return <span className="ml-auto pl-3 text-[11px] text-muted-foreground/60 flex-shrink-0 tabular-nums">{time}</span>;
 }
@@ -476,7 +477,8 @@ function SessionTraceSheet({userInputId, masId, masName, tracesData, onClose}: S
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
-              second: '2-digit'
+              second: '2-digit',
+              hour12: false
           })
         : null;
 

@@ -134,7 +134,12 @@ function AppIdChip({id, appNames}: {id: string | undefined; appNames: AppNames})
 
 function EventTimestamp({createdAt}: {createdAt: string}) {
     if (!createdAt) return null;
-    const time = new Date(createdAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    const time = new Date(createdAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
     return <span className="ml-auto pl-3 text-[11px] text-muted-foreground/60 flex-shrink-0 tabular-nums">{time}</span>;
 }
 
@@ -459,7 +464,8 @@ export function AuthRequestDetailPage() {
               day: 'numeric',
               hour: '2-digit',
               minute: '2-digit',
-              second: '2-digit'
+              second: '2-digit',
+              hour12: false
           })
         : null;
 

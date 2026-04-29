@@ -95,7 +95,9 @@ export function MASInfoTab({mas, onTabChange}: MASInfoTabProps) {
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Created</p>
                         <div>
                             <DateHover date={mas.created_at} className="text-sm font-medium" />
-                            <p className="text-xs text-muted-foreground">{new Date(mas.created_at).toLocaleString()}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {new Date(mas.created_at).toLocaleString([], {hour12: false})}
+                            </p>
                         </div>
                     </div>
 
