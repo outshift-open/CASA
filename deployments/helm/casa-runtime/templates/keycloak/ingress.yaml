@@ -29,10 +29,12 @@ metadata:
   {{- end }}
 spec:
   ingressClassName: {{ .Values.keycloak.ingress.className }}
+  {{- if .Values.keycloak.ingress.tls }}
   tls:
   - hosts:
     - "{{ .Values.keycloak.ingress.domainPrefix }}.{{ .Values.keycloak.ingress.apiDomainName }}"
     secretName: "{{ .Release.Name }}-keycloak-tls"
+  {{- end }}
   rules:
   - host: "{{ .Values.keycloak.ingress.domainPrefix }}.{{ .Values.keycloak.ingress.apiDomainName }}"
     http:

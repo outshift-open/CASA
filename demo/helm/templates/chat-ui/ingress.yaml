@@ -32,10 +32,12 @@ metadata:
   {{- end }}
 spec:
   ingressClassName: {{ .ingress.className }}
+  {{- if .ingress.tls }}
   tls:
   - hosts:
     - "{{ .ingress.domainPrefix }}.{{ .ingress.apiDomainName }}"
     secretName: "{{ $root.Release.Name }}-chat-ui-{{ .name }}-tls"
+  {{- end }}
   rules:
   - host: "{{ .ingress.domainPrefix }}.{{ .ingress.apiDomainName }}"
     http:

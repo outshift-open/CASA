@@ -29,10 +29,12 @@ metadata:
   {{- end }}
 spec:
   ingressClassName: {{ .Values.authService.ingress.className }}
+  {{- if .Values.authService.ingress.tls }}
   tls:
   - hosts:
     - "{{ .Values.authService.ingress.domainPrefix }}.{{ .Values.authService.ingress.apiDomainName }}"
     secretName: "{{ .Release.Name }}-auth-service-tls"
+  {{- end }}
   rules:
   - host: "{{ .Values.authService.ingress.domainPrefix }}.{{ .Values.authService.ingress.apiDomainName }}"
     http:
