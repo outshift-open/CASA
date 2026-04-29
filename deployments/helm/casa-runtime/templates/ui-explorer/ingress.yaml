@@ -29,10 +29,12 @@ metadata:
   {{- end }}
 spec:
   ingressClassName: {{ .Values.uiExplorer.ingress.className }}
+  {{- if .Values.uiExplorer.ingress.tls }}
   tls:
   - hosts:
     - "{{ .Values.uiExplorer.ingress.domainPrefix }}.{{ .Values.uiExplorer.ingress.apiDomainName }}"
     secretName: "{{ .Release.Name }}-ui-explorer-tls"
+  {{- end }}
   rules:
   - host: "{{ .Values.uiExplorer.ingress.domainPrefix }}.{{ .Values.uiExplorer.ingress.apiDomainName }}"
     http:
