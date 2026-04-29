@@ -174,7 +174,7 @@ function EventAttributes({event}: {event: Trace['event']}) {
     );
     if (entries.length === 0) return null;
     return (
-        <div className="mt-1.5 ml-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
+        <div className="ml-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
             {entries.map(([key, val]) => {
                 const isJwt = JWT_FIELDS.has(key) && typeof val === 'string';
                 const display = formatValue(key, val);

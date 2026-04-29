@@ -218,7 +218,7 @@ function EventAttributes({event, eventType: _eventType}: {event: Trace['event'];
     );
     if (entries.length === 0) return null;
     return (
-        <div className="mt-1.5 ml-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
+        <div className="ml-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
             {entries.map(([key, val]) => {
                 const isJwt = JWT_FIELDS.has(key) && typeof val === 'string';
                 const display = formatValue(key, val);
@@ -519,7 +519,7 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
                 </div>
             </button>
             {expanded && (
-                <div className="px-4 pb-3 pt-1 border-t space-y-0.5 bg-muted/20">
+                <div className="px-4 pb-3 border-t space-y-0.5 bg-muted/20">
                     {session.events.map((trace) => {
                         const idx = trace.event_type === 'LLMCallStartedEvent' ? llmCallIndex++ : undefined;
                         return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
