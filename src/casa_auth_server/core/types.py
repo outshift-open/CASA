@@ -22,6 +22,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel
+from sqlalchemy import DateTime
 from sqlalchemy.orm import RelationshipProperty
 from sqlmodel import Column, Field, Integer, Relationship, SQLModel
 
@@ -119,7 +120,10 @@ class MultiAgentSystem(SQLModel, table=True):
     authorization_server_id: UUID | None = Field(foreign_key="authorizationserver.id")
     authorization_server: Optional["AuthorizationServer"] = Relationship(back_populates="multi_agent_systems")
     namespace: str | None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(UTC),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
     deleted_at: datetime | None = Field(default=None)
 
 
@@ -128,7 +132,10 @@ class UserInput(SQLModel, table=True):
 
     id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     prompt: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(UTC),
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
     app_id: UUID | None = Field(foreign_key="app.id")
     tag: str | None = Field(index=True)
 
