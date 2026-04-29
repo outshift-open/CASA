@@ -1,0 +1,75 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: CASA Demo CI
+on:
+    push:
+        branches:
+            - main
+        paths:
+            - "demo/src/**"
+            - "demo/helm/**"
+            - ".github/workflows/demo-ci.yml"
+    workflow_dispatch:
+    workflow_call:
+
+concurrency:
+    group: demo-cd-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    id-token: write
+    contents: read
+    packages: write
+
+jobs:
+    ################################## Docker build & push ##########################
+    #################################################################################
+    call-docker-build-push-agent-safe:
+        name: Call Docker Build Demo Agent Safe
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/agent-safe"
+            context: demo/src/agent-safe
+            dockerfile: demo/src/agent-safe/Dockerfile
+
+    call-docker-build-push-agent-compromised:
+        name: Call Docker Build Demo Agent Compromised
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/agent-compromised"
+            context: demo/src/agent-compromised
+            dockerfile: demo/src/agent-compromised/Dockerfile
+
+    call-docker-build-push-mcp:
+        name: Call Docker Build Demo MCP Server
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/mcp"
+            context: demo/src/mcp
+            dockerfile: demo/src/mcp/Dockerfile
+
+    call-docker-build-push-chat-ui:
+        name: Call Docker Build Demo Chat UI
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo/chat-ui"
+            context: demo/src/chat-ui
+            dockerfile: demo/src/chat-ui/Dockerfile
+
+    ################################## Helm Publish (OCI to GHCR) #####################
+    ###################################################################################
+    call-helm-publish-demo:
+        name: Helm publish casa-demo (OCI GHCR)
+        needs:
+            [
+                call-docker-build-push-agent-safe,
+                call-docker-build-push-agent-compromised,
+                call-docker-build-push-mcp,
+                call-docker-build-push-chat-ui,
+            ]
+        uses: ./.github/workflows/helm-publish.yaml
+        with:
+            chart-path: demo/helm
+            oci-repository: helm

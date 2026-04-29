@@ -18,11 +18,10 @@
 # ─── Auth Service ────────────────────────────────────────────────────────────
 authService:
   image:
-    repository:
-    tag:
+    repository: ghcr.io/outshift-open/casa-auth-server
+    tag: latest
     pullPolicy: IfNotPresent
-  imagePullSecrets:
-    - name: regcred
+  imagePullSecrets: []
   replicaCount: 1
   service:
     type: ClusterIP
@@ -88,11 +87,10 @@ authService:
 # ─── UI Explorer ─────────────────────────────────────────────────────────────
 uiExplorer:
   image:
-    repository:
-    tag: ""
+    repository: ghcr.io/outshift-open/casa-auth-server-ui
+    tag: latest
     pullPolicy: IfNotPresent
-  imagePullSecrets:
-    - name: regcred
+  imagePullSecrets: []
   replicaCount: 1
   service:
     type: ClusterIP
@@ -165,11 +163,10 @@ postgresKeycloak:
 keycloak:
   image:
     # Custom image that includes the POIT HTTP-header protocol mapper JAR
-    repository:
-    tag: ""
+    repository: ghcr.io/outshift-open/casa-auth-server-keycloak
+    tag: latest
     pullPolicy: IfNotPresent
-  imagePullSecrets:
-    - name: regcred
+  imagePullSecrets: []
   replicaCount: 1
   service:
     type: ClusterIP
@@ -200,11 +197,10 @@ keycloak:
 # ─── Operator ────────────────────────────────────────────────────────────────
 operator:
   image:
-    repository:
-    tag: ""
+    repository: ghcr.io/outshift-open/outshift-casa/casa-operator
+    tag: latest
     pullPolicy: IfNotPresent
-  imagePullSecrets:
-    - name: regcred
+  imagePullSecrets: []
   # When empty, defaults to in-cluster auth-service URL via _helpers.tpl
   authServiceUrl: ""
   resources:
@@ -220,7 +216,7 @@ operator:
 # the control plane. Requires Istio. Set to false for plain Docker / Cilium
 # deployments where enforcement is handled separately.
 sidecar:
-  enabled: false
+  enabled: true
   # When empty, authServerHost is auto-derived to:
   # "<release>-auth-service.<namespace>.svc.cluster.local"
   # Override when the auth-service is in a different release or namespace.
@@ -229,8 +225,8 @@ sidecar:
   authServerScheme: "http"
   replicaCount: 1
   image:
-    repository: ""
-    tag: ""
+    repository: ghcr.io/outshift-open/outshift-casa/ext_auth_service
+    tag: latest
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   podLabels:
@@ -238,14 +234,14 @@ sidecar:
   resources: {}
   llm_proxy:
     image:
-      repository: ""
-      tag: ""
+      repository: ghcr.io/outshift-open/outshift-casa/llm_proxy_plugin
+      tag: latest
       pullPolicy: IfNotPresent
       pullSecret: ""
   traceparent_injector:
     image:
-      repository: ""
-      tag: ""
+      repository: ghcr.io/outshift-open/outshift-casa/traceparent_injector_plugin
+      tag: latest
       pullPolicy: IfNotPresent
       pullSecret: ""
   otelcollector:
@@ -322,7 +318,8 @@ sidecar:
     serviceAccount:
       name: "obi"
     image:
-      tag: "v0.8.0"
+      repository: mkedjour/ebpf-instrument
+      tag: tp_size_clamp_amd64_fix_3
       pullPolicy: Always
     privileged: true
     extraCapabilities:

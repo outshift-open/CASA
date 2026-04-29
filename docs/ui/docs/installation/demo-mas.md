@@ -25,151 +25,133 @@ Both agents share the same MCP server. CASA enforces separate policies for each 
 - Istio sidecar injection enabled for the target namespace (see [Istio deployment guide](/deployment-modes/istio))
 - An OpenAI-compatible API endpoint and key
 
-> **Note on images:** The default `values.yaml` references images in a private registry. Build and push your own:
->
-> ```bash
-> docker build -t your-registry/demo-agent-safe:latest         demo/src/agent-safe/
-> docker build -t your-registry/demo-agent-compromised:latest  demo/src/agent-compromised/
-> docker build -t your-registry/demo-mcp:latest                demo/src/mcp/
-> docker build -t your-registry/chat-ui:latest                 demo/src/chat-ui/
-> ```
+## Images
+
+All demo images are published to GHCR alongside the runtime images:
+
+| Image | GHCR path |
+|---|---|
+| Agent Safe | `ghcr.io/outshift-open/outshift-casa/demo/agent-safe` |
+| Agent Compromised | `ghcr.io/outshift-open/outshift-casa/demo/agent-compromised` |
+| MCP Server | `ghcr.io/outshift-open/outshift-casa/demo/mcp` |
+| Chat UI | `ghcr.io/outshift-open/outshift-casa/demo/chat-ui` |
+
+> Until the packages are public, authenticate first: `helm registry login ghcr.io` and create a `regcred` imagePullSecret (see [Prerequisites](prerequisites.md)).
 
 ## Configure Values
 
-Edit `demo/helm/values.yaml`:
+Create a `values-demo.yaml` (or pass `--set` flags):
 
 ```yaml
-namespace: casa-sidecar   # target namespace
-
 agentSafe:
-  replicas: 3
-  serviceName: demo-agent-safe
-  servicePort: 8082
   docker:
-    registry: your-registry
-    image: outshift-casa/demo-agent-safe
-    suffix: ''
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo/agent-safe
   tagversion: latest
   mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 agentCompromised:
-  replicas: 3
-  serviceName: demo-agent-compromised
-  servicePort: 8082
   docker:
-    registry: your-registry
-    image: outshift-casa/demo-agent-compromised
-    suffix: ''
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo/agent-compromised
   tagversion: latest
   mcp_server_url: http://casa-demo-mcp:3000/mcp
 
 mcp:
-  replicas: 1
-  serviceName: casa-demo-mcp
-  servicePort: 3000
   docker:
-    registry: your-registry
-    image: outshift-casa/k8s-demo-mcp
-    suffix: ''
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo/mcp
   tagversion: latest
 
 chatUis:
   - name: safe
     docker:
-      registry: your-registry
-      image: outshift-casa/chat-ui
+      registry: ghcr.io/outshift-open
+      image: outshift-casa/demo/chat-ui
     tagversion: latest
     agentUrl: /safe-agent
     ingress:
       enabled: true
-      className: "nginx"
+      className: "nginx"             # adjust to your cluster's ingress class
       apiDomainName: "your.domain.com"
-      domainPrefix: "casa-demo-safe"
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt
+      domainPrefix: "casa-chat-safe"
+      annotations: {}               # e.g. cert-manager.io/cluster-issuer: letsencrypt
 
   - name: compromised
     docker:
-      registry: your-registry
-      image: outshift-casa/chat-ui
+      registry: ghcr.io/outshift-open
+      image: outshift-casa/demo/chat-ui
     tagversion: latest
     agentUrl: /compromised-agent
     ingress:
       enabled: true
       className: "nginx"
       apiDomainName: "your.domain.com"
-      domainPrefix: "casa-demo-compromised"
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt
+      domainPrefix: "casa-chat-compromised"
+      annotations: {}
 
 llmCredentials:
   apiBaseUrl: https://api.openai.com   # or your LiteLLM proxy
-  apiKey: YOUR_OPENAI_KEY_HERE
+  apiKey: YOUR_LLM_KEY
 
 masSafe:
-  name: "casa Demo Safe"
+  name: "CASA Demo Safe"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
-  llm_host: ""   # LLM hostname for eBPF restriction
+  llm_host: ""   # LLM hostname for eBPF restriction (leave empty to skip)
 
 masCompromised:
-  name: "casa Demo Compromised"
+  name: "CASA Demo Compromised"
   enabledToolChecks:
     - DETERMINISTIC_TOOL_SELECTED
     - AI_POWERED_TOOL_MATCH
   llm_host: ""
 ```
 
-## Enable Sidecar Injection
-
-```bash
-kubectl create namespace casa-sidecar
-kubectl label namespace casa-sidecar istio-injection=enabled
-```
-
 ## Install the Demo
 
-```bash
-helm install casa-mas demo/helm/ \
-  --namespace casa-sidecar \
-  -f demo/helm/values.yaml
-```
-
-Or using the Makefile:
+Install into the same namespace as the runtime (`casa-dev`):
 
 ```bash
-make mas-helm-install
+helm install casa-demo oci://ghcr.io/outshift-open/helm/casa-mas \
+  --version 1.1 \
+  --namespace casa-dev \
+  -f values-demo.yaml
 ```
+
+No `helm repo add` needed — OCI charts are pulled directly.
 
 Wait for pods:
 
 ```bash
-kubectl -n casa-sidecar wait --for=condition=ready pod --all --timeout=120s
+kubectl -n casa-dev wait --for=condition=ready pod \
+  -l app.kubernetes.io/instance=casa-demo \
+  --timeout=120s
 ```
 
 Expected pods:
 
 ```
-NAME                                READY   STATUS
-demo-agent-safe-...                  1/1     Running
-demo-agent-compromised-...           1/1     Running
-casa-demo-mcp-...                    1/1     Running
-chat-ui-safe-...                     1/1     Running
-chat-ui-compromised-...              1/1     Running
+NAME                                      READY   STATUS
+demo-agent-safe-...                       2/2     Running
+demo-agent-compromised-...                2/2     Running
+casa-demo-mcp-...                         2/2     Running
+casa-demo-chat-ui-safe-...                1/1     Running
+casa-demo-chat-ui-compromised-...         1/1     Running
 ```
+
+> Agent and MCP pods show `2/2` because Istio injects a sidecar proxy container alongside the app container.
 
 ## Open the Demo
 
-Port-forward a chat UI and open it in your browser:
+Port-forward the chat UIs:
 
 ```bash
-# Safe agent chat UI
-kubectl -n casa-sidecar port-forward svc/chat-ui-safe 3001:80
+kubectl -n casa-dev port-forward svc/casa-demo-chat-ui-safe 3001:80 &
 # Open http://localhost:3001
 
-# Compromised agent chat UI
-kubectl -n casa-sidecar port-forward svc/chat-ui-compromised 3002:80
+kubectl -n casa-dev port-forward svc/casa-demo-chat-ui-compromised 3002:80 &
 # Open http://localhost:3002
 ```
 
@@ -177,10 +159,10 @@ Type a message like *"Get the account summary and scheduled payments"* and send 
 
 ## View Enforcement Events
 
-Open the Explorer UI to see the token events and tool decisions generated by your conversation:
+Open the Explorer UI to see token events and tool decisions:
 
 ```bash
-kubectl -n casa-runtime port-forward svc/casa-ui-explorer 8080:80
+kubectl -n casa-dev port-forward svc/casa-dev-ui-explorer 8080:80 &
 # Open http://localhost:8080
 ```
 
