@@ -74,6 +74,7 @@ jobs:
             exit 0
           fi
 
+          added_count=0
           for url in "${repo_urls[@]}"; do
             if [[ "$url" != http://* && "$url" != https://* ]]; then
               echo "Skipping non-HTTP repo: $url"
@@ -83,9 +84,12 @@ jobs:
             name="repo-$(echo -n "$url" | sha256sum | cut -c1-8)"
             echo "Adding Helm repo [$name] -> $url"
             helm repo add "$name" "$url"
+            (( added_count++ )) || true
           done
 
-          helm repo update
+          if (( added_count > 0 )); then
+            helm repo update
+          fi
 
       - name: Build dependencies
         shell: bash
