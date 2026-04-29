@@ -61,30 +61,37 @@ jobs:
             exit 1
           fi
 
-          # Helm requires repositories to be present in repo config when dependencies use HTTP(S) repos.
-          # Extract repository URLs from Chart.yaml (best-effort, avoids extra tooling).
-          mapfile -t repo_urls < <(
-            grep -E '^[[:space:]]*repository:' "$chart_yaml" \
-              | sed -E 's/^[[:space:]]*repository:[[:space:]]*"?([^" ]+)"?.*/\1/' \
-              | sort -u
+          # Collect all Chart.yaml files to process: main chart + any file:// sub-charts.
+          # This ensures transitive HTTP dependencies (e.g. OBI, otel-collector, jaeger inside
+          # a file:// sidecar dependency) are also added to the Helm repo config.
+          chart_dirs=("${{ inputs.chart-path }}")
+          mapfile -t file_dep_paths < <(
+            grep -E 'repository:[[:space:]]*"?file://' "$chart_yaml" \
+              | sed -E 's|.*repository:[[:space:]]*"?file://([^" ]+)"?.*|\1|'
           )
-
-          if (( ${#repo_urls[@]} == 0 )); then
-            echo "No dependency repositories found in $chart_yaml"
-            exit 0
-          fi
+          for rel in "${file_dep_paths[@]}"; do
+            dep_path="$(realpath "${{ inputs.chart-path }}/$rel")"
+            [[ -f "$dep_path/Chart.yaml" ]] && chart_dirs+=("$dep_path")
+          done
 
           added_count=0
-          for url in "${repo_urls[@]}"; do
-            if [[ "$url" != http://* && "$url" != https://* ]]; then
-              echo "Skipping non-HTTP repo: $url"
-              continue
-            fi
-
-            name="repo-$(echo -n "$url" | sha256sum | cut -c1-8)"
-            echo "Adding Helm repo [$name] -> $url"
-            helm repo add "$name" "$url"
-            (( added_count++ )) || true
+          for chart_dir in "${chart_dirs[@]}"; do
+            echo "Scanning repos in: $chart_dir/Chart.yaml"
+            mapfile -t repo_urls < <(
+              grep -E '^[[:space:]]*repository:' "$chart_dir/Chart.yaml" \
+                | sed -E 's/^[[:space:]]*repository:[[:space:]]*"?([^" ]+)"?.*/\1/' \
+                | sort -u
+            )
+            for url in "${repo_urls[@]}"; do
+              if [[ "$url" != http://* && "$url" != https://* ]]; then
+                echo "Skipping non-HTTP repo: $url"
+                continue
+              fi
+              name="repo-$(echo -n "$url" | sha256sum | cut -c1-8)"
+              echo "Adding Helm repo [$name] -> $url"
+              helm repo add "$name" "$url" 2>/dev/null || true
+              (( added_count++ )) || true
+            done
           done
 
           if (( added_count > 0 )); then
@@ -95,6 +102,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # Build file:// sub-chart dependencies first so their own sub-charts
+          # (e.g. OBI, otel-collector, jaeger inside the sidecar chart) are bundled
+          # before helm packages the parent chart. Without this step those nested
+          # sub-charts are absent from the published OCI artifact.
+          chart_yaml="${{ inputs.chart-path }}/Chart.yaml"
+          mapfile -t file_dep_paths < <(
+            grep -E 'repository:[[:space:]]*"?file://' "$chart_yaml" \
+              | sed -E 's|.*repository:[[:space:]]*"?file://([^" ]+)"?.*|\1|'
+          )
+          for rel in "${file_dep_paths[@]}"; do
+            dep_path="$(realpath "${{ inputs.chart-path }}/$rel")"
+            if [[ -f "$dep_path/Chart.yaml" ]]; then
+              echo "Building dependencies for sub-chart: $dep_path"
+              helm dependency build "$dep_path"
+            fi
+          done
+
           helm dependency build "${{ inputs.chart-path }}"
 
       - name: Package chart
