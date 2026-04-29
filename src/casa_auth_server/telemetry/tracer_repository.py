@@ -21,7 +21,6 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import DateTime
 from sqlmodel import JSON, Column, Field, Session, SQLModel, desc, func, select
 
 from casa_auth_server.core.events import BaseEvent
@@ -33,10 +32,7 @@ class Trace(SQLModel, table=True):  # type: ignore[call-arg]
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: UUID | None = Field(default_factory=uuid4, primary_key=True)
     user_input_id: UUID | None = Field(foreign_key="userinput.id")
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
-        sa_column=Column(DateTime(timezone=True), nullable=False),
-    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC), nullable=False)
     event_type: str
     event: dict[str, Any] = Field(sa_column=Column(JSON))
 
