@@ -41,7 +41,7 @@ Rules:
 - Write the result as a direct, usable request.
 - If the conversation began with user-owned context that matters, you may preserve it in first person (for example, "I'm drafting...").
 - Otherwise output only the synthesized request, with no explanation, bullets, or JSON.
-The output must be plain text only.
+The output must be json format with "extracted_task" as field.
 """
 
 MATCHER_SYS_PROMPT = """You are an expert system that evaluates tool selection.
@@ -71,6 +71,12 @@ class TaskToolMatcherOutput(BaseModel):
     appropriate: bool
 
 
+class TaskExtractionOutput(BaseModel):
+    """Output from the task extractor."""
+
+    extracted_task: str | None
+
+
 class TaskExtractor:
     def __init__(self, base_url: str, api_key: str, model_id: str):
         self.model_id = model_id
@@ -92,21 +98,25 @@ class TaskExtractor:
 
     def extract_task(self, conversation: str) -> str | None:
         # summarize the conversation blob into a user prompt
+        structured_response = None
+        api_params = {
+            "model": self.model_id,
+            "input": [
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": conversation},
+            ],
+            "max_output_tokens": MAX_OUTPUT_TOKENS,
+            "text_format": TaskExtractionOutput,
+        }
+
         try:
-            raw_response = self.openai_client.chat.completions.create(
-                model=self.model_id,
-                messages=[
-                    {"role": "system", "content": self.system_prompt},
-                    {"role": "user", "content": conversation},
-                ],
-                max_tokens=MAX_OUTPUT_TOKENS,
-                timeout=REQUEST_TIMEOUT_SECONDS,
-            )
-            extracted_task = raw_response.choices[0].message.content
+            raw_response = self.openai_client.responses.parse(**api_params, timeout=REQUEST_TIMEOUT_SECONDS)
+            structured_response = raw_response.output_parsed
+            logger.error(f"[TaskExtractor][Output]\n{structured_response.extracted_task}\n---")
+
         except Exception as e:
-            logger.error(f"Task extraction failed: {e}")
-            extracted_task = None
-        return extracted_task
+            logger.error(f"[TaskExtractor] Error on item: {e}")
+        return structured_response.extracted_task if structured_response else None
 
 
 class TaskToToolMatcher:
@@ -155,6 +165,9 @@ Description: {tool_description}
         try:
             raw_response = self.openai_client.responses.parse(**api_params, timeout=REQUEST_TIMEOUT_SECONDS)
             structured_response = raw_response.output_parsed
+            logger.debug(
+                f"[Matcher][Output]\nReasoning: {structured_response.reasoning}\nAppropriate: {structured_response.appropriate}\n---"
+            )
 
         except Exception as e:
             logger.error(f"Task-tool matching failed: {e}")
