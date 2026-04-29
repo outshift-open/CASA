@@ -310,7 +310,7 @@ export function DashboardPage() {
             {/* Stat cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Auth requests — donut: Allowed vs Denied */}
-                <Card className="gap-0 flex flex-col py-3">
+                <Card className="gap-0 flex flex-col py-0">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 py-4">
                         <div className="flex items-center gap-2">
                             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -343,7 +343,7 @@ export function DashboardPage() {
                 </Card>
 
                 {/* Deny type — donut: Deterministic vs Semantic */}
-                <Card className="gap-0 flex flex-col py-3">
+                <Card className="gap-0 flex flex-col py-0">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
                         <div className="flex items-center gap-2">
                             <ShieldAlert className="h-4 w-4 text-muted-foreground" />
@@ -378,7 +378,7 @@ export function DashboardPage() {
 
                 {/* Multi-Agent Systems — number */}
                 <Card
-                    className="gap-0 flex flex-col cursor-pointer hover:bg-accent transition-colors py-3"
+                    className="gap-0 flex flex-col cursor-pointer hover:bg-accent transition-colors py-0"
                     onClick={() => navigate('/mas')}
                 >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
@@ -411,7 +411,7 @@ export function DashboardPage() {
                 </Card>
 
                 {/* Auth scopes — coming soon */}
-                <Card className="gap-0 flex flex-col opacity-50 cursor-not-allowed py-3">
+                <Card className="gap-0 flex flex-col opacity-50 cursor-not-allowed py-0">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
                         <div className="flex items-center gap-2">
                             <Tags className="h-4 w-4 text-muted-foreground" />
@@ -437,7 +437,7 @@ export function DashboardPage() {
             </div>
 
             {/* Deny reasons bar chart */}
-            <Card className="gap-0 py-3">
+            <Card className="gap-0 py-0">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 pt-4 pb-3">
                     <div className="flex items-center gap-2">
                         <Activity className="h-4 w-4 text-muted-foreground" />
