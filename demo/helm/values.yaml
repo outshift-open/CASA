@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-namespace: casa-demo
+namespace: casa-dev
 
 agentSafe:
   replicas: 1
   serviceName: demo-agent-safe
   servicePort: 8082
   docker:
-    registry: ""
-    image: demo-agent-safe
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo/agent-safe
     suffix: ''
   tagversion: latest
   mcp_server_url: http://casa-demo-mcp:3000/mcp
@@ -30,8 +30,8 @@ agentCompromised:
   serviceName: demo-agent-compromised
   servicePort: 8082
   docker:
-    registry: ""
-    image: demo-agent-compromised
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo/agent-compromised
     suffix: ''
   tagversion: latest
   mcp_server_url: http://casa-demo-mcp:3000/mcp
@@ -41,36 +41,36 @@ mcp:
   serviceName: casa-demo-mcp
   servicePort: 3000
   docker:
-    registry: ""
-    image: demo-mcp
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo/mcp
     suffix: ''
   tagversion: latest
 
 chatUis:
   - name: safe
     docker:
-      registry: ""
-      image: chat-ui
+      registry: ghcr.io/outshift-open
+      image: outshift-casa/demo/chat-ui
     tagversion: latest
     agentUrl: /safe-agent
     ingress:
       enabled: false
       className: "nginx"
       apiDomainName: ""
-      domainPrefix: "casa-demo-safe"
+      domainPrefix: "chat-safe"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
   - name: compromised
     docker:
-      registry: ""
-      image: chat-ui
+      registry: ghcr.io/outshift-open
+      image: outshift-casa/demo/chat-ui
     tagversion: latest
     agentUrl: /compromised-agent
     ingress:
       enabled: false
       className: "nginx"
       apiDomainName: ""
-      domainPrefix: "casa-demo-compromised"
+      domainPrefix: "chat-compromised"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
 

@@ -16,10 +16,11 @@ Before installing CASA, ensure the following are in place.
 
 ## CLI Tools
 
-| Tool      | Version | Purpose                                       |
-| --------- | ------- | --------------------------------------------- |
-| `kubectl` | 1.26+   | Apply manifests and interact with the cluster |
-| `helm`    | 3.10+   | Install CASA charts                           |
+| Tool         | Version | Purpose                                       |
+| ------------ | ------- | --------------------------------------------- |
+| `kubectl`    | 1.26+   | Apply manifests and interact with the cluster |
+| `helm`       | 3.10+   | Install CASA charts                           |
+| `istioctl`   | 1.17+   | Install and verify Istio                      |
 
 ## Dataplane
 
@@ -61,15 +62,26 @@ Minimum version: Cilium 1.14
 
 ## Container Registry Access
 
-The CASA runtime images are published to GitHub Container Registry (GHCR):
+CASA runtime images are published to GitHub Container Registry (GHCR) automatically on every push to `main` via the CI/CD pipeline:
 
-- `ghcr.io/outshift-open/CASA` — auth service
-- `ghcr.io/outshift-open/CASA-ui` — UI explorer
-- `ghcr.io/outshift-open/CASA-keycloak` — custom Keycloak image
+| Image | GHCR path |
+|---|---|
+| Auth service | `ghcr.io/outshift-open/casa-auth-server` |
+| UI Explorer | `ghcr.io/outshift-open/casa-auth-server-ui` |
+| Keycloak | `ghcr.io/outshift-open/casa-auth-server-keycloak` |
+| Operator | `ghcr.io/outshift-open/outshift-casa/casa-operator` |
+| Ext-auth service | `ghcr.io/outshift-open/outshift-casa/ext_auth_service` |
+| LLM proxy (Wasm) | `ghcr.io/outshift-open/outshift-casa/llm_proxy_plugin` |
+| Traceparent injector (Wasm) | `ghcr.io/outshift-open/outshift-casa/traceparent_injector_plugin` |
 
-These images are public. No registry authentication is required.
+Until the packages are made public, registry authentication is required. See [Install Runtime → Private registry](runtime.md) for the full setup, including creating pull secrets in both `casa-dev` **and** `istio-system`.
 
-> **Note:** The demo MAS chart (`casa-mas`) uses private registry images by default. To use the demo chart, you must either build your own images from `demo/src/agent-safe/`, `demo/src/agent-compromised/`, `demo/src/mcp/`, and `demo/src/chat-ui/`, or use images from a registry you control. Update `demo/helm/values.yaml` with your registry and image paths.
+Helm charts are also published to GHCR as OCI artifacts:
+
+```bash
+# Install from GHCR directly (no helm repo add required)
+helm install casa-dev oci://ghcr.io/outshift-open/helm/casa-runtime --version <version>
+```
 
 ## Storage
 

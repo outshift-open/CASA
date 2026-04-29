@@ -7,7 +7,6 @@ on:
     push:
         branches:
             - main
-            - update-doc
     workflow_dispatch:
     workflow_call:
 
