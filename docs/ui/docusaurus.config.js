@@ -68,10 +68,10 @@ const config = {
         ({
             image: "img/casa-social-card.png",
             navbar: {
-                title: "CASA",
+                title: "Continuous Agent Semantic Authorization",
                 logo: {
                     alt: "CASA Logo",
-                    src: "img/logo.svg",
+                    src: "img/logo.png",
                 },
                 items: [
                     {

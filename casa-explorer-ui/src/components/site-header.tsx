@@ -33,7 +33,7 @@ export function SiteHeader() {
         <header className="flex h-14 shrink-0 items-center justify-between px-5 border-b border-[rgba(255,255,255,0.07)] bg-background">
             {/* Left: logo + name */}
             <div className="flex items-center gap-2.5">
-                <img src="/logo.svg" alt="CASA" className="size-8" />
+                <img src="/logo.png" alt="CASA" className="size-8" />
                 <span className="text-base font-semibold text-foreground/90 tracking-tight">
                     Continuous Agent Semantic Authorization
                 </span>

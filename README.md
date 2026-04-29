@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="docs/ui/static/img/logo.svg" alt="CASA Logo" width="128" height="128" />
+  <img src="docs/ui/static/img/logo.png" alt="CASA Logo" width="128" height="128" />
 
-  <h1>CASA — Continuous Agent Semantic Authorization</h1>
+  <h1>Continuous Agent Semantic Authorization</h1>
 
   <h2>CASA checks every agent tool call against the user’s original intent before the tool runs.</h2>
 
@@ -111,14 +111,14 @@ graph TB
 
 ![CASA Components](docs/diagrams/components.png)
 
-| Component            | Description                                                                                                      |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Auth Service**     | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
-| **CASA Sidecar**     | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
-| **eBPF layer**       | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
-| **Keycloak**         | Identity provider backing token cryptography                                                                     |
-| **Traces**      | Persists domain event traces and eBPF flow data; exposes query API for the Explorer UI                                |
-| **Explorer UI** | Read-only observability UI for browsing token events, tool decisions, and authorization traces                        |
+| Component        | Description                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Auth Service** | Issues identities (Client Id Metadata based); Issues and exchanges OAuth2 tokens; runs tool authorization checks |
+| **CASA Sidecar** | Envoy-based proxy injected into every MAS pod; intercepts all traffic                                            |
+| **eBPF layer**   | eBPF enforces deny-by-default network policies and extracts JWTs for observability                               |
+| **Keycloak**     | Identity provider backing token cryptography                                                                     |
+| **Traces**       | Persists domain event traces and eBPF flow data; exposes query API for the Explorer UI                           |
+| **Explorer UI**  | Read-only observability UI for browsing token events, tool decisions, and authorization traces                   |
 
 ---
 
@@ -200,29 +200,29 @@ The demo MAS uses the following `MultiAgentSystem` CRD spec:
 apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
-  name: my-mas
-  namespace: my-mas
+    name: my-mas
+    namespace: my-mas
 spec:
-  name: "My Multi-Agent System"
-  enabledToolChecks:
-  - DETERMINISTIC_TOOL_SELECTED
-  - DETERMINISTIC_LLM_SELECTED_TOOLS
-  llm_host: your-llm-host.example.com
-  apps:
-  - name: my-agent
-    type: agent
-    kubernetesWorkloadName: my-agent
-    baseUrl:
-      host: my-agent:8000
-      scheme: http
-    httpRequestSchema:
-      promptFieldJsonPath: '{.prompt}'
-  - name: my-mcp-server
-    type: mcp_server
-    kubernetesWorkloadName: my-mcp-server
-    baseUrl:
-      host: my-mcp-server:8080
-      scheme: http
+    name: "My Multi-Agent System"
+    enabledToolChecks:
+        - DETERMINISTIC_TOOL_SELECTED
+        - DETERMINISTIC_LLM_SELECTED_TOOLS
+    llm_host: your-llm-host.example.com
+    apps:
+        - name: my-agent
+          type: agent
+          kubernetesWorkloadName: my-agent
+          baseUrl:
+              host: my-agent:8000
+              scheme: http
+          httpRequestSchema:
+              promptFieldJsonPath: "{.prompt}"
+        - name: my-mcp-server
+          type: mcp_server
+          kubernetesWorkloadName: my-mcp-server
+          baseUrl:
+              host: my-mcp-server:8080
+              scheme: http
 ```
 
 To explore CASA with the demo MAS, install it with Helm:
@@ -265,18 +265,18 @@ For a complete walkthrough including demo output, see the [Demo Walkthrough](doc
 
 ## Repository Structure
 
-| Path                                   | Description                                              |
-| -------------------------------------- | -------------------------------------------------------- |
-| `deployments/helm/casa-runtime/` | CASA runtime Helm chart                            |
-| `demo/helm/`                           | Demo MAS Helm chart (agent + MCP server)                 |
-| `demo/src/agent-safe/`                 | Demo safe agent source code                              |
-| `demo/src/agent-compromised/`          | Demo compromised agent source code                       |
-| `demo/src/mcp/`                        | Demo MCP server source code                              |
-| `sidecar/`                             | Sidecar elements (ext_auth, llm_proxy)                   |
-| `src/casa_auth_server/`                | Auth service Python source                               |
-| `casa-explorer-ui/`                    | Explorer UI source (React, read-only observability)      |
-| `docs/ui/`                             | Docusaurus documentation portal                          |
-| `docs/dev`                             | Architecture specs and design documents                  |
+| Path                             | Description                                         |
+| -------------------------------- | --------------------------------------------------- |
+| `deployments/helm/casa-runtime/` | CASA runtime Helm chart                             |
+| `demo/helm/`                     | Demo MAS Helm chart (agent + MCP server)            |
+| `demo/src/agent-safe/`           | Demo safe agent source code                         |
+| `demo/src/agent-compromised/`    | Demo compromised agent source code                  |
+| `demo/src/mcp/`                  | Demo MCP server source code                         |
+| `sidecar/`                       | Sidecar elements (ext_auth, llm_proxy)              |
+| `src/casa_auth_server/`          | Auth service Python source                          |
+| `casa-explorer-ui/`              | Explorer UI source (React, read-only observability) |
+| `docs/ui/`                       | Docusaurus documentation portal                     |
+| `docs/dev`                       | Architecture specs and design documents             |
 
 ---
 
