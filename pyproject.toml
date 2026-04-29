@@ -99,6 +99,7 @@ exclude = [
 [tool.pytest.ini_options]
 minversion = "8.3"
 testpaths = ["test"]
+pythonpath = ["src"]
 markers = [
     "integration: mark tests that exercise live service and database flows",
 ]
