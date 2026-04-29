@@ -1,5 +1,8 @@
 <div align="center">
-  <img src="docs/ui/static/img/logo.png" alt="CASA Logo" width="128" height="128" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/ui/static/img/logo-white.png" width="128">
+    <img src="docs/ui/static/img/logo.png" alt="CASA Logo" width="128" height="128" />
+  </picture>
 
   <h1>Continuous Agent Semantic Authorization</h1>
 
