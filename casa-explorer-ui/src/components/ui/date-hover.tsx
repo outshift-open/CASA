@@ -41,14 +41,15 @@ export function DateHover({className, date}: DateHoverProps) {
 
     const fullDate = useMemo(() => {
         if (!dateObj || isNaN(dateObj.getTime())) return 'Unknown date';
-        return dateObj.toLocaleString('en-US', {
+        return dateObj.toLocaleString('en-GB', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
-            timeZoneName: 'short'
+            timeZoneName: 'longOffset',
+            hour12: false
         });
     }, [dateObj]);
 

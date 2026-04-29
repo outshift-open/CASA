@@ -200,7 +200,12 @@ export function DashboardPage() {
 
     const lastUpdated = Math.max(masUpdatedAt, tracesUpdatedAt);
     const lastUpdatedLabel = lastUpdated
-        ? new Date(lastUpdated).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'})
+        ? new Date(lastUpdated).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false
+          })
         : null;
 
     const allTraces: Trace[] = useMemo(() => {
