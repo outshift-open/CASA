@@ -17,60 +17,38 @@ kubectl create namespace casa-dev
 kubectl label namespace casa-dev istio-injection=enabled
 ```
 
-Then install the chart:
+> Without the `istio-injection=enabled` label, agent and MCP pods will not receive Istio sidecar proxies and CASA enforcement will not work.
+
+Then install the chart.
+
+At minimum you must supply the LLM endpoint credentials — everything else has a working default:
 
 ```bash
 helm install casa-dev oci://ghcr.io/outshift-open/helm/casa-runtime \
   --version 0.1.17 \
-  --namespace casa-dev
+  --namespace casa-dev \
+  --set authService.openai.apiBaseUrl="https://your-llm-endpoint" \
+  --set authService.openai.jwtToken="YOUR_PIPELINE_TOKEN" \
+  --set authService.openai.llmApiBaseUrl="https://your-llm-endpoint" \
+  --set authService.openai.llmApiKey="YOUR_LLM_KEY" \
+  --set authService.openai.modelId="gpt-4o" \
+  --set authService.openai.pipelineModelId="gpt-4o"
 ```
 
-No `helm repo add` is needed — OCI charts are pulled directly.
+No `helm repo add` is needed — OCI charts are pulled directly. All images are public; no registry authentication is required.
 
-> **Private registry:** Until the packages are made public, authenticate first:
-> ```bash
-> helm registry login ghcr.io -u <github-username> --password <PAT>
-> ```
-> The PAT needs at minimum the `read:packages` scope.
->
-> Create an `imagePullSecret` in **two namespaces** — `casa-dev` for pod image pulls, and
-> `istio-system` for Wasm plugin pulls (Envoy fetches Wasm OCI images via Istiod, which reads
-> pull credentials from `istio-system`):
-> ```bash
-> # App namespace — used by Kubernetes to pull container images
-> kubectl create secret docker-registry regcred \
->   -n casa-dev \
->   --docker-server=ghcr.io \
->   --docker-username=<github-username> \
->   --docker-password=<PAT>
->
-> # Istio namespace — used by Envoy/Istiod to pull Wasm OCI plugins
-> kubectl create secret docker-registry regcred \
->   -n istio-system \
->   --docker-server=ghcr.io \
->   --docker-username=<github-username> \
->   --docker-password=<PAT>
-> ```
->
-> > **Why two namespaces?** The `llm_proxy_plugin` and `traceparent_injector_plugin` are
-> > deployed as Istio `WasmPlugin` resources. If Istiod cannot authenticate the OCI pull from
-> > `istio-system`, Envoy applies a **deny-all RBAC filter** and every proxied request returns
-> > `403 Forbidden` — before CASA has a chance to evaluate it.
-> >
-> > Also pass the secret name to the chart so it is set on the `WasmPlugin` resources:
-> > ```bash
-> > --set sidecar.llm_proxy.image.pullSecret=regcred \
-> > --set sidecar.traceparent_injector.image.pullSecret=regcred
-> > ```
+> **Default passwords** `authService.database.password` and `authService.idp.adminPassword` default to `postgres`/`admin`. Override them for any non-local deployment — see [Production Configuration](#production-configuration).
 
 ## Install from source
 
 ```bash
-# Clone the repo, then:
+# Clone the repo, then create the namespace:
+kubectl create namespace casa-dev
+kubectl label namespace casa-dev istio-injection=enabled
+
 helm dependency build deployments/helm/casa-runtime/
 helm install casa-dev deployments/helm/casa-runtime/ \
-  --namespace casa-dev \
-  --create-namespace
+  --namespace casa-dev
 ```
 
 `helm dependency build` is required to download the sidecar subchart before the first install from source.
@@ -101,7 +79,12 @@ For production deployments, create a `values-prod.yaml` that configures credenti
 
 ### Credentials & LLM backend
 
-CASA requires credentials for the PostgreSQL database, the Keycloak admin account, and an OpenAI-compatible LLM endpoint (used both for authorization pipeline embeddings and for agent-facing inference):
+CASA requires credentials for the PostgreSQL database, the Keycloak admin account, and an OpenAI-compatible LLM endpoint. The auth service uses **two OpenAI client instances** internally — both for the authorization pipeline, not for the demo agents:
+
+- **`apiBaseUrl` / `jwtToken`** — used by the LLM verifier and hybrid tool matcher (bearer-token auth)
+- **`llmApiBaseUrl` / `llmApiKey`** — used by the task extractor and tool matcher (API-key auth)
+
+In practice both pairs point to the same endpoint. They exist as separate config because the pipeline components were built with different OpenAI client setups:
 
 ```yaml
 authService:
@@ -110,15 +93,15 @@ authService:
   idp:
     adminPassword: "CHANGE_ME"
   openai:
-    apiBaseUrl: "https://your-litellm-or-openai-endpoint"
-    jwtToken: "CHANGE_ME"           # bearer token for the embedding/pipeline endpoint
-    llmApiBaseUrl: "https://your-litellm-or-openai-endpoint"
-    llmApiKey: "CHANGE_ME"
-    modelId: "bedrock/global.anthropic.claude-sonnet-4-6"
-    pipelineModelId: "azure/gpt-4o"
+    apiBaseUrl: "https://your-litellm-or-openai-endpoint"     # pipeline LLM verifier
+    jwtToken: "CHANGE_ME"                                      # bearer token for above
+    llmApiBaseUrl: "https://your-litellm-or-openai-endpoint"  # pipeline task extractor
+    llmApiKey: "CHANGE_ME"                                     # API key for above
+    modelId: "bedrock/global.anthropic.claude-sonnet-4-6"     # model for both pipeline clients
+    pipelineModelId: "azure/gpt-4o"                           # model for embedding/tool matching
 ```
 
-> `modelId` is the model used for the AI-powered authorization pipeline. `pipelineModelId` is the model used for embedding-based tool matching. Both values accept any model identifier supported by your LLM endpoint (OpenAI, LiteLLM proxy, Bedrock, etc.).
+> All six `openai.*` fields are required — the auth service will start but authorization checks will fail silently if any are empty.
 
 ### Ingress
 
@@ -186,12 +169,12 @@ authService:
   idp:
     adminPassword: "CHANGE_ME"
   openai:
-    apiBaseUrl: "https://your-litellm-or-openai-endpoint"
-    jwtToken: "CHANGE_ME"
-    llmApiBaseUrl: "https://your-litellm-or-openai-endpoint"
-    llmApiKey: "CHANGE_ME"
-    modelId: "bedrock/global.anthropic.claude-sonnet-4-6"
-    pipelineModelId: "azure/gpt-4o"
+    apiBaseUrl: "https://your-litellm-or-openai-endpoint"     # pipeline endpoint
+    jwtToken: "CHANGE_ME"                                      # bearer token for pipeline
+    llmApiBaseUrl: "https://your-litellm-or-openai-endpoint"  # agent-facing endpoint
+    llmApiKey: "CHANGE_ME"                                     # key for agent-facing endpoint
+    modelId: "bedrock/global.anthropic.claude-sonnet-4-6"     # model for authorization pipeline
+    pipelineModelId: "azure/gpt-4o"                           # model for embedding/tool matching
   ingress:
     enabled: true
     className: "nginx-internal"
@@ -235,10 +218,12 @@ sidecar:
 Install with the custom values:
 
 ```bash
+kubectl create namespace casa-dev
+kubectl label namespace casa-dev istio-injection=enabled
+
 helm install casa-dev oci://ghcr.io/outshift-open/helm/casa-runtime \
   --version 0.1.17 \
   --namespace casa-dev \
-  --create-namespace \
   -f values-prod.yaml
 ```
 
