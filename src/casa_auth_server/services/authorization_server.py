@@ -146,7 +146,7 @@ class AuthorizationServerService:
                 )
 
             if task is None:
-                task = request.user_input
+                task = "No task detected"
 
             # store the user initial prompt
             user_input = self.user_input_repository.create(

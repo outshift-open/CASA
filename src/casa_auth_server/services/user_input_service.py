@@ -56,7 +56,7 @@ class UserInputService:
             )
 
         if task is None:
-            task = request.prompt
+            task = "No task detected"
 
         return self.user_input_repository.create(
             UserInput(
