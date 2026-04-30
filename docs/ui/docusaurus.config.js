@@ -25,7 +25,7 @@ const config = {
     favicon: "img/favicon.ico",
 
     url: "https://outshift-open.github.io",
-    baseUrl: "/",
+    baseUrl: "/CASA/",
 
     organizationName: "outshift-open",
     projectName: "CASA",
