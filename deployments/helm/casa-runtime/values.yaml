@@ -18,7 +18,7 @@
 # ─── Auth Service ────────────────────────────────────────────────────────────
 authService:
   image:
-    repository: ghcr.io/outshift-open/casa-auth-server
+    repository: ghcr.io/outshift-open/outshift-casa/casa-auth-server
     tag: latest
     pullPolicy: IfNotPresent
   imagePullSecrets: []
@@ -61,6 +61,8 @@ authService:
     jwtToken:
     modelId:
     pipelineModelId:
+    llmApiBaseUrl:
+    llmApiKey:
   externalSecrets:
     enabled: false
     secretStoreName: ""
@@ -87,7 +89,7 @@ authService:
 # ─── UI Explorer ─────────────────────────────────────────────────────────────
 uiExplorer:
   image:
-    repository: ghcr.io/outshift-open/casa-auth-server-ui
+    repository: ghcr.io/outshift-open/outshift-casa/casa-auth-server-ui
     tag: latest
     pullPolicy: IfNotPresent
   imagePullSecrets: []
@@ -163,7 +165,7 @@ postgresKeycloak:
 keycloak:
   image:
     # Custom image that includes the POIT HTTP-header protocol mapper JAR
-    repository: ghcr.io/outshift-open/casa-auth-server-keycloak
+    repository: ghcr.io/outshift-open/outshift-casa/casa-auth-server-keycloak
     tag: latest
     pullPolicy: IfNotPresent
   imagePullSecrets: []

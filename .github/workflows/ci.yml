@@ -54,7 +54,7 @@ jobs:
         uses: ./.github/workflows/build-push-ghcr.yaml
 
         with:
-            image-name: "casa-auth-server"
+            image-name: "outshift-casa/casa-auth-server"
             context: .
             dockerfile: deployments/docker/Dockerfile
 
@@ -65,7 +65,7 @@ jobs:
         uses: ./.github/workflows/build-push-ghcr.yaml
 
         with:
-            image-name: "casa-auth-server-ui"
+            image-name: "outshift-casa/casa-auth-server-ui"
             context: .
             dockerfile: deployments/docker/Dockerfile.ui
 
@@ -75,7 +75,7 @@ jobs:
         uses: ./.github/workflows/build-push-ghcr.yaml
 
         with:
-            image-name: "casa-auth-server-keycloak"
+            image-name: "outshift-casa/casa-auth-server-keycloak"
             context: deployments/docker
             dockerfile: deployments/docker/Dockerfile.keycloak
 
