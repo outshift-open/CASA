@@ -62,21 +62,21 @@ Minimum version: Cilium 1.14
 
 ## Container Registry Access
 
-CASA runtime images are published to GitHub Container Registry (GHCR) automatically on every push to `main` via the CI/CD pipeline:
+All CASA runtime images are published publicly to GitHub Container Registry (GHCR) on every push to `main`:
 
 | Image | GHCR path |
 |---|---|
-| Auth service | `ghcr.io/outshift-open/casa-auth-server` |
-| UI Explorer | `ghcr.io/outshift-open/casa-auth-server-ui` |
-| Keycloak | `ghcr.io/outshift-open/casa-auth-server-keycloak` |
+| Auth service | `ghcr.io/outshift-open/outshift-casa/casa-auth-server` |
+| UI Explorer | `ghcr.io/outshift-open/outshift-casa/casa-auth-server-ui` |
+| Keycloak | `ghcr.io/outshift-open/outshift-casa/casa-auth-server-keycloak` |
 | Operator | `ghcr.io/outshift-open/outshift-casa/casa-operator` |
 | Ext-auth service | `ghcr.io/outshift-open/outshift-casa/ext_auth_service` |
 | LLM proxy (Wasm) | `ghcr.io/outshift-open/outshift-casa/llm_proxy_plugin` |
 | Traceparent injector (Wasm) | `ghcr.io/outshift-open/outshift-casa/traceparent_injector_plugin` |
 
-Until the packages are made public, registry authentication is required. See [Install Runtime → Private registry](runtime.md) for the full setup, including creating pull secrets in both `casa-dev` **and** `istio-system`.
+No authentication is required to pull these images.
 
-Helm charts are also published to GHCR as OCI artifacts:
+Helm charts are also published publicly to GHCR as OCI artifacts:
 
 ```bash
 # Install from GHCR directly (no helm repo add required)

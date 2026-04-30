@@ -27,7 +27,7 @@ Both agents share the same MCP server. CASA enforces separate policies for each 
 
 ## Images
 
-All demo images are published to GHCR alongside the runtime images:
+All demo images are published publicly to GHCR alongside the runtime images:
 
 | Image | GHCR path |
 |---|---|
@@ -36,7 +36,7 @@ All demo images are published to GHCR alongside the runtime images:
 | MCP Server | `ghcr.io/outshift-open/outshift-casa/demo/mcp` |
 | Chat UI | `ghcr.io/outshift-open/outshift-casa/demo/chat-ui` |
 
-> Until the packages are public, authenticate first: `helm registry login ghcr.io` and create a `regcred` imagePullSecret (see [Prerequisites](prerequisites.md)).
+No authentication is required to pull these images.
 
 ## Configure Values
 
@@ -114,8 +114,8 @@ masCompromised:
 Install into the same namespace as the runtime (`casa-dev`):
 
 ```bash
-helm install casa-demo oci://ghcr.io/outshift-open/helm/casa-mas \
-  --version 1.1 \
+helm install casa-demo oci://ghcr.io/outshift-open/helm/casa-mas-demo \
+  --version 1.2 \
   --namespace casa-dev \
   -f values-demo.yaml
 ```
