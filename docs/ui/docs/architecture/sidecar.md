@@ -86,7 +86,7 @@ In Istio mode, the external authorization check is handled by the `ext_authz_mid
 1. Receives authorization check requests from Envoy's ext_authz filter
 2. Extracts the trace ID from the `traceparent` header (W3C trace context)
 3. On the first request in a trace: generates a new user input token by calling the auth service
-4. On subsequent requests: performs token-based access control (TBAC) verification
+4. On subsequent requests: performs token-based access control verification
 5. Returns ALLOW or DENY to Envoy
 
 Telemetry and traces are visible in the **Explorer UI**.
