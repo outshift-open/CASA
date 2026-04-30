@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
+import { useMemo } from 'react'
+import { marked } from 'marked'
 import { cn } from '@/lib/utils'
 import type { Message } from '@/types'
+
+marked.setOptions({ breaks: true })
 
 interface ChatMessageProps {
   message: Message
@@ -27,6 +31,7 @@ function formatTime(date: Date) {
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user'
+  const html = useMemo(() => marked.parse(message.content) as string, [message.content])
 
   return (
     <div
@@ -50,7 +55,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
               : 'rounded-bl-sm bg-white border border-border text-slate-800'
           )}
         >
-          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          {isUser ? (
+            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          ) : (
+            <div
+              className="prose prose-sm prose-slate max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-2"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          )}
         </div>
         <span className="text-[11px] px-1 flex items-center gap-1">
           {message.error && <span className="text-danger">Failed to send</span>}
