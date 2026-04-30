@@ -37,7 +37,6 @@ export const useMASApps = (masId: string, live = false) => {
         queryKey: ['mas', masId, 'apps'],
         queryFn: () => masService.getMASApps(masId),
         enabled: !!masId,
-        refetchOnMount: 'always',
         refetchInterval: live ? 1000 : false
     });
 };
