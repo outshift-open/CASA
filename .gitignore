@@ -293,3 +293,4 @@ demo/k8s/helm/values-test.yaml
 values-local.yaml
 LOCAL_SETUP.md
 local-setup.sh
+scripts/local-setup-standalone.sh
