@@ -91,6 +91,13 @@ const sidebars = {
         'contributing/contributing',
       ],
     },
+    {
+      type: 'category',
+      label: 'Developer',
+      items: [
+        'dev/local-setup',
+      ],
+    },
   ],
 };
 

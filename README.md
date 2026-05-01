@@ -259,6 +259,36 @@ curl http://localhost:8000/health
 
 For a complete walkthrough including demo output, see the [Demo Walkthrough](docs/ui/docs/demo/walkthrough.md).
 
+### Local Standalone Setup (Minikube)
+
+`scripts/dev/local-setup-standalone.sh` bootstraps a full CASA stack on a local Minikube cluster — control plane, sidecars, demo agents, and all UIs — in a single command. No external YAML files are needed; all Helm values are inlined in the script.
+
+**Prerequisites:** `minikube`, `istioctl`, `helm`, `kubectl`, `docker`, `crane`
+
+```bash
+brew install minikube istioctl helm kubectl crane
+```
+
+Export the required env vars before running:
+
+```bash
+export CASA_LLM_HOST=your-llm-host.example.com   # OpenAI-compatible API hostname
+export CASA_LLM_API_KEY=your-api-key             # API key for the LLM service
+
+# Optional — override model defaults
+export CASA_LLM_MODEL_ID=bedrock/global.anthropic.claude-sonnet-4-6
+export CASA_PIPELINE_MODEL_ID=azure/gpt-4o
+```
+
+Then run:
+
+```bash
+bash scripts/dev/local-setup-standalone.sh          # install / upgrade
+bash scripts/dev/local-setup-standalone.sh reset    # wipe data and reinstall
+```
+
+For full details see the [Developer — Local Standalone Setup](docs/ui/docs/dev/local-setup.md) doc.
+
 ---
 
 ## Repository Structure
