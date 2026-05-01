@@ -466,19 +466,33 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
 
                                             <div className="space-y-1.5 col-span-2">
                                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                                                    Service ID
+                                                    CIMD Endpoint
                                                 </p>
                                                 <div className="flex items-center gap-1.5">
-                                                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[420px]">
-                                                        {selectedApp.id}
-                                                    </code>
-                                                    {selectedApp.id && (
+                                                    {selectedApp.client_id_metadata_url ? (
+                                                        <a
+                                                            href={selectedApp.client_id_metadata_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[420px] hover:underline"
+                                                        >
+                                                            {selectedApp.client_id_metadata_url}
+                                                        </a>
+                                                    ) : (
+                                                        <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate max-w-[420px]">
+                                                            {selectedApp.id}
+                                                        </code>
+                                                    )}
+                                                    {(selectedApp.client_id_metadata_url ?? selectedApp.id) && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
                                                             className="h-6 w-6 flex-shrink-0 cursor-pointer"
                                                             onClick={() =>
-                                                                copyToClipboard(selectedApp.id!, 'Service ID')
+                                                                copyToClipboard(
+                                                                    selectedApp.client_id_metadata_url ?? selectedApp.id!,
+                                                                    'CIMD Endpoint'
+                                                                )
                                                             }
                                                         >
                                                             <Copy className="h-3 w-3" />

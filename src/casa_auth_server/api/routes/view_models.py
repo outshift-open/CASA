@@ -72,6 +72,7 @@ class AppViewModel(BaseModel):
     tools: list[ToolViewModel]
     mas_id: UUID | None
     mas: MultiAgentSystemViewModel | None
+    client_id_metadata_url: str | None = None
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)
