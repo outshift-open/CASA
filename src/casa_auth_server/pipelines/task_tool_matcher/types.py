@@ -27,8 +27,6 @@ class TaskToolMatcherType(str, Enum):
 
     RANDOM = "random"
     EMBEDDINGS = "embeddings"
-    HYBRID = "hybrid"
-    LLM_VERIFIER = "llm_verifier"
 
 
 class TaskToolMatchReason(str, Enum):
@@ -44,14 +42,6 @@ class TaskToolMatchReason(str, Enum):
     EMBEDDINGS_NO_MATCH_WITH_SELECTED = "Requested tool and Matched tool are not the same"
     EMBEDDINGS_NO_MATCH_WITH_ALL = (
         "Requested tool and Matched tool are not the same AND their similarity does not meet threshold"
-    )
-    HYBRID_NO_MATCH_THRESHOLD = "Requested tool and Matched tool similarity does not meet threshold"
-    HYBRID_NO_MATCH_WITH_SELECTED = "Requested tool and Matched tool are not the same"
-    HYBRID_NO_MATCH_WITH_ALL = (
-        "Requested tool and Matched tool are not the same AND their similarity does not meet threshold"
-    )
-    LLM_VERIFIER_NO_MATCH = (
-        "LLM Verifier matcher decided this tool doesn't match the task. Look at debug data for details."
     )
 
 

@@ -280,9 +280,8 @@ Export the required env vars before running:
 export CASA_LLM_HOST=your-llm-host.example.com   # OpenAI-compatible API hostname
 export CASA_LLM_API_KEY=your-api-key             # API key for the LLM service
 
-# Optional — override model defaults
+# Optional — override model default
 export CASA_LLM_MODEL_ID=bedrock/global.anthropic.claude-sonnet-4-6
-export CASA_PIPELINE_MODEL_ID=azure/gpt-4o
 ```
 
 Then run:

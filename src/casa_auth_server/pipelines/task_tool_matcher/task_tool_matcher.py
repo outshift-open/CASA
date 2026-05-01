@@ -90,18 +90,5 @@ class TaskToolMatcherFactory:
 
             return EmbeddingsTaskToolMatcher(**matcher_kwargs)
 
-        if matcher_type == TaskToolMatcherType.HYBRID:
-            from casa_auth_server.pipelines.task_tool_matcher.hybrid.hybrid import HybridTaskToolMatcher
-
-            return HybridTaskToolMatcher(**matcher_kwargs)
-
-        if matcher_type == TaskToolMatcherType.LLM_VERIFIER:
-            from casa_auth_server.pipelines.task_tool_matcher.llm_verifier.llm_verifier import (
-                LlmVerifierTaskToolMatcher,
-            )
-
-            return LlmVerifierTaskToolMatcher(**matcher_kwargs)
-
-        else:
-            logging.getLogger(__name__).error(f"Unsupported task tool matcher type: {matcher_type}")
-            raise ValueError(f"Unsupported task tool matcher type: {matcher_type}")
+        logging.getLogger(__name__).error(f"Unsupported task tool matcher type: {matcher_type}")
+        raise ValueError(f"Unsupported task tool matcher type: {matcher_type}")

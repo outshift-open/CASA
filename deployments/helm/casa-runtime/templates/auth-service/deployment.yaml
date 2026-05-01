@@ -72,20 +72,6 @@ spec:
             # ── Auth Server self-URL ──────────────────────────────────────────
             - name: AUTH_SERVER_URL
               value: {{ default (include "casa-runtime.authServiceUrl" .) .Values.authService.env.authServerUrl | quote }}
-            - name: OPENAI_GPT4o_API_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-auth-service-secret
-                  key: openai-api-base-url
-            - name: OPENAI_GPT4o_API_JWT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-auth-service-secret
-                  key: openai-api-jwt-token
-            - name: OPENAI_GPT4o_MODEL_ID
-              value: {{ .Values.authService.openai.modelId | quote }}
-            - name: PIPELINE_OPENAI_GPT4o_MODEL_ID
-              value: {{ .Values.authService.openai.pipelineModelId | quote }}
             - name: LLM_API_BASE
               valueFrom:
                 secretKeyRef:

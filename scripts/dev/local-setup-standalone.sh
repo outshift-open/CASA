@@ -27,8 +27,7 @@
 #   CASA_LLM_API_KEY    API key for the LLM service
 #
 # Optional env vars:
-#   CASA_LLM_MODEL_ID        LLM model for auth checks  (default: bedrock/global.anthropic.claude-sonnet-4-6)
-#   CASA_PIPELINE_MODEL_ID   LLM model for pipelines    (default: azure/gpt-4o)
+#   CASA_LLM_MODEL_ID   LLM model for auth checks (default: bedrock/global.anthropic.claude-sonnet-4-6)
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
@@ -38,7 +37,6 @@ set -euo pipefail
 : "${CASA_LLM_API_KEY:?CASA_LLM_API_KEY must be set}"
 
 CASA_LLM_MODEL_ID="${CASA_LLM_MODEL_ID:-bedrock/global.anthropic.claude-sonnet-4-6}"
-CASA_PIPELINE_MODEL_ID="${CASA_PIPELINE_MODEL_ID:-azure/gpt-4o}"
 
 CASA_LLM_API_BASE_URL="http://${CASA_LLM_HOST}"
 
@@ -155,12 +153,9 @@ helm upgrade --install casa-dev \
     --set authService.image.pullPolicy=Never \
     --set authService.database.password=postgres \
     --set authService.idp.adminPassword=admin \
-    --set "authService.openai.apiBaseUrl=${CASA_LLM_API_BASE_URL}" \
-    --set "authService.openai.jwtToken=${CASA_LLM_API_KEY}" \
     --set "authService.openai.llmApiBaseUrl=${CASA_LLM_API_BASE_URL}" \
     --set "authService.openai.llmApiKey=${CASA_LLM_API_KEY}" \
     --set "authService.openai.modelId=${CASA_LLM_MODEL_ID}" \
-    --set "authService.openai.pipelineModelId=${CASA_PIPELINE_MODEL_ID}" \
     --set authService.externalSecrets.enabled=false \
     --set uiExplorer.image.repository=casa-auth-server-ui \
     --set uiExplorer.image.tag=local \

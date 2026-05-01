@@ -57,10 +57,7 @@ authService:
     # Override in production
     adminPassword: admin
   openai:
-    apiBaseUrl:
-    jwtToken:
     modelId:
-    pipelineModelId:
     llmApiBaseUrl:
     llmApiKey:
   externalSecrets:
@@ -77,14 +74,7 @@ authService:
     #   remoteRef:
     #     key: dev/casa-runtime
     #     property: idp-admin-password
-    # - secretKey: openai-api-base-url
-    #   remoteRef:
-    #     key: dev/casa-runtime
-    #     property: openai-api-base-url
-    # - secretKey: openai-api-jwt-token
-    #   remoteRef:
-    #     key: dev/casa-runtime
-    #     property: openai-api-jwt-token
+
 
 # ─── UI Explorer ─────────────────────────────────────────────────────────────
 uiExplorer:
