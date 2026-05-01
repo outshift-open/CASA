@@ -20,9 +20,17 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from casa_auth_server.api.dependencies import Container
 from casa_auth_server.api.routes.view_models import AppViewModel
+from casa_auth_server.core.types import App
 from casa_auth_server.services.app_service import AppRequest, AppService
 
 router = APIRouter(tags=["Apps"])
+
+
+def _to_app_view_model(app: App) -> AppViewModel:
+    vm = AppViewModel.model_validate(app)
+    if app.client_credentials:
+        vm.client_id_metadata_url = app.client_credentials.client_id
+    return vm
 
 
 @router.post("/apps")
@@ -35,7 +43,7 @@ def create_app(
     if app.id is None:
         raise HTTPException(status_code=500, detail="App creation failed: missing ID")
 
-    return AppViewModel.model_validate(app)
+    return _to_app_view_model(app)
 
 
 @router.get("/apps")
@@ -44,7 +52,7 @@ def get_apps(
 ) -> list[AppViewModel]:
     """Get all Apps."""
     apps = app_service.get_all_apps()
-    return [AppViewModel.model_validate(app) for app in apps]
+    return [_to_app_view_model(app) for app in apps]
 
 
 @router.get("/apps/{app_id}")
@@ -56,7 +64,7 @@ def get_app(
     app = app_service.get_app_by_id(app_id)
     if not app:
         raise HTTPException(status_code=404, detail=f"App with id '{app_id}' not found")
-    return AppViewModel.model_validate(app)
+    return _to_app_view_model(app)
 
 
 @router.put("/apps/{app_id}")
@@ -68,7 +76,7 @@ def update_app(
     """Update an existing App."""
     try:
         app = app_service.update_app(app_id, request)
-        return AppViewModel.model_validate(app)
+        return _to_app_view_model(app)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
