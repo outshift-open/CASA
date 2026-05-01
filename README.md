@@ -1,9 +1,4 @@
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/ui/static/img/logo-white.png" width="128">
-    <img src="docs/ui/static/img/logo.png" alt="CASA Logo" width="128" height="128" />
-  </picture>
-
   <h1>Continuous Agent Semantic Authorization</h1>
 
   <h2>CASA checks every agent tool call against the user’s original intent before the tool runs.</h2>
