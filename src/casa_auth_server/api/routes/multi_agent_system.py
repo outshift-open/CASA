@@ -19,6 +19,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from casa_auth_server.api.dependencies import Container
+from casa_auth_server.api.routes.converters import to_app_view_model
 from casa_auth_server.api.routes.view_models import AppViewModel
 from casa_auth_server.core.types import MultiAgentSystem
 from casa_auth_server.services.app_service import AppService
@@ -100,4 +101,4 @@ def get_mas_apps(
 ) -> list[AppViewModel]:
     """Get all the apps related to a MAS."""
     apps = app_service.get_mas_apps(mas_id)
-    return [AppViewModel.model_validate(app) for app in apps]
+    return [to_app_view_model(app) for app in apps]
