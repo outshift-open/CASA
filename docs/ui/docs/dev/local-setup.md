@@ -37,7 +37,6 @@ Export these before running the script.
 | Variable | Default | Description |
 |---|---|---|
 | `CASA_LLM_MODEL_ID` | `bedrock/global.anthropic.claude-sonnet-4-6` | Model used for auth-check semantic verification |
-| `CASA_PIPELINE_MODEL_ID` | `azure/gpt-4o` | Model used for pipeline tasks |
 
 The script derives `http://${CASA_LLM_HOST}` for all helm parameters that expect the full base URL.
 
