@@ -15,6 +15,7 @@
  */
 
 import {BookOpen, Github, ChevronDown, User, Bell, LogOut} from 'lucide-react';
+import {Link} from 'react-router-dom';
 import {GlobalSearch} from '@/components/global-search';
 import {Button} from '@/components/ui/button';
 import {Avatar, AvatarFallback} from '@/components/ui/avatar';
@@ -32,12 +33,12 @@ export function SiteHeader() {
     return (
         <header className="flex h-14 shrink-0 items-center justify-between px-5 border-b border-[rgba(255,255,255,0.07)] bg-background">
             {/* Left: logo + name */}
-            <div className="flex items-center gap-2.5">
+            <Link to="/" className="flex items-center gap-2.5">
                 <img src="/logo.png" alt="CASA" className="size-8" />
                 <span className="text-base font-semibold text-foreground/90 tracking-tight">
                     Continuous Agent Semantic Authorization
                 </span>
-            </div>
+            </Link>
 
             {/* Right: icons + user */}
             <div className="flex items-center gap-2">

@@ -37,7 +37,6 @@ import {
     X
 } from 'lucide-react';
 import {TextHover} from '@/components/ui/text-hover';
-import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
@@ -46,18 +45,7 @@ import {MASGraphView} from '@/components/mas/mas-graph-view';
 import {toast} from 'sonner';
 import type {MAS} from '@/types/mas.types';
 import type {App, AppType, Tool} from '@/types/app.types';
-
-const APP_TYPE_LABELS: Record<AppType, string> = {
-    agent: 'Agent',
-    client: 'Client',
-    mcp_server: 'MCP Server'
-};
-
-const APP_TYPE_VARIANTS: Record<AppType, 'default' | 'secondary' | 'outline'> = {
-    agent: 'default',
-    client: 'secondary',
-    mcp_server: 'outline'
-};
+import {AppTypeBadge, APP_TYPE_LABELS, APP_TYPE_CLASSES} from '@/components/ui/app-type-badge';
 
 const APP_TYPE_ICONS: Record<AppType, React.ElementType> = {
     agent: AppWindow,
@@ -71,10 +59,10 @@ const APP_TYPE_DETAIL_ICONS: Record<AppType, React.ElementType> = {
     mcp_server: Server
 };
 
-const APP_TYPE_COLORS: Record<AppType, string> = {
-    agent: 'text-blue-500',
-    client: 'text-green-500',
-    mcp_server: 'text-purple-500'
+const APP_TYPE_ICON_COLORS: Record<AppType, string> = {
+    agent: 'text-purple-400',
+    client: 'text-blue-400',
+    mcp_server: 'text-cyan-400'
 };
 
 function safeJsonPretty(raw: string | undefined | null): string {
@@ -152,7 +140,7 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                     const type = row.getValue('type') as AppType;
                     return (
                         <div className="flex justify-center">
-                            <Badge variant={APP_TYPE_VARIANTS[type]}>{APP_TYPE_LABELS[type]}</Badge>
+                            <AppTypeBadge type={type} />
                         </div>
                     );
                 }
@@ -237,25 +225,40 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                     />
                                 </div>
                                 <Button
-                                    variant={selectedTypes.has('agent') ? 'default' : 'outline'}
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => toggleType('agent')}
+                                    className={
+                                        selectedTypes.has('agent')
+                                            ? 'border-purple-500/50 text-purple-300 bg-purple-500/10'
+                                            : 'text-muted-foreground'
+                                    }
                                 >
                                     <Bot className="h-3 w-3" />
                                     Agent
                                 </Button>
                                 <Button
-                                    variant={selectedTypes.has('client') ? 'default' : 'outline'}
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => toggleType('client')}
+                                    className={
+                                        selectedTypes.has('client')
+                                            ? 'border-blue-500/50 text-blue-300 bg-blue-500/10'
+                                            : 'text-muted-foreground'
+                                    }
                                 >
                                     <AppWindow className="h-3 w-3" />
                                     Client
                                 </Button>
                                 <Button
-                                    variant={selectedTypes.has('mcp_server') ? 'default' : 'outline'}
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => toggleType('mcp_server')}
+                                    className={
+                                        selectedTypes.has('mcp_server')
+                                            ? 'border-cyan-500/50 text-cyan-300 bg-cyan-500/10'
+                                            : 'text-muted-foreground'
+                                    }
                                 >
                                     <Server className="h-3 w-3" />
                                     MCP Server
@@ -303,12 +306,7 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                                                 <p className="text-sm font-semibold truncate">
                                                                     {app.name}
                                                                 </p>
-                                                                <Badge
-                                                                    variant={APP_TYPE_VARIANTS[app.type]}
-                                                                    className="text-xs shrink-0"
-                                                                >
-                                                                    {APP_TYPE_LABELS[app.type]}
-                                                                </Badge>
+                                                                <AppTypeBadge type={app.type} className="shrink-0" />
                                                             </div>
                                                             <p className="text-xs text-muted-foreground truncate">
                                                                 {app.base_url}
@@ -381,42 +379,46 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                 </div>
                             </div>
                             <SheetHeader className="px-6 pt-5 pb-0">
-                                <div className="flex items-center justify-between gap-3 pb-4">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        {(() => {
-                                            const Icon = APP_TYPE_DETAIL_ICONS[selectedApp.type];
-                                            return (
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                                                    <Icon className={`h-5 w-5 ${APP_TYPE_COLORS[selectedApp.type]}`} />
-                                                </div>
-                                            );
-                                        })()}
-                                        <div className="space-y-1 min-w-0">
-                                            <SheetTitle className="text-xl">{selectedApp.name}</SheetTitle>
-                                            <SheetDescription>
-                                                {APP_TYPE_LABELS[selectedApp.type]} · Agentic service
-                                            </SheetDescription>
-                                        </div>
-                                    </div>
-                                </div>
                                 <Tabs value={sheetTab} onValueChange={setSheetTab} className="w-full">
-                                    <TabsList variant="underline" className="justify-end">
-                                        <TabsTrigger value="info">
-                                            <Info className="mr-1.5 h-3.5 w-3.5" />
-                                            Info
-                                        </TabsTrigger>
-                                        {selectedApp.type === 'mcp_server' && (
-                                            <TabsTrigger value="tools">
-                                                <Wrench className="mr-1.5 h-3.5 w-3.5" />
-                                                Tools
-                                                {(selectedApp.tools?.length ?? 0) > 0 && (
-                                                    <span className="ml-1.5 text-xs text-muted-foreground">
-                                                        {selectedApp.tools.length}
-                                                    </span>
-                                                )}
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            {(() => {
+                                                const Icon = APP_TYPE_DETAIL_ICONS[selectedApp.type];
+                                                return (
+                                                    <div
+                                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${APP_TYPE_CLASSES[selectedApp.type]}`}
+                                                    >
+                                                        <Icon
+                                                            className={`h-5 w-5 ${APP_TYPE_ICON_COLORS[selectedApp.type]}`}
+                                                        />
+                                                    </div>
+                                                );
+                                            })()}
+                                            <div className="space-y-1 min-w-0">
+                                                <SheetTitle className="text-xl">{selectedApp.name}</SheetTitle>
+                                                <SheetDescription>
+                                                    {APP_TYPE_LABELS[selectedApp.type]} · Agentic service
+                                                </SheetDescription>
+                                            </div>
+                                        </div>
+                                        <TabsList variant="underline" className="w-auto shrink-0 self-end">
+                                            <TabsTrigger value="info">
+                                                <Info className="mr-1.5 h-3.5 w-3.5" />
+                                                Info
                                             </TabsTrigger>
-                                        )}
-                                    </TabsList>
+                                            {selectedApp.type === 'mcp_server' && (
+                                                <TabsTrigger value="tools">
+                                                    <Wrench className="mr-1.5 h-3.5 w-3.5" />
+                                                    Tools
+                                                    {(selectedApp.tools?.length ?? 0) > 0 && (
+                                                        <span className="ml-1.5 text-xs text-muted-foreground">
+                                                            {selectedApp.tools.length}
+                                                        </span>
+                                                    )}
+                                                </TabsTrigger>
+                                            )}
+                                        </TabsList>
+                                    </div>
                                 </Tabs>
                             </SheetHeader>
 
@@ -433,13 +435,11 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                                         const Icon = APP_TYPE_DETAIL_ICONS[selectedApp.type];
                                                         return (
                                                             <Icon
-                                                                className={`h-4 w-4 ${APP_TYPE_COLORS[selectedApp.type]}`}
+                                                                className={`h-4 w-4 ${APP_TYPE_ICON_COLORS[selectedApp.type]}`}
                                                             />
                                                         );
                                                     })()}
-                                                    <Badge variant="outline" className="text-xs">
-                                                        {APP_TYPE_LABELS[selectedApp.type]}
-                                                    </Badge>
+                                                    <AppTypeBadge type={selectedApp.type} />
                                                 </div>
                                             </div>
 

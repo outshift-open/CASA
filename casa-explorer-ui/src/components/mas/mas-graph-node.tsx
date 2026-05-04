@@ -17,23 +17,11 @@
 import {memo} from 'react';
 import {Handle, Position} from 'reactflow';
 import {Bot, AppWindow, Server} from 'lucide-react';
-import {Badge} from '@/components/ui/badge';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {cn} from '@/lib/utils';
 import type {AppType} from '@/types/app.types';
 import type {Tool} from '@/types/app.types';
-
-const APP_TYPE_LABELS: Record<AppType, string> = {
-    agent: 'Agent',
-    client: 'Client',
-    mcp_server: 'MCP Server'
-};
-
-const APP_TYPE_VARIANTS: Record<AppType, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    agent: 'default',
-    client: 'secondary',
-    mcp_server: 'outline'
-};
+import {AppTypeBadge, APP_TYPE_LABELS} from '@/components/ui/app-type-badge';
 
 const APP_TYPE_ICONS: Record<AppType, React.ComponentType<{className?: string}>> = {
     agent: Bot,
@@ -78,9 +66,7 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between gap-2">
                                 <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                <Badge variant={APP_TYPE_VARIANTS[data.type]} className="text-xs">
-                                    {APP_TYPE_LABELS[data.type]}
-                                </Badge>
+                                <AppTypeBadge type={data.type} />
                             </div>
                             <div className="font-semibold text-sm truncate">{data.name}</div>
                             <div className="text-xs text-muted-foreground">

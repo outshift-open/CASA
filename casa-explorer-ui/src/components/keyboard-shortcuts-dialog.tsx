@@ -23,7 +23,8 @@ const SHORTCUTS = [
     {keys: ['?'], description: 'Show keyboard shortcuts'},
     {keys: ['⌘B', 'Ctrl+B'], description: 'Toggle sidebar'},
     {keys: ['G', 'D'], description: 'Go to Dashboard'},
-    {keys: ['G', 'M'], description: 'Go to Multi-Agent Systems'}
+    {keys: ['G', 'M'], description: 'Go to Multi-Agent Systems'},
+    {keys: ['G', 'A'], description: 'Go to Auth Requests'}
 ];
 
 export function KeyboardShortcutsDialog() {
@@ -68,6 +69,10 @@ export function KeyboardShortcutsDialog() {
                 }
                 if (e.key === 'm') {
                     navigate('/mas');
+                    return;
+                }
+                if (e.key === 'a') {
+                    navigate('/auth-requests');
                     return;
                 }
             }

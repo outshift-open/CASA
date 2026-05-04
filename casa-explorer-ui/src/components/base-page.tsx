@@ -15,7 +15,7 @@
  */
 
 import {type ReactNode} from 'react';
-import {useLocation, Link} from 'react-router-dom';
+import {useLocation, useSearchParams, Link} from 'react-router-dom';
 import {ChevronRight, Home} from 'lucide-react';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
@@ -27,12 +27,21 @@ const routeTitles: Record<string, string> = {
     '/settings': 'Settings'
 };
 
+const tabLabels: Record<string, string> = {
+    info: 'Info',
+    deny_conditions: 'Deny Conditions',
+    apps: 'Agentic Services',
+    traces: 'Traces',
+    scopes: 'Auth Scopes'
+};
+
 const routeRedirects: Record<string, string> = {
     '/mas': '/mas'
 };
 
 function Breadcrumbs() {
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const {data: masData} = useMAS();
 
     const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -68,6 +77,19 @@ function Breadcrumbs() {
 
     if (breadcrumbs.length === 0) {
         breadcrumbs.push({label: 'Dashboard', path: '/', isLast: true});
+    }
+
+    const isMASDetail = pathSegments[0] === 'mas' && pathSegments.length === 2;
+    const tabParam = searchParams.get('tab');
+    if (isMASDetail) {
+        const activeTab = tabParam && tabLabels[tabParam] ? tabParam : 'info';
+        const tabLabel = tabLabels[activeTab] ?? 'Info';
+        breadcrumbs[breadcrumbs.length - 1].isLast = false;
+        breadcrumbs.push({
+            label: tabLabel,
+            path: activeTab === 'info' ? location.pathname : `${location.pathname}?tab=${activeTab}`,
+            isLast: true
+        });
     }
 
     if (breadcrumbs.length <= 1) return null;
