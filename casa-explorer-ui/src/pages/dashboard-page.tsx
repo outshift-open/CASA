@@ -20,6 +20,7 @@ import {Skeleton} from '@/components/ui/skeleton';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {Separator} from '@/components/ui/separator';
 import {Shield, Activity, ShieldAlert, Network, Tags, RefreshCw, HelpCircle, Cpu, Sparkles} from 'lucide-react';
+import {checkTypeChartColors} from '@/components/ui/check-type-badge';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
 import {useMemo} from 'react';
@@ -264,8 +265,13 @@ export function DashboardPage() {
     const blockTypeData = useMemo(
         () =>
             [
-                {name: 'Deterministic', value: traceStats.deterministicBlocks, color: '#F5A623', icon: Cpu},
-                {name: 'Semantic', value: traceStats.aiBlocks, color: '#00BCEB', icon: Sparkles}
+                {
+                    name: 'Deterministic',
+                    value: traceStats.deterministicBlocks,
+                    color: checkTypeChartColors.DETERMINISTIC,
+                    icon: Cpu
+                },
+                {name: 'Semantic', value: traceStats.aiBlocks, color: checkTypeChartColors.AI_POWERED, icon: Sparkles}
             ].filter((d) => d.value > 0),
         [traceStats]
     );
@@ -496,6 +502,7 @@ export function DashboardPage() {
                                             tickLine={false}
                                         />
                                         <ChartTooltip
+                                            cursor={false}
                                             content={({active, payload}) => {
                                                 if (!active || !payload?.length) return null;
                                                 const d = payload[0].payload as {

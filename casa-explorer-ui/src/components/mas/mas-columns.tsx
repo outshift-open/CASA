@@ -20,8 +20,9 @@ import {TextHover} from '@/components/ui/text-hover';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {ArrowUpDown, Loader2, AlertCircle, AppWindow, Activity, CheckCircle2, XCircle} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
-import type {App, AppType} from '@/types/app.types';
+import type {App} from '@/types/app.types';
 import {DateHover} from '@/components/ui/date-hover';
+import {AppTypeBadge} from '@/components/ui/app-type-badge';
 
 export interface MASTraceCounts {
     traces: number;
@@ -29,17 +30,7 @@ export interface MASTraceCounts {
     denied: number;
 }
 
-export const APP_TYPE_LABELS: Record<AppType, string> = {
-    client: 'Client',
-    agent: 'Agent',
-    mcp_server: 'MCP'
-};
-
-export const APP_TYPE_CLASSES: Record<AppType, string> = {
-    client: 'bg-blue-600 text-white',
-    agent: 'bg-purple-600 text-white',
-    mcp_server: 'bg-cyan-600 text-white'
-};
+export {APP_TYPE_LABELS, APP_TYPE_CLASSES} from '@/components/ui/app-type-badge';
 
 export const createMASColumns = (
     navigate: (path: string) => void,
@@ -130,15 +121,7 @@ export const createMASColumns = (
                                     {apps
                                         .filter((app, i, arr) => arr.findIndex((a) => a.id === app.id) === i)
                                         .map((app) => (
-                                            <span
-                                                key={app.id}
-                                                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${APP_TYPE_CLASSES[app.type]}`}
-                                            >
-                                                <span className="text-[9px] uppercase tracking-wide opacity-70">
-                                                    {APP_TYPE_LABELS[app.type]}
-                                                </span>
-                                                {app.name}
-                                            </span>
+                                            <AppTypeBadge key={app.id} type={app.type} name={app.name} />
                                         ))}
                                 </div>
                             )}

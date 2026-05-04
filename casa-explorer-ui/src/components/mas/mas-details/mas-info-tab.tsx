@@ -155,7 +155,7 @@ export function MASInfoTab({mas, onTabChange}: MASInfoTabProps) {
                         onClick={() => onTabChange('deny_conditions')}
                         className="text-sm text-primary hover:underline cursor-pointer"
                     >
-                        Configure deny conditions
+                        Configure Deny Conditions
                     </button>
                 </div>
 
@@ -197,7 +197,7 @@ export function MASInfoTab({mas, onTabChange}: MASInfoTabProps) {
                         onClick={() => onTabChange('traces')}
                         className="text-sm text-primary hover:underline cursor-pointer"
                     >
-                        View traces
+                        View Traces
                     </button>
                 </div>
             </div>

@@ -20,7 +20,8 @@ import {useTraces} from '@/hooks/use-traces';
 import {useMAS, useMASApps} from '@/hooks/use-mas';
 import {useApps} from '@/hooks/use-apps';
 import {DataTable} from '@/components/ui/data-table';
-import {Badge} from '@/components/ui/badge';
+import {CheckTypeBadge} from '@/components/ui/check-type-badge';
+import {AuthStatusBadge} from '@/components/ui/auth-status-badge';
 import {DateHover} from '@/components/ui/date-hover';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -38,400 +39,34 @@ import {
     Shield,
     Search,
     X,
-    Cpu,
-    Sparkles,
     ExternalLink,
     Activity,
-    ChevronDown,
-    ChevronRight,
-    Zap,
-    ArrowRightLeft,
-    Brain,
-    BrainCircuit,
     Download
 } from 'lucide-react';
 import type {ColumnDef} from '@tanstack/react-table';
 import {ArrowUpDown} from 'lucide-react';
 import type {BlockingReason, Trace} from '@/types/trace.types';
-import type {AppType} from '@/types/app.types';
+import {
+    EventRow,
+    downloadJson,
+    BLOCKING_REASON_LABELS,
+    BLOCKING_REASON_DESCRIPTIONS
+} from '@/components/traces/event-row';
+import type {AppNames} from '@/components/traces/event-row';
 import {toast} from 'sonner';
-
-// ─── Shared trace rendering (mirrors mas-traces-tab.tsx) ────────────────────
-
-const BLOCKING_REASON_LABELS: Record<BlockingReason, string> = {
-    no_llm_calls_made_by_app: 'No LLM calls made',
-    tool_not_selected_by_llm: 'Not selected by LLM',
-    tool_intent_mismatch: 'Intent mismatch',
-    tool_parameters_mismatch: 'Params mismatch',
-    modified_mcp_tool_defs: 'Modified tool defs',
-    insufficient_scope: 'Insufficient scope'
-};
-
-const BLOCKING_REASON_DESCRIPTIONS: Partial<Record<BlockingReason, string>> = {
-    no_llm_calls_made_by_app: 'The app made no LLM calls before requesting tool access',
-    tool_not_selected_by_llm: 'Requested MCP Server Tool was not selected by the LLM',
-    tool_intent_mismatch: "MCP Server Tool choice doesn't match the intention of original input",
-    tool_parameters_mismatch: 'Requested MCP Server Tool Parameters are different from those selected by the LLM',
-    modified_mcp_tool_defs: 'The LLM received modified MCP Server Tool Definitions',
-    insufficient_scope: 'Token does not have the required scope for this tool'
-};
-
-const APP_TYPE_LABELS_TRACE: Record<AppType, string> = {
-    client: 'Client',
-    agent: 'Agent',
-    mcp_server: 'MCP'
-};
-
-const APP_TYPE_CLASSES: Record<AppType, string> = {
-    client: 'bg-blue-500/10 text-blue-400',
-    agent: 'bg-purple-500/10 text-purple-400',
-    mcp_server: 'bg-orange-500/10 text-orange-400'
-};
-
-type AppInfo = {name: string; type: AppType};
-type AppNames = Record<string, AppInfo>;
-
-function downloadJson(data: unknown, filename: string) {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-
-function parseToolsList(raw: string[] | string | null | undefined): string[] {
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [raw];
-    } catch {
-        return [raw];
-    }
-}
-
-function shortId(id: string | undefined): string {
-    if (!id) return '—';
-    return id.length > 8 ? `${id.slice(0, 8)}…` : id;
-}
-
-function ToolChips({tools}: {tools: string[]}) {
-    if (tools.length === 0) return null;
-    return (
-        <>
-            {tools.map((t) => (
-                <code key={t} className="mx-0.5 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
-                    {t}
-                </code>
-            ))}
-        </>
-    );
-}
-
-function AppIdChip({id, appNames}: {id: string | undefined; appNames: AppNames}) {
-    if (!id) return <span className="text-muted-foreground">—</span>;
-    const info = appNames[id];
-    return (
-        <span className="inline-flex items-center gap-1">
-            {info?.type && (
-                <span
-                    className={`px-1 py-0.5 rounded text-[9px] font-medium uppercase tracking-wide ${APP_TYPE_CLASSES[info.type]}`}
-                >
-                    {APP_TYPE_LABELS_TRACE[info.type]}
-                </span>
-            )}
-            <code className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono" title={id}>
-                {info?.name ?? shortId(id)}
-            </code>
-        </span>
-    );
-}
-
-function EventTimestamp({createdAt}: {createdAt: string}) {
-    if (!createdAt) return null;
-    const time = new Date(createdAt).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    });
-    return <span className="ml-auto pl-3 text-[11px] text-muted-foreground/60 flex-shrink-0 tabular-nums">{time}</span>;
-}
-
-const ALWAYS_HIDDEN = new Set(['id', 'user_input_id', 'mas_id', 'created_at']);
-const JWT_FIELDS = new Set(['token', 'subject_token', 'act_token']);
-const FIELD_LABELS: Record<string, string> = {prompt: 'task'};
-
-function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
-    try {
-        const parts = jwt.split('.');
-        if (parts.length !== 3) return null;
-        const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-        return JSON.parse(atob(payload));
-    } catch {
-        return null;
-    }
-}
-
-function formatValue(key: string, val: unknown): string {
-    if (JWT_FIELDS.has(key) && typeof val === 'string') {
-        const decoded = decodeJwtPayload(val);
-        return decoded ? JSON.stringify(decoded, null, 2) : val;
-    }
-    if (Array.isArray(val)) return val.join(', ');
-    if (typeof val === 'object') return JSON.stringify(val, null, 2);
-    return String(val);
-}
-
-function EventAttributes({event, eventType: _eventType}: {event: Trace['event']; eventType: string}) {
-    const entries = Object.entries(event).filter(
-        ([key, val]) => !ALWAYS_HIDDEN.has(key) && val !== null && val !== undefined
-    );
-    if (entries.length === 0) return null;
-    return (
-        <div className="ml-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
-            {entries.map(([key, val]) => {
-                const isJwt = JWT_FIELDS.has(key) && typeof val === 'string';
-                const display = formatValue(key, val);
-                return (
-                    <>
-                        <span
-                            key={`k-${key}`}
-                            className="text-[10px] text-muted-foreground/70 font-mono pt-0.5 whitespace-nowrap"
-                        >
-                            {FIELD_LABELS[key] ?? key}
-                        </span>
-                        {isJwt ? (
-                            <pre
-                                key={`v-${key}`}
-                                className="text-[10px] font-mono text-foreground/80 whitespace-pre-wrap break-all leading-relaxed"
-                            >
-                                {display}
-                            </pre>
-                        ) : (
-                            <span key={`v-${key}`} className="text-[10px] font-mono text-foreground/80 break-all">
-                                {display}
-                            </span>
-                        )}
-                    </>
-                );
-            })}
-        </div>
-    );
-}
-
-function EventRow({trace, index, appNames}: {trace: Trace; index?: number; appNames: AppNames}) {
-    const {event_type, event, created_at} = trace;
-    const [expanded, setExpanded] = useState(false);
-
-    let borderClass = 'border-muted';
-    let expandedBgClass = 'bg-muted/10';
-    let rowBgClass = '';
-    let icon: React.ReactNode = null;
-    let summary: React.ReactNode = null;
-
-    if (event_type === 'TokenIssuedEvent') {
-        icon = <Zap className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
-        summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">Token issued</span>
-                {event.app_id && (
-                    <>
-                        <span>by</span>
-                        <AppIdChip id={event.app_id} appNames={appNames} />
-                    </>
-                )}
-                {event.prompt && (
-                    <>
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
-                            Task:
-                        </span>
-                        <span className="text-foreground/70">"{event.prompt}"</span>
-                    </>
-                )}
-            </div>
-        );
-    } else if (event_type === 'TokenExchangedEvent') {
-        const tools = parseToolsList(event.tools);
-        icon = <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
-        summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">Token exchanged</span>
-                {event.subject_app_id && (
-                    <>
-                        <span>by</span>
-                        <AppIdChip id={event.subject_app_id} appNames={appNames} />
-                    </>
-                )}
-                {event.act_app_id && (
-                    <>
-                        <span>→ for</span>
-                        <AppIdChip id={event.act_app_id} appNames={appNames} />
-                    </>
-                )}
-                {tools.length > 0 && (
-                    <>
-                        <span className="ml-1">— requested:</span>
-                        <ToolChips tools={tools} />
-                    </>
-                )}
-            </div>
-        );
-    } else if (event_type === 'LLMCallStartedEvent') {
-        const tools = parseToolsList(event.tools);
-        borderClass = 'border-blue-500/30';
-        expandedBgClass = 'bg-blue-500/5';
-        rowBgClass = 'bg-blue-500/5';
-        icon = <Brain className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
-        summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">
-                    LLM call {index !== undefined ? `#${index + 1}` : ''}
-                </span>
-                {event.app_id && (
-                    <>
-                        <span>from</span>
-                        <AppIdChip id={event.app_id} appNames={appNames} />
-                    </>
-                )}
-                {tools.length > 0 && (
-                    <>
-                        <span className="ml-1">— offered:</span>
-                        <ToolChips tools={tools} />
-                    </>
-                )}
-            </div>
-        );
-    } else if (event_type === 'LLMCallEndedEvent') {
-        const selectedTools = parseToolsList(event.tools);
-        borderClass = 'border-blue-500/30';
-        expandedBgClass = 'bg-blue-500/5';
-        rowBgClass = 'bg-blue-500/5';
-        icon = <BrainCircuit className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
-        summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">LLM responded</span>
-                {selectedTools.length > 0 ? (
-                    <>
-                        <span className="ml-1">— selected:</span>
-                        <ToolChips tools={selectedTools} />
-                    </>
-                ) : (
-                    <span className="ml-1 italic">— no tools selected</span>
-                )}
-            </div>
-        );
-    } else if (event_type === 'MCPCallStartedEvent') {
-        const blocked = event.blocked;
-        const reason = event.blocking_reason ? BLOCKING_REASON_LABELS[event.blocking_reason] : null;
-        const reasonDescription = event.blocking_reason ? BLOCKING_REASON_DESCRIPTIONS[event.blocking_reason] : null;
-        borderClass = blocked ? 'border-destructive/40' : 'border-green-500/40';
-        expandedBgClass = blocked ? 'bg-destructive/5' : 'bg-green-500/5';
-        rowBgClass = blocked ? 'bg-destructive/5' : 'bg-green-500/5';
-        icon = blocked ? (
-            <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 flex-shrink-0" />
-        ) : (
-            <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-        );
-        summary = (
-            <div className="text-[13px] flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
-                <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px]">{event.tool ?? '—'}</code>
-                {(event.caller_app_id || event.callee_app_id) && (
-                    <span className="text-muted-foreground flex items-center gap-1">
-                        <AppIdChip id={event.caller_app_id} appNames={appNames} />
-                        <span>→</span>
-                        <AppIdChip id={event.callee_app_id} appNames={appNames} />
-                    </span>
-                )}
-                {blocked ? (
-                    <>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Badge variant="destructive" className="text-[10px] h-4 px-1.5 cursor-default">
-                                    Denied{reason ? ` · ${reason}` : ''}
-                                </Badge>
-                            </TooltipTrigger>
-                            {reasonDescription && (
-                                <TooltipContent>
-                                    <p className="text-center">{reasonDescription}</p>
-                                </TooltipContent>
-                            )}
-                        </Tooltip>
-                        {event.blocking_type && (
-                            <Badge
-                                variant="outline"
-                                className={`text-[9px] h-4 px-1.5 font-medium gap-0.5 ${event.blocking_type === 'AI_POWERED' ? 'border-sky-500/50 text-sky-400' : 'border-orange-500/50 text-orange-400'}`}
-                            >
-                                {event.blocking_type === 'AI_POWERED' ? (
-                                    <Sparkles className="h-2.5 w-2.5" />
-                                ) : (
-                                    <Cpu className="h-2.5 w-2.5" />
-                                )}
-                                {event.blocking_type === 'AI_POWERED' ? 'Semantic' : 'Deterministic'}
-                            </Badge>
-                        )}
-                    </>
-                ) : (
-                    <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-green-500/50 text-green-500">
-                        Allowed
-                    </Badge>
-                )}
-            </div>
-        );
-    }
-
-    if (!icon) return null;
-
-    return (
-        <div className={`border-l-2 ml-2 ${borderClass}`}>
-            <button
-                type="button"
-                className={`w-full flex items-start gap-2 py-1.5 pl-4 hover:bg-muted/30 transition-colors text-left cursor-pointer ${rowBgClass}`}
-                onClick={() => setExpanded((v) => !v)}
-            >
-                {expanded ? (
-                    <ChevronDown className="h-3 w-3 text-muted-foreground/50 mt-1 flex-shrink-0" />
-                ) : (
-                    <ChevronRight className="h-3 w-3 text-muted-foreground/50 mt-1 flex-shrink-0" />
-                )}
-                {icon}
-                {summary}
-                <EventTimestamp createdAt={created_at} />
-            </button>
-            {expanded && (
-                <div className={`pl-4 pb-2 ${expandedBgClass}`}>
-                    <EventAttributes event={event} eventType={event_type} />
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            downloadJson(trace, `event-${trace.id.slice(0, 8)}.json`);
-                            toast.success('Event downloaded');
-                        }}
-                        className="mt-2 ml-6 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    >
-                        <Download className="h-3 w-3" />
-                        Download event
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-}
 
 // ─── Session trace sheet ─────────────────────────────────────────────────────
 
 interface SessionTraceSheetProps {
     userInputId: string | null;
+    focusTraceId: string | null;
     masId: string | null;
     masName: string | null;
     tracesData: Record<string, Trace[]> | null;
     onClose: () => void;
 }
 
-function SessionTraceSheet({userInputId, masId, masName, tracesData, onClose}: SessionTraceSheetProps) {
+function SessionTraceSheet({userInputId, focusTraceId, masId, masName, tracesData, onClose}: SessionTraceSheetProps) {
     const navigate = useNavigate();
     const {data: appsData} = useMASApps(masId ?? '');
 
@@ -605,7 +240,15 @@ function SessionTraceSheet({userInputId, masId, masName, tracesData, onClose}: S
                     ) : (
                         session.events.map((trace) => {
                             const idx = trace.event_type === 'LLMCallStartedEvent' ? llmCallIndex++ : undefined;
-                            return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
+                            return (
+                                <EventRow
+                                    key={trace.id}
+                                    trace={trace}
+                                    index={idx}
+                                    appNames={appNames}
+                                    initialExpanded={trace.id === focusTraceId}
+                                />
+                            );
                         })
                     )}
                 </div>
@@ -699,6 +342,7 @@ export function AuthRequestsPage() {
         );
 
     const [selectedUserInputId, setSelectedUserInputId] = useState<string | null>(null);
+    const [selectedTraceId, setSelectedTraceId] = useState<string | null>(null);
     const [selectedMasId, setSelectedMasId] = useState<string | null>(null);
     const [selectedMasName, setSelectedMasName] = useState<string | null>(null);
 
@@ -901,15 +545,7 @@ export function AuthRequestsPage() {
                     const blocked = row.getValue('blocked') as boolean;
                     return (
                         <div className="flex justify-center">
-                            {blocked ? (
-                                <Badge variant="destructive" className="gap-1">
-                                    <XCircle className="h-3 w-3" /> Denied
-                                </Badge>
-                            ) : (
-                                <Badge variant="outline" className="gap-1 border-green-500/50 text-green-400">
-                                    <CheckCircle2 className="h-3 w-3" /> Allowed
-                                </Badge>
-                            )}
+                            <AuthStatusBadge blocked={blocked} />
                         </div>
                     );
                 }
@@ -931,21 +567,7 @@ export function AuthRequestsPage() {
                     const type = row.getValue('blockingType') as string | null;
                     return (
                         <div className="flex justify-center">
-                            {!type ? (
-                                <span className="text-muted-foreground">—</span>
-                            ) : (
-                                <Badge
-                                    variant="outline"
-                                    className={`gap-1 ${type === 'AI_POWERED' ? 'border-sky-500/50 text-sky-500' : 'border-orange-500/50 text-orange-500'}`}
-                                >
-                                    {type === 'AI_POWERED' ? (
-                                        <Sparkles className="h-3 w-3" />
-                                    ) : (
-                                        <Cpu className="h-3 w-3" />
-                                    )}
-                                    {type === 'AI_POWERED' ? 'Semantic' : 'Deterministic'}
-                                </Badge>
-                            )}
+                            {!type ? <span className="text-muted-foreground">—</span> : <CheckTypeBadge type={type} />}
                         </div>
                     );
                 }
@@ -1143,6 +765,7 @@ export function AuthRequestsPage() {
                             hideSearch
                             onRowClick={(row) => {
                                 setSelectedUserInputId(row.userInputId);
+                                setSelectedTraceId(row.id);
                                 setSelectedMasId(row.masId);
                                 setSelectedMasName(row.masName);
                             }}
@@ -1157,11 +780,13 @@ export function AuthRequestsPage() {
 
             <SessionTraceSheet
                 userInputId={selectedUserInputId}
+                focusTraceId={selectedTraceId}
                 masId={selectedMasId}
                 masName={selectedMasName}
                 tracesData={tracesData?.items ?? null}
                 onClose={() => {
                     setSelectedUserInputId(null);
+                    setSelectedTraceId(null);
                     setSelectedMasId(null);
                     setSelectedMasName(null);
                 }}
