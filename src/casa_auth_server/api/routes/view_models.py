@@ -22,7 +22,7 @@ include relationships in the serialized model.
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 
 class ScopeViewModelMinimal(BaseModel):
@@ -73,6 +73,14 @@ class AppViewModel(BaseModel):
     mas_id: UUID | None
     mas: MultiAgentSystemViewModel | None
     client_id_metadata_url: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_client_id_metadata_url(cls, data):
+        data = dict(data)
+        if "client_credentials" in data and "client_id" in data["client_credentials"]:
+            data["client_id_metadata_url"] = data["client_credentials"]["client_id"]
+        return data
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)
