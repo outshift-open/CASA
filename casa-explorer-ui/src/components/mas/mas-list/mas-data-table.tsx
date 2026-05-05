@@ -16,6 +16,7 @@
 
 import {ColumnDef} from '@tanstack/react-table';
 import {useNavigate} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 import {DataTable} from '@/components/ui/data-table';
 import {Network} from 'lucide-react';
 
@@ -26,6 +27,10 @@ interface MASDataTableProps<TData, TValue> {
     hideSearch?: boolean;
     searchValue?: string;
     onSearchChange?: (value: string) => void;
+    serverPage?: number;
+    serverPageCount?: number;
+    serverTotal?: number;
+    onServerPageChange?: (page: number) => void;
 }
 
 export function MASDataTable<TData, TValue extends {id?: string}>({
@@ -34,7 +39,11 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
     searchPlaceholder = 'Search...',
     hideSearch = false,
     searchValue,
-    onSearchChange
+    onSearchChange,
+    serverPage,
+    serverPageCount,
+    serverTotal,
+    onServerPageChange
 }: MASDataTableProps<TData, TValue>) {
     const navigate = useNavigate();
     const emptyState = (
@@ -53,14 +62,17 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
             data={data}
             searchPlaceholder={searchPlaceholder}
             hideSearch={hideSearch}
-            hidePagination
             emptyState={emptyState}
             searchValue={searchValue}
             onSearchChange={onSearchChange}
             onRowClick={(row) => {
                 const r = row as {id?: string};
-                if (r.id) navigate(`/mas/${r.id}`);
+                if (r.id) navigate(PATHS.mas.detail(r.id));
             }}
+            serverPage={serverPage}
+            serverPageCount={serverPageCount}
+            serverTotal={serverTotal}
+            onServerPageChange={onServerPageChange}
         />
     );
 }

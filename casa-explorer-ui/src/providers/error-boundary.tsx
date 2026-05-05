@@ -95,7 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                             <code className="text-sm text-destructive">{this.state.error.message}</code>
                                         </div>
                                     </div>
-                                    {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+                                    {import.meta.env.DEV && this.state.errorInfo && (
                                         <details className="cursor-pointer">
                                             <summary className="text-sm font-medium">
                                                 Stack Trace (Development Only)

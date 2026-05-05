@@ -18,6 +18,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Button} from '@/components/ui/button';
 import {FileQuestion, Home} from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 
 export function NotFoundPage() {
     const navigate = useNavigate();
@@ -38,7 +39,7 @@ export function NotFoundPage() {
                     <p className="text-sm text-muted-foreground">
                         The page you're looking for doesn't exist or has been moved.
                     </p>
-                    <Button onClick={() => navigate('/')} className="gap-2">
+                    <Button onClick={() => navigate(PATHS.dashboard)} className="gap-2">
                         <Home className="h-4 w-4" />
                         Back to Dashboard
                     </Button>

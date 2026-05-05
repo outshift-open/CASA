@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-import {createRoot} from 'react-dom/client';
-import {ThemeProvider} from '@/providers/theme-provider';
-import {ErrorBoundary} from '@/providers/error-boundary';
-import {QueryProvider} from '@/providers/query-provider';
-import App from './app.tsx';
-import './styles/globals.css';
-
-createRoot(document.getElementById('root')!).render(
-    <>
-        <ErrorBoundary>
-            <ThemeProvider attribute="class" defaultTheme="ioc" enableSystem={false} themes={['ioc']}>
-                <QueryProvider>
-                    <App />
-                </QueryProvider>
-            </ThemeProvider>
-        </ErrorBoundary>
-    </>
-);
+export const PATHS = {
+    dashboard: '/',
+    mas: {
+        list: '/mas',
+        detail: (id: string) => `/mas/${id}`,
+        detailTab: (id: string, tab: string) => `/mas/${id}?tab=${tab}`,
+        detailPattern: '/mas/:id'
+    },
+    authRequests: {
+        list: '/auth-requests',
+        detail: (userInputId: string) => `/auth-requests/${userInputId}`,
+        detailPattern: '/auth-requests/:userInputId'
+    }
+} as const;

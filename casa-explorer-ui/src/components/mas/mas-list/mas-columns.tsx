@@ -15,6 +15,7 @@
  */
 
 import {ColumnDef} from '@tanstack/react-table';
+import {PATHS} from '@/router/paths';
 import {Button} from '@/components/ui/button';
 import {TextHover} from '@/components/ui/text-hover';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
@@ -59,7 +60,7 @@ export const createMASColumns = (
                 <div className="flex justify-center">
                     <div
                         className="font-medium cursor-pointer hover:underline"
-                        onClick={() => navigate(`/mas/${row.original.id}`)}
+                        onClick={() => navigate(PATHS.mas.detail(row.original.id!))}
                     >
                         {name}
                     </div>

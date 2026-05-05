@@ -17,6 +17,7 @@
 import {useCallback, useMemo, useState} from 'react';
 import type React from 'react';
 import {useNavigate} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 import {Input} from '@/components/ui/input';
 import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
@@ -41,7 +42,7 @@ import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose} from '@/components/ui/sheet';
-import {MASGraphView} from '@/components/mas/mas-graph-view';
+import {MASGraphView} from '@/components/mas/mas-graph';
 import {toast} from 'sonner';
 import type {MAS} from '@/types/mas.types';
 import type {App, AppType, Tool} from '@/types/app.types';
@@ -490,7 +491,8 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                                             className="h-6 w-6 flex-shrink-0 cursor-pointer"
                                                             onClick={() =>
                                                                 copyToClipboard(
-                                                                    selectedApp.client_id_metadata_url ?? selectedApp.id!,
+                                                                    selectedApp.client_id_metadata_url ??
+                                                                        selectedApp.id!,
                                                                     'CIMD Endpoint'
                                                                 )
                                                             }
@@ -508,7 +510,9 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                                                     </p>
                                                     <div
                                                         className="flex items-center gap-2 cursor-pointer group w-fit"
-                                                        onClick={() => navigate(`/mas/${selectedApp.mas!.id}`)}
+                                                        onClick={() =>
+                                                            navigate(PATHS.mas.detail(String(selectedApp.mas!.id)))
+                                                        }
                                                     >
                                                         <Network className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                                         <div className="flex flex-col">

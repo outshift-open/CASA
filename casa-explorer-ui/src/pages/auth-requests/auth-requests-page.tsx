@@ -16,6 +16,7 @@
 
 import {useMemo, useState} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 import {useTraces} from '@/hooks/use-traces';
 import {useMAS, useMASApps} from '@/hooks/use-mas';
 import {useApps} from '@/hooks/use-apps';
@@ -151,7 +152,7 @@ function SessionTraceSheet({userInputId, focusTraceId, masId, masName, tracesDat
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 cursor-pointer"
-                                onClick={() => navigate(`/auth-requests/${userInputId}`)}
+                                onClick={() => navigate(PATHS.authRequests.detail(userInputId))}
                                 title="Open full page"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
@@ -181,7 +182,7 @@ function SessionTraceSheet({userInputId, focusTraceId, masId, masName, tracesDat
                             <button
                                 type="button"
                                 className="flex items-center gap-1 text-sm font-medium hover:underline cursor-pointer text-left truncate w-full"
-                                onClick={() => navigate(`/mas/${masId}`)}
+                                onClick={() => navigate(PATHS.mas.detail(masId))}
                             >
                                 <Network className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                                 <span className="truncate">{masName ?? masId}</span>
@@ -518,7 +519,7 @@ export function AuthRequestsPage() {
                                 className="flex items-center gap-1.5 text-sm hover:underline cursor-pointer"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (req.masId) navigate(`/mas/${req.masId}`);
+                                    if (req.masId) navigate(PATHS.mas.detail(req.masId));
                                 }}
                             >
                                 <Network className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />

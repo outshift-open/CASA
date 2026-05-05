@@ -18,6 +18,7 @@ import * as React from 'react';
 import {useLocation} from 'react-router-dom';
 import {LayoutDashboard, ChevronLeft, ChevronRight, Network, Tags, Activity} from 'lucide-react';
 import {NavLink} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 
 import {
     Sidebar,
@@ -32,21 +33,9 @@ import {
 import {Button} from '@/components/ui/button';
 
 const mainNavItems = [
-    {
-        title: 'Dashboard',
-        url: '/',
-        icon: LayoutDashboard
-    },
-    {
-        title: 'Multi-Agent Systems',
-        url: '/mas',
-        icon: Network
-    },
-    {
-        title: 'Auth Requests',
-        url: '/auth-requests',
-        icon: Activity
-    }
+    {title: 'Dashboard', url: PATHS.dashboard, icon: LayoutDashboard},
+    {title: 'Multi-Agent Systems', url: PATHS.mas.list, icon: Network},
+    {title: 'Auth Requests', url: PATHS.authRequests.list, icon: Activity}
 ];
 
 const bottomNavItems: {title: string; url: string; icon: React.ElementType}[] = [];

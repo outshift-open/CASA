@@ -16,6 +16,7 @@
 
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Keyboard} from 'lucide-react';
 
@@ -64,15 +65,15 @@ export function KeyboardShortcutsDialog() {
                 pendingG = false;
                 if (gTimer) clearTimeout(gTimer);
                 if (e.key === 'd') {
-                    navigate('/');
+                    navigate(PATHS.dashboard);
                     return;
                 }
                 if (e.key === 'm') {
-                    navigate('/mas');
+                    navigate(PATHS.mas.list);
                     return;
                 }
                 if (e.key === 'a') {
-                    navigate('/auth-requests');
+                    navigate(PATHS.authRequests.list);
                     return;
                 }
             }
