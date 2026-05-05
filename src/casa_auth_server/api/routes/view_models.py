@@ -77,9 +77,16 @@ class AppViewModel(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def set_client_id_metadata_url(cls, data):
-        data = dict(data)
-        if "client_credentials" in data and "client_id" in data["client_credentials"]:
-            data["client_id_metadata_url"] = data["client_credentials"]["client_id"]
+        if isinstance(data, dict):
+            data = dict(data)
+            cc = data.get("client_credentials")
+            client_id = cc.get("client_id") if isinstance(cc, dict) else None
+        else:
+            cc = getattr(data, "client_credentials", None)
+            client_id = getattr(cc, "client_id", None) if cc is not None else None
+            data = {field: getattr(data, field, None) for field in cls.model_fields}
+        if client_id:
+            data["client_id_metadata_url"] = client_id
         return data
 
     # To be able to create an instance from a SQLModel
