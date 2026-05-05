@@ -22,7 +22,7 @@ include relationships in the serialized model.
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from casa_auth_server.telemetry.tracer_repository import MASTraceStat
 
@@ -74,6 +74,22 @@ class AppViewModel(BaseModel):
     tools: list[ToolViewModel]
     mas_id: UUID | None
     mas: MultiAgentSystemViewModel | None
+    client_id_metadata_url: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_client_id_metadata_url(cls, data):
+        if isinstance(data, dict):
+            data = dict(data)
+            cc = data.get("client_credentials")
+            client_id = cc.get("client_id") if isinstance(cc, dict) else None
+        else:
+            cc = getattr(data, "client_credentials", None)
+            client_id = getattr(cc, "client_id", None) if cc is not None else None
+            data = {field: getattr(data, field, None) for field in cls.model_fields}
+        if client_id:
+            data["client_id_metadata_url"] = client_id
+        return data
 
     # To be able to create an instance from a SQLModel
     model_config = ConfigDict(from_attributes=True)

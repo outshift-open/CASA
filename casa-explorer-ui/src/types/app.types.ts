@@ -46,6 +46,7 @@ export interface App {
     mas_id?: string;
     mas?: MAS;
     created_at?: string;
+    client_id_metadata_url?: string;
 }
 
 export interface AppListResponse {
