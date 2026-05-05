@@ -49,6 +49,7 @@ from casa_auth_server.services.app_service import AppService
 from casa_auth_server.services.authorization_server import AuthorizationServerService
 from casa_auth_server.services.mas_service import MultiAgentSystemService
 from casa_auth_server.services.mcp_discover import McpDiscoverService
+from casa_auth_server.services.metrics_service import MetricsService
 from casa_auth_server.services.scope_service import ScopeService
 from casa_auth_server.services.user_input_service import UserInputService
 from casa_auth_server.telemetry.tracer import Tracer
@@ -278,6 +279,13 @@ class Container:
         idp_client: Annotated[IdpClient, Depends(get_idp_client)],
     ):
         return MultiAgentSystemService(mas_repository, app_repository, authorization_server_repository, idp_client)
+
+    @staticmethod
+    def get_metrics_service(
+        tracer_repository: Annotated[TracerRepository, Depends(get_tracer_repository)],
+        mas_repository: Annotated[MultiAgentSystemRepository, Depends(get_mas_repository)],
+    ):
+        return MetricsService(tracer_repository, mas_repository)
 
     @staticmethod
     def get_k8s_crd_service(

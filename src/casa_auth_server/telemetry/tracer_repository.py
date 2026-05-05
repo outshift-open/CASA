@@ -24,7 +24,7 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import DateTime
 from sqlmodel import JSON, Column, Field, Session, SQLModel, desc, func, select
 
-from casa_auth_server.core.events import BaseEvent
+from casa_auth_server.core.events import BaseEvent, MCPCallStartedEvent, MCPToolBlockingType, TokenIssuedEvent
 
 
 class Trace(SQLModel, table=True):  # type: ignore[call-arg]
@@ -50,6 +50,26 @@ class TraceList(BaseModel):
     page_size: int
 
 
+class BlockReasonStat(BaseModel):
+    """Count of denied MCP calls for a specific blocking reason."""
+
+    reason: str
+    count: int
+
+
+class MetricsSnapshot(BaseModel):
+    """Pre-aggregated metrics snapshot."""
+
+    total_mas: int
+    token_requests: int
+    mcp_calls_allowed: int
+    mcp_calls_denied: int
+    total_mcp_calls: int
+    deterministic_blocks: int
+    ai_powered_blocks: int
+    block_reasons: list[BlockReasonStat]
+
+
 class TracerRepository(ABC):
     """Interface exposing the methods of TracerRepository."""
 
@@ -65,6 +85,11 @@ class TracerRepository(ABC):
     @abstractmethod
     def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
         """Retrieve traces for a specific user input and event type."""
+        pass
+
+    @abstractmethod
+    def get_metrics(self, total_mas: int) -> MetricsSnapshot:
+        """Return pre-aggregated metrics snapshot."""
         pass
 
 
@@ -129,3 +154,59 @@ class TracerPostgresRepository(TracerRepository):
         """Retrieve traces for a specific user input and event type."""
         traces = self._session.exec(select(Trace).filter_by(user_input_id=user_input_id, event_type=event_type)).all()
         return traces
+
+    def get_metrics(self, total_mas: int) -> MetricsSnapshot:
+        """Return pre-aggregated metrics snapshot."""
+        rows = self._session.exec(
+            select(
+                Trace.event_type,
+                Trace.event["blocked"].as_boolean(),
+                Trace.event["blocking_type"].as_string(),
+                Trace.event["blocking_reason"].as_string(),
+                func.count().label("cnt"),
+            ).group_by(
+                Trace.event_type,
+                Trace.event["blocked"].as_boolean(),
+                Trace.event["blocking_type"].as_string(),
+                Trace.event["blocking_reason"].as_string(),
+            )
+        ).all()
+
+        token_requests = 0
+        mcp_allowed = 0
+        mcp_denied = 0
+        deterministic_blocks = 0
+        ai_powered_blocks = 0
+        reason_counts: dict[str, int] = {}
+
+        for event_type, blocked, blocking_type, blocking_reason, cnt in rows:
+            if event_type == TokenIssuedEvent.__name__:
+                token_requests += cnt
+            elif event_type == MCPCallStartedEvent.__name__:
+                if blocked:
+                    mcp_denied += cnt
+                    if blocking_type == MCPToolBlockingType.DETERMINISTIC:
+                        deterministic_blocks += cnt
+                    elif blocking_type == MCPToolBlockingType.AI_POWERED:
+                        ai_powered_blocks += cnt
+                    if blocking_reason:
+                        reason_counts[blocking_reason] = reason_counts.get(blocking_reason, 0) + cnt
+                else:
+                    mcp_allowed += cnt
+
+        block_reasons = sorted(
+            [BlockReasonStat(reason=r, count=c) for r, c in reason_counts.items()],
+            key=lambda x: x.count,
+            reverse=True,
+        )
+
+        return MetricsSnapshot(
+            total_mas=total_mas,
+            token_requests=token_requests,
+            mcp_calls_allowed=mcp_allowed,
+            mcp_calls_denied=mcp_denied,
+            total_mcp_calls=mcp_allowed + mcp_denied,
+            deterministic_blocks=deterministic_blocks,
+            ai_powered_blocks=ai_powered_blocks,
+            block_reasons=block_reasons,
+        )
