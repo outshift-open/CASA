@@ -20,7 +20,7 @@ import {toast} from 'sonner';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {MASTable} from '@/components/mas';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export function MASPage() {
     const [page, setPage] = useState(1);

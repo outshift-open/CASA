@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-import {createRoot} from 'react-dom/client';
-import {ThemeProvider} from '@/providers/theme-provider';
-import {ErrorBoundary} from '@/providers/error-boundary';
-import {QueryProvider} from '@/providers/query-provider';
-import App from './app.tsx';
-import './styles/globals.css';
+import {type ReactNode} from 'react';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
-createRoot(document.getElementById('root')!).render(
-    <>
-        <ErrorBoundary>
-            <ThemeProvider attribute="class" defaultTheme="ioc" enableSystem={false} themes={['ioc']}>
-                <QueryProvider>
-                    <App />
-                </QueryProvider>
-            </ThemeProvider>
-        </ErrorBoundary>
-    </>
-);
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60 * 5,
+            refetchOnWindowFocus: false,
+            refetchOnMount: true
+        }
+    }
+});
+
+export function QueryProvider({children}: {children: ReactNode}) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}

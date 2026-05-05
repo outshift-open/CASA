@@ -123,7 +123,13 @@ export function MASDetailPage() {
                                     </Tabs>
                                 </CardHeader>
                                 <CardContent>
-                                    {activeTab === 'info' && <MASInfoTab mas={mas} traceTotal={mas.traces?.traces ?? 0} onTabChange={handleTabChange} />}
+                                    {activeTab === 'info' && (
+                                        <MASInfoTab
+                                            mas={mas}
+                                            traceTotal={mas.traces?.traces ?? 0}
+                                            onTabChange={handleTabChange}
+                                        />
+                                    )}
                                     {activeTab === 'deny_conditions' && <MASDenyConditionsTab mas={mas} />}
                                     {activeTab === 'apps' && <MASAppsTab mas={mas} />}
                                     {activeTab === 'traces' && <MASTracesTab masId={id || ''} />}

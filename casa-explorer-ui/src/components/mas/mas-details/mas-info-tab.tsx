@@ -52,9 +52,7 @@ export function MASInfoTab({mas, traceTotal, onTabChange}: MASInfoTabProps) {
             apps: apps.map((app) => ({
                 id: app.id,
                 name: app.name,
-                type: app.type,
-                base_url: app.base_url,
-                tools: app.tools
+                type: app.type
             }))
         };
         const blob = new Blob([JSON.stringify(config, null, 2)], {type: 'application/json'});

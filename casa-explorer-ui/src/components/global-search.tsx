@@ -16,6 +16,7 @@
 
 import {useState, useMemo, useRef, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 import {Search, Network, Activity, CheckCircle2, XCircle} from 'lucide-react';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
@@ -132,7 +133,7 @@ export function GlobalSearch() {
                                         <button
                                             key={mas.id}
                                             type="button"
-                                            onClick={() => handleSelect(`/mas/${mas.id}`)}
+                                            onClick={() => handleSelect(PATHS.mas.detail(mas.id))}
                                             className={cn(
                                                 'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left',
                                                 'hover:bg-[rgba(255,255,255,0.05)] transition-colors cursor-pointer'
@@ -157,7 +158,9 @@ export function GlobalSearch() {
                                             <button
                                                 key={trace.id}
                                                 type="button"
-                                                onClick={() => handleSelect(`/auth-requests/${trace.user_input_id}`)}
+                                                onClick={() =>
+                                                    handleSelect(PATHS.authRequests.detail(trace.user_input_id))
+                                                }
                                                 className={cn(
                                                     'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left',
                                                     'hover:bg-[rgba(255,255,255,0.05)] transition-colors cursor-pointer'

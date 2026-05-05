@@ -16,6 +16,7 @@
 
 import {useMemo} from 'react';
 import {useParams, useNavigate, Link} from 'react-router-dom';
+import {PATHS} from '@/router/paths';
 import {useTraces} from '@/hooks/use-traces';
 import {useMASApps, useMASById} from '@/hooks/use-mas';
 import {Skeleton} from '@/components/ui/skeleton';
@@ -122,7 +123,12 @@ export function AuthRequestDetailPage() {
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
                 <Activity className="h-10 w-10 opacity-40" />
                 <p className="text-sm font-medium">Session not found</p>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/auth-requests')} className="cursor-pointer">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(PATHS.authRequests.list)}
+                    className="cursor-pointer"
+                >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Auth Requests
                 </Button>
@@ -153,7 +159,7 @@ export function AuthRequestDetailPage() {
                             <button
                                 type="button"
                                 className="text-foreground underline decoration-dotted hover:decoration-solid cursor-pointer"
-                                onClick={() => navigate(`/mas/${masId}?tab=traces`)}
+                                onClick={() => navigate(PATHS.mas.detailTab(masId, 'traces'))}
                             >
                                 {masName}
                             </button>{' '}
@@ -176,7 +182,7 @@ export function AuthRequestDetailPage() {
                         <Button
                             variant="default"
                             size="sm"
-                            onClick={() => navigate(`/mas/${masId}?tab=deny_conditions`)}
+                            onClick={() => navigate(PATHS.mas.detailTab(masId, 'deny_conditions'))}
                             className="cursor-pointer"
                         >
                             <ShieldAlert className="mr-2 h-3.5 w-3.5" />
@@ -208,7 +214,7 @@ export function AuthRequestDetailPage() {
                         <button
                             type="button"
                             className="flex items-center gap-1 text-sm font-medium hover:underline cursor-pointer text-left truncate w-full"
-                            onClick={() => navigate(`/mas/${masId}`)}
+                            onClick={() => navigate(PATHS.mas.detail(masId))}
                         >
                             <Network className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                             <span className="truncate">{masName}</span>
