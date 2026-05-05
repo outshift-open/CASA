@@ -22,9 +22,10 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import DateTime
-from sqlmodel import JSON, Column, Field, Session, SQLModel, desc, func, select
+from sqlmodel import JSON, Column, Field, Session, SQLModel, asc, desc, func, select
 
 from casa_auth_server.core.events import BaseEvent, MCPCallStartedEvent, MCPToolBlockingType, TokenIssuedEvent
+from casa_auth_server.core.types import MultiAgentSystem
 
 
 class Trace(SQLModel, table=True):  # type: ignore[call-arg]
@@ -57,6 +58,15 @@ class BlockReasonStat(BaseModel):
     count: int
 
 
+class MASTraceStat(BaseModel):
+    """Aggregated trace counts for a single MAS."""
+
+    mas_id: str
+    traces: int
+    allowed: int
+    denied: int
+
+
 class MetricsSnapshot(BaseModel):
     """Pre-aggregated metrics snapshot."""
 
@@ -78,7 +88,14 @@ class TracerRepository(ABC):
         """Stores an event in the database."""
 
     @abstractmethod
-    def get_all(self, page: int, page_size: int, mas_id: UUID | None = None, fetch_all: bool = False) -> TraceList:
+    def get_all(
+        self,
+        page: int,
+        page_size: int,
+        mas_id: UUID | None = None,
+        fetch_all: bool = False,
+        sort_asc: bool = False,
+    ) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
         pass
 
@@ -90,6 +107,11 @@ class TracerRepository(ABC):
     @abstractmethod
     def get_metrics(self, total_mas: int) -> MetricsSnapshot:
         """Return pre-aggregated metrics snapshot."""
+        pass
+
+    @abstractmethod
+    def get_mas_trace_counts(self, mas_ids: list[str]) -> list[MASTraceStat]:
+        """Return trace/allowed/denied counts for each of the given MAS IDs in one query."""
         pass
 
 
@@ -104,6 +126,11 @@ class TracerPostgresRepository(TracerRepository):
         """
         self._session = session
 
+    def _active_mas_ids(self) -> list[str]:
+        """Return IDs of non-deleted MAS as strings."""
+        rows = self._session.exec(select(MultiAgentSystem.id).where(MultiAgentSystem.deleted_at == None)).all()
+        return [str(r) for r in rows]
+
     def store_event(self, event: BaseEvent):
         """Stores an event in the database."""
         trace = Trace(
@@ -116,17 +143,27 @@ class TracerPostgresRepository(TracerRepository):
         self._session.add(trace)
 
     def get_all(
-        self, page: int = 0, page_size: int = 100, mas_id: UUID | None = None, fetch_all: bool = False
+        self,
+        page: int = 0,
+        page_size: int = 100,
+        mas_id: UUID | None = None,
+        fetch_all: bool = False,
+        sort_asc: bool = False,
     ) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
-        mas_filter = Trace.event["mas_id"].as_string() == str(mas_id) if mas_id is not None else True  # type: ignore[assignment]
+        order_fn = asc if sort_asc else desc
+        active_ids = self._active_mas_ids()
+        if mas_id is not None:
+            mas_filter = Trace.event["mas_id"].as_string() == str(mas_id)  # type: ignore[assignment]
+        else:
+            mas_filter = Trace.event["mas_id"].as_string().in_(active_ids)  # type: ignore[assignment]
         group_by_qry = (
             select(Trace.user_input_id, func.max(Trace.created_at).label("created_at"))
             .where(mas_filter)
             .group_by(Trace.user_input_id)
             .subquery()
         )
-        paginated_qry = select(group_by_qry.c.user_input_id).order_by(desc(group_by_qry.c.created_at))
+        paginated_qry = select(group_by_qry.c.user_input_id).order_by(order_fn(group_by_qry.c.created_at))
         if not fetch_all:
             paginated_qry = paginated_qry.offset((page - 1) * page_size).limit(page_size)
         total_qry = select(func.count()).select_from(group_by_qry)
@@ -157,6 +194,7 @@ class TracerPostgresRepository(TracerRepository):
 
     def get_metrics(self, total_mas: int) -> MetricsSnapshot:
         """Return pre-aggregated metrics snapshot."""
+        active_ids = self._active_mas_ids()
         rows = self._session.exec(
             select(
                 Trace.event_type,
@@ -164,7 +202,9 @@ class TracerPostgresRepository(TracerRepository):
                 Trace.event["blocking_type"].as_string(),
                 Trace.event["blocking_reason"].as_string(),
                 func.count().label("cnt"),
-            ).group_by(
+            )
+            .where(Trace.event["mas_id"].as_string().in_(active_ids))
+            .group_by(
                 Trace.event_type,
                 Trace.event["blocked"].as_boolean(),
                 Trace.event["blocking_type"].as_string(),
@@ -210,3 +250,36 @@ class TracerPostgresRepository(TracerRepository):
             ai_powered_blocks=ai_powered_blocks,
             block_reasons=block_reasons,
         )
+
+    def get_mas_trace_counts(self, mas_ids: list[str]) -> list[MASTraceStat]:
+        """Return trace/allowed/denied counts for each of the given MAS IDs in one query."""
+        if not mas_ids:
+            return []
+        rows = self._session.exec(
+            select(
+                Trace.event["mas_id"].as_string().label("mas_id"),
+                Trace.event_type,
+                Trace.event["blocked"].as_boolean().label("blocked"),
+                func.count(func.distinct(Trace.user_input_id)).label("trace_count"),
+                func.count().label("event_count"),
+            )
+            .where(Trace.event["mas_id"].as_string().in_(mas_ids))
+            .group_by(
+                Trace.event["mas_id"].as_string(),
+                Trace.event_type,
+                Trace.event["blocked"].as_boolean(),
+            )
+        ).all()
+
+        stats: dict[str, dict[str, int]] = {mid: {"traces": 0, "allowed": 0, "denied": 0} for mid in mas_ids}
+        for mas_id, event_type, blocked, trace_count, event_count in rows:
+            if mas_id not in stats:
+                continue
+            if event_type == MCPCallStartedEvent.__name__:
+                if blocked:
+                    stats[mas_id]["denied"] += event_count
+                else:
+                    stats[mas_id]["allowed"] += event_count
+            stats[mas_id]["traces"] = max(stats[mas_id]["traces"], trace_count)
+
+        return [MASTraceStat(mas_id=mid, **counts) for mid, counts in stats.items()]

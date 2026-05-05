@@ -17,7 +17,8 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 
-from sqlmodel import Session, select
+from sqlalchemy.orm import joinedload
+from sqlmodel import Session, func, select
 
 from casa_auth_server.core.types import MultiAgentSystem
 
@@ -44,6 +45,10 @@ class MultiAgentSystemRepository(ABC):
     @abstractmethod
     def get_all(self) -> list[MultiAgentSystem]:
         """Fetch all the mutli agent systems stored in the database."""
+
+    @abstractmethod
+    def get_all_paginated(self, page: int, page_size: int, q: str | None = None) -> tuple[list[MultiAgentSystem], int]:
+        """Fetch a paginated slice of MAS, optionally filtered by name. Returns (items, total)."""
 
     @abstractmethod
     def get_by_name_and_namespace(self, name: str, namespace: str) -> MultiAgentSystem:
@@ -91,6 +96,24 @@ class MultiAgentSystemPostgresRepository(MultiAgentSystemRepository):
             return list(mas_list)
         except Exception as e:
             raise Exception(f"Error retrieving MAS list: {e}") from e
+
+    def get_all_paginated(self, page: int, page_size: int, q: str | None = None) -> tuple[list[MultiAgentSystem], int]:
+        """Fetch a paginated slice of MAS, optionally filtered by name. Returns (items, total)."""
+        try:
+            base = select(MultiAgentSystem).where(MultiAgentSystem.deleted_at == None)
+            if q:
+                base = base.where(MultiAgentSystem.name.ilike(f"%{q}%"))  # type: ignore[union-attr,attr-defined]
+            total = self._session.exec(select(func.count()).select_from(base.subquery())).one()
+            items = (
+                self._session.exec(
+                    base.options(joinedload(MultiAgentSystem.apps)).offset((page - 1) * page_size).limit(page_size)
+                )
+                .unique()
+                .all()
+            )
+            return list(items), total
+        except Exception as e:
+            raise Exception(f"Error retrieving paginated MAS list: {e}") from e
 
     def get_by_name_and_namespace(self, name: str, namespace: str) -> MultiAgentSystem:
         """Fetch a multi agent system by k8s_name and namespace from the database."""

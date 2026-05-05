@@ -374,7 +374,7 @@ export function AuthRequestsPage() {
 
     const masMap = useMemo(() => {
         if (!masData) return {} as Record<string, string>;
-        return Object.fromEntries(masData.map((m) => [m.id, m.name]));
+        return Object.fromEntries((masData.items ?? []).map((m) => [m.id, m.name]));
     }, [masData]);
 
     const appNameMap = useMemo(() => {

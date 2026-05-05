@@ -19,8 +19,7 @@ import {Button} from '@/components/ui/button';
 import {TextHover} from '@/components/ui/text-hover';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {ArrowUpDown, Loader2, AlertCircle, AppWindow, Activity, CheckCircle2, XCircle} from 'lucide-react';
-import type {MAS} from '@/types/mas.types';
-import type {App} from '@/types/app.types';
+import type {MAS, AppSummary} from '@/types/mas.types';
 import {DateHover} from '@/components/ui/date-hover';
 import {AppTypeBadge} from '@/components/ui/app-type-badge';
 
@@ -34,7 +33,7 @@ export {APP_TYPE_LABELS, APP_TYPE_CLASSES} from '@/components/ui/app-type-badge'
 
 export const createMASColumns = (
     navigate: (path: string) => void,
-    masApps: Record<string, App[]> = {},
+    masApps: Record<string, AppSummary[]> = {},
     countsLoading: Record<string, boolean> = {},
     countsError: Record<string, boolean> = {},
     traceCounts: Record<string, MASTraceCounts> = {},
@@ -117,7 +116,7 @@ export const createMASColumns = (
                             {count === 0 ? (
                                 <p className="text-xs text-muted-foreground italic">No agentic services configured</p>
                             ) : (
-                                <div className="flex flex-col gap-1.5 max-w-[200px]">
+                                <div className="flex flex-col gap-1.5 max-w-[320px]">
                                     {apps
                                         .filter((app, i, arr) => arr.findIndex((a) => a.id === app.id) === i)
                                         .map((app) => (

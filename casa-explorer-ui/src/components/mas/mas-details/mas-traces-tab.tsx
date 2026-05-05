@@ -166,7 +166,7 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [sortAsc, setSortAsc] = useState(false);
-    const {data, isLoading} = useTraces(masId, page, pageSize, false, true);
+    const {data, isLoading} = useTraces(masId, page, pageSize, false, true, sortAsc);
     const {data: appsData} = useMASApps(masId, true);
 
     const appNames: AppNames = useMemo(() => {
@@ -178,9 +178,8 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
 
     const sessions = useMemo(() => {
         if (!data?.items) return [];
-        const built = buildSessions(data.items);
-        return sortAsc ? [...built].reverse() : built;
-    }, [data, sortAsc]);
+        return buildSessions(data.items);
+    }, [data]);
 
     const totalPages = data ? Math.max(1, Math.ceil(data.total / pageSize)) : 1;
 

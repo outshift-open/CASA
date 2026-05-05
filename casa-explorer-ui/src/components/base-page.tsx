@@ -66,7 +66,7 @@ function Breadcrumbs() {
         } else if (segment === 'edit') {
             label = 'Edit';
         } else if (pathSegments[index - 1] === 'mas' && segment !== 'create') {
-            const mas = masData?.find((m) => m.id === segment);
+            const mas = masData?.items?.find((m) => m.id === segment);
             label = mas?.name || segment;
         } else if (pathSegments[index - 1] === 'auth-requests') {
             label = authRequestPrompt || segment;

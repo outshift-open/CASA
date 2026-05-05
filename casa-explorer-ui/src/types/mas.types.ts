@@ -14,18 +14,36 @@
  * limitations under the License.
  */
 
-import type {App} from './app.types';
+import type {AppType} from './app.types';
+
+export interface AppSummary {
+    id: string;
+    type: AppType;
+    name: string;
+}
+
+export interface MASTraceStat {
+    mas_id: string;
+    traces: number;
+    allowed: number;
+    denied: number;
+}
 
 export interface MAS {
     id: string;
     name: string;
-    apps: App[];
+    apps: AppSummary[];
     created_at: string;
     enabled_tool_checks?: number;
     namespace?: string;
+    k8s_name?: string;
+    authorization_server_id?: string;
+    traces?: MASTraceStat;
 }
 
 export interface MASListResponse {
     items: MAS[];
     total: number;
+    page: number;
+    page_size: number;
 }

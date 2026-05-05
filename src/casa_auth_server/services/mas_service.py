@@ -141,6 +141,12 @@ class MultiAgentSystemService:
         """Get all the existing Multi Agent Systems."""
         return self._mas_repository.get_all()
 
+    def get_all_mas_paginated(
+        self, page: int, page_size: int, q: str | None = None
+    ) -> tuple[list[MultiAgentSystem], int]:
+        """Get a paginated slice of MAS, optionally filtered by name."""
+        return self._mas_repository.get_all_paginated(page, page_size, q)
+
     def get_mas_by_id(self, id: str) -> MultiAgentSystem:
         """Get a Multi Agent System by ID."""
         return self._mas_repository.get_by_id(id)
