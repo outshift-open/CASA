@@ -15,8 +15,7 @@
  */
 
 import {useParams, useSearchParams} from 'react-router-dom';
-import {useMASById, useMASApps} from '@/hooks/use-mas';
-import {useTraces} from '@/hooks/use-traces';
+import {useMASById} from '@/hooks/use-mas';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
@@ -32,8 +31,6 @@ export function MASDetailPage() {
     const {id} = useParams<{id: string}>();
     const [searchParams, setSearchParams] = useSearchParams();
     const {data: mas, isLoading, error, refetch} = useMASById(id || '');
-    const {data: apps} = useMASApps(id || '');
-    const {data: tracesData} = useTraces(id, 1, 1);
 
     const VALID_TABS = ['info', 'deny_conditions', 'apps', 'traces'];
     const tabParam = searchParams.get('tab');
@@ -99,9 +96,9 @@ export function MASDetailPage() {
                                             <TabsTrigger value="apps">
                                                 <AppWindow className="mr-2 h-4 w-4" />
                                                 Agentic Services
-                                                {apps && (
+                                                {mas.apps?.length > 0 && (
                                                     <span className="ml-1.5 text-xs text-muted-foreground">
-                                                        {apps.length}
+                                                        {mas.apps.length}
                                                     </span>
                                                 )}
                                             </TabsTrigger>
@@ -116,9 +113,9 @@ export function MASDetailPage() {
                                             <TabsTrigger value="traces">
                                                 <Activity className="mr-2 h-4 w-4" />
                                                 Traces
-                                                {tracesData && tracesData.total > 0 && (
+                                                {(mas.traces?.traces ?? 0) > 0 && (
                                                     <span className="ml-1.5 text-xs text-muted-foreground">
-                                                        {tracesData.total}
+                                                        {mas.traces?.traces}
                                                     </span>
                                                 )}
                                             </TabsTrigger>
@@ -126,7 +123,7 @@ export function MASDetailPage() {
                                     </Tabs>
                                 </CardHeader>
                                 <CardContent>
-                                    {activeTab === 'info' && <MASInfoTab mas={mas} onTabChange={handleTabChange} />}
+                                    {activeTab === 'info' && <MASInfoTab mas={mas} traceTotal={mas.traces?.traces ?? 0} onTabChange={handleTabChange} />}
                                     {activeTab === 'deny_conditions' && <MASDenyConditionsTab mas={mas} />}
                                     {activeTab === 'apps' && <MASAppsTab mas={mas} />}
                                     {activeTab === 'traces' && <MASTracesTab masId={id || ''} />}

@@ -53,6 +53,7 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
             data={data}
             searchPlaceholder={searchPlaceholder}
             hideSearch={hideSearch}
+            hidePagination
             emptyState={emptyState}
             searchValue={searchValue}
             onSearchChange={onSearchChange}

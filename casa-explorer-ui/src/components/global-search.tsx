@@ -30,7 +30,9 @@ export function GlobalSearch() {
     const inputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
-    const {data: masData} = useMAS();
+    const q = query.trim().toLowerCase();
+
+    const {data: masData} = useMAS(q ? {q} : undefined);
     const {data: tracesData} = useTraces(undefined, 1, 100, true, false);
     const {data: appsData} = useApps();
 
@@ -39,11 +41,9 @@ export function GlobalSearch() {
         return Object.fromEntries(appsData.items.filter((a) => a.id).map((a) => [a.id!, a.name]));
     }, [appsData]);
 
-    const q = query.trim().toLowerCase();
-
     const masResults = useMemo(() => {
         if (!q || !masData) return [];
-        return masData.filter((m) => m.name.toLowerCase().includes(q)).slice(0, 5);
+        return (masData.items ?? []).slice(0, 5);
     }, [q, masData]);
 
     const authResults = useMemo(() => {

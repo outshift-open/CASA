@@ -16,10 +16,16 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from casa_auth_server.api.dependencies import Container
-from casa_auth_server.api.routes.view_models import AppViewModel
+from casa_auth_server.api.routes.view_models import (
+    AppSummaryViewModel,
+    AppViewModel,
+    MASDetailViewModel,
+    MASListItemViewModel,
+    MASListResponse,
+)
 from casa_auth_server.core.types import MultiAgentSystem
 from casa_auth_server.services.app_service import AppService
 from casa_auth_server.services.mas_service import (
@@ -28,6 +34,7 @@ from casa_auth_server.services.mas_service import (
     MultiAgentSystemService,
     MultiAgentSystemUpdateRequest,
 )
+from casa_auth_server.telemetry.tracer_repository import TracerRepository
 
 router = APIRouter(tags=["Multi Agent Systems"])
 
@@ -76,21 +83,65 @@ def delete_mas(
 @router.get("/mas")
 def get_all_mas(
     mas_service: Annotated[MultiAgentSystemService, Depends(Container.get_mas_service)],
-) -> list[MultiAgentSystem]:
-    """Get the list of all multi agent systems."""
-    return mas_service.get_all_mas()
+    tracer_repository: Annotated[TracerRepository, Depends(Container.get_tracer_repository)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    q: str | None = Query(None),
+    include_metrics: bool = Query(False),
+) -> MASListResponse:
+    """Get a paginated list of multi agent systems, with inline app summaries and optional trace counts."""
+    items, total = mas_service.get_all_mas_paginated(page, page_size, q)
+    trace_counts: dict[str, object] = {}
+    if include_metrics:
+        mas_ids = [str(mas.id) for mas in items]
+        trace_counts = {s.mas_id: s for s in tracer_repository.get_mas_trace_counts(mas_ids)}
+    return MASListResponse(
+        items=[
+            MASListItemViewModel(
+                id=mas.id,
+                name=mas.name,
+                namespace=mas.namespace,
+                k8s_name=mas.k8s_name,
+                enabled_tool_checks=mas.enabled_tool_checks,
+                authorization_server_id=mas.authorization_server_id,
+                created_at=mas.created_at,
+                apps=[AppSummaryViewModel.model_validate(a) for a in (mas.apps or []) if a.deleted_at is None],
+                traces=trace_counts.get(str(mas.id)),  # type: ignore[arg-type]
+            )
+            for mas in items
+        ],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/mas/{mas_id}")
 def get_mas_by_id(
     mas_service: Annotated[MultiAgentSystemService, Depends(Container.get_mas_service)],
+    tracer_repository: Annotated[TracerRepository, Depends(Container.get_tracer_repository)],
     mas_id: str,
-) -> MultiAgentSystem:
+    include_metrics: bool = Query(False),
+) -> MASDetailViewModel:
     """Get a multi agent system by id."""
     mas = mas_service.get_mas_by_id(mas_id)
     if not mas:
         raise HTTPException(status_code=404, detail=f"MAS with id '{mas_id}' not found")
-    return mas
+    traces = None
+    if include_metrics:
+        stats = tracer_repository.get_mas_trace_counts([mas_id])
+        traces = stats[0] if stats else None
+    return MASDetailViewModel(
+        id=mas.id,
+        name=mas.name,
+        namespace=mas.namespace,
+        k8s_name=mas.k8s_name,
+        enabled_tool_checks=mas.enabled_tool_checks,
+        authorization_server_id=mas.authorization_server_id,
+        created_at=mas.created_at,
+        apps=[AppSummaryViewModel.model_validate(a) for a in (mas.apps or []) if a.deleted_at is None],
+        traces=traces,
+    )
 
 
 @router.get("/mas/{mas_id}/apps")

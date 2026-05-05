@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
+import {useState} from 'react';
 import {useMAS} from '@/hooks/use-mas';
 import {toast} from 'sonner';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {MASTable} from '@/components/mas';
 
+const PAGE_SIZE = 20;
+
 export function MASPage() {
-    const {data, isLoading, error, refetch} = useMAS();
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState('');
+
+    const {data, isLoading, isFetching, error, refetch} = useMAS({
+        page,
+        page_size: PAGE_SIZE,
+        q: search || undefined,
+        include_metrics: true
+    });
 
     const handleRefresh = async () => {
         try {
@@ -30,6 +41,11 @@ export function MASPage() {
             console.error('Failed to refresh MAS:', error);
             toast.error('Failed to refresh MAS');
         }
+    };
+
+    const handleSearch = (q: string) => {
+        setSearch(q);
+        setPage(1);
     };
 
     return (
@@ -51,10 +67,15 @@ export function MASPage() {
                     onRetry={() => refetch()}
                 >
                     <MASTable
-                        data={data || []}
-                        total={data?.length || 0}
-                        isLoading={isLoading}
+                        data={data?.items || []}
+                        total={data?.total || 0}
+                        page={page}
+                        pageSize={PAGE_SIZE}
+                        search={search}
+                        isLoading={isFetching}
                         onRefresh={handleRefresh}
+                        onPageChange={setPage}
+                        onSearchChange={handleSearch}
                     />
                 </ApiStateHandler>
             </div>

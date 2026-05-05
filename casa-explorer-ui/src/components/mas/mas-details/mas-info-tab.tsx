@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import {useMASApps} from '@/hooks/use-mas';
-import {useTraces} from '@/hooks/use-traces';
 import {Button} from '@/components/ui/button';
 import {Copy, Download, Tags, AppWindow, Activity, ShieldAlert} from 'lucide-react';
 import {toast} from 'sonner';
@@ -29,12 +27,12 @@ const TOTAL_CHECKS = 3;
 
 interface MASInfoTabProps {
     mas: MAS;
+    traceTotal: number;
     onTabChange: (tab: string) => void;
 }
 
-export function MASInfoTab({mas, onTabChange}: MASInfoTabProps) {
-    const {data: apps} = useMASApps(mas.id);
-    const {data: tracesData} = useTraces(mas.id, 1, 1);
+export function MASInfoTab({mas, traceTotal, onTabChange}: MASInfoTabProps) {
+    const apps = mas.apps ?? [];
 
     const enabledChecks = mas.enabled_tool_checks ?? 0;
     const enabledCount = [
@@ -51,7 +49,7 @@ export function MASInfoTab({mas, onTabChange}: MASInfoTabProps) {
     const exportConfig = () => {
         const config = {
             mas: {id: mas.id, name: mas.name, created_at: mas.created_at},
-            apps: apps?.map((app) => ({
+            apps: apps.map((app) => ({
                 id: app.id,
                 name: app.name,
                 type: app.type,
@@ -166,7 +164,7 @@ export function MASInfoTab({mas, onTabChange}: MASInfoTabProps) {
                         Agentic Services
                     </div>
                     <div>
-                        <p className="text-3xl font-bold">{apps?.length ?? 0}</p>
+                        <p className="text-3xl font-bold">{apps.length}</p>
                         <p className="text-xs text-muted-foreground mt-1">
                             Registered agents, clients, and MCP servers for this MAS.
                         </p>
@@ -187,7 +185,7 @@ export function MASInfoTab({mas, onTabChange}: MASInfoTabProps) {
                         Trace Activity
                     </div>
                     <div>
-                        <p className="text-3xl font-bold">{tracesData?.total ?? 0}</p>
+                        <p className="text-3xl font-bold">{traceTotal}</p>
                         <p className="text-xs text-muted-foreground mt-1">
                             Trace sessions with authorization and MCP events for this MAS.
                         </p>

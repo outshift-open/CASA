@@ -32,7 +32,7 @@ import 'reactflow/dist/style.css';
 import {MASGraphMASNode} from './mas-graph-mas-node';
 import {MASGraphNode} from './mas-graph-node';
 import {Button} from '@/components/ui/button';
-import {Badge} from '@/components/ui/badge';
+import {AppTypeBadge} from '@/components/ui/app-type-badge';
 import {Bot, AppWindow, Server, Download, Network} from 'lucide-react';
 import {toPng} from 'html-to-image';
 import type {MAS} from '@/types/mas.types';
@@ -226,22 +226,16 @@ function MASGraphViewInner({
             <div className="flex items-center gap-4 text-xs text-muted-foreground border rounded-lg p-3 bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)]">
                 <span className="font-medium">Legend:</span>
                 <div className="flex items-center gap-1">
-                    <Bot className="h-3 w-3" />
-                    <Badge variant="default" className="text-xs">
-                        Agent
-                    </Badge>
+                    <Bot className="h-3 w-3 text-purple-400" />
+                    <AppTypeBadge type="agent" />
                 </div>
                 <div className="flex items-center gap-1">
-                    <AppWindow className="h-3 w-3" />
-                    <Badge variant="secondary" className="text-xs">
-                        Client
-                    </Badge>
+                    <AppWindow className="h-3 w-3 text-blue-400" />
+                    <AppTypeBadge type="client" />
                 </div>
                 <div className="flex items-center gap-1">
-                    <Server className="h-3 w-3" />
-                    <Badge variant="outline" className="text-xs">
-                        MCP Server
-                    </Badge>
+                    <Server className="h-3 w-3 text-cyan-400" />
+                    <AppTypeBadge type="mcp_server" />
                 </div>
                 <Button variant="outline" size="sm" onClick={exportToPng} className="cursor-pointer ml-auto">
                     <Download className="mr-1 h-3 w-3" />

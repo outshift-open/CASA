@@ -15,17 +15,24 @@
  */
 
 import {apiClient} from '@/lib/api';
-import type {MAS} from '@/types/mas.types';
+import type {MAS, MASListResponse} from '@/types/mas.types';
 import type {App} from '@/types/app.types';
 
+export interface MASQueryParams {
+    page?: number;
+    page_size?: number;
+    q?: string;
+    include_metrics?: boolean;
+}
+
 export const masService = {
-    getMAS: async (): Promise<MAS[]> => {
-        const {data} = await apiClient.get('/mas');
-        return Array.isArray(data) ? data : [];
+    getMAS: async (params?: MASQueryParams): Promise<MASListResponse> => {
+        const {data} = await apiClient.get('/mas', {params});
+        return data;
     },
 
-    getMASById: async (id: string): Promise<MAS> => {
-        const {data} = await apiClient.get(`/mas/${id}`);
+    getMASById: async (id: string, params?: {include_metrics?: boolean}): Promise<MAS> => {
+        const {data} = await apiClient.get(`/mas/${id}`, {params});
         return data;
     },
 

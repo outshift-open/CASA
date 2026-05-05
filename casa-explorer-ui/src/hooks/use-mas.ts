@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {useQuery, useMutation, useQueryClient, keepPreviousData} from '@tanstack/react-query';
 import {masService} from '@/services/mas.service';
+import type {MASQueryParams} from '@/services/mas.service';
 
-export const useMAS = () => {
+export const useMAS = (params?: MASQueryParams) => {
     return useQuery({
-        queryKey: ['mas'],
-        queryFn: masService.getMAS
+        queryKey: ['mas', params],
+        queryFn: () => masService.getMAS(params),
+        placeholderData: keepPreviousData
     });
 };
 
 export const useMASById = (id: string) => {
     return useQuery({
         queryKey: ['mas', id],
-        queryFn: () => masService.getMASById(id),
+        queryFn: () => masService.getMASById(id, {include_metrics: true}),
         enabled: !!id
     });
 };

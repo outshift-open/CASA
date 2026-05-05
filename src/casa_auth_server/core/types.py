@@ -21,7 +21,7 @@ from enum import Enum, IntFlag
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from sqlalchemy import DateTime
 from sqlalchemy.orm import RelationshipProperty
 from sqlmodel import Column, Field, Integer, Relationship, SQLModel
@@ -125,6 +125,10 @@ class MultiAgentSystem(SQLModel, table=True):
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
     deleted_at: datetime | None = Field(default=None)
+
+    @field_serializer("enabled_tool_checks")
+    def serialize_enabled_tool_checks(self, v: "ToolCheckFlags | None") -> int | None:
+        return int(v) if v is not None else None
 
 
 class UserInput(SQLModel, table=True):
