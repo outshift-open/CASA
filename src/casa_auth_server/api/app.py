@@ -25,6 +25,7 @@ from casa_auth_server.api.routes import app as app_routes
 from casa_auth_server.api.routes import authorization as authorization_routes
 from casa_auth_server.api.routes import k8s as k8s_routes
 from casa_auth_server.api.routes import k8s_crd as k8s_crd_routes
+from casa_auth_server.api.routes import metrics as metrics_routes
 from casa_auth_server.api.routes import multi_agent_system as mas_routes
 from casa_auth_server.api.routes import scope as scope_routes
 from casa_auth_server.api.routes import trace as trace_routes
@@ -50,6 +51,7 @@ app.include_router(authorization_routes.router)
 app.include_router(app_routes.router)
 app.include_router(trace_routes.router)
 app.include_router(mas_routes.router)
+app.include_router(metrics_routes.router)
 app.include_router(scope_routes.router)
 app.include_router(k8s_crd_routes.router)
 app.include_router(user_input_routes.router)

@@ -21,8 +21,8 @@ import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {Separator} from '@/components/ui/separator';
 import {Shield, Activity, ShieldAlert, Network, Tags, RefreshCw, HelpCircle, Cpu, Sparkles} from 'lucide-react';
 import {checkTypeChartColors} from '@/components/ui/check-type-badge';
-import {useMAS} from '@/hooks/use-mas';
-import {useTraces} from '@/hooks/use-traces';
+import {useMetrics} from '@/hooks/use-metrics';
+import {BLOCKING_REASON_LABELS, BLOCKING_REASON_DESCRIPTIONS} from '@/components/traces/event-row';
 import {useMemo} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {toast} from 'sonner';
@@ -38,25 +38,6 @@ import {
     YAxis,
     CartesianGrid
 } from 'recharts';
-import type {BlockingReason, Trace} from '@/types/trace.types';
-
-const BLOCKING_REASON_LABELS: Record<BlockingReason, string> = {
-    no_llm_calls_made_by_app: 'No LLM calls',
-    tool_not_selected_by_llm: 'Not selected by LLM',
-    tool_intent_mismatch: 'Intent mismatch',
-    tool_parameters_mismatch: 'Params mismatch',
-    modified_mcp_tool_defs: 'Modified tool defs',
-    insufficient_scope: 'Insufficient scope'
-};
-
-const BLOCKING_REASON_DESCRIPTIONS: Partial<Record<BlockingReason, string>> = {
-    no_llm_calls_made_by_app: 'The app made no LLM calls before requesting tool access',
-    tool_not_selected_by_llm: 'Requested MCP Server Tool was not selected by the LLM',
-    tool_intent_mismatch: "MCP Server Tool choice doesn't match the intention of original input",
-    tool_parameters_mismatch: 'Requested MCP Server Tool Parameters are different from those selected by the LLM',
-    modified_mcp_tool_defs: 'The LLM received modified MCP Server Tool Definitions',
-    insufficient_scope: 'Token does not have the required scope for this tool'
-};
 
 const CHART_TOOLTIP_STYLE = {
     contentStyle: {
@@ -172,36 +153,19 @@ function DonutChart({data, loading, emptyIcon, emptyText, unit, onSegmentClick}:
 
 export function DashboardPage() {
     const navigate = useNavigate();
-    const {
-        data: masData,
-        isLoading: masLoading,
-        error: masError,
-        dataUpdatedAt: masUpdatedAt,
-        refetch: refetchMAS
-    } = useMAS();
-    const {
-        data: tracesData,
-        isLoading: tracesLoading,
-        dataUpdatedAt: tracesUpdatedAt,
-        refetch: refetchTraces
-    } = useTraces(undefined, 1, 100, true);
-
-    const isRefreshing = masLoading || tracesLoading;
+    const {data, isLoading, error, dataUpdatedAt, refetch} = useMetrics(true);
 
     const handleRefresh = async () => {
         try {
-            await Promise.all([refetchMAS(), refetchTraces()]);
+            await refetch();
             toast.success('Dashboard refreshed successfully');
         } catch {
             toast.error('Failed to refresh dashboard');
         }
     };
 
-    const totalMAS = masData?.length ?? 0;
-
-    const lastUpdated = Math.max(masUpdatedAt, tracesUpdatedAt);
-    const lastUpdatedLabel = lastUpdated
-        ? new Date(lastUpdated).toLocaleTimeString([], {
+    const lastUpdatedLabel = dataUpdatedAt
+        ? new Date(dataUpdatedAt).toLocaleTimeString([], {
               hour: '2-digit',
               minute: '2-digit',
               second: '2-digit',
@@ -209,57 +173,23 @@ export function DashboardPage() {
           })
         : null;
 
-    const allTraces: Trace[] = useMemo(() => {
-        if (!tracesData?.items) return [];
-        return Object.values(tracesData.items).flat();
-    }, [tracesData]);
-
-    const traceStats = useMemo(() => {
-        const tokenRequests = allTraces.filter((t) => t.event_type === 'TokenIssuedEvent').length;
-        const mcpCalls = allTraces.filter((t) => t.event_type === 'MCPCallStartedEvent');
-        const allowed = mcpCalls.filter((t) => !t.event.blocked).length;
-        const denied = mcpCalls.filter((t) => t.event.blocked).length;
-
-        const reasonCounts: Partial<Record<BlockingReason, number>> = {};
-        mcpCalls
-            .filter((t) => t.event.blocked && t.event.blocking_reason)
-            .forEach((t) => {
-                const r = t.event.blocking_reason!;
-                reasonCounts[r] = (reasonCounts[r] ?? 0) + 1;
-            });
-
-        const blockReasons = Object.entries(reasonCounts)
-            .map(([reason, count]) => ({
-                reason,
-                name: BLOCKING_REASON_LABELS[reason as BlockingReason] ?? reason,
-                description: BLOCKING_REASON_DESCRIPTIONS[reason as BlockingReason] ?? '',
-                count
-            }))
-            .sort((a, b) => b.count - a.count);
-
-        const deterministicBlocks = mcpCalls.filter(
-            (t) => t.event.blocked && t.event.blocking_type === 'DETERMINISTIC'
-        ).length;
-        const aiBlocks = mcpCalls.filter((t) => t.event.blocked && t.event.blocking_type === 'AI_POWERED').length;
-
-        return {
-            tokenRequests,
-            allowed,
-            denied,
-            totalMcpCalls: mcpCalls.length,
-            blockReasons,
-            deterministicBlocks,
-            aiBlocks
-        };
-    }, [allTraces]);
+    const blockReasons = useMemo(
+        () =>
+            (data?.block_reasons ?? []).map((r) => ({
+                ...r,
+                label: BLOCKING_REASON_LABELS[r.reason as keyof typeof BLOCKING_REASON_LABELS] ?? r.reason,
+                description: BLOCKING_REASON_DESCRIPTIONS[r.reason as keyof typeof BLOCKING_REASON_DESCRIPTIONS] ?? ''
+            })),
+        [data]
+    );
 
     const mcpDonutData = useMemo(
         () =>
             [
-                {name: 'Allowed', value: traceStats.allowed, color: '#00B98E'},
-                {name: 'Denied', value: traceStats.denied, color: '#E2415B'}
+                {name: 'Allowed', value: data?.mcp_calls_allowed ?? 0, color: '#00B98E'},
+                {name: 'Denied', value: data?.mcp_calls_denied ?? 0, color: '#E2415B'}
             ].filter((d) => d.value > 0),
-        [traceStats]
+        [data]
     );
 
     const blockTypeData = useMemo(
@@ -267,13 +197,18 @@ export function DashboardPage() {
             [
                 {
                     name: 'Deterministic',
-                    value: traceStats.deterministicBlocks,
+                    value: data?.deterministic_blocks ?? 0,
                     color: checkTypeChartColors.DETERMINISTIC,
                     icon: Cpu
                 },
-                {name: 'Semantic', value: traceStats.aiBlocks, color: checkTypeChartColors.AI_POWERED, icon: Sparkles}
+                {
+                    name: 'Semantic',
+                    value: data?.ai_powered_blocks ?? 0,
+                    color: checkTypeChartColors.AI_POWERED,
+                    icon: Sparkles
+                }
             ].filter((d) => d.value > 0),
-        [traceStats]
+        [data]
     );
 
     return (
@@ -288,9 +223,8 @@ export function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     {lastUpdatedLabel && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <RefreshCw className="h-3 w-3" />
-                            <span>Updated {lastUpdatedLabel}</span>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                            <span>Updated {lastUpdatedLabel} · every 5s</span>
                         </div>
                     )}
                     <Tooltip>
@@ -299,11 +233,11 @@ export function DashboardPage() {
                                 variant="outline"
                                 size="icon"
                                 onClick={handleRefresh}
-                                disabled={isRefreshing}
+                                disabled={isLoading}
                                 className="cursor-pointer"
                                 aria-label="Refresh dashboard"
                             >
-                                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent className="max-w-[180px]">
@@ -336,7 +270,7 @@ export function DashboardPage() {
                     <CardContent className="flex-1 flex items-center justify-center px-4 py-4">
                         <DonutChart
                             data={mcpDonutData}
-                            loading={tracesLoading}
+                            loading={isLoading}
                             emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
                             emptyText="No tool calls recorded yet"
                             unit="call"
@@ -370,7 +304,7 @@ export function DashboardPage() {
                     <CardContent className="flex-1 flex items-center justify-center px-4 py-4">
                         <DonutChart
                             data={blockTypeData}
-                            loading={tracesLoading}
+                            loading={isLoading}
                             emptyIcon={<Shield className="h-8 w-8 opacity-40" />}
                             emptyText="No denied calls recorded yet"
                             unit="block"
@@ -405,12 +339,12 @@ export function DashboardPage() {
                         </Tooltip>
                     </CardHeader>
                     <CardContent className="pt-4 px-4 pb-4">
-                        {masLoading ? (
+                        {isLoading ? (
                             <Skeleton className="h-8 w-16" />
-                        ) : masError ? (
+                        ) : error ? (
                             <div className="text-sm text-destructive">Error</div>
                         ) : (
-                            <div className="text-2xl font-bold">{totalMAS}</div>
+                            <div className="text-2xl font-bold">{data?.total_mas ?? 0}</div>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">Configured MAS</p>
                     </CardContent>
@@ -461,23 +395,23 @@ export function DashboardPage() {
                     </Tooltip>
                 </CardHeader>
                 <CardContent className="pt-4 px-4 pb-4">
-                    {tracesLoading ? (
+                    {isLoading ? (
                         <div className="space-y-3">
                             {Array.from({length: 3}).map((_, i) => (
                                 <Skeleton key={i} className="w-full h-8" />
                             ))}
                         </div>
-                    ) : traceStats.blockReasons.length === 0 ? (
+                    ) : blockReasons.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-[200px] gap-3 text-muted-foreground">
                             <Shield className="h-8 w-8 opacity-40" />
                             <p className="text-sm">No denied calls recorded yet</p>
                         </div>
                     ) : (
                         <>
-                            <div style={{height: `${traceStats.blockReasons.length * 48 + 16}px`}}>
+                            <div style={{height: `${blockReasons.length * 48 + 16}px`}}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
-                                        data={traceStats.blockReasons}
+                                        data={blockReasons}
                                         layout="vertical"
                                         margin={{left: 8, right: 24, top: 4, bottom: 4}}
                                     >
@@ -495,7 +429,7 @@ export function DashboardPage() {
                                         />
                                         <YAxis
                                             type="category"
-                                            dataKey="name"
+                                            dataKey="label"
                                             width={180}
                                             tick={{fill: '#ccccdc', fontSize: 11}}
                                             axisLine={false}
@@ -506,7 +440,7 @@ export function DashboardPage() {
                                             content={({active, payload}) => {
                                                 if (!active || !payload?.length) return null;
                                                 const d = payload[0].payload as {
-                                                    name: string;
+                                                    label: string;
                                                     description: string;
                                                     count: number;
                                                 };
@@ -515,7 +449,7 @@ export function DashboardPage() {
                                                         style={CHART_TOOLTIP_STYLE.contentStyle}
                                                         className="px-3 py-2 max-w-[260px]"
                                                     >
-                                                        <p className="font-medium text-[#ccccdc] mb-1">{d.name}</p>
+                                                        <p className="font-medium text-[#ccccdc] mb-1">{d.label}</p>
                                                         {d.description && (
                                                             <p className="text-[11px] text-[#8b8fa8] mb-1.5 leading-snug">
                                                                 {d.description}
@@ -548,7 +482,7 @@ export function DashboardPage() {
                                 <Separator className="mb-3" />
                                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                     <span className="text-xs text-muted-foreground">Auth Requests</span>
-                                    {traceStats.blockReasons.map((r) => (
+                                    {blockReasons.map((r) => (
                                         <button
                                             key={r.reason}
                                             type="button"
@@ -559,7 +493,7 @@ export function DashboardPage() {
                                                 )
                                             }
                                         >
-                                            {r.name}
+                                            {r.label}
                                             <span className="text-muted-foreground">({r.count})</span>
                                         </button>
                                     ))}
