@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	k8stesting "k8s.io/client-go/testing"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -389,6 +391,100 @@ func TestReconcile_DeletionAuthNotFound(t *testing.T) {
 		for _, f := range got.Finalizers {
 			if f == finalizer {
 				t.Errorf("finalizer %q still present after 404 deletion", finalizer)
+			}
+		}
+	}
+}
+
+// TestReconcile_SecretAlreadyExists verifies the update path in createSecrets: when a
+// secret already exists from a previous reconcile run, it is overwritten with the new
+// credentials returned by the auth service (idempotent re-sync).
+func TestReconcile_SecretAlreadyExists(t *testing.T) {
+	creds := []identitysdk.AppCredentials{
+		{AppName: "app1", AppId: "id-1", ClientId: "cid-new", ClientSecret: "csec-new", SecretName: "app1-secret"},
+	}
+	srv := mockCreateServer(t, 1, creds)
+	defer srv.Close()
+
+	// Pre-populate the secret with stale credentials, as a previous reconcile would have.
+	staleSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "app1-secret",
+			Namespace: "default",
+			Labels:    map[string]string{"casa.io/mas-name": "test-mas"},
+		},
+		Type: corev1.SecretTypeOpaque,
+		StringData: map[string]string{
+			"client_id":     "cid-old",
+			"client_secret": "csec-old",
+		},
+	}
+
+	mas := masWithFinalizer()
+	r, _, k8sClient := newTestReconciler(t, srv, []client.Object{mas}, staleSecret)
+
+	_, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Secret must now contain the updated credentials.
+	secret, err := k8sClient.CoreV1().Secrets("default").Get(context.Background(), "app1-secret", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("secret not found after reconcile: %v", err)
+	}
+	if secret.StringData["client_id"] != "cid-new" {
+		t.Errorf("client_id = %q, want %q", secret.StringData["client_id"], "cid-new")
+	}
+	if secret.StringData["client_secret"] != "csec-new" {
+		t.Errorf("client_secret = %q, want %q", secret.StringData["client_secret"], "csec-new")
+	}
+}
+
+// TestReconcile_DeletionSecretDeleteFailure verifies that a failure to delete secrets
+// during teardown does NOT block finalizer removal — the reconciler logs and continues.
+func TestReconcile_DeletionSecretDeleteFailure(t *testing.T) {
+	srv := mockDeleteServer(t)
+	defer srv.Close()
+
+	deletionTime := metav1.Now()
+	mas := masWithFinalizer()
+	mas.DeletionTimestamp = &deletionTime
+
+	// Use a fake clientset with a reactor that fails the Secret List call.
+	k8sClientWithReactor := k8sfake.NewSimpleClientset()
+	k8sClientWithReactor.PrependReactor("list", "secrets", func(action k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, fmt.Errorf("injected list error")
+	})
+
+	scheme := buildTestScheme()
+	crClient := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithStatusSubresource(&MultiAgentSystem{}).
+		WithObjects(mas).
+		Build()
+
+	authClient, err := newAuthServerClient(srv.URL)
+	if err != nil {
+		t.Fatalf("newAuthServerClient: %v", err)
+	}
+	r := NewMultiAgentSystemReconciler(crClient, k8sClientWithReactor, authClient)
+
+	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result != (ctrl.Result{}) {
+		t.Errorf("expected empty result (secret failure non-blocking), got %+v", result)
+	}
+
+	// Finalizer must still be removed despite the secret list failure.
+	got := &MultiAgentSystem{}
+	err = crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got)
+	if err == nil {
+		for _, f := range got.Finalizers {
+			if f == finalizer {
+				t.Errorf("finalizer %q still present after secret delete failure", finalizer)
 			}
 		}
 	}
