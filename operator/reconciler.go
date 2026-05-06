@@ -196,7 +196,7 @@ func (r *MultiAgentSystemReconciler) createSecrets(ctx context.Context, mas *Mul
 				Namespace: mas.Namespace,
 				Labels: map[string]string{
 					"app.kubernetes.io/managed-by": "casa-operator",
-					"casa.io/mas-name":              mas.Name,
+					"casa.io/mas-name":             mas.Name,
 				},
 			},
 			Type: corev1.SecretTypeOpaque,
@@ -254,7 +254,7 @@ func (r *MultiAgentSystemReconciler) createIstioResources(ctx context.Context, m
 	drName := mas.Name + "-llm-dr"
 	labels := map[string]string{
 		"app.kubernetes.io/managed-by": "casa-operator",
-		"casa.io/mas-name":              mas.Name,
+		"casa.io/mas-name":             mas.Name,
 	}
 
 	se := &unstructured.Unstructured{}
@@ -330,17 +330,19 @@ func (r *MultiAgentSystemReconciler) deleteIstioResources(ctx context.Context, m
 
 func (r *MultiAgentSystemReconciler) deleteFromAuthService(ctx context.Context, mas *MultiAgentSystem) error {
 	resp, err := r.authSrvClient.KubernetesCRDsAPI.DeleteMasCrd(ctx, mas.Namespace, mas.Name).Execute()
-	if err != nil {
-		return fmt.Errorf("call auth-service: %w", err)
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 204 && resp.StatusCode != 404 {
+	// The generated SDK returns a Go error for any non-2xx response, so check the
+	// status code first when a response is available — 404 means already gone, which is fine.
+	if resp != nil {
+		defer resp.Body.Close()
+		if resp.StatusCode == 404 || resp.StatusCode == 204 {
+			return nil
+		}
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("auth-service returned %d: %s", resp.StatusCode, string(body))
 	}
-
+	if err != nil {
+		return fmt.Errorf("call auth-service: %w", err)
+	}
 	return nil
 }
 
