@@ -25,6 +25,7 @@ import (
 	identitysdk "github.com/outshift-open/CASA/sdk/go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
@@ -92,8 +93,8 @@ func baseMAS() *MultiAgentSystem {
 			Name: "Test MAS",
 			Apps: []AppSpec{
 				{
-					Name: "app1",
-					Type: "mcp",
+					Name:    "app1",
+					Type:    "mcp",
 					BaseURL: BaseURL{Scheme: "http", Host: "app1.default.svc.cluster.local"},
 				},
 			},
@@ -314,4 +315,81 @@ func TestReconcile_Deletion(t *testing.T) {
 		}
 	}
 	// err != nil (not found) means the object was fully removed — that's fine.
+}
+
+// TestReconcile_IstioResourcesCreated verifies that when LLMHost is set on a MAS,
+// the reconciler creates the expected ServiceEntry and DestinationRule via the CR client.
+func TestReconcile_IstioResourcesCreated(t *testing.T) {
+	creds := []identitysdk.AppCredentials{
+		{AppName: "app1", AppId: "id-1", ClientId: "cid-1", ClientSecret: "csec-1", SecretName: "app1-secret"},
+	}
+	srv := mockCreateServer(t, 1, creds)
+	defer srv.Close()
+
+	mas := masWithFinalizer()
+	mas.Spec.LLMHost = "api.openai.com"
+	r, crClient, _ := newTestReconciler(t, srv, []client.Object{mas})
+
+	_, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// ServiceEntry must exist with the correct host.
+	se := &unstructured.Unstructured{}
+	se.SetAPIVersion("networking.istio.io/v1beta1")
+	se.SetKind("ServiceEntry")
+	if err := crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas-llm-srv-entry", Namespace: "default"}, se); err != nil {
+		t.Fatalf("ServiceEntry not created: %v", err)
+	}
+	hosts, _, _ := unstructured.NestedStringSlice(se.Object, "spec", "hosts")
+	if len(hosts) != 1 || hosts[0] != "api.openai.com" {
+		t.Errorf("ServiceEntry spec.hosts = %v, want [api.openai.com]", hosts)
+	}
+
+	// DestinationRule must exist with the correct host.
+	dr := &unstructured.Unstructured{}
+	dr.SetAPIVersion("networking.istio.io/v1beta1")
+	dr.SetKind("DestinationRule")
+	if err := crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas-llm-dr", Namespace: "default"}, dr); err != nil {
+		t.Fatalf("DestinationRule not created: %v", err)
+	}
+	host, _, _ := unstructured.NestedString(dr.Object, "spec", "host")
+	if host != "api.openai.com" {
+		t.Errorf("DestinationRule spec.host = %q, want %q", host, "api.openai.com")
+	}
+}
+
+// TestReconcile_DeletionAuthNotFound verifies that a 404 from the auth service during
+// deletion is treated as success: no error is returned and no requeue is scheduled.
+func TestReconcile_DeletionAuthNotFound(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer srv.Close()
+
+	deletionTime := metav1.Now()
+	mas := masWithFinalizer()
+	mas.DeletionTimestamp = &deletionTime
+
+	r, crClient, _ := newTestReconciler(t, srv, []client.Object{mas})
+
+	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result != (ctrl.Result{}) {
+		t.Errorf("expected empty result (no requeue on 404), got %+v", result)
+	}
+
+	// Finalizer must be removed (or object fully gone).
+	got := &MultiAgentSystem{}
+	err = crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got)
+	if err == nil {
+		for _, f := range got.Finalizers {
+			if f == finalizer {
+				t.Errorf("finalizer %q still present after 404 deletion", finalizer)
+			}
+		}
+	}
 }
