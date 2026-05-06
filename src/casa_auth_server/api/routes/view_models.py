@@ -105,8 +105,8 @@ class AppSummaryViewModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class MASListItemViewModel(BaseModel):
-    """View model for a MAS entry in the list response, including inline app summaries and trace counts."""
+class MASViewModel(BaseModel):
+    """View model for a MAS entry, including inline app summaries and optional trace counts."""
 
     id: UUID
     name: str
@@ -121,20 +121,9 @@ class MASListItemViewModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class MASDetailViewModel(BaseModel):
-    """View model for a single MAS detail response, including inline app summaries and optional trace counts."""
-
-    id: UUID
-    name: str
-    namespace: str | None
-    k8s_name: str | None
-    enabled_tool_checks: int | None
-    authorization_server_id: UUID | None
-    created_at: datetime
-    apps: list[AppSummaryViewModel]
-    traces: MASTraceStat | None = None
-
-    model_config = ConfigDict(from_attributes=True)
+# Aliases kept for backwards compatibility with callers that import by name
+MASListItemViewModel = MASViewModel
+MASDetailViewModel = MASViewModel
 
 
 class MASListResponse(BaseModel):

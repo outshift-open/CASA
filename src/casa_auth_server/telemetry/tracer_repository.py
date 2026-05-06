@@ -154,6 +154,8 @@ class TracerPostgresRepository(TracerRepository):
         order_fn = asc if sort_asc else desc
         active_ids = self._active_mas_ids()
         if mas_id is not None:
+            if str(mas_id) not in active_ids:
+                return TraceList(items={}, total=0, page=page, page_size=page_size)
             mas_filter = Trace.event["mas_id"].as_string() == str(mas_id)  # type: ignore[assignment]
         else:
             mas_filter = Trace.event["mas_id"].as_string().in_(active_ids)  # type: ignore[assignment]
@@ -168,8 +170,6 @@ class TracerPostgresRepository(TracerRepository):
             paginated_qry = paginated_qry.offset((page - 1) * page_size).limit(page_size)
         total_qry = select(func.count()).select_from(group_by_qry)
         traces_qry = select(Trace).filter(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))  # type: ignore[union-attr]
-        if mas_id is not None:
-            traces_qry = traces_qry.where(Trace.event["mas_id"].as_string() == str(mas_id))
         traces = self._session.exec(traces_qry).all()
         total = self._session.exec(total_qry).one()
 
@@ -255,6 +255,10 @@ class TracerPostgresRepository(TracerRepository):
         """Return trace/allowed/denied counts for each of the given MAS IDs in one query."""
         if not mas_ids:
             return []
+        active_ids = self._active_mas_ids()
+        filtered_ids = [mid for mid in mas_ids if mid in active_ids]
+        if not filtered_ids:
+            return []
         rows = self._session.exec(
             select(
                 Trace.event["mas_id"].as_string().label("mas_id"),
@@ -263,7 +267,7 @@ class TracerPostgresRepository(TracerRepository):
                 func.count(func.distinct(Trace.user_input_id)).label("trace_count"),
                 func.count().label("event_count"),
             )
-            .where(Trace.event["mas_id"].as_string().in_(mas_ids))
+            .where(Trace.event["mas_id"].as_string().in_(filtered_ids))
             .group_by(
                 Trace.event["mas_id"].as_string(),
                 Trace.event_type,
@@ -271,7 +275,7 @@ class TracerPostgresRepository(TracerRepository):
             )
         ).all()
 
-        stats: dict[str, dict[str, int]] = {mid: {"traces": 0, "allowed": 0, "denied": 0} for mid in mas_ids}
+        stats: dict[str, dict[str, int]] = {mid: {"traces": 0, "allowed": 0, "denied": 0} for mid in filtered_ids}
         for mas_id, event_type, blocked, trace_count, event_count in rows:
             if mas_id not in stats:
                 continue

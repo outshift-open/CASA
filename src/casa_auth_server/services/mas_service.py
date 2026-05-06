@@ -95,7 +95,7 @@ class MultiAgentSystemService:
         """Bind a list of Apps with an existing Multi Agent System."""
         mas = self._mas_repository.get_by_id(mas_id)
         if not mas:
-            raise ValueError(f"MAS with id {id} not found")
+            raise ValueError(f"MAS with id {mas_id} not found")
 
         for app_id in request.app_ids:
             app = self._app_repository.get_app_by_id(app_id)
@@ -107,7 +107,7 @@ class MultiAgentSystemService:
         """Update an existing Multi Agent System."""
         mas = self._mas_repository.get_by_id(mas_id)
         if not mas:
-            raise ValueError(f"MAS with id {id} not found")
+            raise ValueError(f"MAS with id {mas_id} not found")
 
         mas.name = request.name
 
@@ -136,10 +136,6 @@ class MultiAgentSystemService:
             self._idp_client.delete_authorization_server(mas.authorization_server)
 
         return self._mas_repository.delete(mas)
-
-    def get_all_mas(self) -> list[MultiAgentSystem]:
-        """Get all the existing Multi Agent Systems."""
-        return self._mas_repository.get_all()
 
     def get_all_mas_paginated(
         self, page: int, page_size: int, q: str | None = None

@@ -26,12 +26,18 @@ import type {Trace} from '@/types/trace.types';
 
 export function GlobalSearch() {
     const [query, setQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
     const [open, setOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
-    const q = query.trim().toLowerCase();
+    useEffect(() => {
+        const id = setTimeout(() => setDebouncedQuery(query.trim().toLowerCase()), 300);
+        return () => clearTimeout(id);
+    }, [query]);
+
+    const q = debouncedQuery;
 
     const {data: masData} = useMAS(q ? {q} : undefined);
     const {data: tracesData} = useTraces(undefined, 1, 100, true, false);
