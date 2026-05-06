@@ -56,7 +56,8 @@ func main() {
 	}
 
 	// Create K8s clientset for secret management
-	clientset, err := kubernetes.NewForConfig(config)
+	var clientset kubernetes.Interface
+	clientset, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		ctrl.Log.Error(err, "unable to create K8s clientset")
 		os.Exit(1)
