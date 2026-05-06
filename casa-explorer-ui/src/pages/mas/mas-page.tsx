@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {useMAS} from '@/hooks/use-mas';
 import {toast} from 'sonner';
 import {ApiStateHandler} from '@/components/api-state-handler';
@@ -25,11 +25,17 @@ const PAGE_SIZE = 10;
 export function MASPage() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+
+    useEffect(() => {
+        const id = setTimeout(() => setDebouncedSearch(search), 300);
+        return () => clearTimeout(id);
+    }, [search]);
 
     const {data, isLoading, isFetching, error, refetch} = useMAS({
         page,
         page_size: PAGE_SIZE,
-        q: search || undefined,
+        q: debouncedSearch || undefined,
         include_metrics: true
     });
 
@@ -37,8 +43,7 @@ export function MASPage() {
         try {
             await refetch();
             toast.success('MAS refreshed successfully');
-        } catch (error) {
-            console.error('Failed to refresh MAS:', error);
+        } catch {
             toast.error('Failed to refresh MAS');
         }
     };

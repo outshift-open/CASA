@@ -22,9 +22,8 @@ from casa_auth_server.api.dependencies import Container
 from casa_auth_server.api.routes.view_models import (
     AppSummaryViewModel,
     AppViewModel,
-    MASDetailViewModel,
-    MASListItemViewModel,
     MASListResponse,
+    MASViewModel,
 )
 from casa_auth_server.core.types import MultiAgentSystem
 from casa_auth_server.services.app_service import AppService
@@ -34,7 +33,7 @@ from casa_auth_server.services.mas_service import (
     MultiAgentSystemService,
     MultiAgentSystemUpdateRequest,
 )
-from casa_auth_server.telemetry.tracer_repository import TracerRepository
+from casa_auth_server.telemetry.tracer_repository import MASTraceStat, TracerRepository
 
 router = APIRouter(tags=["Multi Agent Systems"])
 
@@ -91,13 +90,13 @@ def get_all_mas(
 ) -> MASListResponse:
     """Get a paginated list of multi agent systems, with inline app summaries and optional trace counts."""
     items, total = mas_service.get_all_mas_paginated(page, page_size, q)
-    trace_counts: dict[str, object] = {}
+    trace_counts: dict[str, MASTraceStat] = {}
     if include_metrics:
         mas_ids = [str(mas.id) for mas in items]
         trace_counts = {s.mas_id: s for s in tracer_repository.get_mas_trace_counts(mas_ids)}
     return MASListResponse(
         items=[
-            MASListItemViewModel(
+            MASViewModel(
                 id=mas.id,
                 name=mas.name,
                 namespace=mas.namespace,
@@ -106,7 +105,7 @@ def get_all_mas(
                 authorization_server_id=mas.authorization_server_id,
                 created_at=mas.created_at,
                 apps=[AppSummaryViewModel.model_validate(a) for a in (mas.apps or []) if a.deleted_at is None],
-                traces=trace_counts.get(str(mas.id)),  # type: ignore[arg-type]
+                traces=trace_counts.get(str(mas.id)),
             )
             for mas in items
         ],
@@ -122,7 +121,7 @@ def get_mas_by_id(
     tracer_repository: Annotated[TracerRepository, Depends(Container.get_tracer_repository)],
     mas_id: str,
     include_metrics: bool = Query(False),
-) -> MASDetailViewModel:
+) -> MASViewModel:
     """Get a multi agent system by id."""
     mas = mas_service.get_mas_by_id(mas_id)
     if not mas:
@@ -131,7 +130,7 @@ def get_mas_by_id(
     if include_metrics:
         stats = tracer_repository.get_mas_trace_counts([mas_id])
         traces = stats[0] if stats else None
-    return MASDetailViewModel(
+    return MASViewModel(
         id=mas.id,
         name=mas.name,
         namespace=mas.namespace,

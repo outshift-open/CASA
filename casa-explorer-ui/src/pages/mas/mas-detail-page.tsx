@@ -64,7 +64,7 @@ export function MASDetailPage() {
 
                 <ApiStateHandler
                     isLoading={isLoading}
-                    isError={!!error || !mas}
+                    isError={!!error}
                     error={error as Error}
                     loadingMessage="Loading MAS..."
                     errorMessage="Failed to load MAS. Please try again."

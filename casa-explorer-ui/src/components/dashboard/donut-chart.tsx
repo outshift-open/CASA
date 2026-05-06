@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import type React from 'react';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Shield} from 'lucide-react';
 import {PieChart, Pie, Cell, Tooltip as ChartTooltip, ResponsiveContainer} from 'recharts';

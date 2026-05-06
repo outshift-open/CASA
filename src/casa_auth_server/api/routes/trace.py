@@ -117,7 +117,3 @@ def get_traces(
         return tracer.get_traces(page, page_size, mas_id=mas_id, fetch_all=all, sort_asc=sort_asc)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    # except Exception as exc:
-    #     raise HTTPException(
-    #         status_code=500, detail="an unexpected error occurred while retrieving traces"
-    #     ) from exc
