@@ -42,13 +42,13 @@ var (
 
 type MultiAgentSystemReconciler struct {
 	client.Client
-	k8sClient     *kubernetes.Clientset
+	k8sClient     kubernetes.Interface
 	authSrvClient *identitysdk.APIClient
 }
 
 func NewMultiAgentSystemReconciler(
 	client client.Client,
-	k8sClient *kubernetes.Clientset,
+	k8sClient kubernetes.Interface,
 	authSrvClient *identitysdk.APIClient,
 ) *MultiAgentSystemReconciler {
 	return &MultiAgentSystemReconciler{
