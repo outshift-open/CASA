@@ -1,0 +1,167 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*.*.*"
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Version to release (e.g. 0.2.0, without v prefix)"
+                required: true
+                type: string
+
+permissions:
+    contents: write
+    packages: write
+    id-token: write
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    # ── Parse the semver from the tag (v0.2.0 → 0.2.0) ──────────────────────
+    setup:
+        name: Extract version
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+        steps:
+            - name: Extract version from tag or input
+              id: version
+              run: |
+                  if [[ -n "${{ inputs.version }}" ]]; then
+                    VERSION="${{ inputs.version }}"
+                  else
+                    VERSION="${GITHUB_REF_NAME#v}"
+                  fi
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+                  echo "Release version: $VERSION"
+
+    # ── Tests ─────────────────────────────────────────────────────────────────
+    pytest:
+        needs: [setup]
+        uses: ./.github/workflows/pytest.yml
+
+    go-test:
+        needs: [setup]
+        uses: ./.github/workflows/go-test.yml
+
+    # ── Docker builds (all parallel, gated on tests) ──────────────────────────
+    docker-auth-service:
+        name: Docker auth-server
+        needs: [setup, pytest, go-test]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/casa-auth-server"
+            context: .
+            dockerfile: deployments/docker/Dockerfile
+            image-tag: ${{ needs.setup.outputs.version }}
+
+    docker-ui:
+        name: Docker UI explorer
+        needs: [setup, pytest, go-test]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/casa-auth-server-ui"
+            context: .
+            dockerfile: deployments/docker/Dockerfile.ui
+            image-tag: ${{ needs.setup.outputs.version }}
+
+    docker-keycloak:
+        name: Docker Keycloak
+        needs: [setup, pytest, go-test]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/casa-auth-server-keycloak"
+            context: deployments/docker
+            dockerfile: deployments/docker/Dockerfile.keycloak
+            image-tag: ${{ needs.setup.outputs.version }}
+
+    docker-operator:
+        name: Docker operator
+        needs: [setup, pytest, go-test]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/casa-operator"
+            context: .
+            dockerfile: deployments/docker/Dockerfile.operator
+            image-tag: ${{ needs.setup.outputs.version }}
+
+    docker-traceparent:
+        name: Docker traceparent WASM
+        needs: [setup, pytest, go-test]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/traceparent_injector_plugin"
+            context: sidecar/traceparent_injector
+            dockerfile: sidecar/traceparent_injector/Dockerfile
+            image-tag: ${{ needs.setup.outputs.version }}
+
+    docker-llm-proxy:
+        name: Docker LLM proxy WASM
+        needs: [setup, pytest, go-test]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/llm_proxy_plugin"
+            context: sidecar/llm_proxy
+            dockerfile: sidecar/llm_proxy/Dockerfile
+            image-tag: ${{ needs.setup.outputs.version }}
+
+    docker-ext-auth:
+        name: Docker ext-auth service
+        needs: [setup, pytest, go-test]
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/ext_auth_service"
+            context: .
+            dockerfile: deployments/docker/Dockerfile.extauth
+            image-tag: ${{ needs.setup.outputs.version }}
+
+    # ── Helm publish (after respective images are ready) ─────────────────────
+    helm-casa-runtime:
+        name: Helm casa-runtime
+        needs: [setup, docker-auth-service, docker-ui, docker-keycloak, docker-operator]
+        uses: ./.github/workflows/helm-publish.yaml
+        with:
+            chart-path: deployments/helm/casa-runtime
+            oci-repository: helm
+            chart-version: ${{ needs.setup.outputs.version }}
+            app-version: ${{ needs.setup.outputs.version }}
+
+    helm-sidecar:
+        name: Helm sidecar
+        needs: [setup, docker-traceparent, docker-llm-proxy, docker-ext-auth]
+        uses: ./.github/workflows/helm-publish.yaml
+        with:
+            chart-path: deployments/helm/sidecar
+            oci-repository: helm
+            chart-version: ${{ needs.setup.outputs.version }}
+            app-version: ${{ needs.setup.outputs.version }}
+
+    # ── GitHub Release (after all artifacts published) ────────────────────────
+    github-release:
+        name: GitHub Release
+        needs: [helm-casa-runtime, helm-sidecar]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v4
+            - name: Create GitHub Release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+                    echo "Skipping release creation for manual dispatch (no tag)."
+                    exit 0
+                  fi
+                  gh release create "$GITHUB_REF_NAME" \
+                    --title "Release $GITHUB_REF_NAME" \
+                    --generate-notes \
+                    --verify-tag

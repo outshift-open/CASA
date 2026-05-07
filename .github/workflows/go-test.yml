@@ -1,0 +1,28 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+# SPDX-License-Identifier: Apache-2.0
+
+---
+name: go-test
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+    workflow_call:
+
+jobs:
+    operator:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: operator/go.mod
+                  cache-dependency-path: operator/go.sum
+
+            - name: Run operator tests
+              working-directory: operator
+              run: go test -v -count=1 -race ./...
