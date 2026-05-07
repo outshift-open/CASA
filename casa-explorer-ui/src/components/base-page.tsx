@@ -99,7 +99,7 @@ function Breadcrumbs() {
                 <Home className="h-3.5 w-3.5" />
             </Link>
             {breadcrumbs.map((crumb) => (
-                <div key={crumb.path} className="flex items-center gap-1">
+                <div key={`${crumb.path}-${crumb.label}`} className="flex items-center gap-1">
                     <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
                     {crumb.isLast ? (
                         <span className="text-foreground font-medium">{crumb.label}</span>
@@ -116,7 +116,7 @@ function Breadcrumbs() {
 
 export function BasePage({children}: {children: ReactNode}) {
     return (
-        <div className="flex flex-col gap-4 md:gap-6">
+        <div className="flex flex-col gap-4 md:gap-6 pb-12">
             <Breadcrumbs />
             {children}
         </div>

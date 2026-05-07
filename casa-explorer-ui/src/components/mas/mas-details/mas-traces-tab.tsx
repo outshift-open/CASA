@@ -225,7 +225,10 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
                 </div>
                 <button
                     type="button"
-                    onClick={() => setSortAsc((v) => !v)}
+                    onClick={() => {
+                        setSortAsc((v) => !v);
+                        setPage(1);
+                    }}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                     <ArrowUpDown className="h-3.5 w-3.5" />
@@ -237,7 +240,7 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
                 <SessionRow key={session.userInputId} session={session} appNames={appNames} />
             ))}
 
-            {(totalPages > 1 || data?.total) && (
+            {(data?.total ?? 0) > 0 && (
                 <div className="flex items-center justify-between pt-2">
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">Sessions per page</span>

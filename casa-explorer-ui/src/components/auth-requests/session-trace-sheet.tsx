@@ -218,8 +218,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
                         (() => {
                             let llmCallIndex = 0;
                             return session.events.map((trace) => {
-                                const idx =
-                                    trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
+                                const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
                                 return (
                                     <EventRow
                                         key={trace.id}
