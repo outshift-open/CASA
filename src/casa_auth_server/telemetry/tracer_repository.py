@@ -310,31 +310,42 @@ class TracerPostgresRepository(TracerRepository):
         """Return trace/allowed/denied counts for each of the given MAS IDs in one query."""
         if not mas_ids:
             return []
-        rows = self._session.exec(
+
+        session_rows = self._session.exec(
             select(
                 Trace.event["mas_id"].as_string().label("mas_id"),
-                Trace.event_type,
-                Trace.event["blocked"].as_boolean().label("blocked"),
-                func.count(func.distinct(Trace.user_input_id)).label("trace_count"),
-                func.count().label("event_count"),
+                func.count(func.distinct(Trace.user_input_id)).label("session_count"),
             )
             .where(Trace.event["mas_id"].as_string().in_(mas_ids))
+            .group_by(Trace.event["mas_id"].as_string())
+        ).all()
+
+        mcp_rows = self._session.exec(
+            select(
+                Trace.event["mas_id"].as_string().label("mas_id"),
+                Trace.event["blocked"].as_boolean().label("blocked"),
+                func.count().label("event_count"),
+            )
+            .where(
+                Trace.event["mas_id"].as_string().in_(mas_ids),
+                Trace.event_type == MCPCallStartedEvent.__name__,
+            )
             .group_by(
                 Trace.event["mas_id"].as_string(),
-                Trace.event_type,
                 Trace.event["blocked"].as_boolean(),
             )
         ).all()
 
         stats: dict[str, dict[str, int]] = {mid: {"traces": 0, "allowed": 0, "denied": 0} for mid in mas_ids}
-        for mas_id, event_type, blocked, trace_count, event_count in rows:
+        for mas_id, session_count in session_rows:
+            if mas_id in stats:
+                stats[mas_id]["traces"] = session_count
+        for mas_id, blocked, event_count in mcp_rows:
             if mas_id not in stats:
                 continue
-            if event_type == MCPCallStartedEvent.__name__:
-                if blocked:
-                    stats[mas_id]["denied"] += event_count
-                else:
-                    stats[mas_id]["allowed"] += event_count
-            stats[mas_id]["traces"] = max(stats[mas_id]["traces"], trace_count)
+            if blocked:
+                stats[mas_id]["denied"] += event_count
+            else:
+                stats[mas_id]["allowed"] += event_count
 
         return [MASTraceStat(mas_id=mid, **counts) for mid, counts in stats.items()]

@@ -37,7 +37,8 @@ export function MASDetailPage() {
             searchParams.delete('tab');
             setSearchParams(searchParams, {replace: true});
         } else {
-            setSearchParams({tab}, {replace: true});
+            searchParams.set('tab', tab);
+            setSearchParams(searchParams, {replace: true});
         }
     };
 
