@@ -19,26 +19,23 @@ import {Switch} from '@/components/ui/switch';
 
 import {ShieldCheck, ShieldOff} from 'lucide-react';
 import {toast} from 'sonner';
+import {ToolCheckFlags} from '@/types/mas.types';
 import type {MAS} from '@/types/mas.types';
-
-const FLAG_DETERMINISTIC_TOOL_SELECTED = 1 << 0;
-const FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS = 1 << 1;
-const FLAG_AI_POWERED_TOOL_MATCH = 1 << 2;
 
 const TOOL_CHECKS = [
     {
-        flag: FLAG_DETERMINISTIC_TOOL_SELECTED,
-        label: 'Deny if tool not selected by LLM',
+        flag: ToolCheckFlags.DeterministicToolSelected,
+        label: 'Deny If Tool Not Selected By LLM',
         description: 'Tool not in LLM-selected tools list'
     },
     {
-        flag: FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS,
-        label: 'Deny if no LLM calls made',
+        flag: ToolCheckFlags.DeterministicLLMSelectedTools,
+        label: 'Deny If No LLM Calls Made',
         description: 'App never made an LLM call'
     },
     {
-        flag: FLAG_AI_POWERED_TOOL_MATCH,
-        label: 'Deny if intent mismatch',
+        flag: ToolCheckFlags.AIPoweredToolMatch,
+        label: 'Deny If Intent Mismatch',
         description: 'Tool does not match user intent'
     }
 ];

@@ -22,7 +22,7 @@ import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
 import {useApps} from '@/hooks/use-apps';
 import {cn} from '@/lib/utils';
-import type {Trace} from '@/types/trace.types';
+import {EventType} from '@/types/trace.types';
 
 export function GlobalSearch() {
     const [query, setQuery] = useState('');
@@ -40,7 +40,7 @@ export function GlobalSearch() {
     const q = debouncedQuery;
 
     const {data: masData} = useMAS(q ? {q} : undefined);
-    const {data: tracesData} = useTraces(undefined, 1, 100, true, false);
+    const {data: tracesData} = useTraces({q: q || undefined, pageSize: 5}, false, !!q);
     const {data: appsData} = useApps();
 
     const appNameMap = useMemo(() => {
@@ -55,18 +55,15 @@ export function GlobalSearch() {
 
     const authResults = useMemo(() => {
         if (!q || !tracesData?.items) return [];
-        const all: Trace[] = Object.values(tracesData.items).flat();
         const seen = new Set<string>();
-        return all
-            .filter((t) => t.event_type === 'MCPCallStartedEvent')
+        return Object.values(tracesData.items)
+            .flat()
+            .filter((t) => t.event_type === EventType.MCPCallStarted)
             .filter((t) => {
-                const tool = t.event.tool ?? '';
-                if (!tool.toLowerCase().includes(q)) return false;
                 if (seen.has(t.user_input_id)) return false;
                 seen.add(t.user_input_id);
                 return true;
-            })
-            .slice(0, 5);
+            });
     }, [q, tracesData]);
 
     const hasResults = masResults.length > 0 || authResults.length > 0;

@@ -31,6 +31,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {toast} from 'sonner';
 import {useTraces} from '@/hooks/use-traces';
 import {useMASApps} from '@/hooks/use-mas';
+import {EventType} from '@/types/trace.types';
 import type {Trace} from '@/types/trace.types';
 import {EventRow, downloadJson} from '@/components/traces/event-row';
 import type {AppNames} from '@/components/traces/event-row';
@@ -53,11 +54,11 @@ function buildSessions(items: Record<string, Trace[]>): Session[] {
             const sorted = [...traces].sort(
                 (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
             );
-            const tokenIssued = sorted.find((t) => t.event_type === 'TokenIssuedEvent');
-            const mcpCalls = sorted.filter((t) => t.event_type === 'MCPCallStartedEvent');
-            const llmCallCount = sorted.filter((t) => t.event_type === 'LLMCallStartedEvent').length;
+            const tokenIssued = sorted.find((t) => t.event_type === EventType.TokenIssued);
+            const mcpCalls = sorted.filter((t) => t.event_type === EventType.MCPCallStarted);
+            const llmCallCount = sorted.filter((t) => t.event_type === EventType.LLMCallStarted).length;
             const tokenCount = sorted.filter(
-                (t) => t.event_type === 'TokenIssuedEvent' || t.event_type === 'TokenExchangedEvent'
+                (t) => t.event_type === EventType.TokenIssued || t.event_type === EventType.TokenExchanged
             ).length;
             return {
                 userInputId,
@@ -147,7 +148,7 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
             {expanded && (
                 <div className="px-4 pb-3 border-t space-y-0.5 bg-muted/20">
                     {session.events.map((trace) => {
-                        const idx = trace.event_type === 'LLMCallStartedEvent' ? llmCallIndex++ : undefined;
+                        const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
                         return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
                     })}
                 </div>
@@ -166,7 +167,7 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [sortAsc, setSortAsc] = useState(false);
-    const {data, isLoading} = useTraces(masId, page, pageSize, false, true, sortAsc);
+    const {data, isLoading} = useTraces({masId, page, pageSize, sortAsc}, true);
     const {data: appsData} = useMASApps(masId, true);
 
     const appNames: AppNames = useMemo(() => {

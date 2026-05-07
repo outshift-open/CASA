@@ -41,6 +41,14 @@ export interface MAS {
     traces?: MASTraceStat;
 }
 
+export const ToolCheckFlags = {
+    DeterministicToolSelected: 1 << 0,
+    DeterministicLLMSelectedTools: 1 << 1,
+    AIPoweredToolMatch: 1 << 2
+} as const;
+
+export const TOTAL_TOOL_CHECKS = Object.keys(ToolCheckFlags).length;
+
 export interface MASListResponse {
     items: MAS[];
     total: number;

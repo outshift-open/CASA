@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ColumnDef} from '@tanstack/react-table';
+import type {ColumnDef} from '@tanstack/react-table';
 import {PATHS} from '@/router/paths';
 import {Button} from '@/components/ui/button';
 import {TextHover} from '@/components/ui/text-hover';

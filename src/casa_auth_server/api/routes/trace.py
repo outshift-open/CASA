@@ -103,6 +103,15 @@ def trace_llm_call_end(
     return event
 
 
+@router.get("/trace/session/{user_input_id}", generate_unique_id_function=lambda _: "get_session")
+def get_session(
+    tracer: Annotated[Tracer, Depends(Container.get_tracer)],
+    user_input_id: UUID,
+):
+    """Retrieve all traces for a single session ordered by creation time."""
+    return tracer.get_session(user_input_id)
+
+
 @router.get("/trace")
 def get_traces(
     tracer: Annotated[Tracer, Depends(Container.get_tracer)],
@@ -111,9 +120,25 @@ def get_traces(
     mas_id: UUID | None = Query(None),
     all: bool = Query(False),
     sort_asc: bool = Query(False),
+    user_input_id: UUID | None = Query(None),
+    blocked: bool | None = Query(None),
+    q: str | None = Query(None),
+    event_type: str | None = Query(None),
+    blocking_type: str | None = Query(None),
 ):
-    """Retrieve paginated traces for all source app calls."""
+    """Retrieve paginated traces, optionally filtered by session, blocked status, tool name, event type, or blocking type."""
     try:
-        return tracer.get_traces(page, page_size, mas_id=mas_id, fetch_all=all, sort_asc=sort_asc)
+        return tracer.get_traces(
+            page,
+            page_size,
+            mas_id=mas_id,
+            fetch_all=all,
+            sort_asc=sort_asc,
+            user_input_id=user_input_id,
+            blocked=blocked,
+            q=q,
+            event_type=event_type,
+            blocking_type=blocking_type,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

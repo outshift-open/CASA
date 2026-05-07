@@ -15,12 +15,53 @@
  */
 
 import {apiClient} from '@/lib/api';
-import type {TraceList} from '@/types/trace.types';
+import type {Trace, TraceList} from '@/types/trace.types';
+
+export interface TraceQueryParams {
+    page?: number;
+    pageSize?: number;
+    masId?: string;
+    all?: boolean;
+    sortAsc?: boolean;
+    userInputId?: string;
+    blocked?: boolean;
+    q?: string;
+    eventType?: string;
+    blockingType?: string;
+}
 
 export const traceService = {
-    getTraces: async (page = 1, pageSize = 100, masId?: string, all = false, sortAsc = false): Promise<TraceList> => {
+    getSession: async (userInputId: string): Promise<Trace[]> => {
+        const {data} = await apiClient.get(`/trace/session/${userInputId}`);
+        return data;
+    },
+
+    getTraces: async (params: TraceQueryParams = {}): Promise<TraceList> => {
+        const {
+            page = 1,
+            pageSize = 20,
+            masId,
+            all = false,
+            sortAsc = false,
+            userInputId,
+            blocked,
+            q,
+            eventType,
+            blockingType
+        } = params;
         const {data} = await apiClient.get('/trace', {
-            params: {page, page_size: pageSize, mas_id: masId, all, sort_asc: sortAsc}
+            params: {
+                page,
+                page_size: pageSize,
+                mas_id: masId,
+                all,
+                sort_asc: sortAsc,
+                user_input_id: userInputId,
+                blocked,
+                q,
+                event_type: eventType,
+                blocking_type: blockingType
+            }
         });
         return data;
     }

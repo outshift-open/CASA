@@ -16,12 +16,23 @@
 
 import {useQuery, keepPreviousData} from '@tanstack/react-query';
 import {traceService} from '@/services/trace.service';
+import type {TraceQueryParams} from '@/services/trace.service';
 
-export const useTraces = (masId?: string, page = 1, pageSize = 100, all = false, live = false, sortAsc = false) => {
+export const useTraces = (params: TraceQueryParams = {}, live = false, enabled = true) => {
     return useQuery({
-        queryKey: ['traces', masId, page, pageSize, all, sortAsc],
-        queryFn: () => traceService.getTraces(page, pageSize, masId, all, sortAsc),
+        queryKey: ['traces', params],
+        queryFn: () => traceService.getTraces(params),
         refetchInterval: live ? 1000 : false,
-        placeholderData: keepPreviousData
+        placeholderData: keepPreviousData,
+        enabled
+    });
+};
+
+export const useSession = (userInputId: string | undefined) => {
+    return useQuery({
+        queryKey: ['session', userInputId],
+        queryFn: () => traceService.getSession(userInputId!),
+        enabled: !!userInputId,
+        staleTime: 30_000
     });
 };
