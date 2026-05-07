@@ -24,6 +24,8 @@ import (
 	"time"
 
 	identitysdk "github.com/outshift-open/CASA/sdk/go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -72,9 +74,7 @@ func newTestReconciler(
 	k8sClient := k8sfake.NewSimpleClientset(k8sObjs...)
 
 	authClient, err := newAuthServerClient(authSrv.URL)
-	if err != nil {
-		t.Fatalf("newAuthServerClient: %v", err)
-	}
+	require.NoError(t, err, "newAuthServerClient")
 
 	r := NewMultiAgentSystemReconciler(crClient, k8sClient, authClient)
 	return r, crClient, k8sClient
@@ -161,12 +161,8 @@ func TestReconcile_NotFound(t *testing.T) {
 	r, _, _ := newTestReconciler(t, srv, nil)
 	result, err := r.Reconcile(context.Background(), reconcileReq("not-found", "default"))
 
-	if err != nil {
-		t.Fatalf("expected nil error, got: %v", err)
-	}
-	if result != (ctrl.Result{}) {
-		t.Errorf("expected empty result, got %+v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, ctrl.Result{}, result)
 }
 
 // TestReconcile_AddsFinalizer verifies that the first reconcile of a new MAS
@@ -181,23 +177,12 @@ func TestReconcile_AddsFinalizer(t *testing.T) {
 	r, crClient, _ := newTestReconciler(t, srv, []client.Object{mas})
 
 	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !result.Requeue {
-		t.Error("expected Requeue=true after adding finalizer")
-	}
+	require.NoError(t, err)
+	assert.True(t, result.Requeue, "expected Requeue=true after adding finalizer")
 
 	got := &MultiAgentSystem{}
-	if err := crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got); err != nil {
-		t.Fatalf("failed to get MAS after reconcile: %v", err)
-	}
-	for _, f := range got.Finalizers {
-		if f == finalizer {
-			return // success
-		}
-	}
-	t.Errorf("finalizer %q not found; finalizers: %v", finalizer, got.Finalizers)
+	require.NoError(t, crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got))
+	assert.Contains(t, got.Finalizers, finalizer)
 }
 
 // TestReconcile_SyncSuccess verifies the happy path: an existing MAS with a finalizer
@@ -213,39 +198,21 @@ func TestReconcile_SyncSuccess(t *testing.T) {
 	r, crClient, k8sClient := newTestReconciler(t, srv, []client.Object{mas})
 
 	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result != (ctrl.Result{}) {
-		t.Errorf("expected empty result, got %+v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, ctrl.Result{}, result)
 
 	// Secret must exist with the expected credentials.
 	secret, err := k8sClient.CoreV1().Secrets("default").Get(context.Background(), "app1-secret", metav1.GetOptions{})
-	if err != nil {
-		t.Fatalf("secret app1-secret not found: %v", err)
-	}
-	if secret.StringData["client_id"] != "cid-1" {
-		t.Errorf("client_id = %q, want %q", secret.StringData["client_id"], "cid-1")
-	}
-	if secret.StringData["client_secret"] != "csec-1" {
-		t.Errorf("client_secret = %q, want %q", secret.StringData["client_secret"], "csec-1")
-	}
-	if secret.Labels["app.kubernetes.io/managed-by"] != "casa-operator" {
-		t.Errorf("managed-by label = %q, want %q", secret.Labels["app.kubernetes.io/managed-by"], "casa-operator")
-	}
+	require.NoError(t, err, "secret app1-secret not found")
+	assert.Equal(t, "cid-1", secret.StringData["client_id"])
+	assert.Equal(t, "csec-1", secret.StringData["client_secret"])
+	assert.Equal(t, "casa-operator", secret.Labels["app.kubernetes.io/managed-by"])
 
 	// MAS status must reflect an Active phase.
 	updated := &MultiAgentSystem{}
-	if err := crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, updated); err != nil {
-		t.Fatalf("failed to get MAS after reconcile: %v", err)
-	}
-	if updated.Status.Phase != "Active" {
-		t.Errorf("status.phase = %q, want %q", updated.Status.Phase, "Active")
-	}
-	if updated.Status.AppsReady != 1 {
-		t.Errorf("status.appsReady = %d, want 1", updated.Status.AppsReady)
-	}
+	require.NoError(t, crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, updated))
+	assert.Equal(t, "Active", updated.Status.Phase)
+	assert.Equal(t, 1, updated.Status.AppsReady)
 }
 
 // TestReconcile_AuthServiceError verifies that a 500 from the auth service causes
@@ -260,12 +227,8 @@ func TestReconcile_AuthServiceError(t *testing.T) {
 	r, _, _ := newTestReconciler(t, srv, []client.Object{mas})
 
 	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("expected nil error (swallowed on auth failure), got: %v", err)
-	}
-	if result.RequeueAfter != 30*time.Second {
-		t.Errorf("RequeueAfter = %v, want 30s", result.RequeueAfter)
-	}
+	require.NoError(t, err, "error must be swallowed on auth failure")
+	assert.Equal(t, 30*time.Second, result.RequeueAfter)
 }
 
 // TestReconcile_Deletion verifies the full deletion flow: secrets are deleted,
@@ -291,32 +254,20 @@ func TestReconcile_Deletion(t *testing.T) {
 	r, crClient, k8sClient := newTestReconciler(t, srv, []client.Object{mas}, existingSecret)
 
 	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result != (ctrl.Result{}) {
-		t.Errorf("expected empty result, got %+v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, ctrl.Result{}, result)
 
 	// Secret must be gone.
 	_, err = k8sClient.CoreV1().Secrets("default").Get(context.Background(), "app1-secret", metav1.GetOptions{})
-	if err == nil {
-		t.Error("expected secret app1-secret to be deleted, but it still exists")
-	}
+	assert.Error(t, err, "expected secret app1-secret to be deleted")
 
 	// Finalizer must be removed. The fake client deletes the object entirely once
 	// all finalizers are gone and DeletionTimestamp is set, so "not found" is also
 	// an acceptable (and correct) outcome.
 	got := &MultiAgentSystem{}
-	err = crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got)
-	if err == nil {
-		for _, f := range got.Finalizers {
-			if f == finalizer {
-				t.Errorf("finalizer %q still present after deletion", finalizer)
-			}
-		}
+	if crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got) == nil {
+		assert.NotContains(t, got.Finalizers, finalizer)
 	}
-	// err != nil (not found) means the object was fully removed — that's fine.
 }
 
 // TestReconcile_IstioResourcesCreated verifies that when LLMHost is set on a MAS,
@@ -333,33 +284,23 @@ func TestReconcile_IstioResourcesCreated(t *testing.T) {
 	r, crClient, _ := newTestReconciler(t, srv, []client.Object{mas})
 
 	_, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
 	// ServiceEntry must exist with the correct host.
 	se := &unstructured.Unstructured{}
 	se.SetAPIVersion("networking.istio.io/v1beta1")
 	se.SetKind("ServiceEntry")
-	if err := crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas-llm-srv-entry", Namespace: "default"}, se); err != nil {
-		t.Fatalf("ServiceEntry not created: %v", err)
-	}
+	require.NoError(t, crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas-llm-srv-entry", Namespace: "default"}, se), "ServiceEntry not created")
 	hosts, _, _ := unstructured.NestedStringSlice(se.Object, "spec", "hosts")
-	if len(hosts) != 1 || hosts[0] != "api.openai.com" {
-		t.Errorf("ServiceEntry spec.hosts = %v, want [api.openai.com]", hosts)
-	}
+	assert.Equal(t, []string{"api.openai.com"}, hosts)
 
 	// DestinationRule must exist with the correct host.
 	dr := &unstructured.Unstructured{}
 	dr.SetAPIVersion("networking.istio.io/v1beta1")
 	dr.SetKind("DestinationRule")
-	if err := crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas-llm-dr", Namespace: "default"}, dr); err != nil {
-		t.Fatalf("DestinationRule not created: %v", err)
-	}
+	require.NoError(t, crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas-llm-dr", Namespace: "default"}, dr), "DestinationRule not created")
 	host, _, _ := unstructured.NestedString(dr.Object, "spec", "host")
-	if host != "api.openai.com" {
-		t.Errorf("DestinationRule spec.host = %q, want %q", host, "api.openai.com")
-	}
+	assert.Equal(t, "api.openai.com", host)
 }
 
 // TestReconcile_DeletionAuthNotFound verifies that a 404 from the auth service during
@@ -377,22 +318,13 @@ func TestReconcile_DeletionAuthNotFound(t *testing.T) {
 	r, crClient, _ := newTestReconciler(t, srv, []client.Object{mas})
 
 	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result != (ctrl.Result{}) {
-		t.Errorf("expected empty result (no requeue on 404), got %+v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, ctrl.Result{}, result, "expected no requeue on 404 from auth service")
 
 	// Finalizer must be removed (or object fully gone).
 	got := &MultiAgentSystem{}
-	err = crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got)
-	if err == nil {
-		for _, f := range got.Finalizers {
-			if f == finalizer {
-				t.Errorf("finalizer %q still present after 404 deletion", finalizer)
-			}
-		}
+	if crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got) == nil {
+		assert.NotContains(t, got.Finalizers, finalizer)
 	}
 }
 
@@ -424,21 +356,13 @@ func TestReconcile_SecretAlreadyExists(t *testing.T) {
 	r, _, k8sClient := newTestReconciler(t, srv, []client.Object{mas}, staleSecret)
 
 	_, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Secret must now contain the updated credentials.
 	secret, err := k8sClient.CoreV1().Secrets("default").Get(context.Background(), "app1-secret", metav1.GetOptions{})
-	if err != nil {
-		t.Fatalf("secret not found after reconcile: %v", err)
-	}
-	if secret.StringData["client_id"] != "cid-new" {
-		t.Errorf("client_id = %q, want %q", secret.StringData["client_id"], "cid-new")
-	}
-	if secret.StringData["client_secret"] != "csec-new" {
-		t.Errorf("client_secret = %q, want %q", secret.StringData["client_secret"], "csec-new")
-	}
+	require.NoError(t, err, "secret not found after reconcile")
+	assert.Equal(t, "cid-new", secret.StringData["client_id"])
+	assert.Equal(t, "csec-new", secret.StringData["client_secret"])
 }
 
 // TestReconcile_DeletionSecretDeleteFailure verifies that a failure to delete secrets
@@ -465,27 +389,16 @@ func TestReconcile_DeletionSecretDeleteFailure(t *testing.T) {
 		Build()
 
 	authClient, err := newAuthServerClient(srv.URL)
-	if err != nil {
-		t.Fatalf("newAuthServerClient: %v", err)
-	}
+	require.NoError(t, err, "newAuthServerClient")
 	r := NewMultiAgentSystemReconciler(crClient, k8sClientWithReactor, authClient)
 
 	result, err := r.Reconcile(context.Background(), reconcileReq("test-mas", "default"))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result != (ctrl.Result{}) {
-		t.Errorf("expected empty result (secret failure non-blocking), got %+v", result)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, ctrl.Result{}, result, "secret failure must not block reconcile")
 
 	// Finalizer must still be removed despite the secret list failure.
 	got := &MultiAgentSystem{}
-	err = crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got)
-	if err == nil {
-		for _, f := range got.Finalizers {
-			if f == finalizer {
-				t.Errorf("finalizer %q still present after secret delete failure", finalizer)
-			}
-		}
+	if crClient.Get(context.Background(), types.NamespacedName{Name: "test-mas", Namespace: "default"}, got) == nil {
+		assert.NotContains(t, got.Finalizers, finalizer)
 	}
 }
