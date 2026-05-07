@@ -10,6 +10,8 @@ on:
             - main
         paths:
             - "docs/ui/**"
+        tags:
+            - "v*.*.*"
     workflow_dispatch:
 
 permissions:

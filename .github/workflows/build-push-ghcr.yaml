@@ -75,7 +75,7 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
           TAGS="$IMAGE:$TAG"
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+          if [[ "${GITHUB_REF}" == "refs/heads/main" || "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
             TAGS+=$'\n'"$IMAGE:latest"
           fi
 

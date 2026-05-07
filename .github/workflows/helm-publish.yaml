@@ -26,6 +26,16 @@ on:
         required: false
         type: string
         default: helm
+      chart-version:
+        description: Override chart version (defaults to Chart.yaml version)
+        required: false
+        type: string
+        default: ""
+      app-version:
+        description: Override appVersion (defaults to Chart.yaml appVersion)
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -121,6 +131,19 @@ jobs:
           done
 
           helm dependency build "${{ inputs.chart-path }}"
+
+      - name: Override chart versions
+        if: inputs.chart-version != '' || inputs.app-version != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          chart_yaml="${{ inputs.chart-path }}/Chart.yaml"
+          if [[ -n "${{ inputs.chart-version }}" ]]; then
+            yq e ".version = \"${{ inputs.chart-version }}\"" -i "$chart_yaml"
+          fi
+          if [[ -n "${{ inputs.app-version }}" ]]; then
+            yq e ".appVersion = \"${{ inputs.app-version }}\"" -i "$chart_yaml"
+          fi
 
       - name: Package chart
         id: package
