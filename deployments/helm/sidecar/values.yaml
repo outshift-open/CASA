@@ -186,9 +186,9 @@ opentelemetry-ebpf-instrumentation:
     name: "obi"
 
   image:
-    repository: mkedjour/ebpf-instrument
-    tag: tp_size_clamp_amd64_fix_3
-    pullPolicy: Always
+    repository: ghcr.io/open-telemetry/opentelemetry-ebpf-instrumentation/ebpf-instrument
+    tag: main@sha256:5152088b6f4a5d09bc99a86b08ca544635a593504eb7e2f43ccd3df2ec668fa2
+    pullPolicy: IfNotPresent
 
   privileged: true
 
