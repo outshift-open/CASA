@@ -51,7 +51,9 @@ interface DataTableProps<TData, TValue> {
     serverPage?: number;
     serverPageCount?: number;
     serverTotal?: number;
+    serverPageSize?: number;
     onServerPageChange?: (page: number) => void;
+    onServerPageSizeChange?: (size: number) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -69,7 +71,9 @@ export function DataTable<TData, TValue>({
     serverPage,
     serverPageCount,
     serverTotal,
-    onServerPageChange
+    serverPageSize,
+    onServerPageChange,
+    onServerPageSizeChange
 }: DataTableProps<TData, TValue>) {
     const isServerPaginated =
         serverPage !== undefined && serverPageCount !== undefined && onServerPageChange !== undefined;
@@ -187,11 +191,39 @@ export function DataTable<TData, TValue>({
                 <div className="flex items-center justify-between px-2">
                     {isServerPaginated ? (
                         <>
-                            <p className="text-xs text-muted-foreground">
-                                Page {serverPage} of {serverPageCount}
-                                {serverTotal !== undefined && <> · {serverTotal} total</>}
-                            </p>
+                            <div className="flex items-center gap-4">
+                                {onServerPageSizeChange && serverPageSize !== undefined && (
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-muted-foreground">Rows per page</p>
+                                        <Select
+                                            value={`${serverPageSize}`}
+                                            onValueChange={(value) => {
+                                                onServerPageSizeChange(Number(value));
+                                            }}
+                                        >
+                                            <SelectTrigger className="h-8 w-[70px]">
+                                                <SelectValue placeholder={serverPageSize} />
+                                            </SelectTrigger>
+                                            <SelectContent side="top">
+                                                {[10, 20, 30, 40, 50].map((size) => (
+                                                    <SelectItem key={size} value={`${size}`}>
+                                                        {size}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                                <p className="text-sm text-muted-foreground">
+                                    {serverTotal !== undefined
+                                        ? `${serverTotal} row${serverTotal !== 1 ? 's' : ''}`
+                                        : `Page ${serverPage} of ${serverPageCount}`}
+                                </p>
+                            </div>
                             <div className="flex items-center space-x-2">
+                                <div className="text-sm font-medium">
+                                    {serverPage} of {serverPageCount}
+                                </div>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -235,7 +267,7 @@ export function DataTable<TData, TValue>({
                                 </div>
                                 <div className="text-sm text-muted-foreground">
                                     {table.getFilteredRowModel().rows.length} of {table.getCoreRowModel().rows.length}{' '}
-                                    row(s)
+                                    row{table.getCoreRowModel().rows.length !== 1 ? 's' : ''}
                                 </div>
                             </div>
                             {table.getPageCount() > 1 && (

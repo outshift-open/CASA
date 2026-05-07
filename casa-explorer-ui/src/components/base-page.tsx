@@ -18,7 +18,8 @@ import {type ReactNode} from 'react';
 import {useLocation, useSearchParams, Link} from 'react-router-dom';
 import {ChevronRight, Home} from 'lucide-react';
 import {useMAS} from '@/hooks/use-mas';
-import {useTraces} from '@/hooks/use-traces';
+import {useSession} from '@/hooks/use-traces';
+import {EventType} from '@/types/trace.types';
 
 const routeTitles: Record<string, string> = {
     '/': 'Dashboard',
@@ -47,10 +48,8 @@ function Breadcrumbs() {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     const isAuthRequestDetail = pathSegments[0] === 'auth-requests' && pathSegments.length === 2;
     const authRequestId = isAuthRequestDetail ? pathSegments[1] : undefined;
-    const {data: tracesData} = useTraces(undefined, 1, 100, !!authRequestId);
-    const authRequestPrompt = authRequestId
-        ? tracesData?.items?.[authRequestId]?.find((t) => t.event_type === 'TokenIssuedEvent')?.event.prompt
-        : undefined;
+    const {data: sessionData} = useSession(authRequestId);
+    const authRequestPrompt = sessionData?.find((t) => t.event_type === EventType.TokenIssued)?.event.prompt;
 
     const breadcrumbs: Array<{label: string; path: string; isLast: boolean}> = [];
 

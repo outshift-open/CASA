@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {useState, useRef, useEffect} from 'react';
+import {Fragment, useState, useRef, useEffect} from 'react';
 import {
     ChevronDown,
     ChevronRight,
@@ -32,6 +32,7 @@ import {AuthStatusBadge} from '@/components/ui/auth-status-badge';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
 import {APP_TYPE_LABELS, APP_TYPE_CLASSES} from '@/components/ui/app-type-badge';
 import {toast} from 'sonner';
+import {EventType} from '@/types/trace.types';
 import type {Trace, BlockingReason} from '@/types/trace.types';
 import type {AppType} from '@/types/app.types';
 
@@ -43,12 +44,12 @@ export type AppNames = Record<string, AppInfo>;
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 export const BLOCKING_REASON_LABELS: Record<BlockingReason, string> = {
-    no_llm_calls_made_by_app: 'No LLM calls made',
-    tool_not_selected_by_llm: 'Not selected by LLM',
-    tool_intent_mismatch: 'Intent mismatch',
-    tool_parameters_mismatch: 'Params mismatch',
-    modified_mcp_tool_defs: 'Modified tool defs',
-    insufficient_scope: 'Insufficient scope'
+    no_llm_calls_made_by_app: 'No LLM Calls Made',
+    tool_not_selected_by_llm: 'Not Selected By LLM',
+    tool_intent_mismatch: 'Intent Mismatch',
+    tool_parameters_mismatch: 'Params Mismatch',
+    modified_mcp_tool_defs: 'Modified Tool Defs',
+    insufficient_scope: 'Insufficient Scope'
 };
 
 export const BLOCKING_REASON_DESCRIPTIONS: Partial<Record<BlockingReason, string>> = {
@@ -169,26 +170,18 @@ export function EventAttributes({event}: {event: Trace['event']}) {
                 const isJwt = JWT_FIELDS.has(key) && typeof val === 'string';
                 const display = formatValue(key, val);
                 return (
-                    <>
-                        <span
-                            key={`k-${key}`}
-                            className="text-[10px] text-muted-foreground/70 font-mono pt-0.5 whitespace-nowrap"
-                        >
+                    <Fragment key={key}>
+                        <span className="text-[10px] text-muted-foreground/70 font-mono pt-0.5 whitespace-nowrap">
                             {FIELD_LABELS[key] ?? key}
                         </span>
                         {isJwt ? (
-                            <pre
-                                key={`v-${key}`}
-                                className="text-[10px] font-mono text-foreground/80 whitespace-pre-wrap break-all leading-relaxed"
-                            >
+                            <pre className="text-[10px] font-mono text-foreground/80 whitespace-pre-wrap break-all leading-relaxed">
                                 {display}
                             </pre>
                         ) : (
-                            <span key={`v-${key}`} className="text-[10px] font-mono text-foreground/80 break-all">
-                                {display}
-                            </span>
+                            <span className="text-[10px] font-mono text-foreground/80 break-all">{display}</span>
                         )}
-                    </>
+                    </Fragment>
                 );
             })}
         </div>
@@ -222,7 +215,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
     let icon: React.ReactNode = null;
     let summary: React.ReactNode = null;
 
-    if (event_type === 'TokenIssuedEvent') {
+    if (event_type === EventType.TokenIssued) {
         icon = <Zap className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
         summary = (
             <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
@@ -243,7 +236,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 )}
             </div>
         );
-    } else if (event_type === 'TokenExchangedEvent') {
+    } else if (event_type === EventType.TokenExchanged) {
         const tools = parseToolsList(event.tools);
         icon = <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
         summary = (
@@ -269,7 +262,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 )}
             </div>
         );
-    } else if (event_type === 'LLMCallStartedEvent') {
+    } else if (event_type === EventType.LLMCallStarted) {
         const tools = parseToolsList(event.tools);
         borderClass = 'border-blue-500/30';
         expandedBgClass = 'bg-blue-500/5';
@@ -295,7 +288,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 )}
             </div>
         );
-    } else if (event_type === 'LLMCallEndedEvent') {
+    } else if (event_type === EventType.LLMCallEnded) {
         const selectedTools = parseToolsList(event.tools);
         borderClass = 'border-blue-500/30';
         expandedBgClass = 'bg-blue-500/5';
@@ -315,7 +308,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 )}
             </div>
         );
-    } else if (event_type === 'MCPCallStartedEvent') {
+    } else if (event_type === EventType.MCPCallStarted) {
         const blocked = event.blocked;
         const reason = event.blocking_reason ? BLOCKING_REASON_LABELS[event.blocking_reason] : null;
         const reasonDescription = event.blocking_reason ? BLOCKING_REASON_DESCRIPTIONS[event.blocking_reason] : null;

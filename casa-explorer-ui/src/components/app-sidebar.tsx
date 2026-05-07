@@ -74,7 +74,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
                         ))}
                         <SidebarMenuItem>
                             <SidebarMenuButton
-                                tooltip="Auth scopes (coming soon)"
+                                tooltip="Auth Scopes (coming soon)"
                                 disabled
                                 className="opacity-40 cursor-not-allowed"
                             >

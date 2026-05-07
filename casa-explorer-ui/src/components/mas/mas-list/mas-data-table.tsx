@@ -30,7 +30,9 @@ interface MASDataTableProps<TData, TValue> {
     serverPage?: number;
     serverPageCount?: number;
     serverTotal?: number;
+    serverPageSize?: number;
     onServerPageChange?: (page: number) => void;
+    onServerPageSizeChange?: (size: number) => void;
 }
 
 export function MASDataTable<TData, TValue extends {id?: string}>({
@@ -43,7 +45,9 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
     serverPage,
     serverPageCount,
     serverTotal,
-    onServerPageChange
+    serverPageSize,
+    onServerPageChange,
+    onServerPageSizeChange
 }: MASDataTableProps<TData, TValue>) {
     const navigate = useNavigate();
     const emptyState = (
@@ -72,7 +76,9 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
             serverPage={serverPage}
             serverPageCount={serverPageCount}
             serverTotal={serverTotal}
+            serverPageSize={serverPageSize}
             onServerPageChange={onServerPageChange}
+            onServerPageSizeChange={onServerPageSizeChange}
         />
     );
 }

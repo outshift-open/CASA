@@ -17,13 +17,9 @@
 import {Button} from '@/components/ui/button';
 import {Copy, Download, Tags, AppWindow, Activity, ShieldAlert} from 'lucide-react';
 import {toast} from 'sonner';
+import {ToolCheckFlags, TOTAL_TOOL_CHECKS} from '@/types/mas.types';
 import type {MAS} from '@/types/mas.types';
 import {DateHover} from '@/components/ui/date-hover';
-
-const FLAG_DETERMINISTIC_TOOL_SELECTED = 1 << 0;
-const FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS = 1 << 1;
-const FLAG_AI_POWERED_TOOL_MATCH = 1 << 2;
-const TOTAL_CHECKS = 3;
 
 interface MASInfoTabProps {
     mas: MAS;
@@ -36,9 +32,9 @@ export function MASInfoTab({mas, traceTotal, onTabChange}: MASInfoTabProps) {
 
     const enabledChecks = mas.enabled_tool_checks ?? 0;
     const enabledCount = [
-        FLAG_DETERMINISTIC_TOOL_SELECTED,
-        FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS,
-        FLAG_AI_POWERED_TOOL_MATCH
+        ToolCheckFlags.DeterministicToolSelected,
+        ToolCheckFlags.DeterministicLLMSelectedTools,
+        ToolCheckFlags.AIPoweredToolMatch
     ].filter((f) => (enabledChecks & f) !== 0).length;
 
     const copyToClipboard = (text: string, label: string) => {
@@ -140,7 +136,7 @@ export function MASInfoTab({mas, traceTotal, onTabChange}: MASInfoTabProps) {
                     <div>
                         <p className="text-3xl font-bold">
                             {enabledCount}
-                            <span className="text-xl font-normal text-muted-foreground"> / {TOTAL_CHECKS}</span>
+                            <span className="text-xl font-normal text-muted-foreground"> / {TOTAL_TOOL_CHECKS}</span>
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                             Guardrails evaluated before MCP tool execution.
