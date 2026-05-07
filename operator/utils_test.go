@@ -17,40 +17,27 @@ package main
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConvertSlice_MapsEachElement(t *testing.T) {
 	src := []int{1, 2, 3}
 	got := ConvertSlice(src, func(v int) string { return fmt.Sprintf("%d", v) })
-	want := []string{"1", "2", "3"}
-
-	if len(got) != len(want) {
-		t.Fatalf("len = %d, want %d", len(got), len(want))
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Errorf("[%d] = %q, want %q", i, got[i], want[i])
-		}
-	}
+	assert.Equal(t, []string{"1", "2", "3"}, got)
 }
 
 func TestConvertSlice_EmptyInput(t *testing.T) {
 	got := ConvertSlice([]int{}, func(v int) string { return "" })
-	if len(got) != 0 {
-		t.Fatalf("expected empty slice, got len %d", len(got))
-	}
+	assert.Empty(t, got)
 }
 
 func TestDerefrence_NonNilPointer(t *testing.T) {
 	v := 42
-	if got := Derefrence(&v, 0); got != 42 {
-		t.Errorf("got %d, want 42", got)
-	}
+	assert.Equal(t, 42, Derefrence(&v, 0))
 }
 
 func TestDerefrence_NilPointerReturnsDefault(t *testing.T) {
 	var ptr *int
-	if got := Derefrence(ptr, 99); got != 99 {
-		t.Errorf("got %d, want 99 (default)", got)
-	}
+	assert.Equal(t, 99, Derefrence(ptr, 99))
 }
