@@ -14,13 +14,14 @@
 
 """Service layer for managing Kubernetes CRD resources (MultiAgentSystem)."""
 
+import json
 import logging
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 from uuid import uuid4
 
 from casa_auth_server.core.idp.idp_client import IdpClient
-from casa_auth_server.core.types import AppType, MultiAgentSystem, ToolCheckFlags
+from casa_auth_server.core.types import App, AppType, MultiAgentSystem, ToolCheckFlags
 from casa_auth_server.k8s.k8s_types import (
     AppCredentials,
     AppSpec,
@@ -35,11 +36,12 @@ from casa_auth_server.k8s.k8s_types import (
 )
 from casa_auth_server.k8s.repository import K8sMultiAgentSystemRepository
 from casa_auth_server.k8s.types import K8sAppSpec, K8sMultiAgentSystemCRD, K8sMultiAgentSystemMetadata
-from casa_auth_server.services.app_service import AppRequest, AppService
+from casa_auth_server.services.app_service import AppRequest, AppService, ToolRequest
 from casa_auth_server.services.mas_service import (
     MultiAgentSystemCreateRequest,
     MultiAgentSystemService,
 )
+from casa_auth_server.services.mcp_discover import McpDiscoverService
 
 logger = logging.getLogger(__name__)
 
@@ -53,11 +55,13 @@ class K8sCRDService:
         app_service: AppService,
         idp_client: IdpClient,
         k8s_mas_repository: K8sMultiAgentSystemRepository,
+        mcp_discover: McpDiscoverService,
     ):
         self._mas_service = mas_service
         self._app_service = app_service
         self._idp_client = idp_client
         self._k8s_mas_repository = k8s_mas_repository
+        self._mcp_discover = mcp_discover
 
     def _convert_tool_checks_to_flags(self, checks: list[ToolCheckType]) -> ToolCheckFlags:
         """Convert list of tool check types to ToolCheckFlags."""
@@ -172,6 +176,39 @@ class K8sCRDService:
         crd.app_specs = app_specs
         return crd
 
+    def _discover_and_register_tools(self, app: App) -> None:
+        """Discover tools from an MCP server and persist them. Best-effort: logs and returns on any failure."""
+        try:
+            mcp_server = self._mcp_discover.discover_mcp_tools(app.base_url)
+        except Exception as e:
+            logger.warning(f"Tool discovery failed for MCP server {app.base_url}: {e}")
+            return
+
+        tool_requests = [
+            ToolRequest(
+                name=tool.name,
+                description=tool.description or "",
+                input_schema=json.dumps(tool.inputSchema),
+                output_schema=json.dumps(tool.outputSchema) if tool.outputSchema else "{}",
+            )
+            for tool in mcp_server.tools
+        ]
+
+        try:
+            self._app_service.update_app(
+                str(app.id),
+                AppRequest(
+                    name=app.name,
+                    type=app.type,
+                    base_url=app.base_url,
+                    mas_id=str(app.mas_id),
+                    tools=tool_requests,
+                ),
+            )
+            logger.info(f"Registered {len(tool_requests)} tools for MCP server {app.name}")
+        except Exception as e:
+            logger.error(f"Failed to persist discovered tools for app {app.id}: {e}")
+
     def create_mas_from_crd(self, request: MASCreateRequest) -> MultiAgentSystemCRD:
         """Create a new MultiAgentSystem from CRD request (idempotent)."""
         # Check if MAS already exists (by k8s_name and namespace)
@@ -269,6 +306,9 @@ class K8sCRDService:
                 )
 
                 created_apps.append(app)
+
+                if app.type == AppType.MCP_SERVER:
+                    self._discover_and_register_tools(app)
 
                 # Collect credentials for operator to create K8s secrets
                 if app.client_credentials:

@@ -293,10 +293,11 @@ class Container:
         app_service: Annotated[AppService, Depends(get_app_service)],
         idp_client: Annotated[IdpClient, Depends(get_idp_client)],
         k8s_mas_repository: Annotated[K8sMultiAgentSystemPostgresRepository, Depends(get_k8s_mas_repository)],
+        mcp_discover: Annotated[McpDiscoverService, Depends(get_mcp_discover)],
     ):
         from casa_auth_server.k8s.k8s_crd_service import K8sCRDService
 
-        return K8sCRDService(mas_service, app_service, idp_client, k8s_mas_repository)
+        return K8sCRDService(mas_service, app_service, idp_client, k8s_mas_repository, mcp_discover)
 
     @staticmethod
     def get_user_input_service(

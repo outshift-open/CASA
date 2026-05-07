@@ -1,6 +1,6 @@
 dependencies:
 - name: ext-auth-service
   repository: file://../sidecar
-  version: 0.1.9
-digest: sha256:14203e5f1c843c101e7f1ca08f35d1d2bbfe4a6c0849d6d6a7245a2c18363b5a
-generated: "2026-04-28T17:27:49.090698+02:00"
+  version: 0.1.10
+digest: sha256:f278b06ad34ddcacb3a733ff88b53a1f437eedff353c5aeac152e06645341d1e
+generated: "2026-05-07T14:48:09.424849+01:00"

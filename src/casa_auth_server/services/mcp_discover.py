@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class McpDiscoverService:
     """Service for discovering tools from MCP servers."""
 
-    def discover_mcp_tools(self, mcp_server_url: str) -> McpServer:
+    def discover_mcp_tools(self, mcp_server_url: str, timeout_seconds: float = 10.0) -> McpServer:
         """Discover MCP tools from the given MCP server URL."""
 
         async def _discover() -> McpServer:
@@ -60,5 +60,4 @@ class McpDiscoverService:
 
                     return McpServer(name="unknown", tools=tools, resources=resources)
 
-        # Run the async function synchronously
-        return asyncio.run(_discover())
+        return asyncio.run(asyncio.wait_for(_discover(), timeout=timeout_seconds))
