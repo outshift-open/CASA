@@ -21,7 +21,7 @@ appVersion: "0.0.13"
 
 dependencies:
   - name: ext-auth-service
-    version: "0.1.9"
+    version: "0.1.10"
     repository: "file://../sidecar"
     alias: sidecar
     condition: sidecar.enabled
