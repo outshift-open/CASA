@@ -40,6 +40,7 @@ mcp:
   replicas: 1
   serviceName: casa-demo-mcp
   servicePort: 3000
+  mcpPath: "/mcp"
   docker:
     registry: ghcr.io/outshift-open
     image: outshift-casa/demo/mcp

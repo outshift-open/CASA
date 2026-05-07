@@ -33,7 +33,7 @@ spec:
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl:
-        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        host: "{{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}{{ .Values.mcp.mcpPath | default "" }}"
         scheme: http
       kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
       httpRequestSchema:
@@ -60,7 +60,7 @@ spec:
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl:
-        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        host: "{{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}{{ .Values.mcp.mcpPath | default "" }}"
         scheme: http
       kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
       httpRequestSchema:
