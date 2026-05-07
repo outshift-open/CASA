@@ -16,7 +16,7 @@ apiVersion: v2
 name: casa-runtime
 description: CASA Control Plane — auth-service, UI explorer, Keycloak, PostgreSQL
 type: application
-version: 0.1.17
+version: 0.1.18
 appVersion: "0.0.13"
 
 dependencies:
