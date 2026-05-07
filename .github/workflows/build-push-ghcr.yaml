@@ -1,4 +1,4 @@
-# Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 ---
 name: Build & Push (GHCR)
 
@@ -99,6 +98,6 @@ jobs:
           file: ${{ inputs.dockerfile }}
           push: true
           tags: ${{ steps.tags.outputs.tags }}
-          platforms: linux/amd64,linux/arm64   # ← add this
+          platforms: linux/amd64,linux/arm64 # ← add this
           cache-from: type=gha
           cache-to: type=gha,mode=max
