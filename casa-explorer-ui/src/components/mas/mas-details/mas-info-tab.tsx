@@ -57,7 +57,7 @@ export function MASInfoTab({mas, traceTotal, onTabChange}: MASInfoTabProps) {
         link.href = url;
         link.download = `${mas.name}-config.json`;
         link.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
         toast.success('Configuration exported');
     };
 

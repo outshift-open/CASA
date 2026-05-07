@@ -194,13 +194,17 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
         );
     }
 
-    if (sessions.length === 0 && page === 1) {
+    if (sessions.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
                 <Activity className="h-10 w-10 opacity-40" />
                 <div className="text-center">
-                    <p className="text-sm font-medium">No traces yet</p>
-                    <p className="text-xs mt-1">Authorization activity will appear here once agents start running</p>
+                    <p className="text-sm font-medium">{page > 1 ? 'No sessions on this page' : 'No traces yet'}</p>
+                    <p className="text-xs mt-1">
+                        {page > 1
+                            ? 'Try going back to a previous page'
+                            : 'Authorization activity will appear here once agents start running'}
+                    </p>
                 </div>
             </div>
         );
