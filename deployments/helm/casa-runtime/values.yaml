@@ -311,7 +311,7 @@ sidecar:
       name: "obi"
     image:
       repository: ghcr.io/open-telemetry/opentelemetry-ebpf-instrumentation/ebpf-instrument
-      tag: main@sha256:5152088b6f4a5d09bc99a86b08ca544635a593504eb7e2f43ccd3df2ec668fa2
+      tag: main@sha256:0325b9d2a875f919f6f1f1cbeff0e9ce127e31670812e75347e13e008441274e
       pullPolicy: IfNotPresent
     privileged: true
     extraCapabilities:
