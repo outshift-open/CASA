@@ -138,7 +138,7 @@ class TracerPostgresRepository(TracerRepository):
 
     def _active_mas_ids(self) -> list[str]:
         """Return IDs of non-deleted MAS as strings."""
-        rows = self._session.exec(select(MultiAgentSystem.id).where(MultiAgentSystem.deleted_at == None)).all()
+        rows = self._session.exec(select(MultiAgentSystem.id).where(MultiAgentSystem.deleted_at.is_(None))).all()  # type: ignore[union-attr]
         return [str(r) for r in rows]
 
     def store_event(self, event: BaseEvent):
@@ -190,6 +190,9 @@ class TracerPostgresRepository(TracerRepository):
         if blocked is not None:
             filters.append(Trace.event["blocked"].as_boolean() == blocked)  # type: ignore[arg-type]
         if q is not None:
+            # Only MCPCallStarted events carry a "tool" field; restrict q to that event type
+            # to avoid silently excluding all other event types whose "tool" field is null.
+            filters.append(Trace.event_type == MCPCallStartedEvent.__name__)
             filters.append(Trace.event["tool"].as_string().ilike(f"%{q}%"))  # type: ignore[arg-type]
         if event_type is not None:
             filters.append(Trace.event_type == event_type)
@@ -244,7 +247,9 @@ class TracerPostgresRepository(TracerRepository):
 
     def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
         """Retrieve traces for a specific user input and event type."""
-        traces = self._session.exec(select(Trace).filter_by(user_input_id=user_input_id, event_type=event_type)).all()
+        traces = self._session.exec(
+            select(Trace).where(Trace.user_input_id == UUID(user_input_id)).where(Trace.event_type == event_type)
+        ).all()
         return traces
 
     def get_metrics(self, total_mas: int) -> MetricsSnapshot:

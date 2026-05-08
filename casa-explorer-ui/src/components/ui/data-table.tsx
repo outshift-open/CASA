@@ -32,7 +32,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/c
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {ChevronLeft, ChevronRight, Search, Inbox} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Search, Inbox, X} from 'lucide-react';
 import {cn} from '@/lib/utils';
 
 interface DataTableProps<TData, TValue> {
@@ -97,8 +97,9 @@ export function DataTable<TData, TValue>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        ...(hidePagination || isServerPaginated ? {} : {getPaginationRowModel: getPaginationRowModel()}),
-        manualPagination: hidePagination || isServerPaginated,
+        ...(isServerPaginated ? {} : {getPaginationRowModel: getPaginationRowModel()}),
+        manualPagination: isServerPaginated,
+        pageCount: isServerPaginated ? serverPageCount : undefined,
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
@@ -134,8 +135,18 @@ export function DataTable<TData, TValue>({
                             placeholder={searchPlaceholder}
                             value={globalFilter ?? ''}
                             onChange={(event) => handleGlobalFilterChange(String(event.target.value))}
-                            className="pl-9"
+                            className="pl-9 pr-8"
                         />
+                        {globalFilter && (
+                            <button
+                                type="button"
+                                onClick={() => handleGlobalFilterChange('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                aria-label="Clear search"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        )}
                     </div>
                     {filterSlot}
                 </div>
@@ -217,7 +228,7 @@ export function DataTable<TData, TValue>({
                                 <p className="text-sm text-muted-foreground">
                                     {serverTotal !== undefined
                                         ? `${serverTotal} row${serverTotal !== 1 ? 's' : ''}`
-                                        : `Page ${serverPage} of ${serverPageCount}`}
+                                        : `${serverPage} of ${serverPageCount} pages`}
                                 </p>
                             </div>
                             <div className="flex items-center space-x-2">

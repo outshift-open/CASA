@@ -26,7 +26,7 @@ import {Info, Activity, AppWindow, Tags, ShieldAlert} from 'lucide-react';
 export function MASDetailPage() {
     const {id} = useParams<{id: string}>();
     const [searchParams, setSearchParams] = useSearchParams();
-    const {data: mas, isLoading, error, refetch} = useMASById(id || '');
+    const {data: mas, isLoading, error, refetch} = useMASById(id);
 
     const VALID_TABS = ['info', 'deny_conditions', 'apps', 'traces'];
     const tabParam = searchParams.get('tab');

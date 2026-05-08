@@ -26,18 +26,18 @@ export const useMAS = (params?: MASQueryParams) => {
     });
 };
 
-export const useMASById = (id: string) => {
+export const useMASById = (id: string | undefined) => {
     return useQuery({
         queryKey: ['mas', id],
-        queryFn: () => masService.getMASById(id, {include_metrics: true}),
+        queryFn: () => masService.getMASById(id!, {include_metrics: true}),
         enabled: !!id
     });
 };
 
-export const useMASApps = (masId: string, live = false) => {
+export const useMASApps = (masId: string | undefined, live = false) => {
     return useQuery({
         queryKey: ['mas', masId, 'apps'],
-        queryFn: () => masService.getMASApps(masId),
+        queryFn: () => masService.getMASApps(masId!),
         enabled: !!masId,
         refetchInterval: live ? 1000 : false
     });

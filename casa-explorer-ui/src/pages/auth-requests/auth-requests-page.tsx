@@ -36,7 +36,8 @@ export function AuthRequestsPage() {
     const masFilter = searchParams.get('mas') ?? 'all';
     const denyTypeFilter = (searchParams.get('denyType') ?? 'all') as 'all' | BlockingType;
     const fromDashboard = searchParams.get('from') === 'dashboard';
-    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+    const parsedPage = parseInt(searchParams.get('page') ?? '1', 10);
+    const page = Math.max(1, Number.isFinite(parsedPage) ? parsedPage : 1);
 
     const [debouncedSearch, setDebouncedSearch] = useState(search);
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -126,7 +127,8 @@ export function AuthRequestsPage() {
     }, [tracesData]);
 
     const total = tracesData?.total ?? 0;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const actualPageSize = tracesData?.page_size ?? pageSize;
+    const totalPages = Math.max(1, Math.ceil(total / actualPageSize));
 
     const dashboardFilterLabel = useMemo(() => {
         if (!fromDashboard) return null;

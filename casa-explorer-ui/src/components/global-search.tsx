@@ -17,7 +17,7 @@
 import {useState, useMemo, useRef, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {PATHS} from '@/router/paths';
-import {Search, Network, Activity, CheckCircle2, XCircle} from 'lucide-react';
+import {Search, Network, Activity, CheckCircle2, XCircle, X} from 'lucide-react';
 import {useMAS} from '@/hooks/use-mas';
 import {useTraces} from '@/hooks/use-traces';
 import {useApps} from '@/hooks/use-apps';
@@ -40,7 +40,7 @@ export function GlobalSearch() {
     const q = debouncedQuery;
 
     const {data: masData} = useMAS(q ? {q} : undefined);
-    const {data: tracesData} = useTraces({q: q || undefined, pageSize: 5}, false, !!q);
+    const {data: tracesData} = useTraces({q: q || undefined, pageSize: 5, eventType: EventType.MCPCallStarted}, false, !!q);
     const {data: appsData} = useApps();
 
     const appNameMap = useMemo(() => {
@@ -116,9 +116,24 @@ export function GlobalSearch() {
                     onFocus={() => setOpen(true)}
                     className="w-full h-8 pl-8 pr-10 rounded-md bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[rgba(0,188,235,0.4)] focus:bg-[rgba(255,255,255,0.08)] transition-colors"
                 />
-                <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 font-mono pointer-events-none">
-                    ⌘K
-                </kbd>
+                {query ? (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setQuery('');
+                            setDebouncedQuery('');
+                            setOpen(false);
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-pointer"
+                        aria-label="Clear search"
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                ) : (
+                    <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 font-mono pointer-events-none">
+                        ⌘K
+                    </kbd>
+                )}
             </div>
 
             {open && q && (
