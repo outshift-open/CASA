@@ -35,7 +35,7 @@ interface MASDataTableProps<TData, TValue> {
     onServerPageSizeChange?: (size: number) => void;
 }
 
-export function MASDataTable<TData, TValue extends {id?: string}>({
+export function MASDataTable<TData extends {id?: string}, TValue>({
     columns,
     data,
     searchPlaceholder = 'Search...',
@@ -70,8 +70,7 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
             searchValue={searchValue}
             onSearchChange={onSearchChange}
             onRowClick={(row) => {
-                const r = row as {id?: string};
-                if (r.id) navigate(PATHS.mas.detail(r.id));
+                if (row.id) navigate(PATHS.mas.detail(row.id));
             }}
             serverPage={serverPage}
             serverPageCount={serverPageCount}

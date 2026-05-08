@@ -131,7 +131,7 @@ export function AuthRequestsTable({
                             <Skeleton key={i} className="h-12 w-full" />
                         ))}
                     </div>
-                ) : rows.length === 0 ? (
+                ) : rows.length === 0 && !isFetching ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-3">
                         <Shield className="h-10 w-10 text-muted-foreground opacity-40" />
                         <div className="text-center">
@@ -142,6 +142,7 @@ export function AuthRequestsTable({
                         </div>
                     </div>
                 ) : (
+                    <div className={isFetching ? 'opacity-60 pointer-events-none' : undefined}>
                     <DataTable
                         columns={columns}
                         data={rows}
@@ -158,6 +159,7 @@ export function AuthRequestsTable({
                         onServerPageChange={onPageChange}
                         onServerPageSizeChange={onPageSizeChange}
                     />
+                    </div>
                 )}
             </CardContent>
         </Card>

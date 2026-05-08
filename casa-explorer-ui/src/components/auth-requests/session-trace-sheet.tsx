@@ -66,9 +66,9 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
         };
     }, [sessionData]);
 
-    const masId = session?.masId ?? null;
-    const {data: appsData} = useMASApps(masId ?? '');
-    const {data: masData} = useMASById(masId ?? '');
+    const masId = session?.masId ?? undefined;
+    const {data: appsData} = useMASApps(masId);
+    const {data: masData} = useMASById(masId);
 
     const masName = masData?.name ?? masId;
 
