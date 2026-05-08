@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,14 @@ export interface MAS {
     authorization_server_id?: string;
     traces?: MASTraceStat;
 }
+
+export const ToolCheckFlags = {
+    DeterministicToolSelected: 1 << 0,
+    DeterministicLLMSelectedTools: 1 << 1,
+    AIPoweredToolMatch: 1 << 2
+} as const;
+
+export const TOTAL_TOOL_CHECKS = Object.keys(ToolCheckFlags).length;
 
 export interface MASListResponse {
     items: MAS[];

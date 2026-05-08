@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 
 import {useMemo, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
-import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip';
+import {Card, CardContent} from '@/components/ui/card';
+import {CardTableHeader} from '@/components/ui/card-table-header';
 import {MASDataTable} from './mas-data-table';
 import {MASGridView} from './mas-grid-view';
 import {createMASColumns} from './mas-columns';
 import type {MASTraceCounts} from './mas-columns';
-import {RefreshCw, LayoutGrid, List, Search} from 'lucide-react';
+import {LayoutGrid, List} from 'lucide-react';
 import type {MAS} from '@/types/mas.types';
 
 interface MASTableProps {
@@ -37,6 +34,7 @@ interface MASTableProps {
     isLoading: boolean;
     onRefresh: () => void;
     onPageChange: (page: number) => void;
+    onPageSizeChange: (size: number) => void;
     onSearchChange: (q: string) => void;
 }
 
@@ -49,6 +47,7 @@ export function MASTable({
     isLoading,
     onRefresh,
     onPageChange,
+    onPageSizeChange,
     onSearchChange
 }: MASTableProps) {
     const navigate = useNavigate();
@@ -80,56 +79,20 @@ export function MASTable({
 
     return (
         <Card>
-            <CardHeader className="px-6">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                        <CardTitle>Multi-Agent Systems</CardTitle>
-                        <CardDescription>{total} MAS registered</CardDescription>
-                    </div>
-                    {!isLoading && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={onRefresh}
-                                    className="cursor-pointer"
-                                    aria-label="Refresh MAS"
-                                >
-                                    <RefreshCw className="h-4 w-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Refresh</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
-                </div>
-                <div className="flex items-center justify-between gap-2 mt-2">
-                    <div className="relative w-1/2">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by name"
-                            value={search}
-                            onChange={(e) => onSearchChange(e.target.value)}
-                            className="pl-9"
-                        />
-                    </div>
-                    <ToggleGroup
-                        type="single"
-                        value={view}
-                        onValueChange={(v) => v && setView(v as 'table' | 'grid')}
-                        variant="outline"
-                    >
-                        <ToggleGroupItem value="table" aria-label="Table view">
-                            <List className="h-4 w-4" />
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="grid" aria-label="Grid view">
-                            <LayoutGrid className="h-4 w-4" />
-                        </ToggleGroupItem>
-                    </ToggleGroup>
-                </div>
-            </CardHeader>
+            <CardTableHeader
+                title="Multi-Agent Systems"
+                description={`${total} MAS registered`}
+                refresh={{onRefresh, isLoading}}
+                search={{value: search, onChange: onSearchChange, placeholder: 'Search by name'}}
+                viewToggle={{
+                    value: view,
+                    onChange: (v) => setView(v as 'table' | 'grid'),
+                    options: [
+                        {value: 'table', icon: <List className="h-4 w-4" />, label: 'Table View'},
+                        {value: 'grid', icon: <LayoutGrid className="h-4 w-4" />, label: 'Grid View'}
+                    ]
+                }}
+            />
             <CardContent>
                 {view === 'grid' ? (
                     <MASGridView
@@ -151,7 +114,9 @@ export function MASTable({
                         serverPage={page}
                         serverPageCount={totalPages}
                         serverTotal={total}
+                        serverPageSize={pageSize}
                         onServerPageChange={onPageChange}
+                        onServerPageSizeChange={onPageSizeChange}
                     />
                 )}
             </CardContent>

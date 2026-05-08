@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,11 @@ import {toast} from 'sonner';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {MASTable} from '@/components/mas';
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
 
 export function MASPage() {
     const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -34,7 +35,7 @@ export function MASPage() {
 
     const {data, isLoading, isFetching, error, refetch} = useMAS({
         page,
-        page_size: PAGE_SIZE,
+        page_size: pageSize,
         q: debouncedSearch || undefined,
         include_metrics: true
     });
@@ -75,11 +76,15 @@ export function MASPage() {
                         data={data?.items || []}
                         total={data?.total || 0}
                         page={page}
-                        pageSize={PAGE_SIZE}
+                        pageSize={pageSize}
                         search={search}
                         isLoading={isFetching}
                         onRefresh={handleRefresh}
                         onPageChange={setPage}
+                        onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                        }}
                         onSearchChange={handleSearch}
                     />
                 </ApiStateHandler>

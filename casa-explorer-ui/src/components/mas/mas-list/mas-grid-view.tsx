@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ export function MASGridView({data, total, page, pageSize, isLoading, traceCounts
     const navigate = useNavigate();
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-    if (data.length === 0) {
+    if (data.length === 0 && !isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
                 <Network className="h-10 w-10 text-muted-foreground opacity-40" />

@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,12 @@ interface MASDataTableProps<TData, TValue> {
     serverPage?: number;
     serverPageCount?: number;
     serverTotal?: number;
+    serverPageSize?: number;
     onServerPageChange?: (page: number) => void;
+    onServerPageSizeChange?: (size: number) => void;
 }
 
-export function MASDataTable<TData, TValue extends {id?: string}>({
+export function MASDataTable<TData extends {id?: string}, TValue>({
     columns,
     data,
     searchPlaceholder = 'Search...',
@@ -43,7 +45,9 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
     serverPage,
     serverPageCount,
     serverTotal,
-    onServerPageChange
+    serverPageSize,
+    onServerPageChange,
+    onServerPageSizeChange
 }: MASDataTableProps<TData, TValue>) {
     const navigate = useNavigate();
     const emptyState = (
@@ -66,13 +70,14 @@ export function MASDataTable<TData, TValue extends {id?: string}>({
             searchValue={searchValue}
             onSearchChange={onSearchChange}
             onRowClick={(row) => {
-                const r = row as {id?: string};
-                if (r.id) navigate(PATHS.mas.detail(r.id));
+                if (row.id) navigate(PATHS.mas.detail(row.id));
             }}
             serverPage={serverPage}
             serverPageCount={serverPageCount}
             serverTotal={serverTotal}
+            serverPageSize={serverPageSize}
             onServerPageChange={onServerPageChange}
+            onServerPageSizeChange={onServerPageSizeChange}
         />
     );
 }

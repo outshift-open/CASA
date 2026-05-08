@@ -38,15 +38,35 @@ class Tracer:
         mas_id: UUID | None = None,
         fetch_all: bool = False,
         sort_asc: bool = False,
+        user_input_id: UUID | None = None,
+        blocked: bool | None = None,
+        q: str | None = None,
+        event_type: str | None = None,
+        blocking_type: str | None = None,
     ) -> TraceList:
         """Retrieve all traces in a paginated fashion."""
-        if not fetch_all:
+        if not fetch_all and user_input_id is None:
             if page < 1:
                 raise ValueError("page must be greater than 0")
             if page_size < 1:
                 raise ValueError("page_size must be greater than 0")
 
-        return self._tracer_repository.get_all(page, page_size, mas_id=mas_id, fetch_all=fetch_all, sort_asc=sort_asc)
+        return self._tracer_repository.get_all(
+            page,
+            page_size,
+            mas_id=mas_id,
+            fetch_all=fetch_all,
+            sort_asc=sort_asc,
+            user_input_id=user_input_id,
+            blocked=blocked,
+            q=q,
+            event_type=event_type,
+            blocking_type=blocking_type,
+        )
+
+    def get_session(self, user_input_id: UUID) -> list[Trace]:
+        """Return all traces for a single session, ordered by creation time ascending."""
+        return self._tracer_repository.get_session(user_input_id)
 
     def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
         """Return all traces for a given user input filtered by event type."""

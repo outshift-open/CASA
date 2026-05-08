@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 import {useMemo} from 'react';
 import {useParams, useNavigate, Link} from 'react-router-dom';
 import {PATHS} from '@/router/paths';
-import {useTraces} from '@/hooks/use-traces';
+import {useSession} from '@/hooks/use-traces';
+import {EventType} from '@/types/trace.types';
 import {useMASApps, useMASById} from '@/hooks/use-mas';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Button} from '@/components/ui/button';
@@ -32,14 +33,11 @@ export function AuthRequestDetailPage() {
     const {userInputId} = useParams<{userInputId: string}>();
     const navigate = useNavigate();
 
-    const {data: tracesData, isLoading} = useTraces(undefined, 1, 100, true);
+    const {data: tracesData, isLoading} = useSession(userInputId);
 
     const masId = useMemo(() => {
-        if (!tracesData?.items || !userInputId) return null;
-        const traces = tracesData.items[userInputId];
-        const t = traces?.find((t) => t.event.mas_id);
-        return t?.event.mas_id ?? null;
-    }, [tracesData, userInputId]);
+        return tracesData?.find((t) => t.event.mas_id)?.event.mas_id ?? null;
+    }, [tracesData]);
 
     const {data: masData} = useMASById(masId ?? '');
     const {data: appsData} = useMASApps(masId ?? '');
@@ -52,25 +50,22 @@ export function AuthRequestDetailPage() {
     }, [appsData]);
 
     const session = useMemo(() => {
-        if (!userInputId || !tracesData?.items) return null;
-        const traces = tracesData.items[userInputId];
-        if (!traces || traces.length === 0) return null;
-        const sorted = [...traces].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-        const tokenIssued = sorted.find((t) => t.event_type === 'TokenIssuedEvent');
-        const mcpCalls = sorted.filter((t) => t.event_type === 'MCPCallStartedEvent');
-        const llmCallCount = sorted.filter((t) => t.event_type === 'LLMCallStartedEvent').length;
-        const tokenCount = sorted.filter(
-            (t) => t.event_type === 'TokenIssuedEvent' || t.event_type === 'TokenExchangedEvent'
+        if (!tracesData || tracesData.length === 0) return null;
+        const tokenIssued = tracesData.find((t) => t.event_type === EventType.TokenIssued);
+        const mcpCalls = tracesData.filter((t) => t.event_type === EventType.MCPCallStarted);
+        const llmCallCount = tracesData.filter((t) => t.event_type === EventType.LLMCallStarted).length;
+        const tokenCount = tracesData.filter(
+            (t) => t.event_type === EventType.TokenIssued || t.event_type === EventType.TokenExchanged
         ).length;
-        const firstTs = sorted[0]?.created_at ? new Date(sorted[0].created_at).getTime() : null;
-        const lastTs = sorted[sorted.length - 1]?.created_at
-            ? new Date(sorted[sorted.length - 1].created_at).getTime()
+        const firstTs = tracesData[0]?.created_at ? new Date(tracesData[0].created_at).getTime() : null;
+        const lastTs = tracesData[tracesData.length - 1]?.created_at
+            ? new Date(tracesData[tracesData.length - 1].created_at).getTime()
             : null;
         const durationMs = firstTs && lastTs ? lastTs - firstTs : null;
         return {
             prompt: tokenIssued?.event.prompt ?? null,
-            createdAt: tokenIssued?.created_at ?? sorted[0]?.created_at ?? '',
-            events: sorted,
+            createdAt: tokenIssued?.created_at ?? tracesData[0]?.created_at ?? '',
+            events: tracesData,
             allowedCount: mcpCalls.filter((t) => !t.event.blocked).length,
             deniedCount: mcpCalls.filter((t) => t.event.blocked).length,
             llmCallCount,
@@ -78,7 +73,7 @@ export function AuthRequestDetailPage() {
             tokenCount,
             durationMs
         };
-    }, [userInputId, tracesData]);
+    }, [tracesData]);
 
     const datetime = session?.createdAt
         ? new Date(session.createdAt).toLocaleString([], {
@@ -97,8 +92,6 @@ export function AuthRequestDetailPage() {
                 ? `${session.durationMs}ms`
                 : `${(session.durationMs / 1000).toFixed(1)}s`
             : '—';
-
-    let llmCallIndex = 0;
 
     if (isLoading) {
         return (
@@ -146,7 +139,7 @@ export function AuthRequestDetailPage() {
                 <p className="leading-relaxed">
                     You opened this session trace from{' '}
                     <Link
-                        to="/auth-requests"
+                        to={PATHS.authRequests.list}
                         className="text-foreground underline decoration-dotted hover:decoration-solid"
                     >
                         Auth Requests
@@ -268,7 +261,7 @@ export function AuthRequestDetailPage() {
                         <code className="text-[11px] text-muted-foreground/60 font-mono">{userInputId}</code>
                     </div>
                     <Link
-                        to="/auth-requests"
+                        to={PATHS.authRequests.list}
                         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                         <ArrowLeft className="h-3.5 w-3.5" />
@@ -276,10 +269,13 @@ export function AuthRequestDetailPage() {
                     </Link>
                 </div>
                 <div className="rounded-lg border bg-card p-4 space-y-0.5">
-                    {session.events.map((trace) => {
-                        const idx = trace.event_type === 'LLMCallStartedEvent' ? llmCallIndex++ : undefined;
-                        return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
-                    })}
+                    {(() => {
+                        let llmCallIndex = 0;
+                        return session.events.map((trace) => {
+                            const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
+                            return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
+                        });
+                    })()}
                 </div>
             </div>
         </div>

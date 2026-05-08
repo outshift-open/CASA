@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ColumnDef} from '@tanstack/react-table';
+import type {ColumnDef} from '@tanstack/react-table';
 import {PATHS} from '@/router/paths';
 import {Button} from '@/components/ui/button';
 import {TextHover} from '@/components/ui/text-hover';

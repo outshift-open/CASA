@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,17 @@
 
 import {useParams, useSearchParams} from 'react-router-dom';
 import {useMASById} from '@/hooks/use-mas';
+import {ToolCheckFlags, TOTAL_TOOL_CHECKS} from '@/types/mas.types';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {ApiStateHandler} from '@/components/api-state-handler';
 import {MASInfoTab, MASAppsTab, MASTracesTab, MASDenyConditionsTab} from '@/components/mas';
 import {Info, Activity, AppWindow, Tags, ShieldAlert} from 'lucide-react';
 
-const FLAG_DETERMINISTIC_TOOL_SELECTED = 1 << 0;
-const FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS = 1 << 1;
-const FLAG_AI_POWERED_TOOL_MATCH = 1 << 2;
-const TOTAL_CHECKS = 3;
-
 export function MASDetailPage() {
     const {id} = useParams<{id: string}>();
     const [searchParams, setSearchParams] = useSearchParams();
-    const {data: mas, isLoading, error, refetch} = useMASById(id || '');
+    const {data: mas, isLoading, error, refetch} = useMASById(id);
 
     const VALID_TABS = ['info', 'deny_conditions', 'apps', 'traces'];
     const tabParam = searchParams.get('tab');
@@ -41,15 +37,16 @@ export function MASDetailPage() {
             searchParams.delete('tab');
             setSearchParams(searchParams, {replace: true});
         } else {
-            setSearchParams({tab}, {replace: true});
+            searchParams.set('tab', tab);
+            setSearchParams(searchParams, {replace: true});
         }
     };
 
     const enabledChecks = mas?.enabled_tool_checks ?? 0;
     const enabledCount = [
-        FLAG_DETERMINISTIC_TOOL_SELECTED,
-        FLAG_DETERMINISTIC_LLM_SELECTED_TOOLS,
-        FLAG_AI_POWERED_TOOL_MATCH
+        ToolCheckFlags.DeterministicToolSelected,
+        ToolCheckFlags.DeterministicLLMSelectedTools,
+        ToolCheckFlags.AIPoweredToolMatch
     ].filter((f) => (enabledChecks & f) !== 0).length;
 
     return (
@@ -58,7 +55,7 @@ export function MASDetailPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">MAS Details</h1>
-                        <p className="text-muted-foreground">View Multi-Agent System</p>
+                        <p className="text-muted-foreground">View Multi-Agent System details</p>
                     </div>
                 </div>
 
@@ -90,7 +87,7 @@ export function MASDetailPage() {
                                                 <ShieldAlert className="mr-2 h-4 w-4" />
                                                 Deny Conditions
                                                 <span className="ml-1.5 text-xs text-muted-foreground">
-                                                    {enabledCount}/{TOTAL_CHECKS}
+                                                    {enabledCount}/{TOTAL_TOOL_CHECKS}
                                                 </span>
                                             </TabsTrigger>
                                             <TabsTrigger value="apps">

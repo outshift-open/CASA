@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {toast} from 'sonner';
 import {useTraces} from '@/hooks/use-traces';
 import {useMASApps} from '@/hooks/use-mas';
+import {EventType} from '@/types/trace.types';
 import type {Trace} from '@/types/trace.types';
 import {EventRow, downloadJson} from '@/components/traces/event-row';
 import type {AppNames} from '@/components/traces/event-row';
@@ -53,11 +54,11 @@ function buildSessions(items: Record<string, Trace[]>): Session[] {
             const sorted = [...traces].sort(
                 (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
             );
-            const tokenIssued = sorted.find((t) => t.event_type === 'TokenIssuedEvent');
-            const mcpCalls = sorted.filter((t) => t.event_type === 'MCPCallStartedEvent');
-            const llmCallCount = sorted.filter((t) => t.event_type === 'LLMCallStartedEvent').length;
+            const tokenIssued = sorted.find((t) => t.event_type === EventType.TokenIssued);
+            const mcpCalls = sorted.filter((t) => t.event_type === EventType.MCPCallStarted);
+            const llmCallCount = sorted.filter((t) => t.event_type === EventType.LLMCallStarted).length;
             const tokenCount = sorted.filter(
-                (t) => t.event_type === 'TokenIssuedEvent' || t.event_type === 'TokenExchangedEvent'
+                (t) => t.event_type === EventType.TokenIssued || t.event_type === EventType.TokenExchanged
             ).length;
             return {
                 userInputId,
@@ -147,7 +148,7 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
             {expanded && (
                 <div className="px-4 pb-3 border-t space-y-0.5 bg-muted/20">
                     {session.events.map((trace) => {
-                        const idx = trace.event_type === 'LLMCallStartedEvent' ? llmCallIndex++ : undefined;
+                        const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
                         return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
                     })}
                 </div>
@@ -166,7 +167,7 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [sortAsc, setSortAsc] = useState(false);
-    const {data, isLoading} = useTraces(masId, page, pageSize, false, true, sortAsc);
+    const {data, isLoading} = useTraces({masId, page, pageSize, sortAsc}, true);
     const {data: appsData} = useMASApps(masId, true);
 
     const appNames: AppNames = useMemo(() => {
@@ -193,13 +194,17 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
         );
     }
 
-    if (sessions.length === 0 && page === 1) {
+    if (sessions.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
                 <Activity className="h-10 w-10 opacity-40" />
                 <div className="text-center">
-                    <p className="text-sm font-medium">No traces yet</p>
-                    <p className="text-xs mt-1">Authorization activity will appear here once agents start running</p>
+                    <p className="text-sm font-medium">{page > 1 ? 'No sessions on this page' : 'No traces yet'}</p>
+                    <p className="text-xs mt-1">
+                        {page > 1
+                            ? 'Try going back to a previous page'
+                            : 'Authorization activity will appear here once agents start running'}
+                    </p>
                 </div>
             </div>
         );
@@ -224,7 +229,10 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
                 </div>
                 <button
                     type="button"
-                    onClick={() => setSortAsc((v) => !v)}
+                    onClick={() => {
+                        setSortAsc((v) => !v);
+                        setPage(1);
+                    }}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                     <ArrowUpDown className="h-3.5 w-3.5" />
@@ -236,7 +244,7 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
                 <SessionRow key={session.userInputId} session={session} appNames={appNames} />
             ))}
 
-            {(totalPages > 1 || data?.total) && (
+            {(data?.total ?? 0) > 0 && (
                 <div className="flex items-center justify-between pt-2">
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">Sessions per page</span>

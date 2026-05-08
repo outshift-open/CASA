@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-export type EventType =
-    | 'TokenIssuedEvent'
-    | 'TokenExchangedEvent'
-    | 'LLMCallStartedEvent'
-    | 'LLMCallEndedEvent'
-    | 'MCPCallStartedEvent';
+export const EventType = {
+    TokenIssued: 'TokenIssuedEvent',
+    TokenExchanged: 'TokenExchangedEvent',
+    LLMCallStarted: 'LLMCallStartedEvent',
+    LLMCallEnded: 'LLMCallEndedEvent',
+    MCPCallStarted: 'MCPCallStartedEvent'
+} as const;
+
+export type EventType = (typeof EventType)[keyof typeof EventType];
+
+export const BlockingType = {
+    Deterministic: 'DETERMINISTIC',
+    AIPowered: 'AI_POWERED'
+} as const;
+
+export type BlockingType = (typeof BlockingType)[keyof typeof BlockingType];
 
 export type BlockingReason =
     | 'no_llm_calls_made_by_app'
@@ -52,7 +62,7 @@ export interface TraceEvent {
     callee_app_id?: string;
     tool?: string;
     blocked?: boolean;
-    blocking_type?: string;
+    blocking_type?: BlockingType;
     blocking_reason?: BlockingReason;
 }
 

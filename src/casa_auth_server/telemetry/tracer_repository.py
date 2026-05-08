@@ -95,8 +95,18 @@ class TracerRepository(ABC):
         mas_id: UUID | None = None,
         fetch_all: bool = False,
         sort_asc: bool = False,
+        user_input_id: UUID | None = None,
+        blocked: bool | None = None,
+        q: str | None = None,
+        event_type: str | None = None,
+        blocking_type: str | None = None,
     ) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
+        pass
+
+    @abstractmethod
+    def get_session(self, user_input_id: UUID) -> list[Trace]:
+        """Retrieve all traces for a single session, ordered by creation time ascending."""
         pass
 
     @abstractmethod
@@ -128,7 +138,7 @@ class TracerPostgresRepository(TracerRepository):
 
     def _active_mas_ids(self) -> list[str]:
         """Return IDs of non-deleted MAS as strings."""
-        rows = self._session.exec(select(MultiAgentSystem.id).where(MultiAgentSystem.deleted_at == None)).all()
+        rows = self._session.exec(select(MultiAgentSystem.id).where(MultiAgentSystem.deleted_at.is_(None))).all()  # type: ignore[union-attr]
         return [str(r) for r in rows]
 
     def store_event(self, event: BaseEvent):
@@ -149,19 +159,64 @@ class TracerPostgresRepository(TracerRepository):
         mas_id: UUID | None = None,
         fetch_all: bool = False,
         sort_asc: bool = False,
+        user_input_id: UUID | None = None,
+        blocked: bool | None = None,
+        q: str | None = None,
+        event_type: str | None = None,
+        blocking_type: str | None = None,
     ) -> TraceList:
         """Retrieve traces for all source app calls using pagination."""
         order_fn = asc if sort_asc else desc
         active_ids = self._active_mas_ids()
+
+        if user_input_id is not None:
+            # Single-session fetch — bypass pagination, return all events for that session.
+            traces = self._session.exec(
+                select(Trace).where(Trace.user_input_id == user_input_id).order_by(asc(Trace.created_at))
+            ).all()
+            items: dict[str, list[Trace]] = defaultdict(list)
+            for trace in traces:
+                items[str(trace.user_input_id)].append(trace)
+            return TraceList(items=items, total=len(traces), page=page, page_size=page_size)
+
         if mas_id is not None:
             if str(mas_id) not in active_ids:
                 return TraceList(items={}, total=0, page=page, page_size=page_size)
             mas_filter = Trace.event["mas_id"].as_string() == str(mas_id)  # type: ignore[assignment]
         else:
             mas_filter = Trace.event["mas_id"].as_string().in_(active_ids)  # type: ignore[assignment]
+
+        filters = [mas_filter]
+        if blocked is not None:
+            filters.append(Trace.event["blocked"].as_boolean() == blocked)  # type: ignore[arg-type]
+        if q is not None:
+            # Only MCPCallStarted events carry a "tool" field; restrict q to that event type
+            # to avoid silently excluding all other event types whose "tool" field is null.
+            filters.append(Trace.event_type == MCPCallStartedEvent.__name__)
+            filters.append(Trace.event["tool"].as_string().ilike(f"%{q}%"))  # type: ignore[arg-type]
+        if event_type is not None:
+            filters.append(Trace.event_type == event_type)
+        if blocking_type is not None:
+            filters.append(Trace.event["blocking_type"].as_string() == blocking_type)  # type: ignore[arg-type]
+
+        # When row-level filters are active, skip session-grouping and page rows directly.
+        if blocked is not None or q is not None or event_type is not None or blocking_type is not None:
+            base_qry = select(Trace).where(*filters)
+            total_qry = select(func.count()).select_from(base_qry.subquery())
+            total = self._session.exec(total_qry).one()
+            if not fetch_all:
+                base_qry = base_qry.order_by(order_fn(Trace.created_at)).offset((page - 1) * page_size).limit(page_size)
+            else:
+                base_qry = base_qry.order_by(order_fn(Trace.created_at))
+            traces = self._session.exec(base_qry).all()
+            result: dict[str, list[Trace]] = defaultdict(list)
+            for trace in traces:
+                result[str(trace.user_input_id)].append(trace)
+            return TraceList(items=result, total=total, page=page, page_size=page_size)
+
         group_by_qry = (
             select(Trace.user_input_id, func.max(Trace.created_at).label("created_at"))
-            .where(mas_filter)
+            .where(*filters)
             .group_by(Trace.user_input_id)
             .subquery()
         )
@@ -173,23 +228,28 @@ class TracerPostgresRepository(TracerRepository):
         traces = self._session.exec(traces_qry).all()
         total = self._session.exec(total_qry).one()
 
-        items: dict[str, list[Trace]] = defaultdict(list)
+        grouped: dict[str, list[Trace]] = defaultdict(list)
         for trace in traces:
-            items[str(trace.user_input_id)].append(trace)
+            grouped[str(trace.user_input_id)].append(trace)
 
-        for id in items:
-            items[id].sort(key=lambda t: t.created_at)
+        for uid in grouped:
+            grouped[uid].sort(key=lambda t: t.created_at)
 
-        return TraceList(
-            items=items,
-            total=total,
-            page=page,
-            page_size=page_size,
+        return TraceList(items=grouped, total=total, page=page, page_size=page_size)
+
+    def get_session(self, user_input_id: UUID) -> list[Trace]:
+        """Retrieve all traces for a single session, ordered by creation time ascending."""
+        return list(
+            self._session.exec(
+                select(Trace).where(Trace.user_input_id == user_input_id).order_by(asc(Trace.created_at))
+            ).all()
         )
 
     def get_traces_by_user_input_and_event_type(self, user_input_id: str, event_type: str) -> list[Trace]:
         """Retrieve traces for a specific user input and event type."""
-        traces = self._session.exec(select(Trace).filter_by(user_input_id=user_input_id, event_type=event_type)).all()
+        traces = self._session.exec(
+            select(Trace).where(Trace.user_input_id == UUID(user_input_id)).where(Trace.event_type == event_type)
+        ).all()
         return traces
 
     def get_metrics(self, total_mas: int) -> MetricsSnapshot:
@@ -255,35 +315,42 @@ class TracerPostgresRepository(TracerRepository):
         """Return trace/allowed/denied counts for each of the given MAS IDs in one query."""
         if not mas_ids:
             return []
-        active_ids = self._active_mas_ids()
-        filtered_ids = [mid for mid in mas_ids if mid in active_ids]
-        if not filtered_ids:
-            return []
-        rows = self._session.exec(
+
+        session_rows = self._session.exec(
             select(
                 Trace.event["mas_id"].as_string().label("mas_id"),
-                Trace.event_type,
+                func.count(func.distinct(Trace.user_input_id)).label("session_count"),
+            )
+            .where(Trace.event["mas_id"].as_string().in_(mas_ids))
+            .group_by(Trace.event["mas_id"].as_string())
+        ).all()
+
+        mcp_rows = self._session.exec(
+            select(
+                Trace.event["mas_id"].as_string().label("mas_id"),
                 Trace.event["blocked"].as_boolean().label("blocked"),
-                func.count(func.distinct(Trace.user_input_id)).label("trace_count"),
                 func.count().label("event_count"),
             )
-            .where(Trace.event["mas_id"].as_string().in_(filtered_ids))
+            .where(
+                Trace.event["mas_id"].as_string().in_(mas_ids),
+                Trace.event_type == MCPCallStartedEvent.__name__,
+            )
             .group_by(
                 Trace.event["mas_id"].as_string(),
-                Trace.event_type,
                 Trace.event["blocked"].as_boolean(),
             )
         ).all()
 
-        stats: dict[str, dict[str, int]] = {mid: {"traces": 0, "allowed": 0, "denied": 0} for mid in filtered_ids}
-        for mas_id, event_type, blocked, trace_count, event_count in rows:
+        stats: dict[str, dict[str, int]] = {mid: {"traces": 0, "allowed": 0, "denied": 0} for mid in mas_ids}
+        for mas_id, session_count in session_rows:
+            if mas_id in stats:
+                stats[mas_id]["traces"] = session_count
+        for mas_id, blocked, event_count in mcp_rows:
             if mas_id not in stats:
                 continue
-            if event_type == MCPCallStartedEvent.__name__:
-                if blocked:
-                    stats[mas_id]["denied"] += event_count
-                else:
-                    stats[mas_id]["allowed"] += event_count
-            stats[mas_id]["traces"] = max(stats[mas_id]["traces"], trace_count)
+            if blocked:
+                stats[mas_id]["denied"] += event_count
+            else:
+                stats[mas_id]["allowed"] += event_count
 
         return [MASTraceStat(mas_id=mid, **counts) for mid, counts in stats.items()]

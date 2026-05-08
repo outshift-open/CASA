@@ -1,5 +1,5 @@
 /**
- * Copyright 2026 Copyright 2026 Cisco Systems, Inc. and its affiliates
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/c
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {ChevronLeft, ChevronRight, Search, Inbox} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Search, Inbox, X} from 'lucide-react';
 import {cn} from '@/lib/utils';
 
 interface DataTableProps<TData, TValue> {
@@ -51,7 +51,9 @@ interface DataTableProps<TData, TValue> {
     serverPage?: number;
     serverPageCount?: number;
     serverTotal?: number;
+    serverPageSize?: number;
     onServerPageChange?: (page: number) => void;
+    onServerPageSizeChange?: (size: number) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -69,7 +71,9 @@ export function DataTable<TData, TValue>({
     serverPage,
     serverPageCount,
     serverTotal,
-    onServerPageChange
+    serverPageSize,
+    onServerPageChange,
+    onServerPageSizeChange
 }: DataTableProps<TData, TValue>) {
     const isServerPaginated =
         serverPage !== undefined && serverPageCount !== undefined && onServerPageChange !== undefined;
@@ -93,8 +97,9 @@ export function DataTable<TData, TValue>({
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        ...(hidePagination ? {} : {getPaginationRowModel: getPaginationRowModel()}),
-        manualPagination: hidePagination,
+        ...(isServerPaginated ? {} : {getPaginationRowModel: getPaginationRowModel()}),
+        manualPagination: isServerPaginated,
+        pageCount: isServerPaginated ? serverPageCount : undefined,
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
@@ -130,8 +135,18 @@ export function DataTable<TData, TValue>({
                             placeholder={searchPlaceholder}
                             value={globalFilter ?? ''}
                             onChange={(event) => handleGlobalFilterChange(String(event.target.value))}
-                            className="pl-9"
+                            className="pl-9 pr-8"
                         />
+                        {globalFilter && (
+                            <button
+                                type="button"
+                                onClick={() => handleGlobalFilterChange('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                aria-label="Clear search"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        )}
                     </div>
                     {filterSlot}
                 </div>
@@ -187,11 +202,39 @@ export function DataTable<TData, TValue>({
                 <div className="flex items-center justify-between px-2">
                     {isServerPaginated ? (
                         <>
-                            <p className="text-xs text-muted-foreground">
-                                Page {serverPage} of {serverPageCount}
-                                {serverTotal !== undefined && <> · {serverTotal} total</>}
-                            </p>
+                            <div className="flex items-center gap-4">
+                                {onServerPageSizeChange && serverPageSize !== undefined && (
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-muted-foreground">Rows per page</p>
+                                        <Select
+                                            value={`${serverPageSize}`}
+                                            onValueChange={(value) => {
+                                                onServerPageSizeChange(Number(value));
+                                            }}
+                                        >
+                                            <SelectTrigger className="h-8 w-[70px]">
+                                                <SelectValue placeholder={serverPageSize} />
+                                            </SelectTrigger>
+                                            <SelectContent side="top">
+                                                {[10, 20, 30, 40, 50].map((size) => (
+                                                    <SelectItem key={size} value={`${size}`}>
+                                                        {size}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                                <p className="text-sm text-muted-foreground">
+                                    {serverTotal !== undefined
+                                        ? `${serverTotal} row${serverTotal !== 1 ? 's' : ''}`
+                                        : `${serverPage} of ${serverPageCount} pages`}
+                                </p>
+                            </div>
                             <div className="flex items-center space-x-2">
+                                <div className="text-sm font-medium">
+                                    {serverPage} of {serverPageCount}
+                                </div>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -235,7 +278,7 @@ export function DataTable<TData, TValue>({
                                 </div>
                                 <div className="text-sm text-muted-foreground">
                                     {table.getFilteredRowModel().rows.length} of {table.getCoreRowModel().rows.length}{' '}
-                                    row(s)
+                                    row{table.getCoreRowModel().rows.length !== 1 ? 's' : ''}
                                 </div>
                             </div>
                             {table.getPageCount() > 1 && (
