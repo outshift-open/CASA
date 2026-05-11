@@ -22,16 +22,16 @@ Cilium mode removes the Istio dependency entirely and provides:
 
 ### 1.2 What Changes
 
-| Concern | Istio Mode | Cilium Mode |
-|---|---|---|
-| Traffic interception | Per-pod Envoy sidecar (Istio injection) | Node-level Envoy proxy (Cilium DaemonSet) |
-| ext_authz wiring | `EnvoyFilter` (Istio CRD) | `CiliumEnvoyConfig` (Cilium CRD) |
-| LLM proxy Wasm | `WasmPlugin` (Istio CRD) | Wasm HTTP filter inside CEC |
-| Traceparent injection | `WasmPlugin` (Istio CRD) | OBI (eBPF-based, already in stack) |
-| LLM egress FQDN | `ServiceEntry` + `DestinationRule` | `CiliumNetworkPolicy` with `toFQDNs` |
-| Caller workload identity | `x-envoy-peer-metadata` header | Source IP → Kubernetes Pod lookup |
-| Namespace injection label | `istio-injection=enabled` | `casa.io/injection=enabled` |
-| Cluster prerequisites | Istio 1.17+ | Cilium 1.14+ |
+| Concern                   | Istio Mode                              | Cilium Mode                               |
+| ------------------------- | --------------------------------------- | ----------------------------------------- |
+| Traffic interception      | Per-pod Envoy sidecar (Istio injection) | Node-level Envoy proxy (Cilium DaemonSet) |
+| ext_authz wiring          | `EnvoyFilter` (Istio CRD)               | `CiliumEnvoyConfig` (Cilium CRD)          |
+| LLM proxy Wasm            | `WasmPlugin` (Istio CRD)                | Wasm HTTP filter inside CEC               |
+| Traceparent injection     | `WasmPlugin` (Istio CRD)                | OBI (eBPF-based, already in stack)        |
+| LLM egress FQDN           | `ServiceEntry` + `DestinationRule`      | `CiliumNetworkPolicy` with `toFQDNs`      |
+| Caller workload identity  | `x-envoy-peer-metadata` header          | Source IP → Kubernetes Pod lookup         |
+| Namespace injection label | `istio-injection=enabled`               | `casa.io/injection=enabled`               |
+| Cluster prerequisites     | Istio 1.17+                             | Cilium 1.14+                              |
 
 ### 1.3 What Does Not Change
 
@@ -112,6 +112,7 @@ helm upgrade --install cilium cilium/cilium \
 ```
 
 Feature flags:
+
 - `l7Proxy=true` — enables Cilium's embedded Envoy node proxy, required for CEC
 - `envoyConfigEnabled=true` — enables processing of `CiliumEnvoyConfig` resources
 - `hubble.enabled=true` — enables eBPF flow logging (observability)
@@ -148,66 +149,66 @@ For each app of type `agent` in a `MultiAgentSystem`, the operator creates:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: casa-mas-<mas-name>-<app-kubernetesWorkloadName>
-  namespace: <mas-namespace>
-  labels:
-    app.kubernetes.io/managed-by: casa-operator
-    casa.io/mas-name: <mas-name>
+    name: casa-mas-<mas-name>-<app-kubernetesWorkloadName>
+    namespace: <mas-namespace>
+    labels:
+        app.kubernetes.io/managed-by: casa-operator
+        casa.io/mas-name: <mas-name>
 spec:
-  # Selects agent pods by their kubernetesWorkloadName label
-  endpointSelector:
-    matchLabels:
-      app: <app.kubernetesWorkloadName>
+    # Selects agent pods by their kubernetesWorkloadName label
+    endpointSelector:
+        matchLabels:
+            app: <app.kubernetesWorkloadName>
 
-  ingress:
-    # Allow inbound from any pod within the same MAS namespace
-    # (entry point for user traffic, and for A2A agent-to-agent calls)
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: <mas-namespace>
+    ingress:
+        # Allow inbound from any pod within the same MAS namespace
+        # (entry point for user traffic, and for A2A agent-to-agent calls)
+        - fromEndpoints:
+              - matchLabels:
+                    io.kubernetes.pod.namespace: <mas-namespace>
 
-  egress:
-    # Allow agent → CASA auth service (token exchange, introspection)
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: casa-runtime
-            app: casa-auth-service
-      toPorts:
-        - ports:
-            - port: "8000"
-              protocol: TCP
+    egress:
+        # Allow agent → CASA auth service (token exchange, introspection)
+        - toEndpoints:
+              - matchLabels:
+                    io.kubernetes.pod.namespace: casa-runtime
+                    app: casa-auth-service
+          toPorts:
+              - ports:
+                    - port: "8000"
+                      protocol: TCP
 
-    # Allow agent → each MCP server in this MAS
-    # (one rule per mcp_server app in the MAS spec)
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: <mas-namespace>
-            app: <mcp-app.kubernetesWorkloadName>
-      toPorts:
-        - ports:
-            - port: "<mcp-app.baseUrl.port>"
-              protocol: TCP
+        # Allow agent → each MCP server in this MAS
+        # (one rule per mcp_server app in the MAS spec)
+        - toEndpoints:
+              - matchLabels:
+                    io.kubernetes.pod.namespace: <mas-namespace>
+                    app: <mcp-app.kubernetesWorkloadName>
+          toPorts:
+              - ports:
+                    - port: "<mcp-app.baseUrl.port>"
+                      protocol: TCP
 
-    # Allow agent → external LLM (single FQDN, port 443)
-    # Replaces Istio ServiceEntry + DestinationRule
-    - toFQDNs:
-        - matchName: "<mas.spec.llm_host>"
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
+        # Allow agent → external LLM (single FQDN, port 443)
+        # Replaces Istio ServiceEntry + DestinationRule
+        - toFQDNs:
+              - matchName: "<mas.spec.llm_host>"
+          toPorts:
+              - ports:
+                    - port: "443"
+                      protocol: TCP
 
-    # Allow agent → ext_auth sidecar (for CEC L7 policy processing)
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: <sidecar-namespace>
-            app: ext-auth-service
-      toPorts:
-        - ports:
-            - port: "4100"
-              protocol: TCP
-            - port: "5100"
-              protocol: TCP
+        # Allow agent → ext_auth sidecar (for CEC L7 policy processing)
+        - toEndpoints:
+              - matchLabels:
+                    io.kubernetes.pod.namespace: <sidecar-namespace>
+                    app: ext-auth-service
+          toPorts:
+              - ports:
+                    - port: "4100"
+                      protocol: TCP
+                    - port: "5100"
+                      protocol: TCP
 ```
 
 > **Note on `io.kubernetes.pod.namespace`**: Cilium uses this well-known label for cross-namespace endpoint selection. The namespace label is automatically added by Cilium to all pods.
@@ -220,37 +221,37 @@ For each app of type `mcp_server`:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: casa-mas-<mas-name>-<app-kubernetesWorkloadName>
-  namespace: <mas-namespace>
-  labels:
-    app.kubernetes.io/managed-by: casa-operator
-    casa.io/mas-name: <mas-name>
+    name: casa-mas-<mas-name>-<app-kubernetesWorkloadName>
+    namespace: <mas-namespace>
+    labels:
+        app.kubernetes.io/managed-by: casa-operator
+        casa.io/mas-name: <mas-name>
 spec:
-  endpointSelector:
-    matchLabels:
-      app: <app.kubernetesWorkloadName>
+    endpointSelector:
+        matchLabels:
+            app: <app.kubernetesWorkloadName>
 
-  ingress:
-    # Allow inbound from agent pods within the MAS namespace only
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: <mas-namespace>
-            app: <agent-app.kubernetesWorkloadName>
-      toPorts:
-        - ports:
-            - port: "<mcp-app.baseUrl.port>"
-              protocol: TCP
+    ingress:
+        # Allow inbound from agent pods within the MAS namespace only
+        - fromEndpoints:
+              - matchLabels:
+                    io.kubernetes.pod.namespace: <mas-namespace>
+                    app: <agent-app.kubernetesWorkloadName>
+          toPorts:
+              - ports:
+                    - port: "<mcp-app.baseUrl.port>"
+                      protocol: TCP
 
-  egress:
-    # Allow MCP server → CASA auth service (token introspection)
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: casa-runtime
-            app: casa-auth-service
-      toPorts:
-        - ports:
-            - port: "8000"
-              protocol: TCP
+    egress:
+        # Allow MCP server → CASA auth service (token introspection)
+        - toEndpoints:
+              - matchLabels:
+                    io.kubernetes.pod.namespace: casa-runtime
+                    app: casa-auth-service
+          toPorts:
+              - ports:
+                    - port: "8000"
+                      protocol: TCP
 ```
 
 ### 4.4 LLM FQDN Enforcement
@@ -286,70 +287,70 @@ One inbound CEC per MAS, listing all service names from the MAS apps:
 apiVersion: cilium.io/v2
 kind: CiliumEnvoyConfig
 metadata:
-  name: casa-inbound-<mas-name>
-  namespace: <mas-namespace>
-  labels:
-    app.kubernetes.io/managed-by: casa-operator
-    casa.io/mas-name: <mas-name>
+    name: casa-inbound-<mas-name>
+    namespace: <mas-namespace>
+    labels:
+        app.kubernetes.io/managed-by: casa-operator
+        casa.io/mas-name: <mas-name>
 spec:
-  # Services whose inbound traffic is processed by this CEC.
-  # One entry per app in the MAS spec.
-  services:
-    - name: <agent-svc-name>
-      namespace: <mas-namespace>
-    - name: <mcp-svc-name>
-      namespace: <mas-namespace>
+    # Services whose inbound traffic is processed by this CEC.
+    # One entry per app in the MAS spec.
+    services:
+        - name: <agent-svc-name>
+          namespace: <mas-namespace>
+        - name: <mcp-svc-name>
+          namespace: <mas-namespace>
 
-  resources:
-    # Cluster pointing to the ext_auth service's INBOUND gRPC endpoint (port 4100)
-    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
-      name: ext-authz-inbound
-      connect_timeout: "10s"
-      type: STRICT_DNS
-      lb_policy: ROUND_ROBIN
-      typed_extension_protocol_options:
-        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-          explicit_http_config:
-            http2_protocol_options: {}
-      load_assignment:
-        cluster_name: ext-authz-inbound
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      # ext_auth service deployed by the sidecar Helm chart
-                      address: "<ext-auth-svc>.<sidecar-namespace>.svc.cluster.local"
-                      port_value: 4100
+    resources:
+        # Cluster pointing to the ext_auth service's INBOUND gRPC endpoint (port 4100)
+        - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+          name: ext-authz-inbound
+          connect_timeout: "10s"
+          type: STRICT_DNS
+          lb_policy: ROUND_ROBIN
+          typed_extension_protocol_options:
+              envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+                  "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+                  explicit_http_config:
+                      http2_protocol_options: {}
+          load_assignment:
+              cluster_name: ext-authz-inbound
+              endpoints:
+                  - lb_endpoints:
+                        - endpoint:
+                              address:
+                                  socket_address:
+                                      # ext_auth service deployed by the sidecar Helm chart
+                                      address: "<ext-auth-svc>.<sidecar-namespace>.svc.cluster.local"
+                                      port_value: 4100
 
-    # HTTP connection manager listener with ext_authz filter
-    - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: casa-inbound-listener
-      filter_chains:
-        - filters:
-            - name: envoy.filters.network.http_connection_manager
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                stat_prefix: casa-inbound
-                http_filters:
-                  - name: envoy.filters.http.ext_authz
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                      grpc_service:
-                        envoy_grpc:
-                          cluster_name: ext-authz-inbound
-                        timeout: "30s"
-                      transport_api_version: V3
-                      # Fail closed: deny if ext_auth is unreachable
-                      failure_mode_allow: false
-                      include_peer_certificate: true
-                      with_request_body:
-                        max_request_bytes: 60000
-                        allow_partial_message: true
-                  - name: envoy.filters.http.router
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+        # HTTP connection manager listener with ext_authz filter
+        - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
+          name: casa-inbound-listener
+          filter_chains:
+              - filters:
+                    - name: envoy.filters.network.http_connection_manager
+                      typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                          stat_prefix: casa-inbound
+                          http_filters:
+                              - name: envoy.filters.http.ext_authz
+                                typed_config:
+                                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                                    grpc_service:
+                                        envoy_grpc:
+                                            cluster_name: ext-authz-inbound
+                                        timeout: "30s"
+                                    transport_api_version: V3
+                                    # Fail closed: deny if ext_auth is unreachable
+                                    failure_mode_allow: false
+                                    include_peer_certificate: true
+                                    with_request_body:
+                                        max_request_bytes: 60000
+                                        allow_partial_message: true
+                              - name: envoy.filters.http.router
+                                typed_config:
+                                    "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 ```
 
 ### 5.4 Outbound CEC
@@ -360,66 +361,66 @@ One outbound CEC per MAS. The `spec.services` lists the same services (traffic F
 apiVersion: cilium.io/v2
 kind: CiliumEnvoyConfig
 metadata:
-  name: casa-outbound-<mas-name>
-  namespace: <mas-namespace>
-  labels:
-    app.kubernetes.io/managed-by: casa-operator
-    casa.io/mas-name: <mas-name>
+    name: casa-outbound-<mas-name>
+    namespace: <mas-namespace>
+    labels:
+        app.kubernetes.io/managed-by: casa-operator
+        casa.io/mas-name: <mas-name>
 spec:
-  # Same services as the inbound CEC; Cilium applies this on the
-  # egress path from agent pods heading to these service endpoints.
-  services:
-    - name: <agent-svc-name>
-      namespace: <mas-namespace>
-    - name: <mcp-svc-name>
-      namespace: <mas-namespace>
+    # Same services as the inbound CEC; Cilium applies this on the
+    # egress path from agent pods heading to these service endpoints.
+    services:
+        - name: <agent-svc-name>
+          namespace: <mas-namespace>
+        - name: <mcp-svc-name>
+          namespace: <mas-namespace>
 
-  resources:
-    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
-      name: ext-authz-outbound
-      connect_timeout: "10s"
-      type: STRICT_DNS
-      lb_policy: ROUND_ROBIN
-      typed_extension_protocol_options:
-        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-          explicit_http_config:
-            http2_protocol_options: {}
-      load_assignment:
-        cluster_name: ext-authz-outbound
-        endpoints:
-          - lb_endpoints:
-              - endpoint:
-                  address:
-                    socket_address:
-                      address: "<ext-auth-svc>.<sidecar-namespace>.svc.cluster.local"
-                      port_value: 5100
+    resources:
+        - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+          name: ext-authz-outbound
+          connect_timeout: "10s"
+          type: STRICT_DNS
+          lb_policy: ROUND_ROBIN
+          typed_extension_protocol_options:
+              envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+                  "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+                  explicit_http_config:
+                      http2_protocol_options: {}
+          load_assignment:
+              cluster_name: ext-authz-outbound
+              endpoints:
+                  - lb_endpoints:
+                        - endpoint:
+                              address:
+                                  socket_address:
+                                      address: "<ext-auth-svc>.<sidecar-namespace>.svc.cluster.local"
+                                      port_value: 5100
 
-    - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: casa-outbound-listener
-      filter_chains:
-        - filters:
-            - name: envoy.filters.network.http_connection_manager
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                stat_prefix: casa-outbound
-                http_filters:
-                  - name: envoy.filters.http.ext_authz
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                      grpc_service:
-                        envoy_grpc:
-                          cluster_name: ext-authz-outbound
-                        timeout: "30s"
-                      transport_api_version: V3
-                      failure_mode_allow: false
-                      include_peer_certificate: true
-                      with_request_body:
-                        max_request_bytes: 60000
-                        allow_partial_message: true
-                  - name: envoy.filters.http.router
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+        - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
+          name: casa-outbound-listener
+          filter_chains:
+              - filters:
+                    - name: envoy.filters.network.http_connection_manager
+                      typed_config:
+                          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                          stat_prefix: casa-outbound
+                          http_filters:
+                              - name: envoy.filters.http.ext_authz
+                                typed_config:
+                                    "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                                    grpc_service:
+                                        envoy_grpc:
+                                            cluster_name: ext-authz-outbound
+                                        timeout: "30s"
+                                    transport_api_version: V3
+                                    failure_mode_allow: false
+                                    include_peer_certificate: true
+                                    with_request_body:
+                                        max_request_bytes: 60000
+                                        allow_partial_message: true
+                              - name: envoy.filters.http.router
+                                typed_config:
+                                    "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 ```
 
 ### 5.5 LLM Proxy Wasm Filter (Cilium Mode)
@@ -430,35 +431,33 @@ In Istio mode, `sidecar/llm_proxy/` is deployed as a `WasmPlugin` resource. For 
 # Add before ext_authz in the outbound CEC's http_filters list
 - name: envoy.filters.http.wasm
   typed_config:
-    "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
-    config:
-      name: casa-llm-proxy
-      root_id: casa-llm-proxy
-      configuration:
-        "@type": type.googleapis.com/google.protobuf.StringValue
-        value: |
-          {
-            "auth_server_host": "<auth-server-host>",
-            "auth_server_port": "8000"
-          }
-      vm_config:
-        vm_id: casa-llm-proxy
-        runtime: envoy.wasm.runtime.v8
-        code:
-          remote:
-            http_uri:
-              uri: "oci://<llm-proxy-image>:<tag>"
-              cluster: wasm-image-registry
-              timeout: "10s"
+      "@type": type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+      config:
+          name: casa-llm-proxy
+          root_id: casa-llm-proxy
+          configuration:
+              "@type": type.googleapis.com/google.protobuf.StringValue
+              value: |
+                  {
+                    "auth_server_host": "<auth-server-host>",
+                    "auth_server_port": "8000"
+                  }
+          vm_config:
+              vm_id: casa-llm-proxy
+              runtime: envoy.wasm.runtime.v8
+              code:
+                  remote:
+                      http_uri:
+                          uri: "oci://<llm-proxy-image>:<tag>"
+                          cluster: wasm-image-registry
+                          timeout: "10s"
 ```
 
 > **Alternative**: Distribute the Wasm binary as an HTTP URL or mount it via an init container / ConfigMap. OCI image pull within Envoy requires additional cluster configuration for the registry.
 
 ### 5.6 Traceparent Injection (Cilium Mode)
 
-In Istio mode, `sidecar/traceparent_injector/` runs as a `WasmPlugin` to inject W3C `traceparent` headers. In Cilium mode, **OBI (OpenTelemetry eBPF Instrumentation)** already performs context propagation at the eBPF level (`OTEL_EBPF_BPF_CONTEXT_PROPAGATION: "all"`) and injects `traceparent` headers for all observed HTTP requests.
-
-No Wasm filter for traceparent injection is needed in Cilium mode. Verify OBI is deployed and configured with `context_propagation: "all"` in the sidecar Helm chart's `values.yaml`.
+In Istio mode, `sidecar/traceparent_injector/` runs as a `WasmPlugin` to inject W3C `traceparent` headers. In Cilium mode, we could use an Envoy filter to do the same. (because of limited WASM support)
 
 ---
 
@@ -470,8 +469,8 @@ Add a `DATAPLANE_MODE` environment variable to the operator Deployment:
 
 ```yaml
 env:
-  - name: DATAPLANE_MODE
-    value: "cilium"   # or "istio" (default)
+    - name: DATAPLANE_MODE
+      value: "cilium" # or "istio" (default)
 ```
 
 In `operator/main.go`, read this env var and pass it to the reconciler:
@@ -527,6 +526,7 @@ New method in `operator/reconciler.go`. Creates CNPs and CECs for the MAS using 
 **Step 1**: Resolve the ext_auth service coordinates. Read from env vars `EXT_AUTH_SERVICE_NAME` and `EXT_AUTH_SERVICE_NAMESPACE` (set in the operator Deployment — defaults to `ext-auth-service` and `casa-sidecar`).
 
 **Step 2**: For each app in `mas.Spec.Apps`, create a CNP:
+
 - Populate `endpointSelector.matchLabels.app` with `app.KubernetesWorkloadName`
 - Build egress rules based on `app.Type`:
   - `agent`: egress to auth service, all MCP server apps in this MAS, LLM FQDN
@@ -540,6 +540,7 @@ New method in `operator/reconciler.go`. Creates CNPs and CECs for the MAS using 
 **Step 4**: Create the outbound CEC with `spec.services` listing agent apps' service names (only agents originate outbound calls that need token exchange).
 
 **Schema Group/Version for Cilium resources:**
+
 ```go
 ciliumGVR := schema.GroupVersionResource{
     Group:    "cilium.io",
@@ -701,12 +702,12 @@ The ext_auth service's Kubernetes ServiceAccount must have permission to list po
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ext-auth-pod-reader
-  namespace: <mas-namespace>   # or make it a ClusterRole
+    name: ext-auth-pod-reader
+    namespace: <mas-namespace> # or make it a ClusterRole
 rules:
-  - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["list", "get"]
+    - apiGroups: [""]
+      resources: ["pods"]
+      verbs: ["list", "get"]
 ```
 
 The ServiceAccount is already bound in the sidecar Helm chart's `serviceaccount.yaml`. A `RoleBinding` (or `ClusterRoleBinding`) must be added or extended.
@@ -733,6 +734,7 @@ dataPlaneMode: "istio"
 Wrap all three Istio-specific templates with a mode guard:
 
 **`templates/envoyfilter-extauthz.yaml`**:
+
 ```yaml
 {{- if eq .Values.dataPlaneMode "istio" }}
 apiVersion: networking.istio.io/v1alpha3
@@ -742,6 +744,7 @@ kind: EnvoyFilter
 ```
 
 **`templates/envoyfilter-llmproxy.yaml`**:
+
 ```yaml
 {{- if eq .Values.dataPlaneMode "istio" }}
 apiVersion: extensions.istio.io/v1alpha1
@@ -751,6 +754,7 @@ kind: WasmPlugin
 ```
 
 **`templates/envoyfilter-traceparent.yaml`**:
+
 ```yaml
 {{- if eq .Values.dataPlaneMode "istio" }}
 apiVersion: extensions.istio.io/v1alpha1
@@ -764,6 +768,7 @@ kind: WasmPlugin
 CEC and CNP resources are **not** static templates in the sidecar Helm chart. They are created dynamically per-MAS by the operator (see §6). This is the same pattern as the operator currently uses for Istio ServiceEntry/DestinationRule.
 
 In Cilium mode, the sidecar Helm chart deploys only:
+
 - The `ext_auth` Deployment (unchanged — same binary, same ports 4100/5100)
 - The `ext_auth` Service
 - The `ext_auth` ServiceAccount + RBAC
@@ -779,15 +784,15 @@ No EnvoyFilters, WasmPlugins, or Cilium CRDs are created by the sidecar chart it
 Add Cilium CRD permissions:
 
 ```yaml
-  # Existing Istio permissions kept for backward compatibility
-  - apiGroups: ["networking.istio.io"]
-    resources: ["serviceentries", "destinationrules"]
-    verbs: ["get", "create", "update", "patch", "delete"]
+# Existing Istio permissions kept for backward compatibility
+- apiGroups: ["networking.istio.io"]
+  resources: ["serviceentries", "destinationrules"]
+  verbs: ["get", "create", "update", "patch", "delete"]
 
-  # New: Cilium permissions for Cilium mode
-  - apiGroups: ["cilium.io"]
-    resources: ["ciliumnetworkpolicies", "ciliumenvoyconfigs"]
-    verbs: ["get", "list", "create", "update", "patch", "delete"]
+# New: Cilium permissions for Cilium mode
+- apiGroups: ["cilium.io"]
+  resources: ["ciliumnetworkpolicies", "ciliumenvoyconfigs"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
 ```
 
 In Cilium mode the operator will attempt to create `cilium.io` resources. If Cilium is not installed (Istio mode), these resources simply won't exist and the operator's Cilium code path won't be triggered (mode gating via `DATAPLANE_MODE` env var prevents the calls entirely).
@@ -1026,28 +1031,28 @@ kubectl -n <mas-namespace> exec -it deploy/<agent-deploy> -- \
 
 ### 12.6 Troubleshooting Quick Reference
 
-| Symptom | Likely Cause | Diagnostic Command |
-|---|---|---|
-| Agent can't reach MCP server | CNP not applied or wrong label selectors | `kubectl get cnp -n <ns>` + `hubble observe --verdict DROPPED` |
-| ext_authz check fails with "no workload found" | Source IP lookup fails (pod IP field selector issue) | Check ext_auth logs for `GetWorkloadNameByIP` errors |
-| 403 on all requests | CEC not applied or ext_auth cluster unreachable | `kubectl logs deploy/ext-auth-service` + `kubectl get cec -n <ns>` |
-| `traceparent` header missing | OBI not deployed or `context_propagation` not set to `all` | Check OBI DaemonSet logs + verify `OTEL_EBPF_BPF_CONTEXT_PROPAGATION=all` |
-| LLM calls blocked | `toFQDNs` not resolving or `l7Proxy` not enabled | `hubble observe --verdict DROPPED --to-fqdn <llm-host>` + verify Cilium flags |
-| CEC not creating Envoy filter | Cilium `envoyConfigEnabled` flag not set | `cilium status` + check Cilium ConfigMap |
+| Symptom                                        | Likely Cause                                               | Diagnostic Command                                                            |
+| ---------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Agent can't reach MCP server                   | CNP not applied or wrong label selectors                   | `kubectl get cnp -n <ns>` + `hubble observe --verdict DROPPED`                |
+| ext_authz check fails with "no workload found" | Source IP lookup fails (pod IP field selector issue)       | Check ext_auth logs for `GetWorkloadNameByIP` errors                          |
+| 403 on all requests                            | CEC not applied or ext_auth cluster unreachable            | `kubectl logs deploy/ext-auth-service` + `kubectl get cec -n <ns>`            |
+| `traceparent` header missing                   | OBI not deployed or `context_propagation` not set to `all` | Check OBI DaemonSet logs + verify `OTEL_EBPF_BPF_CONTEXT_PROPAGATION=all`     |
+| LLM calls blocked                              | `toFQDNs` not resolving or `l7Proxy` not enabled           | `hubble observe --verdict DROPPED --to-fqdn <llm-host>` + verify Cilium flags |
+| CEC not creating Envoy filter                  | Cilium `envoyConfigEnabled` flag not set                   | `cilium status` + check Cilium ConfigMap                                      |
 
 ---
 
 ## 13. Summary of Changes by Component
 
-| Component | File(s) | Change Type | Description |
-|---|---|---|---|
-| **Operator** | `operator/reconciler.go` | New methods | `createCiliumResources`, `deleteCiliumResources` |
-| **Operator** | `operator/main.go` | Config | Read `DATAPLANE_MODE` env var, pass to reconciler |
-| **Operator** | `operator/crd_types.go` | No change | MAS spec unchanged |
-| **ext_auth** | `sidecar/ext_auth/internal/k8s.go` | Interface extension | Add `GetWorkloadNameByIP` method |
-| **ext_auth** | `sidecar/ext_auth/internal/outbound.go` | Logic change | Fallback from `x-envoy-peer-metadata` to source IP lookup |
-| **Sidecar chart** | `deployments/helm/sidecar/values.yaml` | New value | `dataPlaneMode: "istio"` |
-| **Sidecar chart** | `deployments/helm/sidecar/templates/envoyfilter-*.yaml` | Conditional gate | Wrap with `{{- if eq .Values.dataPlaneMode "istio" }}` |
-| **Runtime chart** | `deployments/helm/casa-runtime/templates/operator/clusterrole.yaml` | RBAC | Add `cilium.io` CRD permissions |
-| **Runtime chart** | `deployments/helm/casa-runtime/templates/operator/deployment.yaml` | Config | Add `DATAPLANE_MODE` env var |
-| **Spec output** | `docs/dev/SPECS_CILIUM_SUPPORT_v1.md` | New file | This document |
+| Component         | File(s)                                                             | Change Type         | Description                                               |
+| ----------------- | ------------------------------------------------------------------- | ------------------- | --------------------------------------------------------- |
+| **Operator**      | `operator/reconciler.go`                                            | New methods         | `createCiliumResources`, `deleteCiliumResources`          |
+| **Operator**      | `operator/main.go`                                                  | Config              | Read `DATAPLANE_MODE` env var, pass to reconciler         |
+| **Operator**      | `operator/crd_types.go`                                             | No change           | MAS spec unchanged                                        |
+| **ext_auth**      | `sidecar/ext_auth/internal/k8s.go`                                  | Interface extension | Add `GetWorkloadNameByIP` method                          |
+| **ext_auth**      | `sidecar/ext_auth/internal/outbound.go`                             | Logic change        | Fallback from `x-envoy-peer-metadata` to source IP lookup |
+| **Sidecar chart** | `deployments/helm/sidecar/values.yaml`                              | New value           | `dataPlaneMode: "istio"`                                  |
+| **Sidecar chart** | `deployments/helm/sidecar/templates/envoyfilter-*.yaml`             | Conditional gate    | Wrap with `{{- if eq .Values.dataPlaneMode "istio" }}`    |
+| **Runtime chart** | `deployments/helm/casa-runtime/templates/operator/clusterrole.yaml` | RBAC                | Add `cilium.io` CRD permissions                           |
+| **Runtime chart** | `deployments/helm/casa-runtime/templates/operator/deployment.yaml`  | Config              | Add `DATAPLANE_MODE` env var                              |
+| **Spec output**   | `docs/dev/SPECS_CILIUM_SUPPORT_v1.md`                               | New file            | This document                                             |
