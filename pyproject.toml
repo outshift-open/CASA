@@ -39,7 +39,7 @@ dependencies = [
     "requests>=2.32.5",
     "python-multipart>=0.0.20",
     "psycopg2-binary>=2.9.11",
-    "python-dotenv==1.2.1",
+    "python-dotenv==1.2.2",
     "sqlmodel>=0.0.27",
 ]
 
