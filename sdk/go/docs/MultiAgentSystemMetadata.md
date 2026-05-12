@@ -6,11 +6,11 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** | Resource name | 
 **Namespace** | **string** | Kubernetes namespace | 
-**Uid** | Pointer to **NullableString** |  | [optional] 
-**ResourceVersion** | Pointer to **NullableString** |  | [optional] 
-**Generation** | Pointer to **NullableInt32** |  | [optional] 
-**Labels** | Pointer to **map[string]interface{}** |  | [optional] 
-**Annotations** | Pointer to **map[string]interface{}** |  | [optional] 
+**Uid** | Pointer to **NullableString** | Kubernetes UID | [optional] 
+**ResourceVersion** | Pointer to **NullableString** | Resource version | [optional] 
+**Generation** | Pointer to **NullableInt32** | Generation number | [optional] 
+**Labels** | Pointer to **map[string]interface{}** | Resource labels | [optional] 
+**Annotations** | Pointer to **map[string]interface{}** | Resource annotations | [optional] 
 
 ## Methods
 

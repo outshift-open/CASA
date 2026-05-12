@@ -21,11 +21,13 @@ var _ MappedNullable = &MultiAgentSystemStatus{}
 // MultiAgentSystemStatus Status of MultiAgentSystem CRD.
 type MultiAgentSystemStatus struct {
 	// Current phase of the MAS
-	Phase *MASPhase `json:"phase,omitempty"`
+	Phase *CRDPhase `json:"phase,omitempty"`
 	// Number of apps successfully registered
 	AppsReady *int32 `json:"appsReady,omitempty"`
 	LastSyncTime *time.Time `json:"last_sync_time,omitempty"`
+	// Human-readable status message
 	Message NullableString `json:"message,omitempty"`
+	// OAuth2 credentials for each app (used by operator to create secrets)
 	Credentials []AppCredentials `json:"credentials,omitempty"`
 }
 
@@ -35,7 +37,7 @@ type MultiAgentSystemStatus struct {
 // will change when the set of required properties is changed
 func NewMultiAgentSystemStatus() *MultiAgentSystemStatus {
 	this := MultiAgentSystemStatus{}
-	var phase MASPhase = PENDING
+	var phase CRDPhase = PENDING
 	this.Phase = &phase
 	var appsReady int32 = 0
 	this.AppsReady = &appsReady
@@ -47,7 +49,7 @@ func NewMultiAgentSystemStatus() *MultiAgentSystemStatus {
 // but it doesn't guarantee that properties required by API are set
 func NewMultiAgentSystemStatusWithDefaults() *MultiAgentSystemStatus {
 	this := MultiAgentSystemStatus{}
-	var phase MASPhase = PENDING
+	var phase CRDPhase = PENDING
 	this.Phase = &phase
 	var appsReady int32 = 0
 	this.AppsReady = &appsReady
@@ -55,9 +57,9 @@ func NewMultiAgentSystemStatusWithDefaults() *MultiAgentSystemStatus {
 }
 
 // GetPhase returns the Phase field value if set, zero value otherwise.
-func (o *MultiAgentSystemStatus) GetPhase() MASPhase {
+func (o *MultiAgentSystemStatus) GetPhase() CRDPhase {
 	if o == nil || IsNil(o.Phase) {
-		var ret MASPhase
+		var ret CRDPhase
 		return ret
 	}
 	return *o.Phase
@@ -65,7 +67,7 @@ func (o *MultiAgentSystemStatus) GetPhase() MASPhase {
 
 // GetPhaseOk returns a tuple with the Phase field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *MultiAgentSystemStatus) GetPhaseOk() (*MASPhase, bool) {
+func (o *MultiAgentSystemStatus) GetPhaseOk() (*CRDPhase, bool) {
 	if o == nil || IsNil(o.Phase) {
 		return nil, false
 	}
@@ -81,8 +83,8 @@ func (o *MultiAgentSystemStatus) HasPhase() bool {
 	return false
 }
 
-// SetPhase gets a reference to the given MASPhase and assigns it to the Phase field.
-func (o *MultiAgentSystemStatus) SetPhase(v MASPhase) {
+// SetPhase gets a reference to the given CRDPhase and assigns it to the Phase field.
+func (o *MultiAgentSystemStatus) SetPhase(v CRDPhase) {
 	o.Phase = &v
 }
 

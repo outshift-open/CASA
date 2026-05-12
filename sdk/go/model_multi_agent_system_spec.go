@@ -27,6 +27,7 @@ type MultiAgentSystemSpec struct {
 	EnabledToolChecks []ToolCheckType `json:"enabledToolChecks,omitempty"`
 	// List of applications in this MAS
 	Apps []AppSpec `json:"apps,omitempty"`
+	// LLM proxy host for outbound LLM call tracking
 	LlmHost NullableString `json:"llm_host,omitempty"`
 }
 

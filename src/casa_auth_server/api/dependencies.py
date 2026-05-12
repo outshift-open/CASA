@@ -43,7 +43,7 @@ from casa_auth_server.core.repositories.scope import ScopePostgresRepository, Sc
 from casa_auth_server.core.repositories.user_input import UserInputPostgresRepository
 from casa_auth_server.database.postgres.postgres import PostgresDB
 from casa_auth_server.k8s.k8s_query_service import K8sQueryService
-from casa_auth_server.k8s.repository import K8sMultiAgentSystemPostgresRepository
+from casa_auth_server.k8s.repository import K8sCASAPolicyPostgresRepository, K8sMultiAgentSystemPostgresRepository
 from casa_auth_server.pipelines.conversation.tbac_components import TaskExtractor, TaskToToolMatcher
 from casa_auth_server.services.app_service import AppService
 from casa_auth_server.services.authorization_server import AuthorizationServerService
@@ -313,3 +313,15 @@ class Container:
         tracer: Annotated[Tracer, Depends(get_tracer)],
     ):
         return K8sQueryService(k8s_mas_repository=k8s_mas_repository, auth_service=auth_service, tracer=tracer)
+
+    @staticmethod
+    def get_k8s_policy_repository(session: Annotated[Session, Depends(get_session)]):
+        return K8sCASAPolicyPostgresRepository(session)
+
+    @staticmethod
+    def get_k8s_policy_crd_service(
+        k8s_policy_repository: Annotated[K8sCASAPolicyPostgresRepository, Depends(get_k8s_policy_repository)],
+    ):
+        from casa_auth_server.k8s.k8s_policy_crd_service import K8sPolicyCRDService
+
+        return K8sPolicyCRDService(k8s_policy_repository)

@@ -27,7 +27,9 @@ type AppSpec struct {
 	Type AppType `json:"type"`
 	// Base URL of the application
 	BaseUrl AppSpecBaseUrl `json:"baseUrl"`
+	// Name of the Kubernetes workload running the app
 	KubernetesWorkloadName NullableString `json:"kubernetesWorkloadName,omitempty"`
+	// HTTP request schema for extracting the prompt field
 	HttpRequestSchema NullableHttpRequestSchema `json:"httpRequestSchema,omitempty"`
 }
 

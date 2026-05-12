@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **Scope** | Pointer to **NullableString** |  | [optional] 
 **Sub** | Pointer to **NullableString** |  | [optional] 
 **Act** | Pointer to [**NullableActorClaim**](ActorClaim.md) |  | [optional] 
-**Other** | Pointer to **map[string]interface{}** |  | [optional] 
+**Other** | Pointer to **map[string]interface{}** | Resource annotations | [optional] 
 **Exp** | Pointer to **NullableInt32** |  | [optional] 
 **UserInputId** | Pointer to **NullableString** |  | [optional] 
 **AppId** | Pointer to **NullableString** |  | [optional] 

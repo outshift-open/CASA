@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **Name** | **string** | Display name of the Multi-Agent System | 
 **EnabledToolChecks** | Pointer to [**[]ToolCheckType**](ToolCheckType.md) | List of enabled tool check types | [optional] 
 **Apps** | Pointer to [**[]AppSpec**](AppSpec.md) | List of applications in this MAS | [optional] 
-**LlmHost** | Pointer to **NullableString** |  | [optional] 
+**LlmHost** | Pointer to **NullableString** | LLM proxy host for outbound LLM call tracking | [optional] 
 
 ## Methods
 

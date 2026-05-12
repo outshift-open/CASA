@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**CacheStoreToken**](KubernetesResourcesAPI.md#CacheStoreToken) | **Post** /k8s/namespaces/{namespace}/cache/store-token | Store Token
 [**GetK8sMasByAppHost**](KubernetesResourcesAPI.md#GetK8sMasByAppHost) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_host | Get K8S Mas By App Host
 [**GetK8sMasByAppWorkload**](KubernetesResourcesAPI.md#GetK8sMasByAppWorkload) | **Get** /k8s/namespaces/{namespace}/get_mas_by_app_workload | Get K8S Mas By App Workload
+[**GetK8sPolicyByWorkload**](KubernetesResourcesAPI.md#GetK8sPolicyByWorkload) | **Get** /k8s/namespaces/{namespace}/policy-by-workload | Get K8S Policy By Workload
 [**K8sTraceLlmCallEnd**](KubernetesResourcesAPI.md#K8sTraceLlmCallEnd) | **Post** /k8s/trace/llm/call_end | K8S Trace Llm Call End
 
 
@@ -417,6 +418,78 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**K8sMultiAgentSystemCRDViewModel**](K8sMultiAgentSystemCRDViewModel.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## GetK8sPolicyByWorkload
+
+> CASAPolicyCRD GetK8sPolicyByWorkload(ctx, namespace).WorkloadName(workloadName).Execute()
+
+Get K8S Policy By Workload
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/outshift-open/CASA/sdk/go"
+)
+
+func main() {
+	namespace := "namespace_example" // string | 
+	workloadName := "workloadName_example" // string | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.KubernetesResourcesAPI.GetK8sPolicyByWorkload(context.Background(), namespace).WorkloadName(workloadName).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `KubernetesResourcesAPI.GetK8sPolicyByWorkload``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `GetK8sPolicyByWorkload`: CASAPolicyCRD
+	fmt.Fprintf(os.Stdout, "Response from `KubernetesResourcesAPI.GetK8sPolicyByWorkload`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**namespace** | **string** |  | 
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiGetK8sPolicyByWorkloadRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+ **workloadName** | **string** |  | 
+
+### Return type
+
+[**CASAPolicyCRD**](CASAPolicyCRD.md)
 
 ### Authorization
 

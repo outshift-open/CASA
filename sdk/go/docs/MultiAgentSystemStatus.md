@@ -4,11 +4,11 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Phase** | Pointer to [**MASPhase**](MASPhase.md) | Current phase of the MAS | [optional] [default to PENDING]
+**Phase** | Pointer to [**CRDPhase**](CRDPhase.md) | Current phase of the MAS | [optional] [default to PENDING]
 **AppsReady** | Pointer to **int32** | Number of apps successfully registered | [optional] [default to 0]
 **LastSyncTime** | Pointer to **time.Time** |  | [optional] 
-**Message** | Pointer to **NullableString** |  | [optional] 
-**Credentials** | Pointer to [**[]AppCredentials**](AppCredentials.md) |  | [optional] 
+**Message** | Pointer to **NullableString** | Human-readable status message | [optional] 
+**Credentials** | Pointer to [**[]AppCredentials**](AppCredentials.md) | OAuth2 credentials for each app (used by operator to create secrets) | [optional] 
 
 ## Methods
 
@@ -31,20 +31,20 @@ but it doesn't guarantee that properties required by API are set
 
 ### GetPhase
 
-`func (o *MultiAgentSystemStatus) GetPhase() MASPhase`
+`func (o *MultiAgentSystemStatus) GetPhase() CRDPhase`
 
 GetPhase returns the Phase field if non-nil, zero value otherwise.
 
 ### GetPhaseOk
 
-`func (o *MultiAgentSystemStatus) GetPhaseOk() (*MASPhase, bool)`
+`func (o *MultiAgentSystemStatus) GetPhaseOk() (*CRDPhase, bool)`
 
 GetPhaseOk returns a tuple with the Phase field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetPhase
 
-`func (o *MultiAgentSystemStatus) SetPhase(v MASPhase)`
+`func (o *MultiAgentSystemStatus) SetPhase(v CRDPhase)`
 
 SetPhase sets Phase field to given value.
 

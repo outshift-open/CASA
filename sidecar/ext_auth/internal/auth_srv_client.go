@@ -26,6 +26,7 @@ import (
 type AuthServerClient interface {
 	GetK8SMultiAgentSystemByAppHost(ctx context.Context, namespace, appHost string) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error)
 	GetK8SMultiAgentSystemByWorkloadName(ctx context.Context, namespace, appWorkload string) (*identitysdk.K8sMultiAgentSystemCRDViewModel, error)
+	GetPolicyCRDByWorkload(ctx context.Context, namespace, workloadName string) (*identitysdk.CASAPolicyCRD, error)
 	LoadTokenFromCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, tool *string) (*identitysdk.TokenResponse, error)
 	StoreTokenInCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, token string, tool *string) error
 	CreateUserInput(ctx context.Context, appID, prompt, tag string) (string, error)
@@ -70,6 +71,18 @@ func (c *authServerClient) GetK8SMultiAgentSystemByWorkloadName(
 		return nil, fmt.Errorf("unable to fetch K8S MAS: %w", err)
 	}
 
+	return resp, nil
+}
+
+func (c *authServerClient) GetPolicyCRDByWorkload(ctx context.Context, namespace, workloadName string) (*identitysdk.CASAPolicyCRD, error) {
+	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.GetK8sPolicyByWorkload(ctx, namespace).WorkloadName(workloadName).Execute()
+	if r != nil && r.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		c.logError("Error calling `KubernetesResourcesAPI.GetK8sPolicyByWorkload`", err, r)
+		return nil, fmt.Errorf("unable to fetch CASAPolicy: %w", err)
+	}
 	return resp, nil
 }
 
