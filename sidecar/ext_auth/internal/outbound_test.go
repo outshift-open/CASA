@@ -18,17 +18,17 @@ import (
 	"fmt"
 	"testing"
 
+	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	"github.com/google/uuid"
 	identitysdk "github.com/outshift-open/CASA/sdk/go"
 	"github.com/outshift-open/CASA/sidecar/ext_auth/internal"
 	"github.com/outshift-open/CASA/sidecar/ext_auth/internal/mocks"
-	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 )
 
-func TestOutbound(t *testing.T) {
+func TestOutbound_should_exchange_token_for_mcp_server(t *testing.T) {
 	t.Parallel()
 
 	agentAppHost := uuid.NewString()
@@ -39,11 +39,11 @@ func TestOutbound(t *testing.T) {
 	mcpAppID := uuid.NewString()
 	agentAccessToken := uuid.NewString()
 	mcpAccessToken := uuid.NewString()
-	agentWorkloadName := "casa-demo-agent"
+	agentWorkloadName := "zta-demo-agent"
 
 	authSrvClient := mocks.NewAuthServerClient(t)
 	authSrvClient.EXPECT().
-		GetK8SMultiAgentSystemByAppHost(t.Context(), namespace, mock.Anything).
+		GetK8SMultiAgentSystemByWorkloadName(t.Context(), namespace, agentWorkloadName).
 		Return(&identitysdk.K8sMultiAgentSystemCRDViewModel{
 			Namespace: namespace,
 			AppSpecs: []identitysdk.K8sAppSpecViewModel{
@@ -92,6 +92,79 @@ func TestOutbound(t *testing.T) {
 					},
 					Host: mcpHost,
 					Body: `{"method":"tools/call","params":{"name":"schedule_payment","arguments":{"from_account":"Primary Checking","amount":10000.0,"frequency":"Monthly","next_date":"2025-11-20","payee":"Charlie","description":"Ad hoc payment"}},"jsonrpc":"2.0","id":1}`,
+				},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, int32(codes.OK), resp.Status.Code)
+}
+
+func TestOutbound_should_exchange_token_for_agent(t *testing.T) {
+	t.Parallel()
+
+	clientAppHost := uuid.NewString()
+	agentHost := uuid.NewString()
+	namespace := uuid.NewString()
+	traceID := "4bf92f3577b34da6a3ce929d0e0e4736"
+	clientAppID := uuid.NewString()
+	agentAppID := uuid.NewString()
+	clientAccessToken := uuid.NewString()
+	agentAccessToken := uuid.NewString()
+	clientWorkloadName := "zta-demo-agent"
+
+	authSrvClient := mocks.NewAuthServerClient(t)
+	authSrvClient.EXPECT().
+		GetK8SMultiAgentSystemByWorkloadName(t.Context(), namespace, clientWorkloadName).
+		Return(&identitysdk.K8sMultiAgentSystemCRDViewModel{
+			Namespace: namespace,
+			AppSpecs: []identitysdk.K8sAppSpecViewModel{
+				{
+					Type:                   identitysdk.CLIENT,
+					UrlHost:                clientAppHost,
+					UrlScheme:              "http",
+					AppId:                  *identitysdk.NewNullableString(&clientAppID),
+					KubernetesWorkloadName: *identitysdk.NewNullableString(&clientWorkloadName),
+				},
+				{
+					Type:      identitysdk.AGENT,
+					UrlHost:   agentHost,
+					UrlScheme: "http",
+					AppId:     *identitysdk.NewNullableString(&agentAppID),
+				},
+			},
+		}, nil)
+	authSrvClient.EXPECT().
+		LoadTokenFromCache(t.Context(), namespace, traceID, clientAppHost, identitysdk.CLIENT, mock.Anything).
+		Return(&identitysdk.TokenResponse{
+			AccessToken: clientAccessToken,
+		}, nil)
+	authSrvClient.EXPECT().
+		ExchangeToken(t.Context(), agentAppID, mock.Anything, mock.Anything, clientAccessToken, "", []string(nil)).
+		Return(agentAccessToken, nil)
+	authSrvClient.EXPECT().StoreTokenInCache(t.Context(), namespace, traceID, agentHost, identitysdk.AGENT, agentAccessToken, (*string)(nil)).Return(nil)
+
+	k8sSrv := mocks.NewKubernetesService(t)
+	k8sSrv.EXPECT().
+		GetAppCredentials(t.Context(), mock.Anything).
+		Return(&internal.AppClientCredential{
+			ClientID:     uuid.NewString(),
+			ClientSecret: uuid.NewString(),
+		}, nil)
+
+	sut := internal.NewOutboundExtAuthService(namespace, authSrvClient, k8sSrv)
+
+	resp, err := sut.Check(t.Context(), &authv3.CheckRequest{
+		Attributes: &authv3.AttributeContext{
+			Request: &authv3.AttributeContext_Request{
+				Http: &authv3.AttributeContext_HttpRequest{
+					Headers: map[string]string{
+						"traceparent":           fmt.Sprintf("00-%s-00f067aa0ba902b7-01", traceID),
+						"x-envoy-peer-metadata": "ChoKCkNMVVNURVJfSUQSDBoKS3ViZXJuZXRlcwqMAQoGTEFCRUxTEoEBKn8KFwoDYXBwEhAaDnp0YS1kZW1vLWFnZW50CjMKH3NlcnZpY2UuaXN0aW8uaW8vY2Fub25pY2FsLW5hbWUSEBoOenRhLWRlbW8tYWdlbnQKLwojc2VydmljZS5pc3Rpby5pby9jYW5vbmljYWwtcmV2aXNpb24SCBoGbGF0ZXN0CikKBE5BTUUSIRofenRhLWRlbW8tYWdlbnQtNTVjOWM2ZDk1Ny1zNWZncwoaCglOQU1FU1BBQ0USDRoLenRhLXNpZGVjYXIKVgoFT1dORVISTRpLa3ViZXJuZXRlczovL2FwaXMvYXBwcy92MS9uYW1lc3BhY2VzL3p0YS1zaWRlY2FyL2RlcGxveW1lbnRzL3p0YS1kZW1vLWFnZW50CiEKDVdPUktMT0FEX05BTUUSEBoOenRhLWRlbW8tYWdlbnQ=",
+					},
+					Host: agentHost,
+					Body: `{}`,
 				},
 			},
 		},
