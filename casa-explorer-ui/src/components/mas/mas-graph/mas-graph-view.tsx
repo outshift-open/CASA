@@ -29,7 +29,8 @@ import {
     MiniMap,
     Panel,
     ReactFlowProvider,
-    useNodesState
+    useNodesState,
+    useReactFlow
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import {MASGraphMASNode} from './mas-graph-mas-node';
@@ -64,7 +65,7 @@ const edgeTypes: Record<string, React.ComponentType<any>> = {
 
 const NODE_W = 200;
 const NODE_H = 96;
-const MAS_NODE_W = 220;
+const MAS_NODE_W = 260;
 const MAS_NODE_H = 110;
 
 const elk = new ELK();
@@ -141,8 +142,9 @@ function MASGraphViewInner({
 }: MASGraphViewProps) {
     const navigate = useNavigate();
     const graphRef = useRef<HTMLDivElement>(null);
-    const {data: flowEdges = []} = useMASFlow(mas.id);
+    const {data: flowEdges = [], isLoading: isFlowLoading} = useMASFlow(mas.id);
     const [layoutedNodes, setLayoutedNodes, onNodesChange] = useNodesState<Node>([]);
+    const {fitView} = useReactFlow();
 
     const filteredApps = useMemo(() => {
         return apps.filter((app) => {
@@ -195,9 +197,10 @@ function MASGraphViewInner({
                     }));
 
                 setLayoutedNodes(resolveCollisions([masNode, ...appNodes], {margin: 32, maxIterations: 50}));
+                requestAnimationFrame(() => fitView({padding: 0.15, duration: 300}));
             })
             .catch(console.error);
-    }, [filteredApps, flowEdges, mas.name, searchTerm, setLayoutedNodes]);
+    }, [filteredApps, flowEdges, mas.name, searchTerm, setLayoutedNodes, fitView]);
 
     const onNodeDragStop = useCallback(() => {
         setLayoutedNodes((nds) => resolveCollisions(nds, {maxIterations: Infinity, overlapThreshold: 0.5, margin: 15}));
@@ -385,7 +388,7 @@ function MASGraphViewInner({
             {/* Graph */}
             <div
                 ref={graphRef}
-                className="w-full rounded-xl overflow-hidden"
+                className="relative w-full rounded-xl overflow-hidden"
                 style={{
                     height: 820,
                     background:
@@ -402,8 +405,6 @@ function MASGraphViewInner({
                     onNodesChange={onNodesChange}
                     onNodeClick={onNodeClick}
                     onNodeDragStop={onNodeDragStop}
-                    fitView
-                    fitViewOptions={{padding: 0.15}}
                     minZoom={0.2}
                     maxZoom={2.5}
                     connectionMode={ConnectionMode.Loose}
@@ -453,6 +454,17 @@ function MASGraphViewInner({
                         </div>
                     </Panel>
                 </ReactFlow>
+                {(isFlowLoading || (filteredApps.length > 0 && layoutedNodes.length === 0)) && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="flex flex-col items-center gap-3">
+                            <div
+                                className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+                                style={{borderColor: 'rgba(0,188,235,0.6)', borderTopColor: 'transparent'}}
+                            />
+                            <span className="text-xs text-white/30 tracking-widest uppercase">Computing layout</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

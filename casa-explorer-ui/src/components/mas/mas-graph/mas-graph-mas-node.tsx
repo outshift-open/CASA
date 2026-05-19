@@ -27,7 +27,7 @@ interface MASGraphMASNodeProps {
 
 export const MASGraphMASNode = memo(({data}: MASGraphMASNodeProps) => {
     return (
-        <div className="relative" style={{width: 220}}>
+        <div className="relative" style={{width: 260}}>
             {/* Outer glow ring */}
             <div
                 className="absolute inset-0 rounded-2xl"
@@ -94,7 +94,7 @@ export const MASGraphMASNode = memo(({data}: MASGraphMASNodeProps) => {
                         >
                             Multi-Agent System
                         </div>
-                        <div className="font-bold text-sm text-white/95 truncate max-w-[160px]" title={data.name}>
+                        <div className="font-bold text-sm text-white/95 truncate w-full" title={data.name}>
                             {data.name}
                         </div>
                         <div className="text-[11px]" style={{color: 'rgba(0,188,235,0.55)'}}>
