@@ -14,19 +14,41 @@
  * limitations under the License.
  */
 
-import {memo} from 'react';
-import {Handle, Position} from 'reactflow';
-import {Bot, AppWindow, Server} from 'lucide-react';
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
+import {memo, useState} from 'react';
+import {Handle, Position} from '@xyflow/react';
+import {Bot, AppWindow, Server, Wrench} from 'lucide-react';
 import {cn} from '@/lib/utils';
 import type {AppType} from '@/types/app.types';
 import type {Tool} from '@/types/app.types';
-import {AppTypeBadge, APP_TYPE_LABELS} from '@/components/ui/app-type-badge';
+import {APP_TYPE_LABELS} from '@/components/ui/app-type-badge';
 
-const APP_TYPE_ICONS: Record<AppType, React.ComponentType<{className?: string}>> = {
-    agent: Bot,
-    client: AppWindow,
-    mcp_server: Server
+const APP_TYPE_CONFIG: Record<
+    AppType,
+    {
+        Icon: React.ComponentType<{className?: string; strokeWidth?: number; style?: React.CSSProperties}>;
+        accent: string;
+        glow: string;
+        border: string;
+    }
+> = {
+    agent: {
+        Icon: Bot,
+        accent: '#818cf8',
+        glow: 'rgba(129,140,248,0.18)',
+        border: 'rgba(129,140,248,0.35)'
+    },
+    client: {
+        Icon: AppWindow,
+        accent: '#34d399',
+        glow: 'rgba(52,211,153,0.18)',
+        border: 'rgba(52,211,153,0.35)'
+    },
+    mcp_server: {
+        Icon: Server,
+        accent: '#22d3ee',
+        glow: 'rgba(34,211,238,0.18)',
+        border: 'rgba(34,211,238,0.35)'
+    }
 };
 
 interface MASGraphNodeProps {
@@ -35,76 +57,120 @@ interface MASGraphNodeProps {
         type: AppType;
         toolCount: number;
         tools?: Tool[];
-        onClick: () => void;
+        appId?: string;
         isHighlighted?: boolean;
     };
 }
 
 export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
-    const Icon = APP_TYPE_ICONS[data.type];
+    const cfg = APP_TYPE_CONFIG[data.type];
+    const {Icon} = cfg;
+    const [hovered, setHovered] = useState(false);
+
+    const borderColor = data.isHighlighted || hovered ? cfg.accent : cfg.border;
+    const shadow = data.isHighlighted
+        ? `0 0 0 2px ${cfg.accent}55, 0 0 32px ${cfg.glow}, inset 0 1px 0 rgba(255,255,255,0.05)`
+        : hovered
+          ? `0 0 0 1px ${cfg.accent}33, 0 0 28px ${cfg.glow}, 0 8px 32px rgba(0,0,0,0.5)`
+          : `0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)`;
 
     return (
-        <TooltipProvider>
-            <Tooltip delayDuration={300}>
-                <TooltipTrigger asChild>
-                    <div
-                        className={cn(
-                            'bg-card text-card-foreground rounded-xl border shadow-md',
-                            'px-4 py-3 min-w-[180px] cursor-pointer',
-                            'hover:shadow-lg hover:border-primary/50 transition-all',
-                            'bg-[rgba(8,12,22,0.85)] border-[rgba(255,255,255,0.10)] backdrop-blur-sm',
-                            'hover:border-[rgba(0,188,235,0.45)] hover:shadow-[0_4px_20px_rgba(0,188,235,0.12)]',
-                            data.isHighlighted && 'ring-2 ring-primary shadow-primary/50'
-                        )}
-                        onClick={data.onClick}
-                    >
-                        <Handle type="target" position={Position.Top} id="top" className="opacity-0" />
-                        <Handle type="target" position={Position.Right} id="right" className="opacity-0" />
-                        <Handle type="target" position={Position.Bottom} id="bottom" className="opacity-0" />
-                        <Handle type="target" position={Position.Left} id="left" className="opacity-0" />
+        <div
+            className={cn('relative rounded-2xl', data.isHighlighted && 'mas-graph-node--highlighted')}
+            style={{
+                width: 200,
+                background: 'linear-gradient(135deg, rgb(8,14,28) 0%, rgb(10,16,32) 100%)',
+                border: `1px solid ${borderColor}`,
+                boxShadow: shadow,
+                transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+                transition: 'box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease'
+            }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+        >
+            <Handle type="target" position={Position.Top} id="top" style={{opacity: 0, width: 8, height: 8}} />
+            <Handle type="source" position={Position.Right} id="right" style={{opacity: 0, width: 8, height: 8}} />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{opacity: 0, width: 8, height: 8}} />
+            <Handle type="source" position={Position.Left} id="left" style={{opacity: 0, width: 8, height: 8}} />
 
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-between gap-2">
-                                <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                <AppTypeBadge type={data.type} />
-                            </div>
-                            <div className="font-semibold text-sm truncate">{data.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                                {data.toolCount} {data.toolCount === 1 ? 'tool' : 'tools'}
-                            </div>
-                        </div>
+            {/* Top accent line */}
+            <div
+                className="absolute top-0 left-4 right-4 h-px rounded-full"
+                style={{
+                    background: `linear-gradient(90deg, transparent, ${cfg.accent}99, transparent)`,
+                    opacity: hovered ? 1 : 0.5,
+                    transition: 'opacity 0.15s ease'
+                }}
+            />
+
+            <div className="px-4 py-3.5 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                    <div
+                        className="flex items-center justify-center w-8 h-8 rounded-lg"
+                        style={{background: cfg.glow, border: `1px solid ${cfg.border}`}}
+                    >
+                        <Icon className="w-4 h-4" style={{color: cfg.accent}} strokeWidth={1.5} />
                     </div>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-xs">
-                    <div className="space-y-2">
-                        <div className="font-semibold">{data.name}</div>
-                        <div className="text-xs text-foreground/70">{APP_TYPE_LABELS[data.type]}</div>
-                        {data.tools && data.tools.length > 0 ? (
-                            <div className="mt-2">
-                                <div className="text-xs font-medium mb-1">Tools:</div>
-                                <ul className="text-xs space-y-1">
-                                    {data.tools.slice(0, 5).map((tool, idx) => (
-                                        <li key={idx} className="truncate">
-                                            • {tool.name}
-                                            {tool.scopes && tool.scopes.length > 0 && (
-                                                <span className="text-foreground/60 ml-1">
-                                                    ({tool.scopes.map((s) => s.name).join(', ')})
-                                                </span>
-                                            )}
-                                        </li>
-                                    ))}
-                                    {data.tools.length > 5 && (
-                                        <li className="text-foreground/60">...and {data.tools.length - 5} more</li>
-                                    )}
-                                </ul>
-                            </div>
-                        ) : (
-                            <div className="text-xs text-foreground/70">No tools configured</div>
+                    <span
+                        className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full"
+                        style={{color: cfg.accent, background: cfg.glow, border: `1px solid ${cfg.border}`}}
+                    >
+                        {APP_TYPE_LABELS[data.type]}
+                    </span>
+                </div>
+
+                <div className="font-semibold text-sm leading-tight text-white/90 truncate" title={data.name}>
+                    {data.name}
+                </div>
+
+                {data.type === 'mcp_server' && (
+                    <div className="flex items-center gap-1.5 pt-0.5 border-t border-white/5">
+                        <Wrench className="w-3 h-3 text-white/30" strokeWidth={1.5} />
+                        <span className="text-[11px] text-white/40">
+                            {data.toolCount} {data.toolCount === 1 ? 'tool' : 'tools'}
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {/* Tooltip on hover — rendered as absolute overlay to avoid interfering with drag */}
+            {hovered && data.type === 'mcp_server' && data.tools && data.tools.length > 0 && (
+                <div
+                    className="absolute left-full ml-3 top-0 z-50 w-56 rounded-xl overflow-hidden pointer-events-none"
+                    style={{
+                        background: 'rgba(6,11,22,0.98)',
+                        border: `1px solid ${cfg.border}`,
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px ${cfg.border}`
+                    }}
+                >
+                    <div
+                        className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest"
+                        style={{
+                            background: `linear-gradient(90deg, transparent, ${cfg.accent}22, transparent)`,
+                            color: cfg.accent,
+                            borderBottom: `1px solid ${cfg.border}`
+                        }}
+                    >
+                        {data.tools.length} Tools
+                    </div>
+                    <ul className="p-3 space-y-1.5">
+                        {data.tools.slice(0, 6).map((tool, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5 text-xs">
+                                <span
+                                    className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0"
+                                    style={{background: cfg.accent}}
+                                />
+                                <span className="text-white/75 truncate">{tool.name}</span>
+                            </li>
+                        ))}
+                        {data.tools.length > 6 && (
+                            <li className="text-xs text-white/30 pl-2.5">+{data.tools.length - 6} more</li>
                         )}
-                    </div>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                    </ul>
+                </div>
+            )}
+        </div>
     );
 });
 

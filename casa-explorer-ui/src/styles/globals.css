@@ -180,6 +180,17 @@ body {
     }
 }
 
+@keyframes mas-pulse {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 6px rgba(0, 188, 235, 0.9);
+    }
+    50% {
+        opacity: 0.4;
+        box-shadow: 0 0 12px rgba(0, 188, 235, 0.3);
+    }
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;

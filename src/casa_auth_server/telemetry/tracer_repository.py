@@ -21,10 +21,17 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, Integer, String, case, literal, union_all
+from sqlalchemy import cast as sa_cast
 from sqlmodel import JSON, Column, Field, Session, SQLModel, asc, desc, func, select
 
-from casa_auth_server.core.events import BaseEvent, MCPCallStartedEvent, MCPToolBlockingType, TokenIssuedEvent
+from casa_auth_server.core.events import (
+    BaseEvent,
+    MCPCallStartedEvent,
+    MCPToolBlockingType,
+    TokenExchangedEvent,
+    TokenIssuedEvent,
+)
 from casa_auth_server.core.types import MultiAgentSystem
 
 
@@ -65,6 +72,15 @@ class MASTraceStat(BaseModel):
     traces: int
     allowed: int
     denied: int
+
+
+class MASFlowEdge(BaseModel):
+    """Observed caller→callee MCP call counts for a MAS."""
+
+    caller_app_id: str
+    callee_app_id: str
+    call_count: int
+    blocked_count: int
 
 
 class MetricsSnapshot(BaseModel):
@@ -122,6 +138,11 @@ class TracerRepository(ABC):
     @abstractmethod
     def get_mas_trace_counts(self, mas_ids: list[str]) -> list[MASTraceStat]:
         """Return trace/allowed/denied counts for each of the given MAS IDs in one query."""
+        pass
+
+    @abstractmethod
+    def get_mas_flow_edges(self, mas_id: str) -> list[MASFlowEdge]:
+        """Return aggregated caller→callee MCP call edges observed for a MAS."""
         pass
 
 
@@ -354,3 +375,56 @@ class TracerPostgresRepository(TracerRepository):
                 stats[mas_id]["allowed"] += event_count
 
         return [MASTraceStat(mas_id=mid, **counts) for mid, counts in stats.items()]
+
+    def get_mas_flow_edges(self, mas_id: str) -> list[MASFlowEdge]:
+        """Return aggregated caller→callee flow edges observed for a MAS.
+
+        Combines MCPCallStartedEvent (caller_app_id/callee_app_id) and
+        TokenExchangedEvent (subject_app_id/act_app_id) to build the full
+        observed call graph. Blocked counts only apply to MCP calls.
+        """
+        blocked_col = Trace.event["blocked"].as_boolean()  # type: ignore[assignment]
+
+        mcp_calls = select(
+            Trace.event["caller_app_id"].as_string().cast(String).label("caller_app_id"),
+            Trace.event["callee_app_id"].as_string().cast(String).label("callee_app_id"),
+            sa_cast(case((blocked_col, 1), else_=0), Integer).label("is_blocked"),
+        ).where(
+            Trace.event_type == MCPCallStartedEvent.__name__,
+            Trace.event["mas_id"].as_string() == mas_id,
+            Trace.event["caller_app_id"].as_string().isnot(None),
+            Trace.event["callee_app_id"].as_string().isnot(None),
+        )
+
+        token_exchanges = select(
+            Trace.event["subject_app_id"].as_string().cast(String).label("caller_app_id"),
+            Trace.event["act_app_id"].as_string().cast(String).label("callee_app_id"),
+            literal(0).label("is_blocked"),
+        ).where(
+            Trace.event_type == TokenExchangedEvent.__name__,
+            Trace.event["mas_id"].as_string() == mas_id,
+            Trace.event["subject_app_id"].as_string().isnot(None),
+            Trace.event["act_app_id"].as_string().isnot(None),
+        )
+
+        combined = union_all(mcp_calls, token_exchanges).subquery()
+
+        rows = self._session.execute(
+            select(
+                combined.c.caller_app_id,
+                combined.c.callee_app_id,
+                func.count().label("call_count"),
+                func.sum(combined.c.is_blocked).label("blocked_count"),
+            ).group_by(combined.c.caller_app_id, combined.c.callee_app_id)
+        ).all()
+
+        return [
+            MASFlowEdge(
+                caller_app_id=row.caller_app_id,
+                callee_app_id=row.callee_app_id,
+                call_count=row.call_count,
+                blocked_count=row.blocked_count or 0,
+            )
+            for row in rows
+            if row.caller_app_id and row.callee_app_id
+        ]

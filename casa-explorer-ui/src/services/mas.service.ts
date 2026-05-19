@@ -15,7 +15,7 @@
  */
 
 import {apiClient} from '@/lib/api';
-import type {MAS, MASListResponse} from '@/types/mas.types';
+import type {MAS, MASListResponse, MASFlowEdge} from '@/types/mas.types';
 import type {App} from '@/types/app.types';
 
 export interface MASQueryParams {
@@ -44,5 +44,10 @@ export const masService = {
     updateMAS: async (masId: string, payload: {name: string; enabled_tool_checks?: number}): Promise<MAS> => {
         const {data} = await apiClient.post(`/mas/${masId}`, payload);
         return data;
+    },
+
+    getMASFlow: async (masId: string): Promise<MASFlowEdge[]> => {
+        const {data} = await apiClient.get(`/mas/${masId}/flow`);
+        return Array.isArray(data) ? data : [];
     }
 };
