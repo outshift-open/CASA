@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {useEffect, useCallback, useRef, useMemo} from 'react';
+import React, {useEffect, useCallback, useRef, useMemo} from 'react';
 import {useNavigate} from 'react-router-dom';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import {
@@ -57,7 +57,8 @@ const nodeTypes: NodeTypes = {
     appNode: MASGraphNode
 };
 
-const edgeTypes = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const edgeTypes: Record<string, React.ComponentType<any>> = {
     flowEdge: FlowEdgeComponent
 };
 

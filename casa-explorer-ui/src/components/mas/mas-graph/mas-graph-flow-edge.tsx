@@ -14,11 +14,35 @@
  * limitations under the License.
  */
 
-import {memo} from 'react';
-import {EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge} from '@xyflow/react';
+import {memo, CSSProperties} from 'react';
+import {BaseEdge, EdgeLabelRenderer, getBezierPath, Position} from '@xyflow/react';
+
+interface MASFlowEdgeProps {
+    id: string;
+    sourceX: number;
+    sourceY: number;
+    targetX: number;
+    targetY: number;
+    sourcePosition: Position;
+    targetPosition: Position;
+    data?: {label?: string};
+    style?: CSSProperties;
+    markerEnd?: string;
+}
 
 export const MASFlowEdge = memo(
-    ({id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, style, markerEnd}: EdgeProps) => {
+    ({
+        id,
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        sourcePosition,
+        targetPosition,
+        data,
+        style,
+        markerEnd
+    }: MASFlowEdgeProps) => {
         const [edgePath, labelX, labelY] = getBezierPath({
             sourceX,
             sourceY,
@@ -40,8 +64,6 @@ export const MASFlowEdge = memo(
                                 position: 'absolute',
                                 transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                                 pointerEvents: 'all'
-                                // Offset label 28px toward the target so it clears the edge midpoint
-                                // and sits closer to the callee node
                             }}
                             className="nodrag nopan"
                         >
