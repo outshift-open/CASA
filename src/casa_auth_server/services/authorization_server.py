@@ -26,6 +26,7 @@ from pydantic import BaseModel, field_validator, model_validator
 from casa_auth_server.checks.base import Payload
 from casa_auth_server.checks.factory import ToolCheckFactory
 from casa_auth_server.core.events import (
+    AgentCallStartedEvent,
     LLMCallEndedEvent,
     MCPCallStartedEvent,
     MCPToolBlockingReason,
@@ -249,6 +250,18 @@ class AuthorizationServerService:
                 tools=approved_tools,
             )
         )
+
+        if actor_app.type == AppType.AGENT:
+            agent_call_event = AgentCallStartedEvent(
+                user_input_id=subject_token.user_input_id,
+                token=token,
+                callee_app_id=str(actor_app.id),
+                caller_app_id=self._get_app_id_from_client_id(subject_token.act.sub)
+                if (subject_token.act is not None)
+                else subject_token.app_id,
+                mas_id=str(actor_app.mas_id),
+            )
+            self.tracer.record_event(agent_call_event)
 
         for tool in processed_tools:
             mcp_call_event = MCPCallStartedEvent(
