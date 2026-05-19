@@ -1,0 +1,112 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+namespace: casa-dev
+
+masSafe:
+  name: "CASA Banking Demo Safe"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""
+
+bankingAssistantSafe:
+  replicas: 1
+  serviceName: banking-assistant-safe
+  servicePort: 8082
+  compromisedMode: "false"
+  bankingDataAgentUrl: "http://banking-data-agent:8083"
+  paymentsAgentUrl: "http://payments-agent:8084"
+  docker:
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo-new/banking-assistant
+    suffix: ''
+  tagversion: latest
+
+bankingAssistantCompromised:
+  replicas: 1
+  serviceName: banking-assistant-compromised
+  servicePort: 8082
+  compromisedMode: "true"
+  bankingDataAgentUrl: "http://banking-data-agent:8083"
+  paymentsAgentUrl: "http://payments-agent:8084"
+  docker:
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo-new/banking-assistant
+    suffix: ''
+  tagversion: latest
+
+bankingDataAgent:
+  replicas: 1
+  serviceName: banking-data-agent
+  servicePort: 8083
+  mcpServerUrl: "http://banking-mcp:3000/mcp"
+  docker:
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo-new/banking-data-agent
+    suffix: ''
+  tagversion: latest
+
+paymentsAgent:
+  replicas: 1
+  serviceName: payments-agent
+  servicePort: 8084
+  mcpServerUrl: "http://banking-mcp:3000/mcp"
+  docker:
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo-new/payments-agent
+    suffix: ''
+  tagversion: latest
+
+mcp:
+  replicas: 1
+  serviceName: banking-mcp
+  servicePort: 3000
+  docker:
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo/mcp
+    suffix: ''
+  tagversion: latest
+
+chatUis:
+  - name: safe
+    docker:
+      registry: ghcr.io/outshift-open
+      image: outshift-casa/demo/chat-ui
+    tagversion: latest
+    agentUrl: /safe-agent
+    ingress:
+      enabled: false
+      className: "nginx"
+      apiDomainName: ""
+      domainPrefix: "chat-safe"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+  - name: compromised
+    docker:
+      registry: ghcr.io/outshift-open
+      image: outshift-casa/demo/chat-ui
+    tagversion: latest
+    agentUrl: /compromised-agent
+    ingress:
+      enabled: false
+      className: "nginx"
+      apiDomainName: ""
+      domainPrefix: "chat-compromised"
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+
+llmCredentials:
+  apiBaseUrl: ""
+  apiKey: ""

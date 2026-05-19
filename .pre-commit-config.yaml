@@ -13,7 +13,7 @@
 # limitations under the License.
 
 default_stages: [pre-commit, pre-push]
-exclude: "^demo/"
+exclude: "^demo(_new)?/"
 repos:
     - repo: https://github.com/google/addlicense
       rev: v1.2.0
