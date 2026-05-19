@@ -101,3 +101,12 @@ class MCPCallStartedEvent(BaseEvent):
     blocked: bool = False
     blocking_type: MCPToolBlockingType | None = None
     blocking_reason: MCPToolBlockingReason | None = None
+
+
+class AgentCallStartedEvent(BaseEvent):
+    """Event emitted when an Agent call is initialized."""
+
+    token: str = ""
+    caller_app_id: str = ""
+    callee_app_id: str = ""
+    mas_id: str | None = None
