@@ -24,10 +24,10 @@ import (
 	"net/url"
 	"strings"
 
-	api "github.com/outshift-open/CASA/sdk/go"
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/google/uuid"
+	api "github.com/outshift-open/CASA/sdk/go"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
@@ -172,8 +172,6 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					slog.Info("Call defnied, access token is empty after token exchange [agent->agent]", CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
 					return s.deny(), nil
 				}
-
-				return s.allow(accessToken), nil
 			} else if appSpec.GetType() == api.MCP_SERVER {
 				slog.Info("Checking MCP server call", CheckCtxField, outCtxField, TraceIdField, traceID, "host", host, "method", httpReq.Method, "path", httpReq.Path, CheckIdField, checkID)
 				if httpReq.Body == "" {

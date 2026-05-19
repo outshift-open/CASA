@@ -23,9 +23,9 @@ import (
 	"log/slog"
 	"strings"
 
-	authapi "github.com/outshift-open/CASA/sdk/go"
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/google/uuid"
+	authapi "github.com/outshift-open/CASA/sdk/go"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
 	"k8s.io/client-go/util/jsonpath"
@@ -99,6 +99,8 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 
 			// The app host must be configured correctly by the user for this to work
 			switch appSpec.Type {
+			case authapi.CLIENT:
+				fallthrough
 			case authapi.AGENT:
 				slog.Info("Checking Agent call", CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 
