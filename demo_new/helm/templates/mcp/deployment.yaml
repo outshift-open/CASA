@@ -30,8 +30,6 @@ spec:
       labels:
         app: {{ .Values.mcp.serviceName }}
         version: v1
-      annotations:
-        sidecar.istio.io/inject: "false"
     spec:
       {{- if .Values.mcp.docker.registry }}
       imagePullSecrets:

@@ -344,6 +344,7 @@ sidecar:
           instrument:
             - k8s_pod_name: "casa-demo-*"
             - k8s_pod_name: "demo-agent-*"
+            - k8s_pod_name: "banking-*"
         routes:
           unmatched: heuristic
         attributes:

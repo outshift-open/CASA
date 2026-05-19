@@ -15,14 +15,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.paymentsAgent.serviceName }}
+  name: {{ .Values.bankingPaymentsAgent.serviceName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Values.paymentsAgent.serviceName }}
+    app: {{ .Values.bankingPaymentsAgent.serviceName }}
 spec:
   selector:
-    app: {{ .Values.paymentsAgent.serviceName }}
+    app: {{ .Values.bankingPaymentsAgent.serviceName }}
   ports:
   - name: http
-    port: {{ .Values.paymentsAgent.servicePort }}
+    port: {{ .Values.bankingPaymentsAgent.servicePort }}
     targetPort: http

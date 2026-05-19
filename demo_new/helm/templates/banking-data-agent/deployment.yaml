@@ -30,8 +30,6 @@ spec:
       labels:
         app: {{ .Values.bankingDataAgent.serviceName }}
         version: v1
-      annotations:
-        sidecar.istio.io/inject: "false"
     spec:
       {{- if .Values.bankingDataAgent.docker.registry }}
       imagePullSecrets:

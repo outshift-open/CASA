@@ -108,7 +108,7 @@ addopts = "-m 'not integration' --ignore=test/integration"
 [tool.mypy]
 ignore_missing_imports = true
 scripts_are_modules = true
-exclude = ['wandb/']
+exclude = ['wandb/', 'demo/', 'demo_new/']
 
 [tool.ruff]
 line-length = 120
