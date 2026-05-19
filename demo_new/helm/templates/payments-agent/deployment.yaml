@@ -15,42 +15,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.paymentsAgent.serviceName }}
+  name: {{ .Values.bankingPaymentsAgent.serviceName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Values.paymentsAgent.serviceName }}
+    app: {{ .Values.bankingPaymentsAgent.serviceName }}
     version: v1
 spec:
-  replicas: {{ .Values.paymentsAgent.replicas }}
+  replicas: {{ .Values.bankingPaymentsAgent.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.paymentsAgent.serviceName }}
+      app: {{ .Values.bankingPaymentsAgent.serviceName }}
   template:
     metadata:
       labels:
-        app: {{ .Values.paymentsAgent.serviceName }}
+        app: {{ .Values.bankingPaymentsAgent.serviceName }}
         version: v1
-      annotations:
-        sidecar.istio.io/inject: "false"
     spec:
-      {{- if .Values.paymentsAgent.docker.registry }}
+      {{- if .Values.bankingPaymentsAgent.docker.registry }}
       imagePullSecrets:
         - name: regcred
       {{- end }}
       containers:
-      - name: {{ .Values.paymentsAgent.serviceName }}
-        image: {{ if .Values.paymentsAgent.docker.registry }}{{ .Values.paymentsAgent.docker.registry }}/{{ end }}{{ .Values.paymentsAgent.docker.image }}:{{ .Values.paymentsAgent.tagversion }}
-        imagePullPolicy: {{ if .Values.paymentsAgent.docker.registry }}Always{{ else }}Never{{ end }}
+      - name: {{ .Values.bankingPaymentsAgent.serviceName }}
+        image: {{ if .Values.bankingPaymentsAgent.docker.registry }}{{ .Values.bankingPaymentsAgent.docker.registry }}/{{ end }}{{ .Values.bankingPaymentsAgent.docker.image }}:{{ .Values.bankingPaymentsAgent.tagversion }}
+        imagePullPolicy: {{ if .Values.bankingPaymentsAgent.docker.registry }}Always{{ else }}Never{{ end }}
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
           allowPrivilegeEscalation: false
         ports:
-        - containerPort: {{ .Values.paymentsAgent.servicePort }}
+        - containerPort: {{ .Values.bankingPaymentsAgent.servicePort }}
           name: http
         env:
         - name: MCP_SERVER_URL
-          value: {{ .Values.paymentsAgent.mcpServerUrl | quote }}
+          value: {{ .Values.bankingPaymentsAgent.mcpServerUrl | quote }}
         - name: OPENAI_API_BASE
           valueFrom:
             secretKeyRef:

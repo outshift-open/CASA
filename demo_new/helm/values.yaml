@@ -21,13 +21,20 @@ masSafe:
     - AI_POWERED_TOOL_MATCH
   llm_host: ""
 
+masCompromised:
+  name: "CASA Banking Demo Compromised"
+  enabledToolChecks:
+    - DETERMINISTIC_TOOL_SELECTED
+    - AI_POWERED_TOOL_MATCH
+  llm_host: ""
+
 bankingAssistantSafe:
   replicas: 1
   serviceName: banking-assistant-safe
   servicePort: 8082
   compromisedMode: "false"
   bankingDataAgentUrl: "http://banking-data-agent:8083"
-  paymentsAgentUrl: "http://payments-agent:8084"
+  paymentsAgentUrl: "http://banking-payments-agent:8084"
   docker:
     registry: ghcr.io/outshift-open
     image: outshift-casa/demo-new/banking-assistant
@@ -40,7 +47,7 @@ bankingAssistantCompromised:
   servicePort: 8082
   compromisedMode: "true"
   bankingDataAgentUrl: "http://banking-data-agent:8083"
-  paymentsAgentUrl: "http://payments-agent:8084"
+  paymentsAgentUrl: "http://banking-payments-agent:8084"
   docker:
     registry: ghcr.io/outshift-open
     image: outshift-casa/demo-new/banking-assistant
@@ -58,9 +65,9 @@ bankingDataAgent:
     suffix: ''
   tagversion: latest
 
-paymentsAgent:
+bankingPaymentsAgent:
   replicas: 1
-  serviceName: payments-agent
+  serviceName: banking-payments-agent
   servicePort: 8084
   mcpServerUrl: "http://banking-mcp:3000/mcp"
   docker:

@@ -40,12 +40,57 @@ spec:
       kubernetesWorkloadName: {{ .Values.bankingDataAgent.serviceName }}
       httpRequestSchema:
         promptFieldJsonPath: "{.conversation}"
-    - name: {{ .Values.paymentsAgent.serviceName }}
+    - name: {{ .Values.bankingPaymentsAgent.serviceName }}
       type: agent
       baseUrl:
-        host: {{ .Values.paymentsAgent.serviceName }}:{{ .Values.paymentsAgent.servicePort }}
+        host: {{ .Values.bankingPaymentsAgent.serviceName }}:{{ .Values.bankingPaymentsAgent.servicePort }}
         scheme: http
-      kubernetesWorkloadName: {{ .Values.paymentsAgent.serviceName }}
+      kubernetesWorkloadName: {{ .Values.bankingPaymentsAgent.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+    - name: {{ .Values.mcp.serviceName }}
+      type: mcp_server
+      baseUrl:
+        host: {{ .Values.mcp.serviceName }}:{{ .Values.mcp.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.mcp.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+
+---
+# Compromised MAS: banking-assistant-compromised, banking-data-agent, banking-payments-agent, banking-mcp.
+apiVersion: casa.io/v1alpha1
+kind: MultiAgentSystem
+metadata:
+  name: {{ .Release.Name }}-banking-compromised
+  namespace: {{ .Release.Namespace }}
+spec:
+  name: {{ .Values.masCompromised.name }}
+  enabledToolChecks: {{ toYaml .Values.masCompromised.enabledToolChecks | nindent 4 }}
+  llm_host: {{ .Values.masCompromised.llm_host }}
+  apps:
+    - name: {{ .Values.bankingAssistantCompromised.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.bankingAssistantCompromised.serviceName }}:{{ .Values.bankingAssistantCompromised.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.bankingAssistantCompromised.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+    - name: {{ .Values.bankingDataAgent.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.bankingDataAgent.serviceName }}:{{ .Values.bankingDataAgent.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.bankingDataAgent.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+    - name: {{ .Values.bankingPaymentsAgent.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.bankingPaymentsAgent.serviceName }}:{{ .Values.bankingPaymentsAgent.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.bankingPaymentsAgent.serviceName }}
       httpRequestSchema:
         promptFieldJsonPath: "{.conversation}"
     - name: {{ .Values.mcp.serviceName }}
