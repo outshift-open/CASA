@@ -40,7 +40,11 @@ export function GlobalSearch() {
     const q = debouncedQuery;
 
     const {data: masData} = useMAS(q ? {q} : undefined);
-    const {data: tracesData} = useTraces({q: q || undefined, pageSize: 5, eventType: EventType.MCPCallStarted}, false, !!q);
+    const {data: tracesData} = useTraces(
+        {q: q || undefined, pageSize: 5, eventType: EventType.MCPCallStarted},
+        false,
+        !!q
+    );
     const {data: appsData} = useApps();
 
     const appNameMap = useMemo(() => {

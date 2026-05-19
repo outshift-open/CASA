@@ -168,7 +168,7 @@ function MASGraphViewInner({
                 sourceHandle: 'bottom',
                 target: `app-${app.id}`,
                 targetHandle: 'top',
-                type: 'smoothstep',
+                type: 'bezier',
                 animated: true,
                 style: {
                     stroke: edgeColor,
@@ -258,7 +258,7 @@ function MASGraphViewInner({
                     maxZoom={2}
                     connectionMode={ConnectionMode.Loose}
                     defaultEdgeOptions={{
-                        type: 'smoothstep',
+                        type: 'bezier',
                         animated: true
                     }}
                 >

@@ -143,22 +143,22 @@ export function AuthRequestsTable({
                     </div>
                 ) : (
                     <div className={isFetching ? 'opacity-60 pointer-events-none' : undefined}>
-                    <DataTable
-                        columns={columns}
-                        data={rows}
-                        hideSearch
-                        onRowClick={onRowClick}
-                        getRowClassName={(row) => {
-                            if (row.userInputId !== selectedUserInputId) return '';
-                            return 'border-l-2 border-b-0 border-[rgba(0,188,235,0.5)]';
-                        }}
-                        serverPage={page}
-                        serverPageCount={totalPages}
-                        serverTotal={total}
-                        serverPageSize={pageSize}
-                        onServerPageChange={onPageChange}
-                        onServerPageSizeChange={onPageSizeChange}
-                    />
+                        <DataTable
+                            columns={columns}
+                            data={rows}
+                            hideSearch
+                            onRowClick={onRowClick}
+                            getRowClassName={(row) => {
+                                if (row.userInputId !== selectedUserInputId) return '';
+                                return 'border-l-2 border-b-0 border-[rgba(0,188,235,0.5)]';
+                            }}
+                            serverPage={page}
+                            serverPageCount={totalPages}
+                            serverTotal={total}
+                            serverPageSize={pageSize}
+                            onServerPageChange={onPageChange}
+                            onServerPageSizeChange={onPageSizeChange}
+                        />
                     </div>
                 )}
             </CardContent>
