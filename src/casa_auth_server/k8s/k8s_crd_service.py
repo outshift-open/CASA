@@ -184,9 +184,27 @@ class K8sCRDService:
 
             # Get existing apps
             existing_apps = self._app_service.get_mas_apps(str(mas.id))
+            existing_app_names = {app.name for app in existing_apps}
             credentials = []
 
-            # Return credentials for existing apps
+            # Create any apps in the spec that are not yet registered
+            for app_spec in request.spec.apps:
+                if app_spec.name not in existing_app_names:
+                    try:
+                        new_app = self._app_service.create_app(
+                            AppRequest(
+                                name=app_spec.name,
+                                base_url=app_spec.base_url.to_url(),
+                                mas_id=str(mas.id),
+                                type=self._convert_app_type(app_spec.type),
+                            )
+                        )
+                        existing_apps.append(new_app)
+                        logger.info(f"Added new app {app_spec.name} to existing MAS {request.metadata.name}")
+                    except Exception as e:
+                        logger.error(f"Failed to add app {app_spec.name} to existing MAS: {e}")
+
+            # Return credentials for all apps
             for app in existing_apps:
                 if app.client_credentials:
                     credentials.append(

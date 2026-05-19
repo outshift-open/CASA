@@ -1,0 +1,53 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{{- $root := . }}
+{{- range .Values.chatUis }}
+{{- if .ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $root.Release.Name }}-chat-ui-{{ .name }}
+  namespace: {{ $root.Release.Namespace }}
+  labels:
+    app: {{ $root.Release.Name }}-chat-ui-{{ .name }}
+    component: demo
+  {{- if .ingress.annotations }}
+  annotations:
+    {{- range $key, $value := .ingress.annotations }}
+    {{ $key }}: {{ tpl $value $root | quote }}
+    {{- end }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .ingress.className }}
+  {{- if .ingress.tls }}
+  tls:
+  - hosts:
+    - "{{ .ingress.domainPrefix }}.{{ .ingress.apiDomainName }}"
+    secretName: "{{ $root.Release.Name }}-chat-ui-{{ .name }}-tls"
+  {{- end }}
+  rules:
+  - host: "{{ .ingress.domainPrefix }}.{{ .ingress.apiDomainName }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $root.Release.Name }}-chat-ui-{{ .name }}
+            port:
+              number: 80
+{{- end }}
+{{- end }}
