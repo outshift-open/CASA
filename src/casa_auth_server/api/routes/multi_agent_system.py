@@ -33,7 +33,7 @@ from casa_auth_server.services.mas_service import (
     MultiAgentSystemService,
     MultiAgentSystemUpdateRequest,
 )
-from casa_auth_server.telemetry.tracer_repository import MASTraceStat, TracerRepository
+from casa_auth_server.telemetry.tracer_repository import MASFlowEdge, MASTraceStat, TracerRepository
 
 router = APIRouter(tags=["Multi Agent Systems"])
 
@@ -151,3 +151,12 @@ def get_mas_apps(
     """Get all the apps related to a MAS."""
     apps = app_service.get_mas_apps(mas_id)
     return [AppViewModel.model_validate(app) for app in apps]
+
+
+@router.get("/mas/{mas_id}/flow", generate_unique_id_function=lambda _: "get_mas_flow")
+def get_mas_flow(
+    tracer_repository: Annotated[TracerRepository, Depends(Container.get_tracer_repository)],
+    mas_id: str,
+) -> list[MASFlowEdge]:
+    """Get observed caller→callee MCP call flow edges for a MAS, aggregated from trace events."""
+    return tracer_repository.get_mas_flow_edges(mas_id)

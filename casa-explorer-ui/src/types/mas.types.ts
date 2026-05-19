@@ -29,6 +29,13 @@ export interface MASTraceStat {
     denied: number;
 }
 
+export interface MASFlowEdge {
+    caller_app_id: string;
+    callee_app_id: string;
+    call_count: number;
+    blocked_count: number;
+}
+
 export interface MAS {
     id: string;
     name: string;

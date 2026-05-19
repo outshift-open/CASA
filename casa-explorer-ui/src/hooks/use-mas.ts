@@ -43,6 +43,15 @@ export const useMASApps = (masId: string | undefined, live = false) => {
     });
 };
 
+export const useMASFlow = (masId: string | undefined) => {
+    return useQuery({
+        queryKey: ['mas', masId, 'flow'],
+        queryFn: () => masService.getMASFlow(masId!),
+        enabled: !!masId,
+        staleTime: 30_000
+    });
+};
+
 export const useUpdateMAS = (masId: string) => {
     const queryClient = useQueryClient();
     return useMutation({
