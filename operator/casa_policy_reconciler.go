@@ -176,45 +176,9 @@ func (r *CASAPolicyReconciler) createPolicyIstioResources(ctx context.Context, p
 		"casa.io/policy-name":          policy.Name,
 	}
 
-	// Build egress hosts: cluster services from allowedEndpoints
-	// Istio requires FQDN in egress hosts; short names are rejected by the validation webhook.
-	egressHosts := []any{}
-	for _, ep := range policy.Spec.AllowedEndpoints {
-		egressHosts = append(egressHosts, fmt.Sprintf("%s/%s.%s.svc.cluster.local", ep.Namespace, ep.Name, ep.Namespace))
-	}
-	// Always include istio-system for telemetry
-	egressHosts = append(egressHosts, "istio-system/*")
-
-	// Add LLM endpoint host if set (requires a ServiceEntry in the same namespace)
-	if policy.Spec.LlmEndpoint != nil {
-		egressHosts = append(egressHosts, fmt.Sprintf("./%s", policy.Spec.LlmEndpoint.Fqdn))
-	}
-
-	// Sidecar to restrict egress for the target workload
-	sidecar := &unstructured.Unstructured{}
-	sidecar.SetAPIVersion("networking.istio.io/v1beta1")
-	sidecar.SetKind("Sidecar")
-	sidecar.SetName(policy.Name + "-sidecar")
-	sidecar.SetNamespace(policy.Namespace)
-	sidecar.SetLabels(labels)
-	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, sidecar, func() error {
-		sidecar.Object["spec"] = map[string]any{
-			"workloadSelector": map[string]any{
-				"labels": map[string]any{
-					"app": policy.Spec.TargetRef.Name,
-				},
-			},
-			"egress": []any{
-				map[string]any{"hosts": egressHosts},
-			},
-		}
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("failed to create/update Sidecar: %w", err)
-	}
-
-	// ServiceEntry + DestinationRule for the external LLM endpoint (if set)
+	// ServiceEntry + DestinationRule for the external LLM endpoint (if set).
+	// These register the host with the mesh, required for REGISTRY_ONLY egress enforcement.
+	// allowedEndpoints (in-cluster) enforcement is handled by the ext-auth sidecar at L7.
 	if policy.Spec.LlmEndpoint != nil {
 		if err := r.createLlmIstioResources(ctx, policy, labels); err != nil {
 			return err
@@ -279,15 +243,6 @@ func (r *CASAPolicyReconciler) createLlmIstioResources(ctx context.Context, poli
 }
 
 func (r *CASAPolicyReconciler) deletePolicyIstioResources(ctx context.Context, policy *CASAPolicy) error {
-	sidecar := &unstructured.Unstructured{}
-	sidecar.SetAPIVersion("networking.istio.io/v1beta1")
-	sidecar.SetKind("Sidecar")
-	sidecar.SetName(policy.Name + "-sidecar")
-	sidecar.SetNamespace(policy.Namespace)
-	if err := r.Client.Delete(ctx, sidecar); err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete Sidecar: %w", err)
-	}
-
 	se := &unstructured.Unstructured{}
 	se.SetAPIVersion("networking.istio.io/v1beta1")
 	se.SetKind("ServiceEntry")
