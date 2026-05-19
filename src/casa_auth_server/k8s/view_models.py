@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -78,40 +77,4 @@ class K8sMultiAgentSystemCRDViewModel(BaseModel):
         return checks
 
     # To be able to create an instance from a SQLModel
-    model_config = ConfigDict(from_attributes=True)
-
-
-class K8sCASAPolicyAllowedEndpointViewModel(BaseModel):
-    """View model for an allowed egress endpoint."""
-
-    id: UUID | None = None
-    name: str
-    namespace: str
-    port: int
-    policy_id: UUID | None = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class K8sCASAPolicyViewModel(BaseModel):
-    """View model for a CASAPolicy CRD."""
-
-    id: UUID | None = None
-    namespace: str
-    name: str
-    target_ref_kind: str
-    target_ref_name: str
-    allowed_protocols: list[str] = []
-    llm_endpoint_fqdn: str | None = None
-    llm_endpoint_port: int | None = None
-    allowed_endpoints: list[K8sCASAPolicyAllowedEndpointViewModel] = []
-
-    @field_validator("allowed_protocols", mode="before")
-    @classmethod
-    def parse_allowed_protocols(cls, v):
-        """Parse JSON-encoded protocols string back to a list."""
-        if isinstance(v, str):
-            return json.loads(v)
-        return v
-
     model_config = ConfigDict(from_attributes=True)
