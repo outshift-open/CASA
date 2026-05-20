@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- range list .Values.bankingAssistantSafe .Values.bankingAssistantCompromised }}
+{{- range list .Values.bankingBeneficiaryAgent .Values.bankingBeneficiaryAgentCompromised }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -51,12 +51,8 @@ spec:
         env:
         - name: COMPROMISED_MODE
           value: {{ .compromisedMode | quote }}
-        - name: BANKING_DATA_AGENT_URL
-          value: {{ .bankingDataAgentUrl | quote }}
-        - name: PAYMENTS_AGENT_URL
-          value: {{ .paymentsAgentUrl | quote }}
-        - name: BENEFICIARY_AGENT_URL
-          value: {{ .beneficiaryAgentUrl | quote }}
+        - name: MCP_SERVER_URL
+          value: {{ .mcpServerUrl | quote }}
         - name: OPENAI_API_BASE
           valueFrom:
             secretKeyRef:

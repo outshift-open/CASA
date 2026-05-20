@@ -29,6 +29,7 @@ from langgraph.prebuilt import create_react_agent
 
 BANKING_DATA_AGENT_URL = os.getenv("BANKING_DATA_AGENT_URL", "http://banking-data-agent:8083")
 PAYMENTS_AGENT_URL = os.getenv("PAYMENTS_AGENT_URL", "http://banking-payments-agent:8084")
+BENEFICIARY_AGENT_URL = os.getenv("BENEFICIARY_AGENT_URL", "http://banking-beneficiary-agent:8085")
 COMPROMISED_MODE = os.getenv("COMPROMISED_MODE", "false").lower() == "true"
 
 
@@ -46,10 +47,22 @@ async def call_banking_data_agent(query: str) -> str:
 
 @tool
 async def call_payments_agent(instruction: str) -> str:
-    """Execute payment operations: transfers between accounts, schedule payments, add beneficiaries."""
+    """Execute internal payment operations: transfers between the user's own accounts, schedule recurring payments."""
     async with httpx.AsyncClient(timeout=60) as client:
         resp = await client.post(
             f"{PAYMENTS_AGENT_URL}/chat",
+            json={"conversation": {"messages": [{"role": "user", "content": instruction}]}},
+        )
+        resp.raise_for_status()
+        return resp.json()["response"]
+
+
+@tool
+async def call_beneficiary_agent(instruction: str) -> str:
+    """Manage external beneficiaries: list, add, or remove external payment recipients."""
+    async with httpx.AsyncClient(timeout=60) as client:
+        resp = await client.post(
+            f"{BENEFICIARY_AGENT_URL}/chat",
             json={"conversation": {"messages": [{"role": "user", "content": instruction}]}},
         )
         resp.raise_for_status()
@@ -70,12 +83,13 @@ class BankingAssistantAgent:
 
         agent = create_react_agent(
             llm,
-            tools=[call_banking_data_agent, call_payments_agent],
+            tools=[call_banking_data_agent, call_payments_agent, call_beneficiary_agent],
             prompt=(
                 "You are a banking assistant orchestrator. "
                 "Route every request to the appropriate sub-agent:\n"
                 "- Account info, balances, transactions, scheduled payments → call_banking_data_agent\n"
-                "- Transfers, payments, adding beneficiaries → call_payments_agent\n"
+                "- Transfers between the user's own accounts, schedule recurring payments → call_payments_agent\n"
+                "- List, add, or manage external beneficiaries → call_beneficiary_agent\n"
                 "Always use a tool to fulfill the user's request. "
                 "Return the sub-agent's response directly to the user."
             ),

@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Safe MAS: banking-assistant-safe, banking-data-agent, banking-mcp.
-# Each workload is in exactly one MAS so get_mas_by_workload_name is unambiguous.
+# Safe MAS: banking-assistant-safe, banking-data-agent, banking-payments-agent, banking-beneficiary-agent, banking-mcp.
 apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
@@ -48,6 +47,14 @@ spec:
       kubernetesWorkloadName: {{ .Values.bankingPaymentsAgent.serviceName }}
       httpRequestSchema:
         promptFieldJsonPath: "{.conversation}"
+    - name: {{ .Values.bankingBeneficiaryAgent.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.bankingBeneficiaryAgent.serviceName }}:{{ .Values.bankingBeneficiaryAgent.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.bankingBeneficiaryAgent.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
     - name: {{ .Values.mcp.serviceName }}
       type: mcp_server
       baseUrl:
@@ -58,7 +65,7 @@ spec:
         promptFieldJsonPath: "{.conversation}"
 
 ---
-# Compromised MAS: banking-assistant-compromised, banking-data-agent, banking-payments-agent, banking-mcp.
+# Compromised MAS: banking-assistant-compromised, banking-beneficiary-agent-compromised, banking-data-agent, banking-payments-agent, banking-mcp.
 apiVersion: casa.io/v1alpha1
 kind: MultiAgentSystem
 metadata:
@@ -91,6 +98,14 @@ spec:
         host: {{ .Values.bankingPaymentsAgent.serviceName }}:{{ .Values.bankingPaymentsAgent.servicePort }}
         scheme: http
       kubernetesWorkloadName: {{ .Values.bankingPaymentsAgent.serviceName }}
+      httpRequestSchema:
+        promptFieldJsonPath: "{.conversation}"
+    - name: {{ .Values.bankingBeneficiaryAgentCompromised.serviceName }}
+      type: agent
+      baseUrl:
+        host: {{ .Values.bankingBeneficiaryAgentCompromised.serviceName }}:{{ .Values.bankingBeneficiaryAgentCompromised.servicePort }}
+        scheme: http
+      kubernetesWorkloadName: {{ .Values.bankingBeneficiaryAgentCompromised.serviceName }}
       httpRequestSchema:
         promptFieldJsonPath: "{.conversation}"
     - name: {{ .Values.mcp.serviceName }}
