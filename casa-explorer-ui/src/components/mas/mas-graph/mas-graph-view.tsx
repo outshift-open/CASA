@@ -33,7 +33,6 @@ import {
     useReactFlow
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import {MASGraphMASNode} from './mas-graph-mas-node';
 import {MASGraphNode} from './mas-graph-node';
 import {MASFlowEdge as FlowEdgeComponent} from './mas-graph-flow-edge';
 import {resolveCollisions} from './resolve-collisions';
@@ -54,7 +53,6 @@ interface MASGraphViewProps {
 }
 
 const nodeTypes: NodeTypes = {
-    masNode: MASGraphMASNode,
     appNode: MASGraphNode
 };
 
@@ -65,31 +63,12 @@ const edgeTypes: Record<string, React.ComponentType<any>> = {
 
 const NODE_W = 200;
 const NODE_H = 96;
-const MAS_NODE_W = 260;
-const MAS_NODE_H = 110;
 
 const elk = new ELK();
 
 function buildElkGraph(filteredApps: App[], flowEdges: MASFlowEdge[]) {
     const appIds = new Set(filteredApps.filter((a) => a.id).map((a) => a.id as string));
     const relevantFlows = flowEdges.filter((fe) => appIds.has(fe.caller_app_id) && appIds.has(fe.callee_app_id));
-
-    const hasIncomingFlow = new Set<string>();
-    relevantFlows.forEach((fe) => hasIncomingFlow.add(fe.callee_app_id));
-
-    const flowAppIds = new Set<string>();
-    relevantFlows.forEach((fe) => {
-        flowAppIds.add(fe.caller_app_id);
-        flowAppIds.add(fe.callee_app_id);
-    });
-
-    // Apps with no flow at all → connect directly to MAS hub
-    const isolatedApps = filteredApps.filter((a) => a.id && !flowAppIds.has(a.id as string));
-    // Flow-connected apps with no incoming flow → they are roots, connect to MAS hub
-    const flowRoots = filteredApps.filter(
-        (a) => a.id && flowAppIds.has(a.id as string) && !hasIncomingFlow.has(a.id as string)
-    );
-    const masTargets = [...flowRoots, ...isolatedApps];
 
     return {
         id: 'root',
@@ -107,32 +86,14 @@ function buildElkGraph(filteredApps: App[], flowEdges: MASFlowEdge[]) {
             'elk.layered.spacing.edgeNodeBetweenLayers': '60',
             'elk.layered.spacing.edgeEdgeBetweenLayers': '30'
         },
-        children: [
-            // layerConstraint FIRST pins MAS hub to layer 0, CENTER aligns it to the middle of that layer
-            {
-                id: 'mas-center',
-                width: MAS_NODE_W,
-                height: MAS_NODE_H,
-                layoutOptions: {
-                    'elk.layered.layering.layerConstraint': 'FIRST',
-                    'elk.alignment': 'CENTER'
-                }
-            },
-            ...filteredApps.filter((a) => a.id).map((app) => ({id: `app-${app.id}`, width: NODE_W, height: NODE_H}))
-        ],
-        edges: [
-            ...masTargets
-                .filter((a) => a.id)
-                .map((app) => ({id: `topo-${app.id}`, sources: ['mas-center'], targets: [`app-${app.id}`]})),
-            // Deduplicate by pair — ELK only needs one edge per source→target for layout
-            ...Array.from(
-                new Map(relevantFlows.map((fe) => [`${fe.caller_app_id}-${fe.callee_app_id}`, fe])).values()
-            ).map((fe) => ({
-                id: `flow-${fe.caller_app_id}-${fe.callee_app_id}`,
-                sources: [`app-${fe.caller_app_id}`],
-                targets: [`app-${fe.callee_app_id}`]
-            }))
-        ]
+        children: filteredApps.filter((a) => a.id).map((app) => ({id: `app-${app.id}`, width: NODE_W, height: NODE_H})),
+        edges: Array.from(
+            new Map(relevantFlows.map((fe) => [`${fe.caller_app_id}-${fe.callee_app_id}`, fe])).values()
+        ).map((fe) => ({
+            id: `flow-${fe.caller_app_id}-${fe.callee_app_id}`,
+            sources: [`app-${fe.caller_app_id}`],
+            targets: [`app-${fe.callee_app_id}`]
+        }))
     };
 }
 
@@ -180,14 +141,6 @@ function MASGraphViewInner({
                 const posMap = new Map<string, {x: number; y: number}>();
                 laid.children?.forEach((n) => posMap.set(n.id, {x: n.x ?? 0, y: n.y ?? 0}));
 
-                const masPos = posMap.get('mas-center') ?? {x: 0, y: 0};
-                const masNode: Node = {
-                    id: 'mas-center',
-                    type: 'masNode',
-                    position: masPos,
-                    data: {name: mas.name, appCount: filteredApps.length}
-                };
-
                 const appNodes: Node[] = filteredApps
                     .filter((a) => a.id)
                     .map((app) => ({
@@ -209,11 +162,11 @@ function MASGraphViewInner({
                                 : ''
                     }));
 
-                setLayoutedNodes(resolveCollisions([masNode, ...appNodes], {margin: 32, maxIterations: 50}));
+                setLayoutedNodes(resolveCollisions(appNodes, {margin: 32, maxIterations: 50}));
                 requestAnimationFrame(() => fitView({padding: 0.15, duration: 300}));
             })
             .catch(console.error);
-    }, [filteredApps, flowEdges, mas.name, searchTerm, setLayoutedNodes, fitView]);
+    }, [filteredApps, flowEdges, searchTerm, setLayoutedNodes, fitView]);
 
     const onNodeDragStop = useCallback(() => {
         setLayoutedNodes((nds) => resolveCollisions(nds, {maxIterations: Infinity, overlapThreshold: 0.5, margin: 15}));
@@ -221,19 +174,6 @@ function MASGraphViewInner({
 
     const edges = useMemo(() => {
         const appIds = new Set(filteredApps.filter((a) => a.id).map((a) => a.id as string));
-
-        const topologyEdges: Edge[] = filteredApps
-            .filter((a) => a.id)
-            .map((app) => ({
-                id: `edge-mas-${app.id}`,
-                source: 'mas-center',
-                sourceHandle: 'bottom',
-                target: `app-${app.id}`,
-                targetHandle: 'top',
-                type: 'bezier',
-                animated: false,
-                style: {stroke: 'rgba(255,255,255,0.07)', strokeWidth: 1, strokeDasharray: '4 6'}
-            }));
 
         const validEdges = flowEdges.filter((fe) => appIds.has(fe.caller_app_id) && appIds.has(fe.callee_app_id));
 
@@ -325,7 +265,7 @@ function MASGraphViewInner({
 
         const observedEdges = [...nonAgentObserved, ...agentObserved];
 
-        return [...topologyEdges, ...observedEdges];
+        return observedEdges;
     }, [filteredApps, flowEdges, maxCallCount, visibleEdgeTypes, layoutedNodes]);
 
     const onNodeClick = useCallback(
@@ -421,7 +361,6 @@ function MASGraphViewInner({
                 {/* Flows legend */}
                 <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 shrink-0">Flows</span>
                 {[
-                    {stroke: 'rgba(255,255,255,0.18)', dash: '4 3', label: 'membership'},
                     {stroke: '#a78bfa', dash: undefined, label: 'agent→agent'},
                     {stroke: '#34d399', dash: undefined, label: 'allowed'},
                     {stroke: '#fb923c', dash: undefined, label: 'partial block'},
@@ -513,7 +452,6 @@ function MASGraphViewInner({
                     />
                     <MiniMap
                         nodeColor={(node) => {
-                            if (node.type === 'masNode') return '#00BCEB';
                             const type = node.data?.type as AppType | undefined;
                             if (type === 'agent') return '#818cf8';
                             if (type === 'client') return '#34d399';
