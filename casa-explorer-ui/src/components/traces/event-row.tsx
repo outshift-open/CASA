@@ -97,7 +97,10 @@ export function ToolChips({tools}: {tools: string[]}) {
     return (
         <>
             {tools.map((t) => (
-                <code key={t} className="mx-0.5 px-1 py-0.5 rounded bg-muted text-[10px] font-mono">
+                <code
+                    key={t}
+                    className="mx-0.5 px-1.5 py-0.5 rounded-full bg-white/8 border border-white/10 text-[10px] font-mono text-foreground/80"
+                >
                     {t}
                 </code>
             ))}
@@ -133,7 +136,11 @@ export function EventTimestamp({createdAt}: {createdAt: string}) {
         second: '2-digit',
         hour12: false
     });
-    return <span className="ml-auto pl-3 text-[11px] text-muted-foreground/60 flex-shrink-0 tabular-nums">{time}</span>;
+    return (
+        <span className="ml-auto pl-3 text-[11px] text-muted-foreground/60 flex-shrink-0 tabular-nums min-w-[64px] text-right">
+            {time}
+        </span>
+    );
 }
 
 const ALWAYS_HIDDEN = new Set(['id', 'user_input_id', 'mas_id', 'created_at']);
@@ -252,7 +259,8 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 )}
                 {event.act_app_id && (
                     <>
-                        <span>→ for</span>
+                        <span className="text-muted-foreground/40">→</span>
+                        <span>for</span>
                         <AppIdChip id={event.act_app_id} appNames={appNames} />
                     </>
                 )}
@@ -266,10 +274,10 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         );
     } else if (event_type === EventType.LLMCallStarted) {
         const tools = parseToolsList(event.tools);
-        borderClass = 'border-blue-500/30';
-        expandedBgClass = 'bg-blue-500/5';
-        rowBgClass = 'bg-blue-500/5';
-        hoverBgClass = 'hover:bg-blue-500/10';
+        borderClass = 'border-blue-400/50';
+        expandedBgClass = 'bg-blue-500/10';
+        rowBgClass = 'bg-blue-500/10';
+        hoverBgClass = 'hover:bg-blue-500/20';
         icon = <Brain className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
         summary = (
             <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
@@ -292,14 +300,20 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         );
     } else if (event_type === EventType.LLMCallEnded) {
         const selectedTools = parseToolsList(event.tools);
-        borderClass = 'border-blue-500/30';
-        expandedBgClass = 'bg-blue-500/5';
-        rowBgClass = 'bg-blue-500/5';
-        hoverBgClass = 'hover:bg-blue-500/10';
+        borderClass = 'border-blue-400/50';
+        expandedBgClass = 'bg-blue-500/10';
+        rowBgClass = 'bg-blue-500/10';
+        hoverBgClass = 'hover:bg-blue-500/20';
         icon = <BrainCircuit className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
         summary = (
             <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                 <span className="font-medium text-foreground">LLM responded</span>
+                {event.app_id && (
+                    <>
+                        <span>from</span>
+                        <AppIdChip id={event.app_id} appNames={appNames} />
+                    </>
+                )}
                 {selectedTools.length > 0 ? (
                     <>
                         <span className="ml-1">— selected:</span>
@@ -329,7 +343,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 {(event.caller_app_id || event.callee_app_id) && (
                     <span className="text-muted-foreground flex items-center gap-1">
                         <AppIdChip id={event.caller_app_id} appNames={appNames} />
-                        <span>→</span>
+                        <span className="text-muted-foreground/40">→</span>
                         <AppIdChip id={event.callee_app_id} appNames={appNames} />
                     </span>
                 )}
@@ -369,9 +383,9 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 onClick={() => setExpanded((v) => !v)}
             >
                 {expanded ? (
-                    <ChevronDown className="h-3 w-3 text-muted-foreground/50 mt-1 flex-shrink-0" />
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/70 mt-0.5 flex-shrink-0" />
                 ) : (
-                    <ChevronRight className="h-3 w-3 text-muted-foreground/50 mt-1 flex-shrink-0" />
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/70 mt-0.5 flex-shrink-0" />
                 )}
                 {icon}
                 {summary}

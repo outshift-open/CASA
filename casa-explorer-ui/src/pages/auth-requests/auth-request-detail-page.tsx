@@ -268,7 +268,7 @@ export function AuthRequestDetailPage() {
                         Auth Requests
                     </Link>
                 </div>
-                <div className="rounded-lg border bg-card p-4 space-y-0.5">
+                <div className="rounded-lg border bg-card p-4">
                     {(() => {
                         let llmCallIndex = 0;
                         return session.events.map((trace) => {

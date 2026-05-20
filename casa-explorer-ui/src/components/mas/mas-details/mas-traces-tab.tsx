@@ -146,7 +146,7 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
                 </div>
             </button>
             {expanded && (
-                <div className="px-4 pb-3 border-t space-y-0.5 bg-muted/20">
+                <div className="px-4 pb-3 border-t bg-muted/20">
                     {session.events.map((trace) => {
                         const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
                         return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
