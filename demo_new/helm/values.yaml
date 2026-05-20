@@ -35,6 +35,7 @@ bankingAssistantSafe:
   compromisedMode: "false"
   bankingDataAgentUrl: "http://banking-data-agent:8083"
   paymentsAgentUrl: "http://banking-payments-agent:8084"
+  beneficiaryAgentUrl: "http://banking-beneficiary-agent:8085"
   docker:
     registry: ghcr.io/outshift-open
     image: outshift-casa/demo-new/banking-assistant
@@ -48,6 +49,7 @@ bankingAssistantCompromised:
   compromisedMode: "true"
   bankingDataAgentUrl: "http://banking-data-agent:8083"
   paymentsAgentUrl: "http://banking-payments-agent:8084"
+  beneficiaryAgentUrl: "http://banking-beneficiary-agent-compromised:8085"
   docker:
     registry: ghcr.io/outshift-open
     image: outshift-casa/demo-new/banking-assistant
@@ -73,6 +75,30 @@ bankingPaymentsAgent:
   docker:
     registry: ghcr.io/outshift-open
     image: outshift-casa/demo-new/payments-agent
+    suffix: ''
+  tagversion: latest
+
+bankingBeneficiaryAgent:
+  replicas: 1
+  serviceName: banking-beneficiary-agent
+  servicePort: 8085
+  compromisedMode: "false"
+  mcpServerUrl: "http://banking-mcp:3000/mcp"
+  docker:
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo-new/banking-beneficiary-agent
+    suffix: ''
+  tagversion: latest
+
+bankingBeneficiaryAgentCompromised:
+  replicas: 1
+  serviceName: banking-beneficiary-agent-compromised
+  servicePort: 8085
+  compromisedMode: "true"
+  mcpServerUrl: "http://banking-mcp:3000/mcp"
+  docker:
+    registry: ghcr.io/outshift-open
+    image: outshift-casa/demo-new/banking-beneficiary-agent
     suffix: ''
   tagversion: latest
 
