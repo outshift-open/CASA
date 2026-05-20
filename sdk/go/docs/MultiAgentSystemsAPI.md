@@ -10,6 +10,7 @@ Method | HTTP request | Description
 [**GetAllMasMasGet**](MultiAgentSystemsAPI.md#GetAllMasMasGet) | **Get** /mas | Get All Mas
 [**GetMasAppsMasMasIdAppsGet**](MultiAgentSystemsAPI.md#GetMasAppsMasMasIdAppsGet) | **Get** /mas/{mas_id}/apps | Get Mas Apps
 [**GetMasByIdMasMasIdGet**](MultiAgentSystemsAPI.md#GetMasByIdMasMasIdGet) | **Get** /mas/{mas_id} | Get Mas By Id
+[**GetMasFlow**](MultiAgentSystemsAPI.md#GetMasFlow) | **Get** /mas/{mas_id}/flow | Get Mas Flow
 [**UpdateMasMasMasIdPost**](MultiAgentSystemsAPI.md#UpdateMasMasMasIdPost) | **Post** /mas/{mas_id} | Update Mas
 
 
@@ -222,7 +223,7 @@ No authorization required
 
 ## GetAllMasMasGet
 
-> []MultiAgentSystem GetAllMasMasGet(ctx).Execute()
+> MASListResponse GetAllMasMasGet(ctx).Page(page).PageSize(pageSize).Q(q).IncludeMetrics(includeMetrics).Execute()
 
 Get All Mas
 
@@ -241,31 +242,42 @@ import (
 )
 
 func main() {
+	page := int32(56) // int32 |  (optional) (default to 1)
+	pageSize := int32(56) // int32 |  (optional) (default to 20)
+	q := "q_example" // string |  (optional)
+	includeMetrics := true // bool |  (optional) (default to false)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.MultiAgentSystemsAPI.GetAllMasMasGet(context.Background()).Execute()
+	resp, r, err := apiClient.MultiAgentSystemsAPI.GetAllMasMasGet(context.Background()).Page(page).PageSize(pageSize).Q(q).IncludeMetrics(includeMetrics).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `MultiAgentSystemsAPI.GetAllMasMasGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `GetAllMasMasGet`: []MultiAgentSystem
+	// response from `GetAllMasMasGet`: MASListResponse
 	fmt.Fprintf(os.Stdout, "Response from `MultiAgentSystemsAPI.GetAllMasMasGet`: %v\n", resp)
 }
 ```
 
 ### Path Parameters
 
-This endpoint does not need any parameter.
+
 
 ### Other Parameters
 
 Other parameters are passed through a pointer to a apiGetAllMasMasGetRequest struct via the builder pattern
 
 
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **page** | **int32** |  | [default to 1]
+ **pageSize** | **int32** |  | [default to 20]
+ **q** | **string** |  | 
+ **includeMetrics** | **bool** |  | [default to false]
+
 ### Return type
 
-[**[]MultiAgentSystem**](MultiAgentSystem.md)
+[**MASListResponse**](MASListResponse.md)
 
 ### Authorization
 
@@ -353,7 +365,7 @@ No authorization required
 
 ## GetMasByIdMasMasIdGet
 
-> MultiAgentSystem GetMasByIdMasMasIdGet(ctx, masId).Execute()
+> MASViewModel GetMasByIdMasMasIdGet(ctx, masId).IncludeMetrics(includeMetrics).Execute()
 
 Get Mas By Id
 
@@ -373,15 +385,16 @@ import (
 
 func main() {
 	masId := "masId_example" // string | 
+	includeMetrics := true // bool |  (optional) (default to false)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.MultiAgentSystemsAPI.GetMasByIdMasMasIdGet(context.Background(), masId).Execute()
+	resp, r, err := apiClient.MultiAgentSystemsAPI.GetMasByIdMasMasIdGet(context.Background(), masId).IncludeMetrics(includeMetrics).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `MultiAgentSystemsAPI.GetMasByIdMasMasIdGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `GetMasByIdMasMasIdGet`: MultiAgentSystem
+	// response from `GetMasByIdMasMasIdGet`: MASViewModel
 	fmt.Fprintf(os.Stdout, "Response from `MultiAgentSystemsAPI.GetMasByIdMasMasIdGet`: %v\n", resp)
 }
 ```
@@ -402,10 +415,81 @@ Other parameters are passed through a pointer to a apiGetMasByIdMasMasIdGetReque
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
 
+ **includeMetrics** | **bool** |  | [default to false]
 
 ### Return type
 
-[**MultiAgentSystem**](MultiAgentSystem.md)
+[**MASViewModel**](MASViewModel.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
+## GetMasFlow
+
+> []MASFlowEdge GetMasFlow(ctx, masId).Execute()
+
+Get Mas Flow
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/outshift-open/CASA/sdk/go"
+)
+
+func main() {
+	masId := "masId_example" // string | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.MultiAgentSystemsAPI.GetMasFlow(context.Background(), masId).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `MultiAgentSystemsAPI.GetMasFlow``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `GetMasFlow`: []MASFlowEdge
+	fmt.Fprintf(os.Stdout, "Response from `MultiAgentSystemsAPI.GetMasFlow`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**masId** | **string** |  | 
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiGetMasFlowRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+### Return type
+
+[**[]MASFlowEdge**](MASFlowEdge.md)
 
 ### Authorization
 

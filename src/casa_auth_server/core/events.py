@@ -110,3 +110,4 @@ class AgentCallStartedEvent(BaseEvent):
     caller_app_id: str = ""
     callee_app_id: str = ""
     mas_id: str | None = None
+    prompt: str | None = None

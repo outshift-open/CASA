@@ -372,16 +372,40 @@ func (a *MultiAgentSystemsAPIService) DeleteMasMasMasIdDeleteExecute(r ApiDelete
 type ApiGetAllMasMasGetRequest struct {
 	ctx context.Context
 	ApiService *MultiAgentSystemsAPIService
+	page *int32
+	pageSize *int32
+	q *string
+	includeMetrics *bool
 }
 
-func (r ApiGetAllMasMasGetRequest) Execute() ([]MultiAgentSystem, *http.Response, error) {
+func (r ApiGetAllMasMasGetRequest) Page(page int32) ApiGetAllMasMasGetRequest {
+	r.page = &page
+	return r
+}
+
+func (r ApiGetAllMasMasGetRequest) PageSize(pageSize int32) ApiGetAllMasMasGetRequest {
+	r.pageSize = &pageSize
+	return r
+}
+
+func (r ApiGetAllMasMasGetRequest) Q(q string) ApiGetAllMasMasGetRequest {
+	r.q = &q
+	return r
+}
+
+func (r ApiGetAllMasMasGetRequest) IncludeMetrics(includeMetrics bool) ApiGetAllMasMasGetRequest {
+	r.includeMetrics = &includeMetrics
+	return r
+}
+
+func (r ApiGetAllMasMasGetRequest) Execute() (*MASListResponse, *http.Response, error) {
 	return r.ApiService.GetAllMasMasGetExecute(r)
 }
 
 /*
 GetAllMasMasGet Get All Mas
 
-Get the list of all multi agent systems.
+Get a paginated list of multi agent systems, with inline app summaries and optional trace counts.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @return ApiGetAllMasMasGetRequest
@@ -394,13 +418,13 @@ func (a *MultiAgentSystemsAPIService) GetAllMasMasGet(ctx context.Context) ApiGe
 }
 
 // Execute executes the request
-//  @return []MultiAgentSystem
-func (a *MultiAgentSystemsAPIService) GetAllMasMasGetExecute(r ApiGetAllMasMasGetRequest) ([]MultiAgentSystem, *http.Response, error) {
+//  @return MASListResponse
+func (a *MultiAgentSystemsAPIService) GetAllMasMasGetExecute(r ApiGetAllMasMasGetRequest) (*MASListResponse, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  []MultiAgentSystem
+		localVarReturnValue  *MASListResponse
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MultiAgentSystemsAPIService.GetAllMasMasGet")
@@ -414,6 +438,30 @@ func (a *MultiAgentSystemsAPIService) GetAllMasMasGetExecute(r ApiGetAllMasMasGe
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if r.page != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", r.page, "form", "")
+	} else {
+		var defaultValue int32 = 1
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page", defaultValue, "form", "")
+		r.page = &defaultValue
+	}
+	if r.pageSize != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", r.pageSize, "form", "")
+	} else {
+		var defaultValue int32 = 20
+		parameterAddToHeaderOrQuery(localVarQueryParams, "page_size", defaultValue, "form", "")
+		r.pageSize = &defaultValue
+	}
+	if r.q != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "q", r.q, "form", "")
+	}
+	if r.includeMetrics != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_metrics", r.includeMetrics, "form", "")
+	} else {
+		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_metrics", defaultValue, "form", "")
+		r.includeMetrics = &defaultValue
+	}
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -452,6 +500,16 @@ func (a *MultiAgentSystemsAPIService) GetAllMasMasGetExecute(r ApiGetAllMasMasGe
 		newErr := &GenericOpenAPIError{
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
 		}
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
@@ -585,9 +643,15 @@ type ApiGetMasByIdMasMasIdGetRequest struct {
 	ctx context.Context
 	ApiService *MultiAgentSystemsAPIService
 	masId string
+	includeMetrics *bool
 }
 
-func (r ApiGetMasByIdMasMasIdGetRequest) Execute() (*MultiAgentSystem, *http.Response, error) {
+func (r ApiGetMasByIdMasMasIdGetRequest) IncludeMetrics(includeMetrics bool) ApiGetMasByIdMasMasIdGetRequest {
+	r.includeMetrics = &includeMetrics
+	return r
+}
+
+func (r ApiGetMasByIdMasMasIdGetRequest) Execute() (*MASViewModel, *http.Response, error) {
 	return r.ApiService.GetMasByIdMasMasIdGetExecute(r)
 }
 
@@ -609,13 +673,13 @@ func (a *MultiAgentSystemsAPIService) GetMasByIdMasMasIdGet(ctx context.Context,
 }
 
 // Execute executes the request
-//  @return MultiAgentSystem
-func (a *MultiAgentSystemsAPIService) GetMasByIdMasMasIdGetExecute(r ApiGetMasByIdMasMasIdGetRequest) (*MultiAgentSystem, *http.Response, error) {
+//  @return MASViewModel
+func (a *MultiAgentSystemsAPIService) GetMasByIdMasMasIdGetExecute(r ApiGetMasByIdMasMasIdGetRequest) (*MASViewModel, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *MultiAgentSystem
+		localVarReturnValue  *MASViewModel
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MultiAgentSystemsAPIService.GetMasByIdMasMasIdGet")
@@ -624,6 +688,126 @@ func (a *MultiAgentSystemsAPIService) GetMasByIdMasMasIdGetExecute(r ApiGetMasBy
 	}
 
 	localVarPath := localBasePath + "/mas/{mas_id}"
+	localVarPath = strings.Replace(localVarPath, "{"+"mas_id"+"}", url.PathEscape(parameterValueToString(r.masId, "masId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	if r.includeMetrics != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_metrics", r.includeMetrics, "form", "")
+	} else {
+		var defaultValue bool = false
+		parameterAddToHeaderOrQuery(localVarQueryParams, "include_metrics", defaultValue, "form", "")
+		r.includeMetrics = &defaultValue
+	}
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type ApiGetMasFlowRequest struct {
+	ctx context.Context
+	ApiService *MultiAgentSystemsAPIService
+	masId string
+}
+
+func (r ApiGetMasFlowRequest) Execute() ([]MASFlowEdge, *http.Response, error) {
+	return r.ApiService.GetMasFlowExecute(r)
+}
+
+/*
+GetMasFlow Get Mas Flow
+
+Get observed caller→callee MCP call flow edges for a MAS, aggregated from trace events.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param masId
+ @return ApiGetMasFlowRequest
+*/
+func (a *MultiAgentSystemsAPIService) GetMasFlow(ctx context.Context, masId string) ApiGetMasFlowRequest {
+	return ApiGetMasFlowRequest{
+		ApiService: a,
+		ctx: ctx,
+		masId: masId,
+	}
+}
+
+// Execute executes the request
+//  @return []MASFlowEdge
+func (a *MultiAgentSystemsAPIService) GetMasFlowExecute(r ApiGetMasFlowRequest) ([]MASFlowEdge, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  []MASFlowEdge
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "MultiAgentSystemsAPIService.GetMasFlow")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/mas/{mas_id}/flow"
 	localVarPath = strings.Replace(localVarPath, "{"+"mas_id"+"}", url.PathEscape(parameterValueToString(r.masId, "masId")), -1)
 
 	localVarHeaderParams := make(map[string]string)

@@ -82,6 +82,7 @@ def token_exchange(
             scope=None,
             mcp_server_url=data.mcp_server_url,
             tools=data.tools,
+            prompt=data.prompt,
         ),
     )
 

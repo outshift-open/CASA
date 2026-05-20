@@ -18,7 +18,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from casa_auth_server.core.events import LLMCallEndedEvent
+from casa_auth_server.core.events import LLMCallEndedEvent, LLMCallStartedEvent
 from casa_auth_server.core.types import AppType, TokenResponse
 from casa_auth_server.k8s.repository import K8sMultiAgentSystemRepository
 from casa_auth_server.k8s.types import K8sLlmCallMapping, K8sTokenCache
@@ -48,6 +48,7 @@ class LlmCallMappingStoreRequest(BaseModel):
     id: str
     trace_id: str
     token: str
+    request: str | None = None
 
 
 class LLMCallEndedKubernetesRequest(BaseModel):
@@ -118,7 +119,28 @@ class K8sQueryService:
             user_input_id=token.user_input_id,
             token=request.token,
         )
-        return self._k8s_mas_repository.store_llm_call_mapping(call)
+        mapping = self._k8s_mas_repository.store_llm_call_mapping(call)
+
+        prompt = ""
+        tools: str | None = None
+
+        if request.request is not None and request.request != "":
+            raw_req = json.loads(request.request)
+            prompt = self._get_content_from_litellm_request(raw_req)
+            tools = self._get_tools_from_litellm_request(raw_req)
+
+        event = LLMCallStartedEvent(
+            app_id=token.app_id,
+            call_id=request.id,
+            token=request.token,
+            user_input_id=token.user_input_id,
+            mas_id=token.mas_id,
+            prompt=prompt,
+            tools=tools,
+        )
+        self._tracer.record_event(event)
+
+        return mapping
 
     def load_llm_call_mapping(self, call_id: str) -> K8sLlmCallMapping:
         return self._k8s_mas_repository.load_llm_call_mapping(UUID(call_id))
@@ -149,6 +171,19 @@ class K8sQueryService:
 
         self._tracer.record_event(event)
         return event
+
+    def _get_content_from_litellm_request(self, request: dict) -> str:
+        if "messages" in request and len(request["messages"]) > 0:
+            message: dict = request["messages"][0]
+            if message.get("content"):
+                return message["content"]
+        return ""
+
+    def _get_tools_from_litellm_request(self, request: dict) -> str | None:
+        if "tools" in request and len(request["tools"]) > 0:
+            tools = [f"name='{tool['function']['name']}'" for tool in request["tools"]]
+            return json.dumps(tools)
+        return None
 
     def _get_tools_from_litellm_response(self, response: dict) -> str | None:
         if "choices" in response and len(response["choices"]) > 0:

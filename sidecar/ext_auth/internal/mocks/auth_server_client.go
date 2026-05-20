@@ -117,8 +117,8 @@ func (_c *AuthServerClient_CreateUserInput_Call) RunAndReturn(run func(ctx conte
 }
 
 // ExchangeToken provides a mock function for the type AuthServerClient
-func (_mock *AuthServerClient) ExchangeToken(ctx context.Context, appID string, clientID string, clientSecret string, subjectToken string, mcpServerURL string, tools []string) (string, error) {
-	ret := _mock.Called(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools)
+func (_mock *AuthServerClient) ExchangeToken(ctx context.Context, appID string, clientID string, clientSecret string, subjectToken string, mcpServerURL string, tools []string, prompt *string) (string, error) {
+	ret := _mock.Called(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools, prompt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ExchangeToken")
@@ -126,16 +126,16 @@ func (_mock *AuthServerClient) ExchangeToken(ctx context.Context, appID string, 
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, []string) (string, error)); ok {
-		return returnFunc(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, []string, *string) (string, error)); ok {
+		return returnFunc(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools, prompt)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, []string) string); ok {
-		r0 = returnFunc(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, []string, *string) string); ok {
+		r0 = returnFunc(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools, prompt)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string, string, []string) error); ok {
-		r1 = returnFunc(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string, string, []string, *string) error); ok {
+		r1 = returnFunc(ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools, prompt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -155,11 +155,12 @@ type AuthServerClient_ExchangeToken_Call struct {
 //   - subjectToken string
 //   - mcpServerURL string
 //   - tools []string
-func (_e *AuthServerClient_Expecter) ExchangeToken(ctx interface{}, appID interface{}, clientID interface{}, clientSecret interface{}, subjectToken interface{}, mcpServerURL interface{}, tools interface{}) *AuthServerClient_ExchangeToken_Call {
-	return &AuthServerClient_ExchangeToken_Call{Call: _e.mock.On("ExchangeToken", ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools)}
+//   - prompt *string
+func (_e *AuthServerClient_Expecter) ExchangeToken(ctx interface{}, appID interface{}, clientID interface{}, clientSecret interface{}, subjectToken interface{}, mcpServerURL interface{}, tools interface{}, prompt interface{}) *AuthServerClient_ExchangeToken_Call {
+	return &AuthServerClient_ExchangeToken_Call{Call: _e.mock.On("ExchangeToken", ctx, appID, clientID, clientSecret, subjectToken, mcpServerURL, tools, prompt)}
 }
 
-func (_c *AuthServerClient_ExchangeToken_Call) Run(run func(ctx context.Context, appID string, clientID string, clientSecret string, subjectToken string, mcpServerURL string, tools []string)) *AuthServerClient_ExchangeToken_Call {
+func (_c *AuthServerClient_ExchangeToken_Call) Run(run func(ctx context.Context, appID string, clientID string, clientSecret string, subjectToken string, mcpServerURL string, tools []string, prompt *string)) *AuthServerClient_ExchangeToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -189,6 +190,10 @@ func (_c *AuthServerClient_ExchangeToken_Call) Run(run func(ctx context.Context,
 		if args[6] != nil {
 			arg6 = args[6].([]string)
 		}
+		var arg7 *string
+		if args[7] != nil {
+			arg7 = args[7].(*string)
+		}
 		run(
 			arg0,
 			arg1,
@@ -197,6 +202,7 @@ func (_c *AuthServerClient_ExchangeToken_Call) Run(run func(ctx context.Context,
 			arg4,
 			arg5,
 			arg6,
+			arg7,
 		)
 	})
 	return _c
@@ -207,7 +213,7 @@ func (_c *AuthServerClient_ExchangeToken_Call) Return(s string, err error) *Auth
 	return _c
 }
 
-func (_c *AuthServerClient_ExchangeToken_Call) RunAndReturn(run func(ctx context.Context, appID string, clientID string, clientSecret string, subjectToken string, mcpServerURL string, tools []string) (string, error)) *AuthServerClient_ExchangeToken_Call {
+func (_c *AuthServerClient_ExchangeToken_Call) RunAndReturn(run func(ctx context.Context, appID string, clientID string, clientSecret string, subjectToken string, mcpServerURL string, tools []string, prompt *string) (string, error)) *AuthServerClient_ExchangeToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -527,8 +533,8 @@ func (_c *AuthServerClient_LoadTokenFromCache_Call) RunAndReturn(run func(ctx co
 }
 
 // StoreLLMCallMapping provides a mock function for the type AuthServerClient
-func (_mock *AuthServerClient) StoreLLMCallMapping(ctx context.Context, namespace string, callID string, traceID string, token string) (*api.K8sLlmCallMapping, error) {
-	ret := _mock.Called(ctx, namespace, callID, traceID, token)
+func (_mock *AuthServerClient) StoreLLMCallMapping(ctx context.Context, namespace string, callID string, traceID string, token string, request *string) (*api.K8sLlmCallMapping, error) {
+	ret := _mock.Called(ctx, namespace, callID, traceID, token, request)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StoreLLMCallMapping")
@@ -536,18 +542,18 @@ func (_mock *AuthServerClient) StoreLLMCallMapping(ctx context.Context, namespac
 
 	var r0 *api.K8sLlmCallMapping
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (*api.K8sLlmCallMapping, error)); ok {
-		return returnFunc(ctx, namespace, callID, traceID, token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, *string) (*api.K8sLlmCallMapping, error)); ok {
+		return returnFunc(ctx, namespace, callID, traceID, token, request)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) *api.K8sLlmCallMapping); ok {
-		r0 = returnFunc(ctx, namespace, callID, traceID, token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string, *string) *api.K8sLlmCallMapping); ok {
+		r0 = returnFunc(ctx, namespace, callID, traceID, token, request)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*api.K8sLlmCallMapping)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
-		r1 = returnFunc(ctx, namespace, callID, traceID, token)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string, *string) error); ok {
+		r1 = returnFunc(ctx, namespace, callID, traceID, token, request)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -565,11 +571,12 @@ type AuthServerClient_StoreLLMCallMapping_Call struct {
 //   - callID string
 //   - traceID string
 //   - token string
-func (_e *AuthServerClient_Expecter) StoreLLMCallMapping(ctx interface{}, namespace interface{}, callID interface{}, traceID interface{}, token interface{}) *AuthServerClient_StoreLLMCallMapping_Call {
-	return &AuthServerClient_StoreLLMCallMapping_Call{Call: _e.mock.On("StoreLLMCallMapping", ctx, namespace, callID, traceID, token)}
+//   - request *string
+func (_e *AuthServerClient_Expecter) StoreLLMCallMapping(ctx interface{}, namespace interface{}, callID interface{}, traceID interface{}, token interface{}, request interface{}) *AuthServerClient_StoreLLMCallMapping_Call {
+	return &AuthServerClient_StoreLLMCallMapping_Call{Call: _e.mock.On("StoreLLMCallMapping", ctx, namespace, callID, traceID, token, request)}
 }
 
-func (_c *AuthServerClient_StoreLLMCallMapping_Call) Run(run func(ctx context.Context, namespace string, callID string, traceID string, token string)) *AuthServerClient_StoreLLMCallMapping_Call {
+func (_c *AuthServerClient_StoreLLMCallMapping_Call) Run(run func(ctx context.Context, namespace string, callID string, traceID string, token string, request *string)) *AuthServerClient_StoreLLMCallMapping_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -591,12 +598,17 @@ func (_c *AuthServerClient_StoreLLMCallMapping_Call) Run(run func(ctx context.Co
 		if args[4] != nil {
 			arg4 = args[4].(string)
 		}
+		var arg5 *string
+		if args[5] != nil {
+			arg5 = args[5].(*string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
 			arg4,
+			arg5,
 		)
 	})
 	return _c
@@ -607,7 +619,7 @@ func (_c *AuthServerClient_StoreLLMCallMapping_Call) Return(k8sLlmCallMapping *a
 	return _c
 }
 
-func (_c *AuthServerClient_StoreLLMCallMapping_Call) RunAndReturn(run func(ctx context.Context, namespace string, callID string, traceID string, token string) (*api.K8sLlmCallMapping, error)) *AuthServerClient_StoreLLMCallMapping_Call {
+func (_c *AuthServerClient_StoreLLMCallMapping_Call) RunAndReturn(run func(ctx context.Context, namespace string, callID string, traceID string, token string, request *string) (*api.K8sLlmCallMapping, error)) *AuthServerClient_StoreLLMCallMapping_Call {
 	_c.Call.Return(run)
 	return _c
 }

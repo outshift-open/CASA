@@ -121,7 +121,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 				return s.deny(), nil
 			}
 
-			_, err = s.authSrvClient.StoreLLMCallMapping(ctx, s.namespace, llmCallID, traceID, callerToken)
+			_, err = s.authSrvClient.StoreLLMCallMapping(ctx, s.namespace, llmCallID, traceID, callerToken, &httpReq.Body)
 			if err != nil {
 				return s.deny(), nil
 			}
@@ -154,6 +154,18 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					return s.deny(), nil
 				}
 
+				var prompt *string
+
+				if appSpec.GetPromptFieldJsonPath() != "" {
+					p, err := ParsePromptWithJsonPath(httpReq.Body, appSpec.GetPromptFieldJsonPath())
+					if err != nil {
+						slog.Error("Failed to extract the prompt using the JSON path, fallbacking to full request body", "err", err, CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
+						prompt = &httpReq.Body
+					}
+
+					prompt = &p
+				}
+
 				accessToken, err = s.authSrvClient.ExchangeToken(
 					ctx,
 					appSpec.GetAppId(),
@@ -162,6 +174,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					callerToken,
 					"",
 					nil,
+					prompt,
 				)
 				if err != nil {
 					slog.Error("ExchangeToken failed", CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID, "err", err)
@@ -219,6 +232,7 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 					callerToken,
 					mcpURL.String(),
 					[]string{toolName},
+					nil,
 				)
 				if err != nil {
 					slog.Error("ExchangeToken failed", CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID, "tool", toolName, "err", err)

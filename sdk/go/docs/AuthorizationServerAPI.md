@@ -291,7 +291,7 @@ No authorization required
 
 ## TokenExchange
 
-> TokenResponse TokenExchange(ctx, appId).ClientId(clientId).ClientSecret(clientSecret).SubjectToken(subjectToken).SubjectTokenType(subjectTokenType).Scope(scope).McpServerUrl(mcpServerUrl).Tools(tools).Execute()
+> TokenResponse TokenExchange(ctx, appId).ClientId(clientId).ClientSecret(clientSecret).SubjectToken(subjectToken).SubjectTokenType(subjectTokenType).Scope(scope).McpServerUrl(mcpServerUrl).Tools(tools).Prompt(prompt).Execute()
 
 Token Exchange
 
@@ -318,10 +318,11 @@ func main() {
 	scope := "scope_example" // string |  (optional)
 	mcpServerUrl := "mcpServerUrl_example" // string |  (optional)
 	tools := []string{"Inner_example"} // []string |  (optional)
+	prompt := "prompt_example" // string |  (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.AuthorizationServerAPI.TokenExchange(context.Background(), appId).ClientId(clientId).ClientSecret(clientSecret).SubjectToken(subjectToken).SubjectTokenType(subjectTokenType).Scope(scope).McpServerUrl(mcpServerUrl).Tools(tools).Execute()
+	resp, r, err := apiClient.AuthorizationServerAPI.TokenExchange(context.Background(), appId).ClientId(clientId).ClientSecret(clientSecret).SubjectToken(subjectToken).SubjectTokenType(subjectTokenType).Scope(scope).McpServerUrl(mcpServerUrl).Tools(tools).Prompt(prompt).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `AuthorizationServerAPI.TokenExchange``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -354,6 +355,7 @@ Name | Type | Description  | Notes
  **scope** | **string** |  | 
  **mcpServerUrl** | **string** |  | 
  **tools** | **[]string** |  | 
+ **prompt** | **string** |  | 
 
 ### Return type
 

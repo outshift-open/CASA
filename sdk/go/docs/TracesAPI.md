@@ -4,15 +4,86 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**GetSession**](TracesAPI.md#GetSession) | **Get** /trace/session/{user_input_id} | Get Session
 [**GetTracesTraceGet**](TracesAPI.md#GetTracesTraceGet) | **Get** /trace | Get Traces
 [**TraceLlmCallEnd**](TracesAPI.md#TraceLlmCallEnd) | **Post** /trace/llm/call_end | Trace Llm Call End
 [**TraceLlmCallStart**](TracesAPI.md#TraceLlmCallStart) | **Post** /trace/llm/call_start | Trace Llm Call Start
 
 
 
+## GetSession
+
+> interface{} GetSession(ctx, userInputId).Execute()
+
+Get Session
+
+
+
+### Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	openapiclient "github.com/outshift-open/CASA/sdk/go"
+)
+
+func main() {
+	userInputId := "38400000-8cf0-11bd-b23e-10b96e4ef00d" // string | 
+
+	configuration := openapiclient.NewConfiguration()
+	apiClient := openapiclient.NewAPIClient(configuration)
+	resp, r, err := apiClient.TracesAPI.GetSession(context.Background(), userInputId).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `TracesAPI.GetSession``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `GetSession`: interface{}
+	fmt.Fprintf(os.Stdout, "Response from `TracesAPI.GetSession`: %v\n", resp)
+}
+```
+
+### Path Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+**ctx** | **context.Context** | context for authentication, logging, cancellation, deadlines, tracing, etc.
+**userInputId** | **string** |  | 
+
+### Other Parameters
+
+Other parameters are passed through a pointer to a apiGetSessionRequest struct via the builder pattern
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+
+
+### Return type
+
+**interface{}**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints)
+[[Back to Model list]](../README.md#documentation-for-models)
+[[Back to README]](../README.md)
+
+
 ## GetTracesTraceGet
 
-> interface{} GetTracesTraceGet(ctx).Page(page).PageSize(pageSize).MasId(masId).All(all).Execute()
+> interface{} GetTracesTraceGet(ctx).Page(page).PageSize(pageSize).MasId(masId).All(all).SortAsc(sortAsc).UserInputId(userInputId).Blocked(blocked).Q(q).EventType(eventType).BlockingType(blockingType).Execute()
 
 Get Traces
 
@@ -35,10 +106,16 @@ func main() {
 	pageSize := int32(56) // int32 |  (optional) (default to 20)
 	masId := "38400000-8cf0-11bd-b23e-10b96e4ef00d" // string |  (optional)
 	all := true // bool |  (optional) (default to false)
+	sortAsc := true // bool |  (optional) (default to false)
+	userInputId := "38400000-8cf0-11bd-b23e-10b96e4ef00d" // string |  (optional)
+	blocked := true // bool |  (optional)
+	q := "q_example" // string |  (optional)
+	eventType := "eventType_example" // string |  (optional)
+	blockingType := "blockingType_example" // string |  (optional)
 
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
-	resp, r, err := apiClient.TracesAPI.GetTracesTraceGet(context.Background()).Page(page).PageSize(pageSize).MasId(masId).All(all).Execute()
+	resp, r, err := apiClient.TracesAPI.GetTracesTraceGet(context.Background()).Page(page).PageSize(pageSize).MasId(masId).All(all).SortAsc(sortAsc).UserInputId(userInputId).Blocked(blocked).Q(q).EventType(eventType).BlockingType(blockingType).Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error when calling `TracesAPI.GetTracesTraceGet``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
@@ -63,6 +140,12 @@ Name | Type | Description  | Notes
  **pageSize** | **int32** |  | [default to 20]
  **masId** | **string** |  | 
  **all** | **bool** |  | [default to false]
+ **sortAsc** | **bool** |  | [default to false]
+ **userInputId** | **string** |  | 
+ **blocked** | **bool** |  | 
+ **q** | **string** |  | 
+ **eventType** | **string** |  | 
+ **blockingType** | **string** |  | 
 
 ### Return type
 

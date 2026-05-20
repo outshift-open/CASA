@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **Tools** | [**[]ToolViewModel**](ToolViewModel.md) |  | 
 **MasId** | **NullableString** |  | 
 **Mas** | [**NullableMultiAgentSystemViewModel**](MultiAgentSystemViewModel.md) |  | 
+**ClientIdMetadataUrl** | Pointer to **NullableString** |  | [optional] 
 
 ## Methods
 
@@ -191,6 +192,41 @@ SetMas sets Mas field to given value.
 `func (o *AppViewModel) UnsetMas()`
 
 UnsetMas ensures that no value is present for Mas, not even an explicit nil
+### GetClientIdMetadataUrl
+
+`func (o *AppViewModel) GetClientIdMetadataUrl() string`
+
+GetClientIdMetadataUrl returns the ClientIdMetadataUrl field if non-nil, zero value otherwise.
+
+### GetClientIdMetadataUrlOk
+
+`func (o *AppViewModel) GetClientIdMetadataUrlOk() (*string, bool)`
+
+GetClientIdMetadataUrlOk returns a tuple with the ClientIdMetadataUrl field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetClientIdMetadataUrl
+
+`func (o *AppViewModel) SetClientIdMetadataUrl(v string)`
+
+SetClientIdMetadataUrl sets ClientIdMetadataUrl field to given value.
+
+### HasClientIdMetadataUrl
+
+`func (o *AppViewModel) HasClientIdMetadataUrl() bool`
+
+HasClientIdMetadataUrl returns a boolean if a field has been set.
+
+### SetClientIdMetadataUrlNil
+
+`func (o *AppViewModel) SetClientIdMetadataUrlNil(b bool)`
+
+ SetClientIdMetadataUrlNil sets the value for ClientIdMetadataUrl to be an explicit nil
+
+### UnsetClientIdMetadataUrl
+`func (o *AppViewModel) UnsetClientIdMetadataUrl()`
+
+UnsetClientIdMetadataUrl ensures that no value is present for ClientIdMetadataUrl, not even an explicit nil
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

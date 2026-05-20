@@ -25,7 +25,7 @@ type MultiAgentSystem struct {
 	Id NullableString `json:"id,omitempty"`
 	Name string `json:"name"`
 	K8sName NullableString `json:"k8s_name,omitempty"`
-	EnabledToolChecks NullableToolCheckFlags `json:"enabled_tool_checks,omitempty"`
+	EnabledToolChecks NullableInt32 `json:"enabled_tool_checks,omitempty"`
 	AuthorizationServerId NullableString `json:"authorization_server_id"`
 	Namespace NullableString `json:"namespace"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
@@ -163,9 +163,9 @@ func (o *MultiAgentSystem) UnsetK8sName() {
 }
 
 // GetEnabledToolChecks returns the EnabledToolChecks field value if set, zero value otherwise (both if not set or set to explicit null).
-func (o *MultiAgentSystem) GetEnabledToolChecks() ToolCheckFlags {
+func (o *MultiAgentSystem) GetEnabledToolChecks() int32 {
 	if o == nil || IsNil(o.EnabledToolChecks.Get()) {
-		var ret ToolCheckFlags
+		var ret int32
 		return ret
 	}
 	return *o.EnabledToolChecks.Get()
@@ -174,7 +174,7 @@ func (o *MultiAgentSystem) GetEnabledToolChecks() ToolCheckFlags {
 // GetEnabledToolChecksOk returns a tuple with the EnabledToolChecks field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *MultiAgentSystem) GetEnabledToolChecksOk() (*ToolCheckFlags, bool) {
+func (o *MultiAgentSystem) GetEnabledToolChecksOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -190,8 +190,8 @@ func (o *MultiAgentSystem) HasEnabledToolChecks() bool {
 	return false
 }
 
-// SetEnabledToolChecks gets a reference to the given NullableToolCheckFlags and assigns it to the EnabledToolChecks field.
-func (o *MultiAgentSystem) SetEnabledToolChecks(v ToolCheckFlags) {
+// SetEnabledToolChecks gets a reference to the given NullableInt32 and assigns it to the EnabledToolChecks field.
+func (o *MultiAgentSystem) SetEnabledToolChecks(v int32) {
 	o.EnabledToolChecks.Set(&v)
 }
 // SetEnabledToolChecksNil sets the value for EnabledToolChecks to be an explicit nil

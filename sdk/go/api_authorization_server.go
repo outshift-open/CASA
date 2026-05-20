@@ -525,6 +525,7 @@ type ApiTokenExchangeRequest struct {
 	scope *string
 	mcpServerUrl *string
 	tools *[]string
+	prompt *string
 }
 
 func (r ApiTokenExchangeRequest) ClientId(clientId string) ApiTokenExchangeRequest {
@@ -559,6 +560,11 @@ func (r ApiTokenExchangeRequest) McpServerUrl(mcpServerUrl string) ApiTokenExcha
 
 func (r ApiTokenExchangeRequest) Tools(tools []string) ApiTokenExchangeRequest {
 	r.tools = &tools
+	return r
+}
+
+func (r ApiTokenExchangeRequest) Prompt(prompt string) ApiTokenExchangeRequest {
+	r.prompt = &prompt
 	return r
 }
 
@@ -646,6 +652,9 @@ func (a *AuthorizationServerAPIService) TokenExchangeExecute(r ApiTokenExchangeR
 	}
 	if r.tools != nil {
 		parameterAddToHeaderOrQuery(localVarFormParams, "tools", r.tools, "", "csv")
+	}
+	if r.prompt != nil {
+		parameterAddToHeaderOrQuery(localVarFormParams, "prompt", r.prompt, "", "")
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {

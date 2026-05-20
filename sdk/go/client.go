@@ -57,6 +57,8 @@ type APIClient struct {
 
 	KubernetesResourcesAPI *KubernetesResourcesAPIService
 
+	MetricsAPI *MetricsAPIService
+
 	MultiAgentSystemsAPI *MultiAgentSystemsAPIService
 
 	ScopesAPI *ScopesAPIService
@@ -86,6 +88,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.AuthorizationServerAPI = (*AuthorizationServerAPIService)(&c.common)
 	c.KubernetesCRDsAPI = (*KubernetesCRDsAPIService)(&c.common)
 	c.KubernetesResourcesAPI = (*KubernetesResourcesAPIService)(&c.common)
+	c.MetricsAPI = (*MetricsAPIService)(&c.common)
 	c.MultiAgentSystemsAPI = (*MultiAgentSystemsAPIService)(&c.common)
 	c.ScopesAPI = (*ScopesAPIService)(&c.common)
 	c.TracesAPI = (*TracesAPIService)(&c.common)
