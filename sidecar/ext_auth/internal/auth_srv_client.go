@@ -30,9 +30,9 @@ type AuthServerClient interface {
 	StoreTokenInCache(ctx context.Context, namespace, traceID, appHost string, appType identitysdk.AppType, token string, tool *string) error
 	CreateUserInput(ctx context.Context, appID, prompt, tag string) (string, error)
 	Token(ctx context.Context, appID, clientID, clientSecret, userInputID string) (string, error)
-	ExchangeToken(ctx context.Context, appID, clientID, clientSecret, subjectToken, mcpServerURL string, tools []string) (string, error)
+	ExchangeToken(ctx context.Context, appID, clientID, clientSecret, subjectToken, mcpServerURL string, tools []string, prompt *string) (string, error)
 	Introspect(ctx context.Context, token string, tools []string) (*identitysdk.TokenIntrospectResponse, error)
-	StoreLLMCallMapping(ctx context.Context, namespace, callID, traceID, token string) (*identitysdk.K8sLlmCallMapping, error)
+	StoreLLMCallMapping(ctx context.Context, namespace, callID, traceID, token string, request *string) (*identitysdk.K8sLlmCallMapping, error)
 }
 
 type authServerClient struct {
@@ -165,6 +165,7 @@ func (c *authServerClient) ExchangeToken(
 	appID, clientID, clientSecret, subjectToken string,
 	mcpServerURL string,
 	tools []string,
+	prompt *string,
 ) (string, error) {
 	slog.Info("[TOKEN EXCHANGE]", "client_id", clientID, "client_secret", clientSecret, "subject_token", subjectToken, "mcp_server_url", mcpServerURL, "tools", tools)
 	resp, r, err := c.authSrvClient.AuthorizationServerAPI.TokenExchange(ctx, appID).
@@ -174,6 +175,7 @@ func (c *authServerClient) ExchangeToken(
 		SubjectTokenType("urn:ietf:params:oauth:token-type:access_token").
 		McpServerUrl(mcpServerURL).
 		Tools(tools).
+		Prompt(DerefStr(prompt)).
 		Execute()
 	if err != nil {
 		c.logError("Error when calling `AuthorizationServerAPI.TokenExchange`", err, r)
@@ -199,6 +201,7 @@ func (c *authServerClient) StoreLLMCallMapping(
 	callID string,
 	traceID string,
 	token string,
+	request *string,
 ) (*identitysdk.K8sLlmCallMapping, error) {
 	resp, r, err := c.authSrvClient.KubernetesResourcesAPI.
 		CacheStoreLlmCallMapping(ctx, namespace).
@@ -206,6 +209,7 @@ func (c *authServerClient) StoreLLMCallMapping(
 			Id:      callID,
 			TraceId: traceID,
 			Token:   token,
+			Request: *identitysdk.NewNullableString(request),
 		}).
 		Execute()
 	if err != nil {

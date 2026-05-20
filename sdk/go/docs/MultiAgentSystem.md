@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **Id** | Pointer to **NullableString** |  | [optional] 
 **Name** | **string** |  | 
 **K8sName** | Pointer to **NullableString** |  | [optional] 
-**EnabledToolChecks** | Pointer to [**NullableToolCheckFlags**](ToolCheckFlags.md) |  | [optional] 
+**EnabledToolChecks** | Pointer to **NullableInt32** |  | [optional] 
 **AuthorizationServerId** | **NullableString** |  | 
 **Namespace** | **NullableString** |  | 
 **CreatedAt** | Pointer to **time.Time** |  | [optional] 
@@ -124,20 +124,20 @@ HasK8sName returns a boolean if a field has been set.
 UnsetK8sName ensures that no value is present for K8sName, not even an explicit nil
 ### GetEnabledToolChecks
 
-`func (o *MultiAgentSystem) GetEnabledToolChecks() ToolCheckFlags`
+`func (o *MultiAgentSystem) GetEnabledToolChecks() int32`
 
 GetEnabledToolChecks returns the EnabledToolChecks field if non-nil, zero value otherwise.
 
 ### GetEnabledToolChecksOk
 
-`func (o *MultiAgentSystem) GetEnabledToolChecksOk() (*ToolCheckFlags, bool)`
+`func (o *MultiAgentSystem) GetEnabledToolChecksOk() (*int32, bool)`
 
 GetEnabledToolChecksOk returns a tuple with the EnabledToolChecks field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetEnabledToolChecks
 
-`func (o *MultiAgentSystem) SetEnabledToolChecks(v ToolCheckFlags)`
+`func (o *MultiAgentSystem) SetEnabledToolChecks(v int32)`
 
 SetEnabledToolChecks sets EnabledToolChecks field to given value.
 

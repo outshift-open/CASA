@@ -38,7 +38,7 @@ type _MultiAgentSystemCRD MultiAgentSystemCRD
 // will change when the set of required properties is changed
 func NewMultiAgentSystemCRD(metadata MultiAgentSystemMetadata, spec MultiAgentSystemSpec) *MultiAgentSystemCRD {
 	this := MultiAgentSystemCRD{}
-	var apiVersion string = "zta.io/v1alpha1"
+	var apiVersion string = "casa.io/v1alpha1"
 	this.ApiVersion = &apiVersion
 	var kind string = "MultiAgentSystem"
 	this.Kind = &kind
@@ -52,7 +52,7 @@ func NewMultiAgentSystemCRD(metadata MultiAgentSystemMetadata, spec MultiAgentSy
 // but it doesn't guarantee that properties required by API are set
 func NewMultiAgentSystemCRDWithDefaults() *MultiAgentSystemCRD {
 	this := MultiAgentSystemCRD{}
-	var apiVersion string = "zta.io/v1alpha1"
+	var apiVersion string = "casa.io/v1alpha1"
 	this.ApiVersion = &apiVersion
 	var kind string = "MultiAgentSystem"
 	this.Kind = &kind

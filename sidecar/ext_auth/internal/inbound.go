@@ -15,10 +15,8 @@
 package internal
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -28,7 +26,6 @@ import (
 	authapi "github.com/outshift-open/CASA/sdk/go"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
-	"k8s.io/client-go/util/jsonpath"
 )
 
 const (
@@ -116,28 +113,13 @@ func (s *InboundExtAuthService) Check(ctx context.Context, request *authv3.Check
 				}
 
 				if appSpec.GetPromptFieldJsonPath() != "" {
-					jp := jsonpath.New("")
-					err := jp.Parse(appSpec.GetPromptFieldJsonPath())
+					prompt, err := ParsePromptWithJsonPath(httpReq.Body, appSpec.GetPromptFieldJsonPath())
 					if err != nil {
-						slog.Error("Error parsing the prompt JSON path", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
+						slog.Error("Failed to extract the prompt using the JSON path", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
 						return s.deny(), nil
 					}
 
-					var body any
-					err = json.Unmarshal([]byte(httpReq.Body), &body)
-					if err != nil {
-						slog.Error("Failed to unmarshal the HTTP request body", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
-						return s.deny(), nil
-					}
-
-					var buf bytes.Buffer
-					err = jp.Execute(&buf, body)
-					if err != nil {
-						slog.Error("Failed to find the prompt using the JSON path", "err", err, CheckCtxField, inCtxField, TraceIdField, traceID, "host", host, CheckIdField, checkID)
-						return s.deny(), nil
-					}
-
-					userInputID, err := s.authSrvClient.CreateUserInput(ctx, appSpec.GetAppId(), buf.String(), traceID)
+					userInputID, err := s.authSrvClient.CreateUserInput(ctx, appSpec.GetAppId(), prompt, traceID)
 					if err != nil {
 						return s.deny(), nil
 					}

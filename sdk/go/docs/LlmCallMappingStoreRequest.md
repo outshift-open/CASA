@@ -7,6 +7,7 @@ Name | Type | Description | Notes
 **Id** | **string** |  | 
 **TraceId** | **string** |  | 
 **Token** | **string** |  | 
+**Request** | Pointer to **NullableString** |  | [optional] 
 
 ## Methods
 
@@ -87,6 +88,41 @@ and a boolean to check if the value has been set.
 SetToken sets Token field to given value.
 
 
+### GetRequest
+
+`func (o *LlmCallMappingStoreRequest) GetRequest() string`
+
+GetRequest returns the Request field if non-nil, zero value otherwise.
+
+### GetRequestOk
+
+`func (o *LlmCallMappingStoreRequest) GetRequestOk() (*string, bool)`
+
+GetRequestOk returns a tuple with the Request field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetRequest
+
+`func (o *LlmCallMappingStoreRequest) SetRequest(v string)`
+
+SetRequest sets Request field to given value.
+
+### HasRequest
+
+`func (o *LlmCallMappingStoreRequest) HasRequest() bool`
+
+HasRequest returns a boolean if a field has been set.
+
+### SetRequestNil
+
+`func (o *LlmCallMappingStoreRequest) SetRequestNil(b bool)`
+
+ SetRequestNil sets the value for Request to be an explicit nil
+
+### UnsetRequest
+`func (o *LlmCallMappingStoreRequest) UnsetRequest()`
+
+UnsetRequest ensures that no value is present for Request, not even an explicit nil
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

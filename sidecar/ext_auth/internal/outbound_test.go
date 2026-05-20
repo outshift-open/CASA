@@ -68,7 +68,7 @@ func TestOutbound_should_exchange_token_for_mcp_server(t *testing.T) {
 			AccessToken: agentAccessToken,
 		}, nil)
 	authSrvClient.EXPECT().
-		ExchangeToken(t.Context(), mcpAppID, mock.Anything, mock.Anything, agentAccessToken, fmt.Sprintf("http://%s/mcp", mcpHost), mock.Anything).
+		ExchangeToken(t.Context(), mcpAppID, mock.Anything, mock.Anything, agentAccessToken, fmt.Sprintf("http://%s/mcp", mcpHost), mock.Anything, mock.Anything).
 		Return(mcpAccessToken, nil)
 	authSrvClient.EXPECT().StoreTokenInCache(t.Context(), namespace, traceID, mcpHost, identitysdk.MCP_SERVER, mcpAccessToken, mock.Anything).Return(nil)
 
@@ -113,6 +113,8 @@ func TestOutbound_should_exchange_token_for_agent(t *testing.T) {
 	clientAccessToken := uuid.NewString()
 	agentAccessToken := uuid.NewString()
 	clientWorkloadName := "zta-demo-agent"
+	pfJsonPath := "{.content}"
+	prompt := uuid.NewString()
 
 	authSrvClient := mocks.NewAuthServerClient(t)
 	authSrvClient.EXPECT().
@@ -128,10 +130,11 @@ func TestOutbound_should_exchange_token_for_agent(t *testing.T) {
 					KubernetesWorkloadName: *identitysdk.NewNullableString(&clientWorkloadName),
 				},
 				{
-					Type:      identitysdk.AGENT,
-					UrlHost:   agentHost,
-					UrlScheme: "http",
-					AppId:     *identitysdk.NewNullableString(&agentAppID),
+					Type:                identitysdk.AGENT,
+					UrlHost:             agentHost,
+					UrlScheme:           "http",
+					AppId:               *identitysdk.NewNullableString(&agentAppID),
+					PromptFieldJsonPath: *identitysdk.NewNullableString(&pfJsonPath),
 				},
 			},
 		}, nil)
@@ -141,7 +144,7 @@ func TestOutbound_should_exchange_token_for_agent(t *testing.T) {
 			AccessToken: clientAccessToken,
 		}, nil)
 	authSrvClient.EXPECT().
-		ExchangeToken(t.Context(), agentAppID, mock.Anything, mock.Anything, clientAccessToken, "", []string(nil)).
+		ExchangeToken(t.Context(), agentAppID, mock.Anything, mock.Anything, clientAccessToken, "", []string(nil), mock.MatchedBy(func(p *string) bool { return *p == prompt })).
 		Return(agentAccessToken, nil)
 	authSrvClient.EXPECT().StoreTokenInCache(t.Context(), namespace, traceID, agentHost, identitysdk.AGENT, agentAccessToken, (*string)(nil)).Return(nil)
 
@@ -164,7 +167,7 @@ func TestOutbound_should_exchange_token_for_agent(t *testing.T) {
 						"x-envoy-peer-metadata": "ChoKCkNMVVNURVJfSUQSDBoKS3ViZXJuZXRlcwqMAQoGTEFCRUxTEoEBKn8KFwoDYXBwEhAaDnp0YS1kZW1vLWFnZW50CjMKH3NlcnZpY2UuaXN0aW8uaW8vY2Fub25pY2FsLW5hbWUSEBoOenRhLWRlbW8tYWdlbnQKLwojc2VydmljZS5pc3Rpby5pby9jYW5vbmljYWwtcmV2aXNpb24SCBoGbGF0ZXN0CikKBE5BTUUSIRofenRhLWRlbW8tYWdlbnQtNTVjOWM2ZDk1Ny1zNWZncwoaCglOQU1FU1BBQ0USDRoLenRhLXNpZGVjYXIKVgoFT1dORVISTRpLa3ViZXJuZXRlczovL2FwaXMvYXBwcy92MS9uYW1lc3BhY2VzL3p0YS1zaWRlY2FyL2RlcGxveW1lbnRzL3p0YS1kZW1vLWFnZW50CiEKDVdPUktMT0FEX05BTUUSEBoOenRhLWRlbW8tYWdlbnQ=",
 					},
 					Host: agentHost,
-					Body: `{}`,
+					Body: fmt.Sprintf(`{"content": "%s"}`, prompt),
 				},
 			},
 		},

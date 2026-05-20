@@ -24,6 +24,7 @@ type LlmCallMappingStoreRequest struct {
 	Id string `json:"id"`
 	TraceId string `json:"trace_id"`
 	Token string `json:"token"`
+	Request NullableString `json:"request,omitempty"`
 }
 
 type _LlmCallMappingStoreRequest LlmCallMappingStoreRequest
@@ -120,6 +121,48 @@ func (o *LlmCallMappingStoreRequest) SetToken(v string) {
 	o.Token = v
 }
 
+// GetRequest returns the Request field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *LlmCallMappingStoreRequest) GetRequest() string {
+	if o == nil || IsNil(o.Request.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.Request.Get()
+}
+
+// GetRequestOk returns a tuple with the Request field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *LlmCallMappingStoreRequest) GetRequestOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.Request.Get(), o.Request.IsSet()
+}
+
+// HasRequest returns a boolean if a field has been set.
+func (o *LlmCallMappingStoreRequest) HasRequest() bool {
+	if o != nil && o.Request.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetRequest gets a reference to the given NullableString and assigns it to the Request field.
+func (o *LlmCallMappingStoreRequest) SetRequest(v string) {
+	o.Request.Set(&v)
+}
+// SetRequestNil sets the value for Request to be an explicit nil
+func (o *LlmCallMappingStoreRequest) SetRequestNil() {
+	o.Request.Set(nil)
+}
+
+// UnsetRequest ensures that no value is present for Request, not even an explicit nil
+func (o *LlmCallMappingStoreRequest) UnsetRequest() {
+	o.Request.Unset()
+}
+
 func (o LlmCallMappingStoreRequest) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -133,6 +176,9 @@ func (o LlmCallMappingStoreRequest) ToMap() (map[string]interface{}, error) {
 	toSerialize["id"] = o.Id
 	toSerialize["trace_id"] = o.TraceId
 	toSerialize["token"] = o.Token
+	if o.Request.IsSet() {
+		toSerialize["request"] = o.Request.Get()
+	}
 	return toSerialize, nil
 }
 

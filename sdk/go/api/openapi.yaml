@@ -1,17 +1,3 @@
-# Copyright 2026 Cisco Systems, Inc. and its affiliates
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 openapi: 3.1.0
 info:
   title: FastAPI
@@ -349,9 +335,39 @@ paths:
       summary: Trace Llm Call End
       tags:
       - Traces
+  /trace/session/{user_input_id}:
+    get:
+      description: Retrieve all traces for a single session ordered by creation time.
+      operationId: get_session
+      parameters:
+      - explode: false
+        in: path
+        name: user_input_id
+        required: true
+        schema:
+          format: uuid
+          title: User Input Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Session
+      tags:
+      - Traces
   /trace:
     get:
-      description: Retrieve paginated traces for all source app calls.
+      description: "Retrieve paginated traces, optionally filtered by session, blocked\
+        \ status, tool name, event type, or blocking type."
       operationId: get_traces_trace_get
       parameters:
       - explode: true
@@ -393,6 +409,56 @@ paths:
           title: All
           type: boolean
         style: form
+      - explode: true
+        in: query
+        name: sort_asc
+        required: false
+        schema:
+          default: false
+          title: Sort Asc
+          type: boolean
+        style: form
+      - explode: true
+        in: query
+        name: user_input_id
+        required: false
+        schema:
+          format: uuid
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: blocked
+        required: false
+        schema:
+          nullable: true
+          type: boolean
+        style: form
+      - explode: true
+        in: query
+        name: q
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: event_type
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: blocking_type
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
       responses:
         "200":
           content:
@@ -410,18 +476,61 @@ paths:
       - Traces
   /mas:
     get:
-      description: Get the list of all multi agent systems.
+      description: "Get a paginated list of multi agent systems, with inline app summaries\
+        \ and optional trace counts."
       operationId: get_all_mas_mas_get
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          title: Page
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: page_size
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          title: Page Size
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: q
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: include_metrics
+        required: false
+        schema:
+          default: false
+          title: Include Metrics
+          type: boolean
+        style: form
       responses:
         "200":
           content:
             application/json:
               schema:
-                items:
-                  $ref: "#/components/schemas/MultiAgentSystem"
-                title: Response Get All Mas Mas Get
-                type: array
+                $ref: "#/components/schemas/MASListResponse"
           description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
       summary: Get All Mas
       tags:
       - Multi Agent Systems
@@ -521,12 +630,21 @@ paths:
           title: Mas Id
           type: string
         style: simple
+      - explode: true
+        in: query
+        name: include_metrics
+        required: false
+        schema:
+          default: false
+          title: Include Metrics
+          type: boolean
+        style: form
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MultiAgentSystem"
+                $ref: "#/components/schemas/MASViewModel"
           description: Successful Response
         "422":
           content:
@@ -603,6 +721,53 @@ paths:
       summary: Get Mas Apps
       tags:
       - Multi Agent Systems
+  /mas/{mas_id}/flow:
+    get:
+      description: "Get observed caller→callee MCP call flow edges for a MAS, aggregated\
+        \ from trace events."
+      operationId: get_mas_flow
+      parameters:
+      - explode: false
+        in: path
+        name: mas_id
+        required: true
+        schema:
+          title: Mas Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/MASFlowEdge"
+                title: Response Get Mas Flow
+                type: array
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Mas Flow
+      tags:
+      - Multi Agent Systems
+  /metrics:
+    get:
+      description: Return a pre-aggregated metrics snapshot.
+      operationId: get_metrics_metrics_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsSnapshot"
+          description: Successful Response
+      summary: Get Metrics
+      tags:
+      - Metrics
   /scopes:
     get:
       description: Get all scopes.
@@ -1282,6 +1447,28 @@ components:
       - host
       - scheme
       title: AppSpecBaseUrl
+    AppSummaryViewModel:
+      description: Minimal app view model for embedding inside a MAS list entry.
+      example:
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: type
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        type:
+          title: Type
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+      - id
+      - name
+      - type
+      title: AppSummaryViewModel
     AppType:
       description: Enumeration of app types.
       enum:
@@ -1293,6 +1480,7 @@ components:
     AppViewModel:
       description: View model for App including tools and MAS relationships.
       example:
+        client_id_metadata_url: client_id_metadata_url
         mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         name: name
         base_url: base_url
@@ -1349,6 +1537,9 @@ components:
           allOf:
           - $ref: "#/components/schemas/MultiAgentSystemViewModel"
           nullable: true
+        client_id_metadata_url:
+          nullable: true
+          type: string
       required:
       - base_url
       - id
@@ -1358,6 +1549,22 @@ components:
       - tools
       - type
       title: AppViewModel
+    BlockReasonStat:
+      description: Count of denied MCP calls for a specific blocking reason.
+      example:
+        reason: reason
+        count: 9
+      properties:
+        reason:
+          title: Reason
+          type: string
+        count:
+          title: Count
+          type: integer
+      required:
+      - count
+      - reason
+      title: BlockReasonStat
     Body_introspect:
       properties:
         token:
@@ -1832,6 +2039,7 @@ components:
       title: LLMCallStartedRequest
     LlmCallMappingStoreRequest:
       example:
+        request: request
         trace_id: trace_id
         id: id
         token: token
@@ -1844,6 +2052,9 @@ components:
           type: string
         token:
           title: Token
+          type: string
+        request:
+          nullable: true
           type: string
       required:
       - id
@@ -1889,6 +2100,90 @@ components:
       - metadata
       - spec
       title: MASCreateRequest
+    MASFlowEdge:
+      description: Observed caller→callee MCP call counts for a MAS.
+      example:
+        caller_app_id: caller_app_id
+        blocked_count: 6
+        call_count: 0
+        callee_app_id: callee_app_id
+      properties:
+        caller_app_id:
+          title: Caller App Id
+          type: string
+        callee_app_id:
+          title: Callee App Id
+          type: string
+        call_count:
+          title: Call Count
+          type: integer
+        blocked_count:
+          title: Blocked Count
+          type: integer
+      required:
+      - blocked_count
+      - call_count
+      - callee_app_id
+      - caller_app_id
+      title: MASFlowEdge
+    MASListResponse:
+      description: Paginated list of Multi-Agent Systems.
+      example:
+        total: 6
+        page: 1
+        items:
+        - enabled_tool_checks: 0
+          k8s_name: k8s_name
+          authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+          namespace: namespace
+          traces: ""
+          created_at: 2000-01-23T04:56:07.000+00:00
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          apps:
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+        - enabled_tool_checks: 0
+          k8s_name: k8s_name
+          authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+          namespace: namespace
+          traces: ""
+          created_at: 2000-01-23T04:56:07.000+00:00
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          apps:
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+          - name: name
+            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+        page_size: 5
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/MASViewModel"
+          title: Items
+          type: array
+        total:
+          title: Total
+          type: integer
+        page:
+          title: Page
+          type: integer
+        page_size:
+          title: Page Size
+          type: integer
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      title: MASListResponse
     MASPhase:
       description: Phase of MAS resource lifecycle.
       enum:
@@ -1897,10 +2192,146 @@ components:
       - Failed
       title: MASPhase
       type: string
+    MASTraceStat:
+      description: Aggregated trace counts for a single MAS.
+      properties:
+        mas_id:
+          title: Mas Id
+          type: string
+        traces:
+          title: Traces
+          type: integer
+        allowed:
+          title: Allowed
+          type: integer
+        denied:
+          title: Denied
+          type: integer
+      required:
+      - allowed
+      - denied
+      - mas_id
+      - traces
+      title: MASTraceStat
+    MASViewModel:
+      description: "View model for a MAS entry, including inline app summaries and\
+        \ optional trace counts."
+      example:
+        enabled_tool_checks: 0
+        k8s_name: k8s_name
+        authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
+        namespace: namespace
+        traces: ""
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        apps:
+        - name: name
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: type
+        - name: name
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: type
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        namespace:
+          nullable: true
+          type: string
+        k8s_name:
+          nullable: true
+          type: string
+        enabled_tool_checks:
+          nullable: true
+          type: integer
+        authorization_server_id:
+          format: uuid
+          nullable: true
+          type: string
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        apps:
+          items:
+            $ref: "#/components/schemas/AppSummaryViewModel"
+          title: Apps
+          type: array
+        traces:
+          allOf:
+          - $ref: "#/components/schemas/MASTraceStat"
+          nullable: true
+      required:
+      - apps
+      - authorization_server_id
+      - created_at
+      - enabled_tool_checks
+      - id
+      - k8s_name
+      - name
+      - namespace
+      title: MASViewModel
+    MetricsSnapshot:
+      description: Pre-aggregated metrics snapshot.
+      example:
+        total_mcp_calls: 5
+        token_requests: 6
+        ai_powered_blocks: 7
+        total_mas: 0
+        deterministic_blocks: 2
+        mcp_calls_denied: 5
+        block_reasons:
+        - reason: reason
+          count: 9
+        - reason: reason
+          count: 9
+        mcp_calls_allowed: 1
+      properties:
+        total_mas:
+          title: Total Mas
+          type: integer
+        token_requests:
+          title: Token Requests
+          type: integer
+        mcp_calls_allowed:
+          title: Mcp Calls Allowed
+          type: integer
+        mcp_calls_denied:
+          title: Mcp Calls Denied
+          type: integer
+        total_mcp_calls:
+          title: Total Mcp Calls
+          type: integer
+        deterministic_blocks:
+          title: Deterministic Blocks
+          type: integer
+        ai_powered_blocks:
+          title: Ai Powered Blocks
+          type: integer
+        block_reasons:
+          items:
+            $ref: "#/components/schemas/BlockReasonStat"
+          title: Block Reasons
+          type: array
+      required:
+      - ai_powered_blocks
+      - block_reasons
+      - deterministic_blocks
+      - mcp_calls_allowed
+      - mcp_calls_denied
+      - token_requests
+      - total_mas
+      - total_mcp_calls
+      title: MetricsSnapshot
     MultiAgentSystem:
       description: "An entity describing a multi agent system, which is a set of apps."
       example:
-        enabled_tool_checks: ""
+        enabled_tool_checks: 0
         k8s_name: k8s_name
         authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         name: name
@@ -1920,9 +2351,8 @@ components:
           nullable: true
           type: string
         enabled_tool_checks:
-          allOf:
-          - $ref: "#/components/schemas/ToolCheckFlags"
           nullable: true
+          type: integer
         authorization_server_id:
           format: uuid
           nullable: true
@@ -1971,7 +2401,7 @@ components:
             key: ""
           labels:
             key: ""
-        apiVersion: zta.io/v1alpha1
+        apiVersion: casa.io/v1alpha1
         kind: MultiAgentSystem
         spec:
           enabledToolChecks:
@@ -1993,7 +2423,7 @@ components:
         status: ""
       properties:
         apiVersion:
-          default: zta.io/v1alpha1
+          default: casa.io/v1alpha1
           description: API version
           title: Apiversion
           type: string
@@ -2320,6 +2750,9 @@ components:
             type: string
           nullable: true
           type: array
+        prompt:
+          nullable: true
+          type: string
       required:
       - client_id
       - client_secret

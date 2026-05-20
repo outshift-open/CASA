@@ -28,6 +28,7 @@ type AppViewModel struct {
 	Tools []ToolViewModel `json:"tools"`
 	MasId NullableString `json:"mas_id"`
 	Mas NullableMultiAgentSystemViewModel `json:"mas"`
+	ClientIdMetadataUrl NullableString `json:"client_id_metadata_url,omitempty"`
 }
 
 type _AppViewModel AppViewModel
@@ -228,6 +229,48 @@ func (o *AppViewModel) SetMas(v MultiAgentSystemViewModel) {
 	o.Mas.Set(&v)
 }
 
+// GetClientIdMetadataUrl returns the ClientIdMetadataUrl field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *AppViewModel) GetClientIdMetadataUrl() string {
+	if o == nil || IsNil(o.ClientIdMetadataUrl.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.ClientIdMetadataUrl.Get()
+}
+
+// GetClientIdMetadataUrlOk returns a tuple with the ClientIdMetadataUrl field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *AppViewModel) GetClientIdMetadataUrlOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.ClientIdMetadataUrl.Get(), o.ClientIdMetadataUrl.IsSet()
+}
+
+// HasClientIdMetadataUrl returns a boolean if a field has been set.
+func (o *AppViewModel) HasClientIdMetadataUrl() bool {
+	if o != nil && o.ClientIdMetadataUrl.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetClientIdMetadataUrl gets a reference to the given NullableString and assigns it to the ClientIdMetadataUrl field.
+func (o *AppViewModel) SetClientIdMetadataUrl(v string) {
+	o.ClientIdMetadataUrl.Set(&v)
+}
+// SetClientIdMetadataUrlNil sets the value for ClientIdMetadataUrl to be an explicit nil
+func (o *AppViewModel) SetClientIdMetadataUrlNil() {
+	o.ClientIdMetadataUrl.Set(nil)
+}
+
+// UnsetClientIdMetadataUrl ensures that no value is present for ClientIdMetadataUrl, not even an explicit nil
+func (o *AppViewModel) UnsetClientIdMetadataUrl() {
+	o.ClientIdMetadataUrl.Unset()
+}
+
 func (o AppViewModel) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -245,6 +288,9 @@ func (o AppViewModel) ToMap() (map[string]interface{}, error) {
 	toSerialize["tools"] = o.Tools
 	toSerialize["mas_id"] = o.MasId.Get()
 	toSerialize["mas"] = o.Mas.Get()
+	if o.ClientIdMetadataUrl.IsSet() {
+		toSerialize["client_id_metadata_url"] = o.ClientIdMetadataUrl.Get()
+	}
 	return toSerialize, nil
 }
 

@@ -79,6 +79,7 @@ class TokenExchangeRequest(BaseModel):
     scope: str | None = None
     mcp_server_url: str | None = None
     tools: list[str] | None = []
+    prompt: str | None = None
 
     @field_validator("subject_token_type", mode="before")
     def validate_subject_token_type(cls, v: str) -> str:  # noqa: N805
@@ -260,6 +261,7 @@ class AuthorizationServerService:
                 if (subject_token.act is not None)
                 else subject_token.app_id,
                 mas_id=str(actor_app.mas_id),
+                prompt=request.prompt,
             )
             self.tracer.record_event(agent_call_event)
 
