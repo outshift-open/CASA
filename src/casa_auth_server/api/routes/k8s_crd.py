@@ -12,15 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""API routes for Kubernetes CRD resources (MultiAgentSystem)."""
+"""API routes for Kubernetes CRD resources (MultiAgentSystem and CASAPolicy)."""
 
+import logging
 from typing import Annotated
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from casa_auth_server.api.dependencies import Container
 from casa_auth_server.k8s.k8s_crd_service import K8sCRDService
+from casa_auth_server.k8s.k8s_policy_crd_service import K8sPolicyCRDService
 from casa_auth_server.k8s.k8s_types import (
+    CASAPolicyCRD,
+    CASAPolicyCreateRequest,
     MASCreateRequest,
     MultiAgentSystemCRD,
 )
@@ -65,6 +71,51 @@ def delete_mas_crd(
     """Delete a MultiAgentSystem CRD."""
     try:
         crd_service.delete_mas_crd(namespace, name)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+# CASAPolicy CRD endpoints
+
+
+@router.post(
+    "/namespaces/{namespace}/policies",
+    response_model=CASAPolicyCRD,
+    generate_unique_id_function=lambda _: "create_policy_crd",
+)
+def create_policy_crd(
+    namespace: str,
+    request: CASAPolicyCreateRequest,
+    policy_service: Annotated[K8sPolicyCRDService, Depends(Container.get_k8s_policy_crd_service)],
+) -> CASAPolicyCRD:
+    """Create or update a CASAPolicy CRD.
+
+    This endpoint is used by the Kubernetes operator to register a CASAPolicy
+    with the CASA runtime. It is idempotent.
+    """
+    try:
+        request.metadata.namespace = namespace
+        return policy_service.create_policy_from_crd(request)
+    except Exception as e:
+        logger.exception("create_policy_crd failed")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.delete(
+    "/namespaces/{namespace}/policies/{name}",
+    status_code=204,
+    generate_unique_id_function=lambda _: "delete_policy_crd",
+)
+def delete_policy_crd(
+    namespace: str,
+    name: str,
+    policy_service: Annotated[K8sPolicyCRDService, Depends(Container.get_k8s_policy_crd_service)],
+) -> None:
+    """Delete a CASAPolicy CRD."""
+    try:
+        policy_service.delete_policy_crd(namespace, name)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:

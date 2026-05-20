@@ -121,3 +121,32 @@ class K8sLlmCallMapping(SQLModel, table=True):
     user_input_id: UUID | None = Field(foreign_key="userinput.id")
     token: str | None = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class K8sCASAPolicyAllowedEndpoint(SQLModel, table=True):
+    """Allowed egress endpoint for a CASAPolicy."""
+
+    __tablename__ = "K8sCASAPolicyAllowedEndpoint"
+
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    name: str = Field(description="Target service name")
+    namespace: str = Field(description="Target service namespace")
+    port: int = Field(description="Target port number")
+    policy_id: UUID | None = Field(foreign_key="K8sCASAPolicy.id")
+    policy: Optional["K8sCASAPolicy"] = Relationship(back_populates="allowed_endpoints")
+
+
+class K8sCASAPolicy(SQLModel, table=True):
+    """CASAPolicy Custom Resource Definition stored in the database."""
+
+    __tablename__ = "K8sCASAPolicy"
+
+    id: UUID | None = Field(default_factory=uuid4, primary_key=True)
+    namespace: str = Field(description="Kubernetes namespace", index=True)
+    name: str = Field(description="CR metadata.name", index=True)
+    target_ref_kind: str = Field(description="Workload kind: Deployment, StatefulSet, or Pod")
+    target_ref_name: str = Field(description="Name of the target workload", index=True)
+    allowed_protocols: str = Field(default="[]", description="JSON-encoded list of allowed protocols")
+    llm_endpoint_fqdn: str | None = Field(default=None, description="FQDN of the allowed external LLM service")
+    llm_endpoint_port: int | None = Field(default=None, description="Port for the LLM service")
+    allowed_endpoints: list[K8sCASAPolicyAllowedEndpoint] = Relationship(back_populates="policy")

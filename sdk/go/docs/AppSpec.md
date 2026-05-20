@@ -7,8 +7,8 @@ Name | Type | Description | Notes
 **Name** | **string** | Name of the application | 
 **Type** | [**AppType**](AppType.md) | Type of the application | 
 **BaseUrl** | [**AppSpecBaseUrl**](AppSpecBaseUrl.md) | Base URL of the application | 
-**KubernetesWorkloadName** | Pointer to **NullableString** |  | [optional] 
-**HttpRequestSchema** | Pointer to [**NullableHttpRequestSchema**](HttpRequestSchema.md) |  | [optional] 
+**KubernetesWorkloadName** | Pointer to **NullableString** | Name of the Kubernetes workload running the app | [optional] 
+**HttpRequestSchema** | Pointer to [**NullableHttpRequestSchema**](HttpRequestSchema.md) | HTTP request schema for extracting the prompt field | [optional] 
 
 ## Methods
 

@@ -735,3 +735,87 @@ After successful deployment:
 For more details, see:
 - [CRD_OPERATOR.md](./CRD_OPERATOR.md) - Complete operator documentation
 - [examples/](../../demo/) - More example configurations
+
+
+sequenceDiagram
+    autonumber
+    participant User
+    participant Envoy as Envoy Proxy<br/>(Istio sidecar)
+    participant Agent as Agent Pod<br/>(demo-agent-*)
+    participant ExtAuth as ext-auth<br/>(:4100 inbound<br/>:5100 outbound)
+    participant AuthSrv as Auth Server<br/>(FastAPI)
+    participant DB as PostgreSQL
+    participant Keycloak
+    participant MCP as MCP Server
+    participant LLM as LLM Gateway<br/>(LiteLLM)
+
+    Note over User,LLM: ── Operator reconcile (one-time, per CASAPolicy CR) ────────────────
+    AuthSrv->>DB: POST /k8s/.../policies (create/update K8sCASAPolicy)
+    Note right of AuthSrv: K8sCASAPolicy + AllowedEndpoints rows
+    AuthSrv-->>DB: update Istio Sidecar egress = [allowedEndpoints FQDNs]
+    Note right of AuthSrv: Operator creates Istio Sidecar,<br/>ServiceEntry, DestinationRule
+
+    Note over User,LLM: ── Inbound request (User → Agent) ──────────────────────────────────
+    User->>Envoy: HTTP POST /chat
+    Note right of Envoy: Rust traceparent-injector Wasm filter<br/>injects traceparent header
+    Envoy->>ExtAuth: gRPC Check (inbound :4100)
+    ExtAuth->>AuthSrv: GET /k8s/{ns}/mas-by-app-host
+    AuthSrv->>DB: lookup K8sMultiAgentSystemCRD
+    DB-->>AuthSrv: MAS CRD
+    AuthSrv-->>ExtAuth: MultiAgentSystemCRD
+    ExtAuth->>AuthSrv: GET /oauth/{appId}/token (create user input + token)
+    AuthSrv->>Keycloak: token issuance (device flow)
+    Keycloak-->>AuthSrv: access_token
+    AuthSrv-->>ExtAuth: access_token
+    ExtAuth->>AuthSrv: POST /k8s/{ns}/cache/store-token
+    AuthSrv->>DB: K8sTokenCache.insert
+    ExtAuth-->>Envoy: OkResponse + Authorization: Bearer {token}
+    Envoy->>Agent: forward request + Authorization header
+
+    Note over User,LLM: ── Outbound: Agent → MCP (with CASAPolicy enforcement) ─────────────
+    Agent->>Envoy: HTTP POST casa-demo-mcp:3000/mcp (with traceparent)
+    Envoy->>ExtAuth: gRPC Check (outbound :5100)
+    Note right of ExtAuth: decode x-envoy-peer-metadata<br/>→ callerWorkloadName
+    ExtAuth->>AuthSrv: GET /k8s/{ns}/mas-by-workload?appWorkload=demo-agent-*
+    AuthSrv->>DB: lookup by workload name
+    DB-->>AuthSrv: MAS CRD
+    AuthSrv-->>ExtAuth: MultiAgentSystemCRD
+    ExtAuth->>AuthSrv: GET /k8s/{ns}/policy-by-workload?workload_name=demo-agent-*
+    AuthSrv->>DB: lookup K8sCASAPolicy by target_ref_name
+    DB-->>AuthSrv: CASAPolicy (allowedProtocols, allowedEndpoints, llmEndpoint)
+    AuthSrv-->>ExtAuth: CASAPolicyCRD (or 404 → nil)
+    Note right of ExtAuth: checkCASAPolicy:<br/>• host in allowedEndpoints?<br/>• protocol in allowedProtocols?<br/>→ DENY if not
+    ExtAuth->>AuthSrv: GET /k8s/{ns}/cache/load-token (callerToken)
+    AuthSrv->>DB: K8sTokenCache.select by trace_id + app_host
+    DB-->>AuthSrv: cached token
+    AuthSrv-->>ExtAuth: callerToken
+    ExtAuth->>AuthSrv: POST /oauth/{appId}/token-exchange<br/>(clientCreds + callerToken + mcpURL + toolName)
+    AuthSrv->>Keycloak: token exchange (RFC 8693)
+    Keycloak-->>AuthSrv: exchanged_token (scoped to MCP + tool)
+    AuthSrv-->>ExtAuth: exchanged_token
+    ExtAuth->>AuthSrv: POST /k8s/{ns}/cache/store-token (exchanged_token)
+    ExtAuth-->>Envoy: OkResponse + Authorization: Bearer {exchanged_token}
+    Envoy->>MCP: forward request
+
+    Note over User,LLM: ── Inbound to MCP (token introspection) ────────────────────────────
+    Envoy->>ExtAuth: gRPC Check (inbound :4100)
+    ExtAuth->>AuthSrv: POST /oauth/introspect (token + tools)
+    AuthSrv->>Keycloak: introspect
+    Keycloak-->>AuthSrv: active=true, scopes, claims
+    AuthSrv-->>ExtAuth: TokenIntrospectResponse
+    Note right of ExtAuth: check scopes, tool claims<br/>→ ALLOW or DENY
+    ExtAuth-->>Envoy: OkResponse / DeniedResponse
+    Envoy->>MCP: forward (if allowed)
+
+    Note over User,LLM: ── Outbound: Agent → LLM ───────────────────────────────────────────
+    Agent->>Envoy: HTTP POST litellm.prod.outshift.ai (with traceparent)
+    Envoy->>ExtAuth: gRPC Check (outbound :5100)
+    Note right of ExtAuth: host == masCRD.LlmHost?<br/>CASAPolicy.llmEndpoint configured?<br/>host == llmEndpoint.fqdn?<br/>→ DENY if not
+    ExtAuth->>AuthSrv: GET /k8s/{ns}/cache/load-token (callerToken)
+    AuthSrv-->>ExtAuth: callerToken
+    Note right of ExtAuth: generate x-litellm-call-id UUID
+    ExtAuth->>AuthSrv: POST /k8s/{ns}/cache/store-llm-call-mapping
+    AuthSrv->>DB: K8sLlmCallMapping.insert
+    ExtAuth-->>Envoy: OkResponse + x-litellm-call-id: {uuid}
+    Envoy->>LLM: forward + x-litellm-call-id
+    Note right of LLM: Rust LLM proxy Wasm filter<br/>enforces token/call limits

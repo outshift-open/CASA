@@ -25,8 +25,8 @@ from casa_auth_server.k8s.k8s_types import (
     AppCredentials,
     AppSpec,
     AppSpecBaseUrl,
+    CRDPhase,
     MASCreateRequest,
-    MASPhase,
     MultiAgentSystemCRD,
     MultiAgentSystemMetadata,
     MultiAgentSystemSpec,
@@ -103,7 +103,7 @@ class K8sCRDService:
 
         # Build status
         status = MultiAgentSystemStatus(
-            phase=MASPhase.ACTIVE,
+            phase=CRDPhase.ACTIVE,
             apps_ready=len(apps),
             last_sync_time=datetime.now(UTC),
         )
@@ -231,7 +231,7 @@ class K8sCRDService:
             crd = self._mas_to_crd(mas, namespace=request.metadata.namespace)
             crd.metadata.uid = str(mas.id)
             crd.status = MultiAgentSystemStatus(
-                phase=MASPhase.ACTIVE,
+                phase=CRDPhase.ACTIVE,
                 apps_ready=len(existing_apps),
                 last_sync_time=datetime.now(UTC),
                 message=f"MAS already exists with {len(existing_apps)} apps",
@@ -303,7 +303,7 @@ class K8sCRDService:
         crd = self._mas_to_crd(mas, namespace=request.metadata.namespace)
         crd.metadata.uid = str(mas.id)
         crd.status = MultiAgentSystemStatus(
-            phase=MASPhase.ACTIVE if created_apps else MASPhase.FAILED,
+            phase=CRDPhase.ACTIVE if created_apps else CRDPhase.FAILED,
             apps_ready=len(created_apps),
             last_sync_time=datetime.now(UTC),
             message=f"Created {len(created_apps)}/{len(request.spec.apps)} apps successfully",

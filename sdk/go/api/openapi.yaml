@@ -1,17 +1,3 @@
-# Copyright 2026 Cisco Systems, Inc. and its affiliates
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 openapi: 3.1.0
 info:
   title: FastAPI
@@ -172,6 +158,7 @@ paths:
                   $ref: "#/components/schemas/AppViewModel"
                 title: Response Get Apps Apps Get
                 type: array
+                default: null
           description: Successful Response
       summary: Get Apps
       tags:
@@ -349,9 +336,39 @@ paths:
       summary: Trace Llm Call End
       tags:
       - Traces
+  /trace/session/{user_input_id}:
+    get:
+      description: Retrieve all traces for a single session ordered by creation time.
+      operationId: get_session
+      parameters:
+      - explode: false
+        in: path
+        name: user_input_id
+        required: true
+        schema:
+          format: uuid
+          title: User Input Id
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Session
+      tags:
+      - Traces
   /trace:
     get:
-      description: Retrieve paginated traces for all source app calls.
+      description: "Retrieve paginated traces, optionally filtered by session, blocked\
+        \ status, tool name, event type, or blocking type."
       operationId: get_traces_trace_get
       parameters:
       - explode: true
@@ -393,6 +410,56 @@ paths:
           title: All
           type: boolean
         style: form
+      - explode: true
+        in: query
+        name: sort_asc
+        required: false
+        schema:
+          default: false
+          title: Sort Asc
+          type: boolean
+        style: form
+      - explode: true
+        in: query
+        name: user_input_id
+        required: false
+        schema:
+          format: uuid
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: blocked
+        required: false
+        schema:
+          nullable: true
+          type: boolean
+        style: form
+      - explode: true
+        in: query
+        name: q
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: event_type
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: blocking_type
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
       responses:
         "200":
           content:
@@ -410,18 +477,61 @@ paths:
       - Traces
   /mas:
     get:
-      description: Get the list of all multi agent systems.
+      description: "Get a paginated list of multi agent systems, with inline app summaries\
+        \ and optional trace counts."
       operationId: get_all_mas_mas_get
+      parameters:
+      - explode: true
+        in: query
+        name: page
+        required: false
+        schema:
+          default: 1
+          minimum: 1
+          title: Page
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: page_size
+        required: false
+        schema:
+          default: 20
+          maximum: 100
+          minimum: 1
+          title: Page Size
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: q
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
+      - explode: true
+        in: query
+        name: include_metrics
+        required: false
+        schema:
+          default: false
+          title: Include Metrics
+          type: boolean
+        style: form
       responses:
         "200":
           content:
             application/json:
               schema:
-                items:
-                  $ref: "#/components/schemas/MultiAgentSystem"
-                title: Response Get All Mas Mas Get
-                type: array
+                $ref: "#/components/schemas/MASListResponse"
           description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
       summary: Get All Mas
       tags:
       - Multi Agent Systems
@@ -521,12 +631,21 @@ paths:
           title: Mas Id
           type: string
         style: simple
+      - explode: true
+        in: query
+        name: include_metrics
+        required: false
+        schema:
+          default: false
+          title: Include Metrics
+          type: boolean
+        style: form
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MultiAgentSystem"
+                $ref: "#/components/schemas/MASViewModel"
           description: Successful Response
         "422":
           content:
@@ -593,6 +712,7 @@ paths:
                   $ref: "#/components/schemas/AppViewModel"
                 title: Response Get Mas Apps Mas  Mas Id  Apps Get
                 type: array
+                default: null
           description: Successful Response
         "422":
           content:
@@ -603,6 +723,20 @@ paths:
       summary: Get Mas Apps
       tags:
       - Multi Agent Systems
+  /metrics:
+    get:
+      description: Return a pre-aggregated metrics snapshot.
+      operationId: get_metrics_metrics_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsSnapshot"
+          description: Successful Response
+      summary: Get Metrics
+      tags:
+      - Metrics
   /scopes:
     get:
       description: Get all scopes.
@@ -616,6 +750,7 @@ paths:
                   $ref: "#/components/schemas/ScopeViewModel"
                 title: Response Get Scopes Scopes Get
                 type: array
+                default: null
           description: Successful Response
       summary: Get Scopes
       tags:
@@ -807,6 +942,78 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
           description: Validation Error
       summary: Delete Mas Crd
+      tags:
+      - Kubernetes CRDs
+  /k8s/namespaces/{namespace}/policies:
+    post:
+      description: |-
+        Create or update a CASAPolicy CRD.
+
+        This endpoint is used by the Kubernetes operator to register a CASAPolicy
+        with the CASA runtime. It is idempotent.
+      operationId: create_policy_crd
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CASAPolicyCreateRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CASAPolicyCRD"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create Policy Crd
+      tags:
+      - Kubernetes CRDs
+  /k8s/namespaces/{namespace}/policies/{name}:
+    delete:
+      description: Delete a CASAPolicy CRD.
+      operationId: delete_policy_crd
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: false
+        in: path
+        name: name
+        required: true
+        schema:
+          title: Name
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Delete Policy Crd
       tags:
       - Kubernetes CRDs
   /user-inputs:
@@ -1091,6 +1298,46 @@ paths:
       summary: K8S Trace Llm Call End
       tags:
       - Kubernetes Resources
+  /k8s/namespaces/{namespace}/policy-by-workload:
+    get:
+      description: |-
+        Retrieve a CASAPolicy by the workload it targets.
+
+        Used by the ext-auth sidecar to look up the policy for an inbound workload.
+      operationId: get_k8s_policy_by_workload
+      parameters:
+      - explode: false
+        in: path
+        name: namespace
+        required: true
+        schema:
+          title: Namespace
+          type: string
+        style: simple
+      - explode: true
+        in: query
+        name: workload_name
+        required: true
+        schema:
+          title: Workload Name
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CASAPolicyCRD"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get K8S Policy By Workload
+      tags:
+      - Kubernetes Resources
 components:
   schemas:
     ActorClaim:
@@ -1147,16 +1394,16 @@ components:
     AppMetadataResponse:
       description: Pydantic model for app metadata response.
       example:
+        client_id: client_id
+        client_name: client_name
         grant_types:
         - grant_types
         - grant_types
-        jwks_uri: jwks_uri
-        client_name: client_name
-        client_id: client_id
-        token_endpoint_auth_method: token_endpoint_auth_method
         response_types:
         - response_types
         - response_types
+        token_endpoint_auth_method: token_endpoint_auth_method
+        jwks_uri: jwks_uri
       properties:
         client_id:
           title: Client Id
@@ -1169,11 +1416,13 @@ components:
             type: string
           title: Grant Types
           type: array
+          default: null
         response_types:
           items:
             type: string
           title: Response Types
           type: array
+          default: null
         token_endpoint_auth_method:
           title: Token Endpoint Auth Method
           type: string
@@ -1191,25 +1440,25 @@ components:
     AppRequest:
       description: Request model for app creation and updates.
       example:
-        mas_id: mas_id
+        type: agent
         name: name
         base_url: base_url
-        type: agent
+        mas_id: mas_id
         tools:
-        - input_schema: input_schema
-          name: name
+        - name: name
           description: description
+          input_schema: input_schema
+          output_schema: output_schema
           scopes:
           - scopes
           - scopes
-          output_schema: output_schema
-        - input_schema: input_schema
-          name: name
+        - name: name
           description: description
+          input_schema: input_schema
+          output_schema: output_schema
           scopes:
           - scopes
           - scopes
-          output_schema: output_schema
       properties:
         type:
           $ref: "#/components/schemas/AppType"
@@ -1237,11 +1486,11 @@ components:
     AppSpec:
       description: Application specification within a MultiAgentSystem.
       example:
-        kubernetesWorkloadName: kubernetesWorkloadName
-        baseUrl: ""
         name: name
-        httpRequestSchema: ""
         type: ""
+        baseUrl: ""
+        kubernetesWorkloadName: kubernetesWorkloadName
+        httpRequestSchema: ""
       properties:
         name:
           description: Name of the application
@@ -1256,11 +1505,13 @@ components:
           - $ref: "#/components/schemas/AppSpecBaseUrl"
           description: Base URL of the application
         kubernetesWorkloadName:
+          description: Name of the Kubernetes workload running the app
           nullable: true
           type: string
         httpRequestSchema:
           allOf:
           - $ref: "#/components/schemas/HttpRequestSchema"
+          description: HTTP request schema for extracting the prompt field
           nullable: true
       required:
       - baseUrl
@@ -1282,6 +1533,28 @@ components:
       - host
       - scheme
       title: AppSpecBaseUrl
+    AppSummaryViewModel:
+      description: Minimal app view model for embedding inside a MAS list entry.
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: type
+        name: name
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        type:
+          title: Type
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+      - id
+      - name
+      - type
+      title: AppSummaryViewModel
     AppType:
       description: Enumeration of app types.
       enum:
@@ -1293,35 +1566,36 @@ components:
     AppViewModel:
       description: View model for App including tools and MAS relationships.
       example:
-        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        name: name
-        base_url: base_url
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         type: type
+        name: name
+        base_url: base_url
         tools:
-        - input_schema: input_schema
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           name: name
           description: description
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          scopes:
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          input_schema: input_schema
           output_schema: output_schema
           app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        - input_schema: input_schema
+          scopes:
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           name: name
           description: description
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          scopes:
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          input_schema: input_schema
           output_schema: output_schema
           app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          scopes:
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         mas: ""
+        client_id_metadata_url: client_id_metadata_url
       properties:
         id:
           format: uuid
@@ -1341,6 +1615,7 @@ components:
             $ref: "#/components/schemas/ToolViewModel"
           title: Tools
           type: array
+          default: null
         mas_id:
           format: uuid
           nullable: true
@@ -1349,6 +1624,9 @@ components:
           allOf:
           - $ref: "#/components/schemas/MultiAgentSystemViewModel"
           nullable: true
+        client_id_metadata_url:
+          nullable: true
+          type: string
       required:
       - base_url
       - id
@@ -1358,6 +1636,22 @@ components:
       - tools
       - type
       title: AppViewModel
+    BlockReasonStat:
+      description: Count of denied MCP calls for a specific blocking reason.
+      example:
+        reason: reason
+        count: 9
+      properties:
+        reason:
+          title: Reason
+          type: string
+        count:
+          title: Count
+          type: integer
+      required:
+      - count
+      - reason
+      title: BlockReasonStat
     Body_introspect:
       properties:
         token:
@@ -1368,13 +1662,225 @@ components:
             type: string
           nullable: true
           type: array
+          default: null
       required:
       - token
       title: Body_introspect
+    CASAPolicyAllowedEndpoint:
+      description: A Kubernetes service this workload is allowed to reach.
+      example:
+        name: name
+        namespace: namespace
+        port: 0
+      properties:
+        name:
+          description: Target service name
+          title: Name
+          type: string
+        namespace:
+          description: Target service namespace
+          title: Namespace
+          type: string
+        port:
+          description: Target port number
+          title: Port
+          type: integer
+      required:
+      - name
+      - namespace
+      - port
+      title: CASAPolicyAllowedEndpoint
+    CASAPolicyCRD:
+      description: Complete CASAPolicy Custom Resource Definition.
+      example:
+        apiVersion: casa.io/v1alpha1
+        kind: CASAPolicy
+        metadata:
+          name: name
+          namespace: namespace
+          uid: uid
+          resourceVersion: resourceVersion
+          generation: 0
+          labels:
+            key: ""
+          annotations:
+            key: ""
+        spec:
+          targetRef: ""
+          allowedProtocols:
+          - allowedProtocols
+          - allowedProtocols
+          allowedEndpoints:
+          - name: name
+            namespace: namespace
+            port: 0
+          - name: name
+            namespace: namespace
+            port: 0
+          llmEndpoint: ""
+        status: ""
+      properties:
+        apiVersion:
+          default: casa.io/v1alpha1
+          description: API version
+          title: Apiversion
+          type: string
+        kind:
+          default: CASAPolicy
+          description: Resource kind
+          enum:
+          - CASAPolicy
+          title: Kind
+          type: string
+        metadata:
+          $ref: "#/components/schemas/MultiAgentSystemMetadata"
+        spec:
+          $ref: "#/components/schemas/CASAPolicySpec"
+        status:
+          allOf:
+          - $ref: "#/components/schemas/CASAPolicyStatus"
+          description: Resource status
+          nullable: true
+      required:
+      - metadata
+      - spec
+      title: CASAPolicyCRD
+    CASAPolicyCreateRequest:
+      description: Request model for creating a CASAPolicy via API.
+      example:
+        metadata:
+          name: name
+          namespace: namespace
+          uid: uid
+          resourceVersion: resourceVersion
+          generation: 0
+          labels:
+            key: ""
+          annotations:
+            key: ""
+        spec:
+          targetRef: ""
+          allowedProtocols:
+          - allowedProtocols
+          - allowedProtocols
+          allowedEndpoints:
+          - name: name
+            namespace: namespace
+            port: 0
+          - name: name
+            namespace: namespace
+            port: 0
+          llmEndpoint: ""
+      properties:
+        metadata:
+          $ref: "#/components/schemas/MultiAgentSystemMetadata"
+        spec:
+          $ref: "#/components/schemas/CASAPolicySpec"
+      required:
+      - metadata
+      - spec
+      title: CASAPolicyCreateRequest
+    CASAPolicyLlmEndpoint:
+      description: External LLM endpoint this workload is allowed to reach.
+      properties:
+        fqdn:
+          description: FQDN of the allowed external LLM service
+          title: Fqdn
+          type: string
+        port:
+          description: Port for the LLM service
+          title: Port
+          type: integer
+      required:
+      - fqdn
+      - port
+      title: CASAPolicyLlmEndpoint
+    CASAPolicySpec:
+      description: Specification for CASAPolicy CRD.
+      example:
+        targetRef: ""
+        allowedProtocols:
+        - allowedProtocols
+        - allowedProtocols
+        allowedEndpoints:
+        - name: name
+          namespace: namespace
+          port: 0
+        - name: name
+          namespace: namespace
+          port: 0
+        llmEndpoint: ""
+      properties:
+        targetRef:
+          allOf:
+          - $ref: "#/components/schemas/CASAPolicyTargetRef"
+          description: Workload this policy applies to
+        allowedProtocols:
+          description: "Protocols allowed for this workload: mcp, a2a, http"
+          items:
+            type: string
+          title: Allowedprotocols
+          type: array
+          default: null
+        allowedEndpoints:
+          description: K8s services this workload may communicate with
+          items:
+            $ref: "#/components/schemas/CASAPolicyAllowedEndpoint"
+          title: Allowedendpoints
+          type: array
+          default: null
+        llmEndpoint:
+          allOf:
+          - $ref: "#/components/schemas/CASAPolicyLlmEndpoint"
+          description: Allowed external LLM endpoint
+          nullable: true
+      required:
+      - targetRef
+      title: CASAPolicySpec
+    CASAPolicyStatus:
+      description: Status of CASAPolicy CRD.
+      properties:
+        phase:
+          allOf:
+          - $ref: "#/components/schemas/CRDPhase"
+          default: Pending
+          description: Current phase of the policy
+        last_sync_time:
+          format: date-time
+          title: Last Sync Time
+          type: string
+        message:
+          description: Human-readable status message
+          nullable: true
+          type: string
+      title: CASAPolicyStatus
+    CASAPolicyTargetRef:
+      description: Reference to the workload this policy applies to.
+      properties:
+        kind:
+          description: "Workload kind: Deployment, StatefulSet, or Pod"
+          title: Kind
+          type: string
+        name:
+          description: Name of the target workload
+          title: Name
+          type: string
+      required:
+      - kind
+      - name
+      title: CASAPolicyTargetRef
+    CRDPhase:
+      description: Phase of a CASA CRD resource lifecycle.
+      enum:
+      - Pending
+      - Active
+      - Failed
+      title: CRDPhase
+      type: string
     CacheTokenLoadRequest:
       example:
-        app_host: app_host
         trace_id: trace_id
+        app_host: app_host
         app_type: agent
         tool: tool
       properties:
@@ -1396,10 +1902,10 @@ components:
       title: CacheTokenLoadRequest
     CacheTokenStoreRequest:
       example:
-        app_host: app_host
-        access_token: access_token
         trace_id: trace_id
+        app_host: app_host
         app_type: agent
+        access_token: access_token
         tool: tool
       properties:
         trace_id:
@@ -1424,9 +1930,9 @@ components:
       title: CacheTokenStoreRequest
     CreateUserInputRequest:
       example:
-        tag: tag
         prompt: prompt
         app_id: app_id
+        tag: tag
       properties:
         prompt:
           title: Prompt
@@ -1444,26 +1950,27 @@ components:
     HTTPValidationError:
       example:
         detail:
-        - msg: msg
-          loc:
+        - loc:
           - Location_inner
           - Location_inner
+          msg: msg
+          type: type
           input: ""
           ctx: "{}"
+        - loc:
+          - Location_inner
+          - Location_inner
+          msg: msg
           type: type
-        - msg: msg
-          loc:
-          - Location_inner
-          - Location_inner
           input: ""
           ctx: "{}"
-          type: type
       properties:
         detail:
           items:
             $ref: "#/components/schemas/ValidationError"
           title: Detail
           type: array
+          default: null
       title: HTTPValidationError
     HttpRequestSchema:
       description: HTTP request schema for extracting the prompt field.
@@ -1478,15 +1985,15 @@ components:
     K8sAppSpecViewModel:
       description: View model for application specification data.
       example:
-        kubernetes_workload_name: kubernetes_workload_name
-        name: name
-        prompt_field_json_path: prompt_field_json_path
-        mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
         type: agent
-        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         url_host: url_host
         url_scheme: url_scheme
+        prompt_field_json_path: prompt_field_json_path
+        kubernetes_workload_name: kubernetes_workload_name
+        mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
       properties:
         id:
           format: uuid
@@ -1525,14 +2032,14 @@ components:
       title: K8sAppSpecViewModel
     K8sLlmCallMapping:
       example:
-        trace_id: trace_id
-        user_input_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        namespace: namespace
-        created_at: 2000-01-23T04:56:07.000+00:00
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        namespace: namespace
+        trace_id: trace_id
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        user_input_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         token: token
+        created_at: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
           format: uuid
@@ -1573,36 +2080,36 @@ components:
     K8sMultiAgentSystemCRDViewModel:
       description: View model for a complete MultiAgentSystem CRD.
       example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        api_version: api_version
+        kind: kind
+        namespace: namespace
+        mas_metadata: ""
+        name: name
         enabled_tool_checks:
         - enabled_tool_checks
         - enabled_tool_checks
         llm_host: llm_host
-        mas_metadata: ""
-        kind: kind
-        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        namespace: namespace
-        name: name
-        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         app_specs:
-        - kubernetes_workload_name: kubernetes_workload_name
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           name: name
-          prompt_field_json_path: prompt_field_json_path
-          mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           type: agent
-          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
           url_host: url_host
           url_scheme: url_scheme
-        - kubernetes_workload_name: kubernetes_workload_name
-          name: name
           prompt_field_json_path: prompt_field_json_path
+          kubernetes_workload_name: kubernetes_workload_name
           mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          type: agent
           app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+          type: agent
           url_host: url_host
           url_scheme: url_scheme
-        api_version: api_version
+          prompt_field_json_path: prompt_field_json_path
+          kubernetes_workload_name: kubernetes_workload_name
+          mas_crd_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
       properties:
         id:
           format: uuid
@@ -1629,6 +2136,7 @@ components:
             type: string
           nullable: true
           type: array
+          default: null
         llm_host:
           nullable: true
           type: string
@@ -1679,15 +2187,15 @@ components:
     LLMCallEndedEvent:
       description: Event emitted when an LLM call completes (recorded by the agent).
       example:
-        user_input_id: user_input_id
-        response: response
-        mas_id: mas_id
-        created_at: 2000-01-23T04:56:07.000+00:00
         id: id
-        app_id: app_id
-        tools: tools
+        user_input_id: user_input_id
+        created_at: 2000-01-23T04:56:07.000+00:00
         call_id: call_id
         token: token
+        app_id: app_id
+        mas_id: mas_id
+        response: response
+        tools: tools
       properties:
         id:
           title: Id
@@ -1728,8 +2236,8 @@ components:
     LLMCallEndedKubernetesRequest:
       description: Request body for recording the end of an LLM call.
       example:
-        response: response
         call_id: call_id
+        response: response
       properties:
         call_id:
           title: Call Id
@@ -1744,9 +2252,9 @@ components:
     LLMCallEndedRequest:
       description: Request body for recording the end of an LLM call.
       example:
+        call_id: call_id
         response: response
         tools: tools
-        call_id: call_id
       properties:
         call_id:
           title: Call Id
@@ -1764,15 +2272,15 @@ components:
     LLMCallStartedEvent:
       description: Event emitted when an LLM call begins (recorded by the agent).
       example:
-        user_input_id: user_input_id
-        mas_id: mas_id
-        created_at: 2000-01-23T04:56:07.000+00:00
         id: id
-        app_id: app_id
-        prompt: prompt
-        tools: tools
+        user_input_id: user_input_id
+        created_at: 2000-01-23T04:56:07.000+00:00
         call_id: call_id
         token: token
+        app_id: app_id
+        mas_id: mas_id
+        prompt: prompt
+        tools: tools
       properties:
         id:
           title: Id
@@ -1813,9 +2321,9 @@ components:
     LLMCallStartedRequest:
       description: Request body for recording the start of an LLM call.
       example:
+        call_id: call_id
         prompt: prompt
         tools: tools
-        call_id: call_id
       properties:
         call_id:
           title: Call Id
@@ -1832,8 +2340,8 @@ components:
       title: LLMCallStartedRequest
     LlmCallMappingStoreRequest:
       example:
-        trace_id: trace_id
         id: id
+        trace_id: trace_id
         token: token
       properties:
         id:
@@ -1854,32 +2362,32 @@ components:
       description: Request model for creating a MultiAgentSystem via API.
       example:
         metadata:
-          generation: 0
-          uid: uid
-          resourceVersion: resourceVersion
           name: name
           namespace: namespace
-          annotations:
-            key: ""
+          uid: uid
+          resourceVersion: resourceVersion
+          generation: 0
           labels:
             key: ""
+          annotations:
+            key: ""
         spec:
+          name: name
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
-          llm_host: llm_host
-          name: name
           apps:
-          - kubernetesWorkloadName: kubernetesWorkloadName
-            baseUrl: ""
-            name: name
-            httpRequestSchema: ""
+          - name: name
             type: ""
-          - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
-            name: name
+            kubernetesWorkloadName: kubernetesWorkloadName
             httpRequestSchema: ""
+          - name: name
             type: ""
+            baseUrl: ""
+            kubernetesWorkloadName: kubernetesWorkloadName
+            httpRequestSchema: ""
+          llm_host: llm_host
       properties:
         metadata:
           $ref: "#/components/schemas/MultiAgentSystemMetadata"
@@ -1889,24 +2397,213 @@ components:
       - metadata
       - spec
       title: MASCreateRequest
-    MASPhase:
-      description: Phase of MAS resource lifecycle.
-      enum:
-      - Pending
-      - Active
-      - Failed
-      title: MASPhase
-      type: string
+    MASListResponse:
+      description: Paginated list of Multi-Agent Systems.
+      example:
+        items:
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+          namespace: namespace
+          k8s_name: k8s_name
+          enabled_tool_checks: 0
+          authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          created_at: 2000-01-23T04:56:07.000+00:00
+          apps:
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+            name: name
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+            name: name
+          traces: ""
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+          namespace: namespace
+          k8s_name: k8s_name
+          enabled_tool_checks: 0
+          authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          created_at: 2000-01-23T04:56:07.000+00:00
+          apps:
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+            name: name
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            type: type
+            name: name
+          traces: ""
+        total: 6
+        page: 1
+        page_size: 5
+      properties:
+        items:
+          items:
+            $ref: "#/components/schemas/MASViewModel"
+          title: Items
+          type: array
+          default: null
+        total:
+          title: Total
+          type: integer
+        page:
+          title: Page
+          type: integer
+        page_size:
+          title: Page Size
+          type: integer
+      required:
+      - items
+      - page
+      - page_size
+      - total
+      title: MASListResponse
+    MASTraceStat:
+      description: Aggregated trace counts for a single MAS.
+      properties:
+        mas_id:
+          title: Mas Id
+          type: string
+        traces:
+          title: Traces
+          type: integer
+        allowed:
+          title: Allowed
+          type: integer
+        denied:
+          title: Denied
+          type: integer
+      required:
+      - allowed
+      - denied
+      - mas_id
+      - traces
+      title: MASTraceStat
+    MASViewModel:
+      description: "View model for a MAS entry, including inline app summaries and\
+        \ optional trace counts."
+      example:
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
+        namespace: namespace
+        k8s_name: k8s_name
+        enabled_tool_checks: 0
+        authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        created_at: 2000-01-23T04:56:07.000+00:00
+        apps:
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: type
+          name: name
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: type
+          name: name
+        traces: ""
+      properties:
+        id:
+          format: uuid
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+        namespace:
+          nullable: true
+          type: string
+        k8s_name:
+          nullable: true
+          type: string
+        enabled_tool_checks:
+          nullable: true
+          type: integer
+        authorization_server_id:
+          format: uuid
+          nullable: true
+          type: string
+        created_at:
+          format: date-time
+          title: Created At
+          type: string
+        apps:
+          items:
+            $ref: "#/components/schemas/AppSummaryViewModel"
+          title: Apps
+          type: array
+          default: null
+        traces:
+          allOf:
+          - $ref: "#/components/schemas/MASTraceStat"
+          nullable: true
+      required:
+      - apps
+      - authorization_server_id
+      - created_at
+      - enabled_tool_checks
+      - id
+      - k8s_name
+      - name
+      - namespace
+      title: MASViewModel
+    MetricsSnapshot:
+      description: Pre-aggregated metrics snapshot.
+      example:
+        total_mas: 0
+        token_requests: 6
+        mcp_calls_allowed: 1
+        mcp_calls_denied: 5
+        total_mcp_calls: 5
+        deterministic_blocks: 2
+        ai_powered_blocks: 7
+        block_reasons:
+        - reason: reason
+          count: 9
+        - reason: reason
+          count: 9
+      properties:
+        total_mas:
+          title: Total Mas
+          type: integer
+        token_requests:
+          title: Token Requests
+          type: integer
+        mcp_calls_allowed:
+          title: Mcp Calls Allowed
+          type: integer
+        mcp_calls_denied:
+          title: Mcp Calls Denied
+          type: integer
+        total_mcp_calls:
+          title: Total Mcp Calls
+          type: integer
+        deterministic_blocks:
+          title: Deterministic Blocks
+          type: integer
+        ai_powered_blocks:
+          title: Ai Powered Blocks
+          type: integer
+        block_reasons:
+          items:
+            $ref: "#/components/schemas/BlockReasonStat"
+          title: Block Reasons
+          type: array
+          default: null
+      required:
+      - ai_powered_blocks
+      - block_reasons
+      - deterministic_blocks
+      - mcp_calls_allowed
+      - mcp_calls_denied
+      - token_requests
+      - total_mas
+      - total_mcp_calls
+      title: MetricsSnapshot
     MultiAgentSystem:
       description: "An entity describing a multi agent system, which is a set of apps."
       example:
-        enabled_tool_checks: ""
-        k8s_name: k8s_name
-        authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         name: name
+        k8s_name: k8s_name
+        enabled_tool_checks: 0
+        authorization_server_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         namespace: namespace
         created_at: 2000-01-23T04:56:07.000+00:00
-        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         deleted_at: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
@@ -1920,9 +2617,8 @@ components:
           nullable: true
           type: string
         enabled_tool_checks:
-          allOf:
-          - $ref: "#/components/schemas/ToolCheckFlags"
           nullable: true
+          type: integer
         authorization_server_id:
           format: uuid
           nullable: true
@@ -1955,45 +2651,46 @@ components:
             type: string
           title: App Ids
           type: array
+          default: null
       required:
       - app_ids
       title: MultiAgentSystemAppsBindingRequest
     MultiAgentSystemCRD:
       description: Complete MultiAgentSystem Custom Resource Definition.
       example:
+        apiVersion: casa.io/v1alpha1
+        kind: MultiAgentSystem
         metadata:
-          generation: 0
-          uid: uid
-          resourceVersion: resourceVersion
           name: name
           namespace: namespace
-          annotations:
-            key: ""
+          uid: uid
+          resourceVersion: resourceVersion
+          generation: 0
           labels:
             key: ""
-        apiVersion: zta.io/v1alpha1
-        kind: MultiAgentSystem
+          annotations:
+            key: ""
         spec:
+          name: name
           enabledToolChecks:
           - DETERMINISTIC_TOOL_SELECTED
           - DETERMINISTIC_TOOL_SELECTED
-          llm_host: llm_host
-          name: name
           apps:
-          - kubernetesWorkloadName: kubernetesWorkloadName
-            baseUrl: ""
-            name: name
-            httpRequestSchema: ""
+          - name: name
             type: ""
-          - kubernetesWorkloadName: kubernetesWorkloadName
             baseUrl: ""
-            name: name
+            kubernetesWorkloadName: kubernetesWorkloadName
             httpRequestSchema: ""
+          - name: name
             type: ""
+            baseUrl: ""
+            kubernetesWorkloadName: kubernetesWorkloadName
+            httpRequestSchema: ""
+          llm_host: llm_host
         status: ""
       properties:
         apiVersion:
-          default: zta.io/v1alpha1
+          default: casa.io/v1alpha1
           description: API version
           title: Apiversion
           type: string
@@ -2011,6 +2708,7 @@ components:
         status:
           allOf:
           - $ref: "#/components/schemas/MultiAgentSystemStatus"
+          description: Resource status
           nullable: true
       required:
       - metadata
@@ -2019,10 +2717,10 @@ components:
     MultiAgentSystemCreateRequest:
       description: Request model for MAS creation.
       example:
-        enabled_tool_checks: ""
-        k8s_name: k8s_name
         name: name
+        enabled_tool_checks: ""
         namespace: namespace
+        k8s_name: k8s_name
       properties:
         name:
           title: Name
@@ -2043,14 +2741,14 @@ components:
     MultiAgentSystemMetadata:
       description: Metadata for MultiAgentSystem CRD.
       example:
-        generation: 0
-        uid: uid
-        resourceVersion: resourceVersion
         name: name
         namespace: namespace
-        annotations:
-          key: ""
+        uid: uid
+        resourceVersion: resourceVersion
+        generation: 0
         labels:
+          key: ""
+        annotations:
           key: ""
       properties:
         name:
@@ -2062,20 +2760,25 @@ components:
           title: Namespace
           type: string
         uid:
+          description: Kubernetes UID
           nullable: true
           type: string
         resourceVersion:
+          description: Resource version
           nullable: true
           type: string
         generation:
+          description: Generation number
           nullable: true
           type: integer
         labels:
           additionalProperties: true
+          description: Resource labels
           nullable: true
           type: object
         annotations:
           additionalProperties: true
+          description: Resource annotations
           nullable: true
           type: object
       required:
@@ -2085,22 +2788,22 @@ components:
     MultiAgentSystemSpec:
       description: Specification for MultiAgentSystem CRD.
       example:
+        name: name
         enabledToolChecks:
         - DETERMINISTIC_TOOL_SELECTED
         - DETERMINISTIC_TOOL_SELECTED
-        llm_host: llm_host
-        name: name
         apps:
-        - kubernetesWorkloadName: kubernetesWorkloadName
-          baseUrl: ""
-          name: name
-          httpRequestSchema: ""
+        - name: name
           type: ""
-        - kubernetesWorkloadName: kubernetesWorkloadName
           baseUrl: ""
-          name: name
+          kubernetesWorkloadName: kubernetesWorkloadName
           httpRequestSchema: ""
+        - name: name
           type: ""
+          baseUrl: ""
+          kubernetesWorkloadName: kubernetesWorkloadName
+          httpRequestSchema: ""
+        llm_host: llm_host
       properties:
         name:
           description: Display name of the Multi-Agent System
@@ -2112,13 +2815,16 @@ components:
             $ref: "#/components/schemas/ToolCheckType"
           title: Enabledtoolchecks
           type: array
+          default: null
         apps:
           description: List of applications in this MAS
           items:
             $ref: "#/components/schemas/AppSpec"
           title: Apps
           type: array
+          default: null
         llm_host:
+          description: LLM proxy host for outbound LLM call tracking
           nullable: true
           type: string
       required:
@@ -2129,7 +2835,7 @@ components:
       properties:
         phase:
           allOf:
-          - $ref: "#/components/schemas/MASPhase"
+          - $ref: "#/components/schemas/CRDPhase"
           default: Pending
           description: Current phase of the MAS
         appsReady:
@@ -2142,19 +2848,23 @@ components:
           title: Last Sync Time
           type: string
         message:
+          description: Human-readable status message
           nullable: true
           type: string
         credentials:
+          description: OAuth2 credentials for each app (used by operator to create
+            secrets)
           items:
             $ref: "#/components/schemas/AppCredentials"
           nullable: true
           type: array
+          default: null
       title: MultiAgentSystemStatus
     MultiAgentSystemUpdateRequest:
       description: Request model for updating an existing MAS instance.
       example:
-        enabled_tool_checks: ""
         name: name
+        enabled_tool_checks: ""
       properties:
         name:
           title: Name
@@ -2193,8 +2903,8 @@ components:
     ScopeCreateRequest:
       description: Request model for scope creation.
       example:
-        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         name: name
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
       properties:
         name:
           title: Name
@@ -2221,33 +2931,33 @@ components:
     ScopeViewModel:
       description: Full view model for Scope including relationships.
       example:
-        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        name: name
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        tools:
-        - input_schema: input_schema
-          name: name
-          description: description
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          scopes:
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          output_schema: output_schema
-          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        - input_schema: input_schema
-          name: name
-          description: description
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          scopes:
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          - name: name
-            id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-          output_schema: output_schema
-          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
+        mas_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         mas: ""
+        tools:
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+          description: description
+          input_schema: input_schema
+          output_schema: output_schema
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          scopes:
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+          description: description
+          input_schema: input_schema
+          output_schema: output_schema
+          app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          scopes:
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
+          - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+            name: name
       properties:
         id:
           format: uuid
@@ -2269,6 +2979,7 @@ components:
             $ref: "#/components/schemas/ToolViewModel"
           title: Tools
           type: array
+          default: null
       required:
       - id
       - mas
@@ -2280,8 +2991,8 @@ components:
       description: Minimal view model for Scope with only essential fields (used in
         Tool.scopes).
       example:
-        name: name
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: name
       properties:
         id:
           format: uuid
@@ -2320,6 +3031,7 @@ components:
             type: string
           nullable: true
           type: array
+          default: null
       required:
       - client_id
       - client_secret
@@ -2329,20 +3041,20 @@ components:
     TokenIntrospectResponse:
       description: Pydantic model for the token introspection response.
       example:
+        client_id: client_id
+        scope: scope
         sub: sub
+        act: ""
         other:
           key: ""
-        act: ""
-        user_input_id: user_input_id
-        scope: scope
-        mas_id: mas_id
-        active: true
         exp: 0
+        user_input_id: user_input_id
         app_id: app_id
+        mas_id: mas_id
         tools:
         - tools
         - tools
-        client_id: client_id
+        active: true
       properties:
         client_id:
           nullable: true
@@ -2359,6 +3071,7 @@ components:
           nullable: true
         other:
           additionalProperties: true
+          description: Resource annotations
           nullable: true
           type: object
         exp:
@@ -2378,6 +3091,7 @@ components:
             type: string
           nullable: true
           type: array
+          default: null
         active:
           title: Active
           type: boolean
@@ -2435,13 +3149,13 @@ components:
     ToolRequest:
       description: Request model for tool creation.
       example:
-        input_schema: input_schema
         name: name
         description: description
+        input_schema: input_schema
+        output_schema: output_schema
         scopes:
         - scopes
         - scopes
-        output_schema: output_schema
       properties:
         name:
           title: Name
@@ -2460,6 +3174,7 @@ components:
             type: string
           nullable: true
           type: array
+          default: null
       required:
       - description
       - input_schema
@@ -2469,17 +3184,17 @@ components:
     ToolViewModel:
       description: View model for Tool including its scopes.
       example:
-        input_schema: input_schema
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
         name: name
         description: description
-        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        scopes:
-        - name: name
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        - name: name
-          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        input_schema: input_schema
         output_schema: output_schema
         app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        scopes:
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
+        - id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: name
       properties:
         id:
           format: uuid
@@ -2506,6 +3221,7 @@ components:
             $ref: "#/components/schemas/ScopeViewModelMinimal"
           title: Scopes
           type: array
+          default: null
       required:
       - app_id
       - description
@@ -2518,11 +3234,11 @@ components:
     UserInput:
       description: User Input model containing the user input prompt.
       example:
-        created_at: 2000-01-23T04:56:07.000+00:00
         id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
-        tag: tag
         prompt: prompt
+        created_at: 2000-01-23T04:56:07.000+00:00
         app_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        tag: tag
       properties:
         id:
           format: uuid
@@ -2549,19 +3265,20 @@ components:
       title: UserInput
     ValidationError:
       example:
-        msg: msg
         loc:
         - Location_inner
         - Location_inner
+        msg: msg
+        type: type
         input: ""
         ctx: "{}"
-        type: type
       properties:
         loc:
           items:
             $ref: "#/components/schemas/Location_inner"
           title: Location
           type: array
+          default: null
         msg:
           title: Message
           type: string

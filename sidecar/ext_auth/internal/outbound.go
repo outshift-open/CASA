@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"slices"
 	"strings"
 
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
@@ -111,7 +112,26 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 			return s.deny(), nil
 		}
 
+		// Fetch CASAPolicy for the caller workload (nil = no policy configured, allow all)
+		casaPolicy, err := s.authSrvClient.GetPolicyCRDByWorkload(ctx, s.namespace, callerWorkloadName)
+		if err != nil {
+			slog.Error("Failed to fetch CASAPolicy", CheckCtxField, outCtxField, TraceIdField, traceID, "workload", callerWorkloadName, "err", err, CheckIdField, checkID)
+			return s.deny(), nil
+		}
+
 		if strings.EqualFold(host, masCRD.GetLlmHost()) {
+			if casaPolicy != nil {
+				llmEp := casaPolicy.Spec.LlmEndpoint.Get()
+				if llmEp == nil {
+					slog.Warn("CASAPolicy denies LLM call: no llmEndpoint configured", CheckCtxField, outCtxField, TraceIdField, traceID, "workload", callerWorkloadName, "host", host, CheckIdField, checkID)
+					return s.deny(), nil
+				}
+				if !strings.EqualFold(host, llmEp.GetFqdn()) {
+					slog.Warn("CASAPolicy denies LLM call: host not in llmEndpoint", CheckCtxField, outCtxField, TraceIdField, traceID, "workload", callerWorkloadName, "host", host, CheckIdField, checkID)
+					return s.deny(), nil
+				}
+			}
+
 			llmCallID := uuid.NewString()
 
 			slog.Info(fmt.Sprintf("Generating x-litellm-call-id: %s", llmCallID), CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
@@ -132,6 +152,13 @@ func (s *OutboundExtAuthService) Check(ctx context.Context, request *authv3.Chec
 		for _, appSpec := range masCRD.AppSpecs {
 			if !strings.EqualFold(host, appSpec.UrlHost) {
 				continue
+			}
+
+			if casaPolicy != nil {
+				if err := checkCASAPolicy(casaPolicy, host, appSpec.GetType()); err != nil {
+					slog.Warn("CASAPolicy denied outbound request", CheckCtxField, outCtxField, TraceIdField, traceID, "workload", callerWorkloadName, "host", host, "reason", err, CheckIdField, checkID)
+					return s.deny(), nil
+				}
 			}
 
 			var err error
@@ -354,6 +381,33 @@ func (s *OutboundExtAuthService) getCallerToken(
 
 	slog.Info("Call denied, no caller workload found", CheckCtxField, outCtxField, TraceIdField, traceID, CheckIdField, checkID)
 	return "", errors.New("no caller workload found")
+}
+
+// checkCASAPolicy verifies that the outbound call is permitted by the caller's CASAPolicy.
+// It checks that the destination host is in allowedEndpoints and the required protocol is in allowedProtocols.
+func checkCASAPolicy(policy *api.CASAPolicyCRD, host string, appType api.AppType) error {
+	// Map Envoy app type to CASAPolicy protocol string
+	var requiredProtocol string
+	switch appType {
+	case api.MCP_SERVER:
+		requiredProtocol = "mcp"
+	case api.AGENT:
+		requiredProtocol = "a2a"
+	}
+
+	if requiredProtocol != "" && !slices.Contains(policy.Spec.GetAllowedProtocols(), requiredProtocol) {
+		return fmt.Errorf("protocol %q not in allowedProtocols %v", requiredProtocol, policy.Spec.GetAllowedProtocols())
+	}
+
+	// host may include port (e.g. "casa-demo-mcp:3000"); strip port for FQDN comparison
+	hostWithoutPort := strings.SplitN(host, ":", 2)[0]
+	for _, ep := range policy.Spec.GetAllowedEndpoints() {
+		fqdn := fmt.Sprintf("%s.%s.svc.cluster.local", ep.GetName(), ep.GetNamespace())
+		if strings.EqualFold(hostWithoutPort, fqdn) || strings.EqualFold(hostWithoutPort, ep.GetName()) {
+			return nil
+		}
+	}
+	return fmt.Errorf("host %q not in allowedEndpoints", host)
 }
 
 func (s *OutboundExtAuthService) getClientCredentials(ctx context.Context, appID string) (*AppClientCredential, error) {

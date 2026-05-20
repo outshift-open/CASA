@@ -23,6 +23,8 @@ from sqlmodel import Session, delete, desc, select
 from casa_auth_server.core.types import AppType
 from casa_auth_server.k8s.types import (
     K8sAppSpec,
+    K8sCASAPolicy,
+    K8sCASAPolicyAllowedEndpoint,
     K8sLlmCallMapping,
     K8sMultiAgentSystemCRD,
     K8sTokenCache,
@@ -190,3 +192,96 @@ class K8sMultiAgentSystemPostgresRepository(K8sMultiAgentSystemRepository):
             return result.first()
         except Exception as e:
             raise Exception(f"Error fetching LLM call mapping by id '{id}': {e}") from e
+
+
+class K8sCASAPolicyRepository(ABC):
+    """Interface for K8sCASAPolicyRepository."""
+
+    @abstractmethod
+    def create_policy(self, policy: K8sCASAPolicy) -> K8sCASAPolicy:
+        """Persist a new K8sCASAPolicy (and its allowed_endpoints) to the database."""
+
+    @abstractmethod
+    def get_policy_by_namespace_and_name(self, namespace: str, name: str) -> K8sCASAPolicy | None:
+        """Retrieve a K8sCASAPolicy by namespace and CR name."""
+
+    @abstractmethod
+    def get_policy_by_workload_name(self, namespace: str, workload_name: str) -> K8sCASAPolicy | None:
+        """Retrieve a K8sCASAPolicy by namespace and target workload name."""
+
+    @abstractmethod
+    def update_policy(self, policy: K8sCASAPolicy, new_endpoints: list[K8sCASAPolicyAllowedEndpoint]) -> K8sCASAPolicy:
+        """Update an existing K8sCASAPolicy record, replacing its allowed_endpoints."""
+
+    @abstractmethod
+    def delete_policy(self, policy: K8sCASAPolicy) -> None:
+        """Delete a K8sCASAPolicy along with its allowed_endpoints."""
+
+
+class K8sCASAPolicyPostgresRepository(K8sCASAPolicyRepository):
+    """PostgreSQL implementation of K8sCASAPolicyRepository."""
+
+    def __init__(self, session: Session):
+        """Initialize the repository with a database session."""
+        self._session = session
+
+    def create_policy(self, policy: K8sCASAPolicy) -> K8sCASAPolicy:
+        """Create a new K8sCASAPolicy (and its allowed_endpoints) in the database."""
+        try:
+            self._session.add(policy)
+            for endpoint in policy.allowed_endpoints:
+                self._session.add(endpoint)
+            return policy
+        except Exception as e:
+            raise Exception(f"Error creating K8s CASAPolicy: {e}") from e
+
+    def get_policy_by_namespace_and_name(self, namespace: str, name: str) -> K8sCASAPolicy | None:
+        """Retrieve a K8sCASAPolicy by namespace and CR name."""
+        try:
+            result = self._session.exec(
+                select(K8sCASAPolicy).where(K8sCASAPolicy.namespace == namespace).where(K8sCASAPolicy.name == name)
+            )
+            return result.first()
+        except Exception as e:
+            raise Exception(f"Error retrieving K8s CASAPolicy '{namespace}/{name}': {e}") from e
+
+    def get_policy_by_workload_name(self, namespace: str, workload_name: str) -> K8sCASAPolicy | None:
+        """Retrieve a K8sCASAPolicy by namespace and target workload name."""
+        try:
+            result = self._session.exec(
+                select(K8sCASAPolicy)
+                .where(K8sCASAPolicy.namespace == namespace)
+                .where(K8sCASAPolicy.target_ref_name == workload_name)
+            )
+            return result.first()
+        except Exception as e:
+            raise Exception(f"Error retrieving K8s CASAPolicy for workload '{workload_name}': {e}") from e
+
+    def update_policy(self, policy: K8sCASAPolicy, new_endpoints: list[K8sCASAPolicyAllowedEndpoint]) -> K8sCASAPolicy:
+        """Update an existing K8sCASAPolicy record, replacing its allowed_endpoints."""
+        try:
+            # Delete old endpoints first, flush so the DELETE hits the DB before any INSERT
+            self._session.exec(
+                delete(K8sCASAPolicyAllowedEndpoint).where(K8sCASAPolicyAllowedEndpoint.policy_id == policy.id)
+            )
+            self._session.flush()
+            # Update the policy scalar fields (no relationship manipulation)
+            self._session.add(policy)
+            self._session.flush()
+            # Insert new endpoints directly, bypassing the ORM relationship
+            for ep in new_endpoints:
+                ep.policy_id = policy.id
+                self._session.add(ep)
+            return policy
+        except Exception as e:
+            raise Exception(f"Error updating K8s CASAPolicy: {e}") from e
+
+    def delete_policy(self, policy: K8sCASAPolicy) -> None:
+        """Delete a K8sCASAPolicy along with its allowed_endpoints."""
+        try:
+            self._session.exec(
+                delete(K8sCASAPolicyAllowedEndpoint).where(K8sCASAPolicyAllowedEndpoint.policy_id == policy.id)
+            )
+            self._session.delete(policy)
+        except Exception as e:
+            raise Exception(f"Error deleting K8s CASAPolicy: {e}") from e

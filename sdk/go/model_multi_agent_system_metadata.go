@@ -25,10 +25,15 @@ type MultiAgentSystemMetadata struct {
 	Name string `json:"name"`
 	// Kubernetes namespace
 	Namespace string `json:"namespace"`
+	// Kubernetes UID
 	Uid NullableString `json:"uid,omitempty"`
+	// Resource version
 	ResourceVersion NullableString `json:"resourceVersion,omitempty"`
+	// Generation number
 	Generation NullableInt32 `json:"generation,omitempty"`
+	// Resource labels
 	Labels map[string]interface{} `json:"labels,omitempty"`
+	// Resource annotations
 	Annotations map[string]interface{} `json:"annotations,omitempty"`
 }
 

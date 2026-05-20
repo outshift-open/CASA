@@ -1,0 +1,121 @@
+# Copyright 2026 Cisco Systems, Inc. and its affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: casapolicies.casa.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "-5"
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  group: casa.io
+  names:
+    kind: CASAPolicy
+    plural: casapolicies
+    singular: casapolicy
+    shortNames:
+    - casap
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - targetRef
+            properties:
+              targetRef:
+                type: object
+                required:
+                - kind
+                - name
+                description: "Reference to the workload this policy applies to"
+                properties:
+                  kind:
+                    type: string
+                    description: "Workload kind: Deployment, StatefulSet, or Pod"
+                    enum: [Deployment, StatefulSet, Pod]
+                  name:
+                    type: string
+                    description: "Name of the target workload"
+              allowedProtocols:
+                type: array
+                description: "Protocols allowed for this workload"
+                items:
+                  type: string
+                  enum: [mcp, a2a, http]
+              allowedEndpoints:
+                type: array
+                description: "Kubernetes services this workload may communicate with"
+                items:
+                  type: object
+                  required:
+                  - name
+                  - namespace
+                  - port
+                  properties:
+                    name:
+                      type: string
+                      description: "Target service name"
+                    namespace:
+                      type: string
+                      description: "Target service namespace"
+                    port:
+                      type: integer
+                      description: "Target port number"
+              llmEndpoint:
+                type: object
+                description: "Allowed external LLM endpoint"
+                required:
+                - fqdn
+                - port
+                properties:
+                  fqdn:
+                    type: string
+                    description: "FQDN of the allowed external LLM service"
+                  port:
+                    type: integer
+                    description: "Port for the LLM service (typically 443)"
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                description: "Current phase of the policy"
+                enum: [Pending, Active, Failed]
+              lastSyncTime:
+                type: string
+                format: date-time
+                description: "Timestamp of last successful reconciliation"
+              message:
+                type: string
+                description: "Human-readable status message"
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - name: Workload
+      type: string
+      jsonPath: .spec.targetRef.name
+    - name: Phase
+      type: string
+      jsonPath: .status.phase
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp

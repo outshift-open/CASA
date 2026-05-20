@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Kubernetes CRD models for CASA Multi-Agent System."""
+"""Kubernetes CRD models for CASA (MultiAgentSystem and CASAPolicy)."""
 
 from datetime import UTC, datetime
 from enum import Enum
@@ -31,8 +31,8 @@ class ToolCheckType(str, Enum):
     AI_POWERED_TOOL_MATCH = "AI_POWERED_TOOL_MATCH"
 
 
-class MASPhase(str, Enum):
-    """Phase of MAS resource lifecycle."""
+class CRDPhase(str, Enum):
+    """Phase of a CASA CRD resource lifecycle."""
 
     PENDING = "Pending"
     ACTIVE = "Active"
@@ -114,7 +114,7 @@ class MultiAgentSystemStatus(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    phase: MASPhase = Field(default=MASPhase.PENDING, description="Current phase of the MAS")
+    phase: CRDPhase = Field(default=CRDPhase.PENDING, description="Current phase of the MAS")
     apps_ready: int = Field(default=0, description="Number of apps successfully registered", alias="appsReady")
     last_sync_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
     message: str | None = Field(default=None, description="Human-readable status message")
@@ -154,3 +154,84 @@ class MASCreateRequest(BaseModel):
 
     metadata: MultiAgentSystemMetadata
     spec: MultiAgentSystemSpec
+
+
+# CASAPolicy types
+
+
+class CASAPolicyTargetRef(BaseModel):
+    """Reference to the workload this policy applies to."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    kind: str = Field(description="Workload kind: Deployment, StatefulSet, or Pod")
+    name: str = Field(description="Name of the target workload")
+
+
+class CASAPolicyAllowedEndpoint(BaseModel):
+    """A Kubernetes service this workload is allowed to reach."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str = Field(description="Target service name")
+    namespace: str = Field(description="Target service namespace")
+    port: int = Field(description="Target port number")
+
+
+class CASAPolicyLlmEndpoint(BaseModel):
+    """External LLM endpoint this workload is allowed to reach."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    fqdn: str = Field(description="FQDN of the allowed external LLM service")
+    port: int = Field(description="Port for the LLM service")
+
+
+class CASAPolicySpec(BaseModel):
+    """Specification for CASAPolicy CRD."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    target_ref: CASAPolicyTargetRef = Field(description="Workload this policy applies to", alias="targetRef")
+    allowed_protocols: list[str] = Field(
+        default_factory=list,
+        description="Protocols allowed for this workload: mcp, a2a, http",
+        alias="allowedProtocols",
+    )
+    allowed_endpoints: list[CASAPolicyAllowedEndpoint] = Field(
+        default_factory=list,
+        description="K8s services this workload may communicate with",
+        alias="allowedEndpoints",
+    )
+    llm_endpoint: CASAPolicyLlmEndpoint | None = Field(
+        default=None, description="Allowed external LLM endpoint", alias="llmEndpoint"
+    )
+
+
+class CASAPolicyStatus(BaseModel):
+    """Status of CASAPolicy CRD."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    phase: CRDPhase = Field(default=CRDPhase.PENDING, description="Current phase of the policy")
+    last_sync_time: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    message: str | None = Field(default=None, description="Human-readable status message")
+
+
+class CASAPolicyCRD(BaseModel):
+    """Complete CASAPolicy Custom Resource Definition."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    api_version: str = Field(default="casa.io/v1alpha1", description="API version", alias="apiVersion")
+    kind: Literal["CASAPolicy"] = Field(default="CASAPolicy", description="Resource kind")
+    metadata: MultiAgentSystemMetadata
+    spec: CASAPolicySpec
+    status: CASAPolicyStatus | None = Field(default=None, description="Resource status")
+
+
+class CASAPolicyCreateRequest(BaseModel):
+    """Request model for creating a CASAPolicy via API."""
+
+    metadata: MultiAgentSystemMetadata
+    spec: CASAPolicySpec

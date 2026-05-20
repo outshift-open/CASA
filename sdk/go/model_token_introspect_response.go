@@ -25,6 +25,7 @@ type TokenIntrospectResponse struct {
 	Scope NullableString `json:"scope,omitempty"`
 	Sub NullableString `json:"sub,omitempty"`
 	Act NullableActorClaim `json:"act,omitempty"`
+	// Resource annotations
 	Other map[string]interface{} `json:"other,omitempty"`
 	Exp NullableInt32 `json:"exp,omitempty"`
 	UserInputId NullableString `json:"user_input_id,omitempty"`

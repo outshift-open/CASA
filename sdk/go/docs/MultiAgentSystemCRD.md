@@ -4,11 +4,11 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**ApiVersion** | Pointer to **string** | API version | [optional] [default to "zta.io/v1alpha1"]
+**ApiVersion** | Pointer to **string** | API version | [optional] [default to "casa.io/v1alpha1"]
 **Kind** | Pointer to **string** | Resource kind | [optional] [default to "MultiAgentSystem"]
 **Metadata** | [**MultiAgentSystemMetadata**](MultiAgentSystemMetadata.md) |  | 
 **Spec** | [**MultiAgentSystemSpec**](MultiAgentSystemSpec.md) |  | 
-**Status** | Pointer to [**NullableMultiAgentSystemStatus**](MultiAgentSystemStatus.md) |  | [optional] 
+**Status** | Pointer to [**NullableMultiAgentSystemStatus**](MultiAgentSystemStatus.md) | Resource status | [optional] 
 
 ## Methods
 

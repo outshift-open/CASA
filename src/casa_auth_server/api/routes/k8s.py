@@ -21,6 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from casa_auth_server.api.dependencies import Container
 from casa_auth_server.core.events import LLMCallEndedEvent
 from casa_auth_server.core.types import TokenResponse
+from casa_auth_server.k8s.k8s_policy_crd_service import K8sPolicyCRDService
 from casa_auth_server.k8s.k8s_query_service import (
     CacheTokenLoadRequest,
     CacheTokenStoreRequest,
@@ -28,6 +29,7 @@ from casa_auth_server.k8s.k8s_query_service import (
     LLMCallEndedKubernetesRequest,
     LlmCallMappingStoreRequest,
 )
+from casa_auth_server.k8s.k8s_types import CASAPolicyCRD
 from casa_auth_server.k8s.types import K8sLlmCallMapping
 from casa_auth_server.k8s.view_models import K8sMultiAgentSystemCRDViewModel
 
@@ -148,3 +150,23 @@ def k8s_trace_llm_call_end(
 ) -> LLMCallEndedEvent:
     """Record the end of an LLM call for the authenticated agent."""
     return k8s_query_service.trace_llm_call_end(request)
+
+
+@router.get(
+    "/namespaces/{namespace}/policy-by-workload",
+    response_model=CASAPolicyCRD,
+    generate_unique_id_function=lambda _: "get_k8s_policy_by_workload",
+)
+def get_k8s_policy_by_workload(
+    policy_service: Annotated[K8sPolicyCRDService, Depends(Container.get_k8s_policy_crd_service)],
+    namespace: str,
+    workload_name: str,
+) -> CASAPolicyCRD:
+    """Retrieve a CASAPolicy by the workload it targets.
+
+    Used by the ext-auth sidecar to look up the policy for an inbound workload.
+    """
+    policy = policy_service.get_policy_by_workload_name(namespace, workload_name)
+    if not policy:
+        raise HTTPException(status_code=404, detail="CASAPolicy not found")
+    return policy

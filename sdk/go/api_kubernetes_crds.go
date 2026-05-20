@@ -150,6 +150,133 @@ func (a *KubernetesCRDsAPIService) CreateMasCrdExecute(r ApiCreateMasCrdRequest)
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type ApiCreatePolicyCrdRequest struct {
+	ctx context.Context
+	ApiService *KubernetesCRDsAPIService
+	namespace string
+	cASAPolicyCreateRequest *CASAPolicyCreateRequest
+}
+
+func (r ApiCreatePolicyCrdRequest) CASAPolicyCreateRequest(cASAPolicyCreateRequest CASAPolicyCreateRequest) ApiCreatePolicyCrdRequest {
+	r.cASAPolicyCreateRequest = &cASAPolicyCreateRequest
+	return r
+}
+
+func (r ApiCreatePolicyCrdRequest) Execute() (*CASAPolicyCRD, *http.Response, error) {
+	return r.ApiService.CreatePolicyCrdExecute(r)
+}
+
+/*
+CreatePolicyCrd Create Policy Crd
+
+Create or update a CASAPolicy CRD.
+
+This endpoint is used by the Kubernetes operator to register a CASAPolicy
+with the CASA runtime. It is idempotent.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param namespace
+ @return ApiCreatePolicyCrdRequest
+*/
+func (a *KubernetesCRDsAPIService) CreatePolicyCrd(ctx context.Context, namespace string) ApiCreatePolicyCrdRequest {
+	return ApiCreatePolicyCrdRequest{
+		ApiService: a,
+		ctx: ctx,
+		namespace: namespace,
+	}
+}
+
+// Execute executes the request
+//  @return CASAPolicyCRD
+func (a *KubernetesCRDsAPIService) CreatePolicyCrdExecute(r ApiCreatePolicyCrdRequest) (*CASAPolicyCRD, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *CASAPolicyCRD
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.CreatePolicyCrd")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/k8s/namespaces/{namespace}/policies"
+	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", url.PathEscape(parameterValueToString(r.namespace, "namespace")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.cASAPolicyCreateRequest == nil {
+		return localVarReturnValue, nil, reportError("cASAPolicyCreateRequest is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.cASAPolicyCreateRequest
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarReturnValue, localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type ApiDeleteMasCrdRequest struct {
 	ctx context.Context
 	ApiService *KubernetesCRDsAPIService
@@ -194,6 +321,112 @@ func (a *KubernetesCRDsAPIService) DeleteMasCrdExecute(r ApiDeleteMasCrdRequest)
 	}
 
 	localVarPath := localBasePath + "/k8s/namespaces/{namespace}/mas/{name}"
+	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", url.PathEscape(parameterValueToString(r.namespace, "namespace")), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", url.PathEscape(parameterValueToString(r.name, "name")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		if localVarHTTPResponse.StatusCode == 422 {
+			var v HTTPValidationError
+			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
+				return localVarHTTPResponse, newErr
+			}
+					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
+					newErr.model = v
+		}
+		return localVarHTTPResponse, newErr
+	}
+
+	return localVarHTTPResponse, nil
+}
+
+type ApiDeletePolicyCrdRequest struct {
+	ctx context.Context
+	ApiService *KubernetesCRDsAPIService
+	namespace string
+	name string
+}
+
+func (r ApiDeletePolicyCrdRequest) Execute() (*http.Response, error) {
+	return r.ApiService.DeletePolicyCrdExecute(r)
+}
+
+/*
+DeletePolicyCrd Delete Policy Crd
+
+Delete a CASAPolicy CRD.
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param namespace
+ @param name
+ @return ApiDeletePolicyCrdRequest
+*/
+func (a *KubernetesCRDsAPIService) DeletePolicyCrd(ctx context.Context, namespace string, name string) ApiDeletePolicyCrdRequest {
+	return ApiDeletePolicyCrdRequest{
+		ApiService: a,
+		ctx: ctx,
+		namespace: namespace,
+		name: name,
+	}
+}
+
+// Execute executes the request
+func (a *KubernetesCRDsAPIService) DeletePolicyCrdExecute(r ApiDeletePolicyCrdRequest) (*http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "KubernetesCRDsAPIService.DeletePolicyCrd")
+	if err != nil {
+		return nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/k8s/namespaces/{namespace}/policies/{name}"
 	localVarPath = strings.Replace(localVarPath, "{"+"namespace"+"}", url.PathEscape(parameterValueToString(r.namespace, "namespace")), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", url.PathEscape(parameterValueToString(r.name, "name")), -1)
 

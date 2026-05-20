@@ -46,6 +46,7 @@ func main() {
 
 	// Register casa.io/v1alpha1 GroupVersion
 	scheme.AddKnownTypes(schemeGroupVersion, &MultiAgentSystem{}, &MultiAgentSystemList{})
+	scheme.AddKnownTypes(schemeGroupVersion, &CASAPolicy{}, &CASAPolicyList{})
 	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
 
 	// Get in-cluster config
@@ -73,7 +74,13 @@ func main() {
 
 	err = NewMultiAgentSystemReconciler(mgr.GetClient(), clientset, authSrvClient).SetupWithManager(mgr)
 	if err != nil {
-		ctrl.Log.Error(err, "unable to create controller")
+		ctrl.Log.Error(err, "unable to create MultiAgentSystem controller")
+		os.Exit(1)
+	}
+
+	err = NewCASAPolicyReconciler(mgr.GetClient(), authSrvClient).SetupWithManager(mgr)
+	if err != nil {
+		ctrl.Log.Error(err, "unable to create CASAPolicy controller")
 		os.Exit(1)
 	}
 
