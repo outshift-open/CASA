@@ -218,6 +218,10 @@ function MASGraphViewInner({
             const idx = siblings.indexOf(fe.edge_type ?? 'mcp');
             const nudge = siblings.length > 1 ? (idx - (siblings.length - 1) / 2) * 18 : 0;
 
+            // Stagger label positions along the edge so multiple labels don't overlap
+            const baseT = pairsWithAgentEdge.has(pairKey) ? 0.75 : 0.5;
+            const labelT = siblings.length > 1 ? baseT + (idx - (siblings.length - 1) / 2) * 0.15 : baseT;
+
             return {
                 id: `flow-${fe.edge_type ?? 'mcp'}-${fe.caller_app_id}-${fe.callee_app_id}`,
                 source: `app-${fe.caller_app_id}`,
@@ -231,7 +235,7 @@ function MASGraphViewInner({
                     curvature: 0.25,
                     sourceXOffset: nudge,
                     targetXOffset: nudge,
-                    labelT: pairsWithAgentEdge.has(pairKey) ? 0.75 : 0.5
+                    labelT
                 },
                 style: {stroke: strokeColor, strokeWidth: width, filter: `drop-shadow(0 0 6px ${glowColor})`}
             };

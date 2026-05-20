@@ -267,14 +267,13 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 )}
                 {tools.length > 0 && (
                     <>
-                        <span className="ml-1">— requested:</span>
+                        <span className="ml-1">— requested tool</span>
                         <ToolChips tools={tools} />
                     </>
                 )}
             </div>
         );
     } else if (event_type === EventType.LLMCallStarted) {
-        const tools = parseToolsList(event.tools);
         borderClass = 'border-blue-400/50';
         expandedBgClass = 'bg-blue-500/10';
         rowBgClass = 'bg-blue-500/10';
@@ -283,26 +282,12 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         summary = (
             <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
                 <span className="font-medium text-foreground">
-                    LLM call {index !== undefined ? `#${index + 1}` : ''}
+                    LLM Call Started {index !== undefined ? `#${index + 1}` : ''}
                 </span>
                 {event.app_id && (
                     <>
-                        <span>from</span>
+                        <span className="text-muted-foreground/60">from</span>
                         <AppIdChip id={event.app_id} appNames={appNames} />
-                    </>
-                )}
-                {event.prompt && (
-                    <>
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
-                            Task:
-                        </span>
-                        <span className="text-foreground/70">"{event.prompt}"</span>
-                    </>
-                )}
-                {tools.length > 0 && (
-                    <>
-                        <span className="ml-1">— offered:</span>
-                        <ToolChips tools={tools} />
                     </>
                 )}
             </div>
@@ -319,17 +304,15 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 <span className="font-medium text-foreground">LLM responded</span>
                 {event.app_id && (
                     <>
-                        <span>from</span>
+                        <span className="text-muted-foreground/60">from</span>
                         <AppIdChip id={event.app_id} appNames={appNames} />
                     </>
                 )}
-                {selectedTools.length > 0 ? (
+                {selectedTools.length > 0 && (
                     <>
-                        <span className="ml-1">— selected:</span>
+                        <span className="ml-1 text-muted-foreground/60">— requested tool</span>
                         <ToolChips tools={selectedTools} />
                     </>
-                ) : (
-                    <span className="ml-1 italic">— no tools selected</span>
                 )}
             </div>
         );
@@ -379,9 +362,11 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         );
         summary = (
             <div className="text-[13px] flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
+                <span className="font-medium text-foreground">Tool Call</span>
                 <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px]">{event.tool ?? '—'}</code>
                 {(event.caller_app_id || event.callee_app_id) && (
-                    <span className="text-muted-foreground flex items-center gap-1">
+                    <span className="text-muted-foreground/60 flex items-center gap-1">
+                        <span>from</span>
                         <AppIdChip id={event.caller_app_id} appNames={appNames} />
                         <span className="text-muted-foreground/40">→</span>
                         <AppIdChip id={event.callee_app_id} appNames={appNames} />

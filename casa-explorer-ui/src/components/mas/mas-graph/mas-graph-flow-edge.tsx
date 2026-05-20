@@ -60,15 +60,12 @@ export const MASFlowEdge = memo(
             labelX = sourceX + (targetX - sourceX) * t;
             labelY = sourceY + (targetY - sourceY) * t;
         } else {
-            [edgePath, labelX, labelY] = getBezierPath({
-                sourceX: sourceX + (data?.sourceXOffset ?? 0),
-                sourceY,
-                sourcePosition,
-                targetX: targetX + (data?.targetXOffset ?? 0),
-                targetY,
-                targetPosition,
-                curvature: data?.curvature
-            });
+            const sx = sourceX + (data?.sourceXOffset ?? 0);
+            const tx = targetX + (data?.targetXOffset ?? 0);
+            [edgePath] = getBezierPath({sourceX: sx, sourceY, sourcePosition, targetX: tx, targetY, targetPosition, curvature: data?.curvature});
+            const t = data?.labelT ?? 0.5;
+            labelX = sx + (tx - sx) * t;
+            labelY = sourceY + (targetY - sourceY) * t;
         }
 
         const strokeColor = (style?.stroke as string) ?? '#34d399';
