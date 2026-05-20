@@ -21,35 +21,23 @@ import {cn} from '@/lib/utils';
 import type {AppType} from '@/types/app.types';
 import type {Tool} from '@/types/app.types';
 import {APP_TYPE_LABELS} from '@/components/ui/app-type-badge';
+import {getAppColor} from '@/lib/app-colors';
 
-const APP_TYPE_CONFIG: Record<
+const APP_TYPE_ICON: Record<
     AppType,
-    {
-        Icon: React.ComponentType<{className?: string; strokeWidth?: number; style?: React.CSSProperties}>;
-        accent: string;
-        glow: string;
-        border: string;
-    }
+    React.ComponentType<{className?: string; strokeWidth?: number; style?: React.CSSProperties}>
 > = {
-    agent: {
-        Icon: Bot,
-        accent: '#818cf8',
-        glow: 'rgba(129,140,248,0.18)',
-        border: 'rgba(129,140,248,0.35)'
-    },
-    client: {
-        Icon: AppWindow,
-        accent: '#34d399',
-        glow: 'rgba(52,211,153,0.18)',
-        border: 'rgba(52,211,153,0.35)'
-    },
-    mcp_server: {
-        Icon: Server,
-        accent: '#22d3ee',
-        glow: 'rgba(34,211,238,0.18)',
-        border: 'rgba(34,211,238,0.35)'
-    }
+    agent: Bot,
+    client: AppWindow,
+    mcp_server: Server
 };
+
+function hexToRgba(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
 
 interface MASGraphNodeProps {
     data: {
@@ -63,15 +51,18 @@ interface MASGraphNodeProps {
 }
 
 export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
-    const cfg = APP_TYPE_CONFIG[data.type];
-    const {Icon} = cfg;
+    const Icon = APP_TYPE_ICON[data.type];
     const [hovered, setHovered] = useState(false);
 
-    const borderColor = data.isHighlighted || hovered ? cfg.accent : cfg.border;
+    const accent = data.appId ? getAppColor(data.appId, data.type) : '#818cf8';
+    const glow = hexToRgba(accent, 0.18);
+    const border = hexToRgba(accent, 0.35);
+
+    const borderColor = data.isHighlighted || hovered ? accent : border;
     const shadow = data.isHighlighted
-        ? `0 0 0 2px ${cfg.accent}55, 0 0 32px ${cfg.glow}, inset 0 1px 0 rgba(255,255,255,0.05)`
+        ? `0 0 0 2px ${accent}55, 0 0 32px ${glow}, inset 0 1px 0 rgba(255,255,255,0.05)`
         : hovered
-          ? `0 0 0 1px ${cfg.accent}33, 0 0 28px ${cfg.glow}, 0 8px 32px rgba(0,0,0,0.5)`
+          ? `0 0 0 1px ${accent}33, 0 0 28px ${glow}, 0 8px 32px rgba(0,0,0,0.5)`
           : `0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)`;
 
     return (
@@ -97,7 +88,7 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
             <div
                 className="absolute top-0 left-4 right-4 h-px rounded-full"
                 style={{
-                    background: `linear-gradient(90deg, transparent, ${cfg.accent}99, transparent)`,
+                    background: `linear-gradient(90deg, transparent, ${accent}99, transparent)`,
                     opacity: hovered ? 1 : 0.5,
                     transition: 'opacity 0.15s ease'
                 }}
@@ -107,13 +98,13 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                 <div className="flex items-center justify-between">
                     <div
                         className="flex items-center justify-center w-8 h-8 rounded-lg"
-                        style={{background: cfg.glow, border: `1px solid ${cfg.border}`}}
+                        style={{background: glow, border: `1px solid ${border}`}}
                     >
-                        <Icon className="w-4 h-4" style={{color: cfg.accent}} strokeWidth={1.5} />
+                        <Icon className="w-4 h-4" style={{color: accent}} strokeWidth={1.5} />
                     </div>
                     <span
                         className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full"
-                        style={{color: cfg.accent, background: cfg.glow, border: `1px solid ${cfg.border}`}}
+                        style={{color: accent, background: glow, border: `1px solid ${border}`}}
                     >
                         {APP_TYPE_LABELS[data.type]}
                     </span>
@@ -139,17 +130,17 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                     className="absolute left-full ml-3 top-0 z-50 w-56 rounded-xl overflow-hidden pointer-events-none"
                     style={{
                         background: 'rgba(6,11,22,0.98)',
-                        border: `1px solid ${cfg.border}`,
+                        border: `1px solid ${border}`,
                         backdropFilter: 'blur(12px)',
-                        boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px ${cfg.border}`
+                        boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px ${border}`
                     }}
                 >
                     <div
                         className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest"
                         style={{
-                            background: `linear-gradient(90deg, transparent, ${cfg.accent}22, transparent)`,
-                            color: cfg.accent,
-                            borderBottom: `1px solid ${cfg.border}`
+                            background: `linear-gradient(90deg, transparent, ${accent}22, transparent)`,
+                            color: accent,
+                            borderBottom: `1px solid ${border}`
                         }}
                     >
                         {data.tools.length} Tools
@@ -159,7 +150,7 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                             <li key={idx} className="flex items-start gap-1.5 text-xs">
                                 <span
                                     className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0"
-                                    style={{background: cfg.accent}}
+                                    style={{background: accent}}
                                 />
                                 <span className="text-white/75 truncate">{tool.name}</span>
                             </li>

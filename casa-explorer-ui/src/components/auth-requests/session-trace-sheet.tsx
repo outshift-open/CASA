@@ -101,7 +101,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
         <Sheet open={!!userInputId} onOpenChange={(open) => !open && onClose()}>
             <SheetContent
                 side="right"
-                className="w-[900px] sm:max-w-[900px] flex flex-col p-0 gap-0"
+                className="w-[1050px] sm:max-w-[1050px] flex flex-col p-0 gap-0"
                 showCloseButton={false}
             >
                 {/* Top bar */}
