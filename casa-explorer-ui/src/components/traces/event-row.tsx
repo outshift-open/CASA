@@ -104,9 +104,38 @@ export function ToolChips({tools}: {tools: string[]}) {
     );
 }
 
+// Per-agent distinct colors — agents of the same type get different hues based on their ID
+const AGENT_COLOR_PALETTE = [
+    'text-violet-400',
+    'text-fuchsia-400',
+    'text-pink-400',
+    'text-rose-400',
+    'text-orange-400',
+    'text-yellow-400',
+    'text-lime-400',
+    'text-emerald-400'
+];
+
+const MCP_COLOR_PALETTE = ['text-cyan-400', 'text-teal-400', 'text-sky-400', 'text-indigo-400'];
+
+const CLIENT_COLOR_PALETTE = ['text-blue-400', 'text-blue-300', 'text-blue-200'];
+
+function hashId(id: string): number {
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+    return h;
+}
+
+function getAppNameColor(id: string, type: AppType): string {
+    if (type === 'agent') return AGENT_COLOR_PALETTE[hashId(id) % AGENT_COLOR_PALETTE.length];
+    if (type === 'mcp_server') return MCP_COLOR_PALETTE[hashId(id) % MCP_COLOR_PALETTE.length];
+    return CLIENT_COLOR_PALETTE[hashId(id) % CLIENT_COLOR_PALETTE.length];
+}
+
 export function AppIdChip({id, appNames}: {id: string | undefined; appNames: AppNames}) {
     if (!id) return <span className="text-muted-foreground">—</span>;
     const info = appNames[id];
+    const nameColorClass = info?.type ? `${getAppNameColor(id, info.type)} font-semibold` : 'text-foreground/80';
     return (
         <span className="inline-flex items-center gap-1">
             {info?.type && (
@@ -116,7 +145,7 @@ export function AppIdChip({id, appNames}: {id: string | undefined; appNames: App
                     {APP_TYPE_LABELS[info.type]}
                 </span>
             )}
-            <code className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono" title={id}>
+            <code className={`text-[11px] font-mono ${nameColorClass}`} title={id}>
                 {info?.name ?? shortId(id)}
             </code>
         </span>
