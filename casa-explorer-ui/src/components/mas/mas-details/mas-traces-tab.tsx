@@ -44,6 +44,7 @@ interface Session {
     allowedCount: number;
     deniedCount: number;
     llmCallCount: number;
+    agentCallCount: number;
     mcpCallCount: number;
     tokenCount: number;
 }
@@ -57,6 +58,7 @@ function buildSessions(items: Record<string, Trace[]>): Session[] {
             const tokenIssued = sorted.find((t) => t.event_type === EventType.TokenIssued);
             const mcpCalls = sorted.filter((t) => t.event_type === EventType.MCPCallStarted);
             const llmCallCount = sorted.filter((t) => t.event_type === EventType.LLMCallStarted).length;
+            const agentCallCount = sorted.filter((t) => t.event_type === EventType.AgentCallStarted).length;
             const tokenCount = sorted.filter(
                 (t) => t.event_type === EventType.TokenIssued || t.event_type === EventType.TokenExchanged
             ).length;
@@ -68,6 +70,7 @@ function buildSessions(items: Record<string, Trace[]>): Session[] {
                 allowedCount: mcpCalls.filter((t) => !t.event.blocked).length,
                 deniedCount: mcpCalls.filter((t) => t.event.blocked).length,
                 llmCallCount,
+                agentCallCount,
                 mcpCallCount: mcpCalls.length,
                 tokenCount
             };
@@ -114,6 +117,7 @@ function SessionRow({session, appNames}: {session: Session; appNames: AppNames})
                 <div className="flex flex-col items-end gap-1 flex-shrink-0 text-xs">
                     <span className="text-muted-foreground tabular-nums">
                         {session.tokenCount} token{session.tokenCount !== 1 ? 's' : ''}
+                        {session.agentCallCount > 0 && <> · {session.agentCallCount} agent</>}
                         {session.llmCallCount > 0 && <> · {session.llmCallCount} LLM</>}
                         {session.mcpCallCount > 0 && <> · {session.mcpCallCount} MCP</>}
                     </span>

@@ -54,6 +54,7 @@ export function AuthRequestDetailPage() {
         const tokenIssued = tracesData.find((t) => t.event_type === EventType.TokenIssued);
         const mcpCalls = tracesData.filter((t) => t.event_type === EventType.MCPCallStarted);
         const llmCallCount = tracesData.filter((t) => t.event_type === EventType.LLMCallStarted).length;
+        const agentCallCount = tracesData.filter((t) => t.event_type === EventType.AgentCallStarted).length;
         const tokenCount = tracesData.filter(
             (t) => t.event_type === EventType.TokenIssued || t.event_type === EventType.TokenExchanged
         ).length;
@@ -69,6 +70,7 @@ export function AuthRequestDetailPage() {
             allowedCount: mcpCalls.filter((t) => !t.event.blocked).length,
             deniedCount: mcpCalls.filter((t) => t.event.blocked).length,
             llmCallCount,
+            agentCallCount,
             mcpCallCount: mcpCalls.length,
             tokenCount,
             durationMs
@@ -222,7 +224,8 @@ export function AuthRequestDetailPage() {
                         {session.tokenCount} token{session.tokenCount !== 1 ? 's' : ''} · {session.mcpCallCount} MCP
                     </p>
                     <p className="text-[11px] text-muted-foreground tabular-nums">
-                        {session.llmCallCount} LLM call{session.llmCallCount !== 1 ? 's' : ''}
+                        {session.llmCallCount} LLM · {session.agentCallCount} agent call
+                        {session.agentCallCount !== 1 ? 's' : ''}
                     </p>
                 </div>
                 <div className="rounded-lg border bg-muted/20 p-4 space-y-1">

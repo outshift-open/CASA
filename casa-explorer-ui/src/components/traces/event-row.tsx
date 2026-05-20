@@ -24,7 +24,8 @@ import {
     BrainCircuit,
     CheckCircle2,
     XCircle,
-    Download
+    Download,
+    BotMessageSquare
 } from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {CheckTypeBadge} from '@/components/ui/check-type-badge';
@@ -290,6 +291,14 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                         <AppIdChip id={event.app_id} appNames={appNames} />
                     </>
                 )}
+                {event.prompt && (
+                    <>
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
+                            Task:
+                        </span>
+                        <span className="text-foreground/70">"{event.prompt}"</span>
+                    </>
+                )}
                 {tools.length > 0 && (
                     <>
                         <span className="ml-1">— offered:</span>
@@ -321,6 +330,37 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                     </>
                 ) : (
                     <span className="ml-1 italic">— no tools selected</span>
+                )}
+            </div>
+        );
+    } else if (event_type === EventType.AgentCallStarted) {
+        borderClass = 'border-violet-400/50';
+        expandedBgClass = 'bg-violet-500/10';
+        rowBgClass = 'bg-violet-500/10';
+        hoverBgClass = 'hover:bg-violet-500/20';
+        icon = <BotMessageSquare className="h-3.5 w-3.5 text-violet-400 mt-0.5 flex-shrink-0" />;
+        summary = (
+            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+                <span className="font-medium text-foreground">Agent call</span>
+                {event.caller_app_id && (
+                    <>
+                        <span>by</span>
+                        <AppIdChip id={event.caller_app_id} appNames={appNames} />
+                    </>
+                )}
+                {event.callee_app_id && (
+                    <>
+                        <span className="text-muted-foreground/40">→</span>
+                        <AppIdChip id={event.callee_app_id} appNames={appNames} />
+                    </>
+                )}
+                {event.prompt && (
+                    <>
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
+                            Task:
+                        </span>
+                        <span className="text-foreground/70">"{event.prompt}"</span>
+                    </>
                 )}
             </div>
         );

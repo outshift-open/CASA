@@ -34,6 +34,7 @@ export interface MASFlowEdge {
     callee_app_id: string;
     call_count: number;
     blocked_count: number;
+    edge_type?: string;
 }
 
 export interface MAS {
