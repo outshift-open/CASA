@@ -43,6 +43,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
         const tokenIssued = sessionData.find((t) => t.event_type === EventType.TokenIssued);
         const mcpCalls = sessionData.filter((t) => t.event_type === EventType.MCPCallStarted);
         const llmCallCount = sessionData.filter((t) => t.event_type === EventType.LLMCallStarted).length;
+        const agentCallCount = sessionData.filter((t) => t.event_type === EventType.AgentCallStarted).length;
         const tokenCount = sessionData.filter(
             (t) => t.event_type === EventType.TokenIssued || t.event_type === EventType.TokenExchanged
         ).length;
@@ -60,6 +61,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
             allowedCount: mcpCalls.filter((t) => !t.event.blocked).length,
             deniedCount: mcpCalls.filter((t) => t.event.blocked).length,
             llmCallCount,
+            agentCallCount,
             mcpCallCount: mcpCalls.length,
             tokenCount,
             durationMs
@@ -169,7 +171,8 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
                             {session?.tokenCount ?? 0} token{session?.tokenCount !== 1 ? 's' : ''}
                         </p>
                         <p className="text-[11px] text-muted-foreground tabular-nums">
-                            {session?.mcpCallCount ?? 0} MCP · {session?.llmCallCount ?? 0} LLM
+                            {session?.mcpCallCount ?? 0} MCP · {session?.llmCallCount ?? 0} LLM ·{' '}
+                            {session?.agentCallCount ?? 0} Agent
                         </p>
                     </div>
                     <div className="rounded-lg border bg-muted/20 p-3 space-y-1">

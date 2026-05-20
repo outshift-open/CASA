@@ -25,7 +25,14 @@ interface MASFlowEdgeProps {
     targetY: number;
     sourcePosition: Position;
     targetPosition: Position;
-    data?: {label?: string};
+    data?: {
+        label?: string;
+        curvature?: number;
+        sourceXOffset?: number;
+        targetXOffset?: number;
+        customPath?: string;
+        labelT?: number;
+    };
     style?: CSSProperties;
     markerEnd?: string;
 }
@@ -43,14 +50,26 @@ export const MASFlowEdge = memo(
         style,
         markerEnd
     }: MASFlowEdgeProps) => {
-        const [edgePath, labelX, labelY] = getBezierPath({
-            sourceX,
-            sourceY,
-            sourcePosition,
-            targetX,
-            targetY,
-            targetPosition
-        });
+        let edgePath: string;
+        let labelX: number;
+        let labelY: number;
+
+        if (data?.customPath) {
+            edgePath = data.customPath;
+            const t = data.labelT ?? 0.5;
+            labelX = sourceX + (targetX - sourceX) * t;
+            labelY = sourceY + (targetY - sourceY) * t;
+        } else {
+            [edgePath, labelX, labelY] = getBezierPath({
+                sourceX: sourceX + (data?.sourceXOffset ?? 0),
+                sourceY,
+                sourcePosition,
+                targetX: targetX + (data?.targetXOffset ?? 0),
+                targetY,
+                targetPosition,
+                curvature: data?.curvature
+            });
+        }
 
         const strokeColor = (style?.stroke as string) ?? '#34d399';
 

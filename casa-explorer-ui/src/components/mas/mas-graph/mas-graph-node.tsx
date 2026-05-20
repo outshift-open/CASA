@@ -54,7 +54,9 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
     const Icon = APP_TYPE_ICON[data.type];
     const [hovered, setHovered] = useState(false);
 
-    const accent = data.appId ? getAppColor(data.appId, data.type) : '#818cf8';
+    const TYPE_COLOR: Record<AppType, string> = {agent: '', mcp_server: '#22d3ee', client: '#60a5fa'};
+    const accent =
+        data.type === 'agent' && data.appId ? getAppColor(data.appId, data.type) : TYPE_COLOR[data.type] || '#22d3ee';
     const glow = hexToRgba(accent, 0.18);
     const border = hexToRgba(accent, 0.35);
 
@@ -81,8 +83,15 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
         >
             <Handle type="target" position={Position.Top} id="top" style={{opacity: 0, width: 8, height: 8}} />
             <Handle type="source" position={Position.Right} id="right" style={{opacity: 0, width: 8, height: 8}} />
+            <Handle
+                type="target"
+                position={Position.Right}
+                id="right-target"
+                style={{opacity: 0, width: 8, height: 8}}
+            />
             <Handle type="source" position={Position.Bottom} id="bottom" style={{opacity: 0, width: 8, height: 8}} />
             <Handle type="source" position={Position.Left} id="left" style={{opacity: 0, width: 8, height: 8}} />
+            <Handle type="target" position={Position.Left} id="left-target" style={{opacity: 0, width: 8, height: 8}} />
 
             {/* Top accent line */}
             <div

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, {useEffect, useCallback, useRef, useMemo} from 'react';
+import React, {useEffect, useCallback, useRef, useMemo, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import {
@@ -124,7 +124,10 @@ function buildElkGraph(filteredApps: App[], flowEdges: MASFlowEdge[]) {
             ...masTargets
                 .filter((a) => a.id)
                 .map((app) => ({id: `topo-${app.id}`, sources: ['mas-center'], targets: [`app-${app.id}`]})),
-            ...relevantFlows.map((fe) => ({
+            // Deduplicate by pair — ELK only needs one edge per source→target for layout
+            ...Array.from(
+                new Map(relevantFlows.map((fe) => [`${fe.caller_app_id}-${fe.callee_app_id}`, fe])).values()
+            ).map((fe) => ({
                 id: `flow-${fe.caller_app_id}-${fe.callee_app_id}`,
                 sources: [`app-${fe.caller_app_id}`],
                 targets: [`app-${fe.callee_app_id}`]
@@ -145,6 +148,16 @@ function MASGraphViewInner({
     const {data: flowEdges = [], isLoading: isFlowLoading} = useMASFlow(mas.id);
     const [layoutedNodes, setLayoutedNodes, onNodesChange] = useNodesState<Node>([]);
     const {fitView} = useReactFlow();
+    const [visibleEdgeTypes, setVisibleEdgeTypes] = useState(new Set(['agent', 'token', 'mcp']));
+
+    const toggleEdgeType = useCallback((type: string) => {
+        setVisibleEdgeTypes((prev) => {
+            const next = new Set(prev);
+            if (next.has(type)) next.delete(type);
+            else next.add(type);
+            return next;
+        });
+    }, []);
 
     const filteredApps = useMemo(() => {
         return apps.filter((app) => {
@@ -222,35 +235,98 @@ function MASGraphViewInner({
                 style: {stroke: 'rgba(255,255,255,0.07)', strokeWidth: 1, strokeDasharray: '4 6'}
             }));
 
-        const observedEdges: Edge[] = flowEdges
-            .filter((fe) => appIds.has(fe.caller_app_id) && appIds.has(fe.callee_app_id))
-            .map((fe) => {
-                const blockRate = fe.call_count > 0 ? fe.blocked_count / fe.call_count : 0;
-                const width = 2 + Math.round((fe.call_count / maxCallCount) * 2);
-                const strokeColor = blockRate > 0.5 ? '#f87171' : blockRate > 0 ? '#fb923c' : '#34d399';
-                const glowColor =
-                    blockRate > 0.5
-                        ? 'rgba(248,113,113,0.5)'
-                        : blockRate > 0
-                          ? 'rgba(251,146,60,0.5)'
-                          : 'rgba(52,211,153,0.5)';
-                const labelText = `${fe.call_count} call${fe.call_count !== 1 ? 's' : ''}${fe.blocked_count > 0 ? ` · ${fe.blocked_count} blocked` : ''}`;
+        const validEdges = flowEdges.filter((fe) => appIds.has(fe.caller_app_id) && appIds.has(fe.callee_app_id));
 
-                return {
-                    id: `flow-${fe.caller_app_id}-${fe.callee_app_id}`,
-                    source: `app-${fe.caller_app_id}`,
-                    sourceHandle: 'bottom',
-                    target: `app-${fe.callee_app_id}`,
-                    targetHandle: 'top',
-                    type: 'flowEdge',
-                    animated: true,
-                    data: {label: labelText},
-                    style: {stroke: strokeColor, strokeWidth: width, filter: `drop-shadow(0 0 6px ${glowColor})`}
-                };
-            });
+        const NODE_WIDTH = 200;
+
+        // Position lookup — used to pick left/right handle for agent edges
+        const nodePos = new Map<string, {x: number; y: number}>();
+        for (const n of layoutedNodes) {
+            nodePos.set((n.id as string).replace('app-', ''), n.position);
+        }
+
+        // Separate agent edges — they use left/right handles based on relative position
+        const nonAgentEdges = validEdges.filter(
+            (fe) => fe.edge_type !== 'agent' && visibleEdgeTypes.has(fe.edge_type ?? 'mcp')
+        );
+        const agentEdges = validEdges.filter((fe) => fe.edge_type === 'agent' && visibleEdgeTypes.has('agent'));
+
+        // For non-agent edges on the same pair (e.g. token + mcp to same nodes), nudge them apart
+        const typesByNonAgentPair = new Map<string, string[]>();
+        for (const fe of nonAgentEdges) {
+            const key = `${fe.caller_app_id}:${fe.callee_app_id}`;
+            if (!typesByNonAgentPair.has(key)) typesByNonAgentPair.set(key, []);
+            typesByNonAgentPair.get(key)!.push(fe.edge_type ?? 'mcp');
+        }
+
+        const pairsWithAgentEdge = new Set(agentEdges.map((fe) => `${fe.caller_app_id}:${fe.callee_app_id}`));
+
+        const nonAgentObserved: Edge[] = nonAgentEdges.map((fe) => {
+            const blockRate = fe.call_count > 0 ? fe.blocked_count / fe.call_count : 0;
+            const width = 2 + Math.round((fe.call_count / maxCallCount) * 2);
+            const strokeColor = blockRate > 0.5 ? '#f87171' : blockRate > 0 ? '#fb923c' : '#34d399';
+            const glowColor =
+                blockRate > 0.5
+                    ? 'rgba(248,113,113,0.5)'
+                    : blockRate > 0
+                      ? 'rgba(251,146,60,0.5)'
+                      : 'rgba(52,211,153,0.5)';
+            const labelText = `${fe.call_count} call${fe.call_count !== 1 ? 's' : ''}${fe.blocked_count > 0 ? ` · ${fe.blocked_count} blocked` : ''}`;
+
+            const pairKey = `${fe.caller_app_id}:${fe.callee_app_id}`;
+            const siblings = typesByNonAgentPair.get(pairKey) ?? [fe.edge_type ?? 'mcp'];
+            const idx = siblings.indexOf(fe.edge_type ?? 'mcp');
+            const nudge = siblings.length > 1 ? (idx - (siblings.length - 1) / 2) * 18 : 0;
+
+            return {
+                id: `flow-${fe.edge_type ?? 'mcp'}-${fe.caller_app_id}-${fe.callee_app_id}`,
+                source: `app-${fe.caller_app_id}`,
+                sourceHandle: 'bottom',
+                target: `app-${fe.callee_app_id}`,
+                targetHandle: 'top',
+                type: 'flowEdge',
+                animated: true,
+                data: {
+                    label: labelText,
+                    curvature: 0.25,
+                    sourceXOffset: nudge,
+                    targetXOffset: nudge,
+                    labelT: pairsWithAgentEdge.has(pairKey) ? 0.75 : 0.5
+                },
+                style: {stroke: strokeColor, strokeWidth: width, filter: `drop-shadow(0 0 6px ${glowColor})`}
+            };
+        });
+
+        const agentObserved: Edge[] = agentEdges.map((fe) => {
+            const width = 2 + Math.round((fe.call_count / maxCallCount) * 2);
+            const labelText = `${fe.call_count} call${fe.call_count !== 1 ? 's' : ''}`;
+
+            const srcPos = nodePos.get(fe.caller_app_id);
+            const tgtPos = nodePos.get(fe.callee_app_id);
+
+            const srcCenterX = (srcPos?.x ?? 0) + NODE_WIDTH / 2;
+            const tgtCenterX = (tgtPos?.x ?? 0) + NODE_WIDTH / 2;
+            const goRight = tgtCenterX >= srcCenterX;
+            const sourceHandle = goRight ? 'right' : 'left';
+            const targetHandle = goRight ? 'right-target' : 'left-target';
+
+            return {
+                id: `flow-agent-${fe.caller_app_id}-${fe.callee_app_id}`,
+                source: `app-${fe.caller_app_id}`,
+                sourceHandle,
+                target: `app-${fe.callee_app_id}`,
+                targetHandle,
+                type: 'flowEdge',
+                animated: true,
+                data: {label: labelText, curvature: 0.35, labelT: 0.5},
+                style: {stroke: '#a78bfa', strokeWidth: width, filter: 'drop-shadow(0 0 6px rgba(167,139,250,0.5))'}
+            };
+        });
+
+        const observedEdges = [...nonAgentObserved, ...agentObserved];
 
         return [...topologyEdges, ...observedEdges];
-    }, [filteredApps, flowEdges, maxCallCount]);
+    }, [filteredApps, flowEdges, maxCallCount, visibleEdgeTypes, layoutedNodes]);
 
     const onNodeClick = useCallback(
         (_event: React.MouseEvent, node: Node) => {
@@ -300,79 +376,94 @@ function MASGraphViewInner({
         <div className="space-y-3">
             {/* Legend */}
             <div
-                className="flex items-center gap-4 text-xs flex-wrap"
+                className="flex items-center gap-2 text-xs"
                 style={{
                     background: 'rgba(4,8,18,0.70)',
                     border: '1px solid rgba(255,255,255,0.06)',
                     borderRadius: 10,
-                    padding: '10px 16px',
-                    backdropFilter: 'blur(8px)'
+                    padding: '7px 14px',
+                    backdropFilter: 'blur(8px)',
+                    minWidth: 0
                 }}
             >
-                <span className="text-[9px] font-bold uppercase tracking-widest text-white/30">Nodes</span>
-                <div className="flex items-center gap-1.5">
+                {/* Nodes group */}
+                <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 shrink-0">Nodes</span>
+                <div className="flex items-center gap-1">
                     <div
-                        className="w-6 h-6 rounded-md flex items-center justify-center"
+                        className="w-5 h-5 rounded flex items-center justify-center shrink-0"
                         style={{background: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.3)'}}
                     >
-                        <Bot className="h-3.5 w-3.5" style={{color: '#818cf8'}} strokeWidth={1.5} />
+                        <Bot className="h-3 w-3" style={{color: '#818cf8'}} strokeWidth={1.5} />
                     </div>
-                    <span className="text-white/55">Agent</span>
+                    <span className="text-white/50 text-[11px]">Agent</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                     <div
-                        className="w-6 h-6 rounded-md flex items-center justify-center"
-                        style={{background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.3)'}}
+                        className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                        style={{background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.3)'}}
                     >
-                        <AppWindow className="h-3.5 w-3.5" style={{color: '#34d399'}} strokeWidth={1.5} />
+                        <AppWindow className="h-3 w-3" style={{color: '#60a5fa'}} strokeWidth={1.5} />
                     </div>
-                    <span className="text-white/55">Client</span>
+                    <span className="text-white/50 text-[11px]">Client</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                     <div
-                        className="w-6 h-6 rounded-md flex items-center justify-center"
+                        className="w-5 h-5 rounded flex items-center justify-center shrink-0"
                         style={{background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.3)'}}
                     >
-                        <Server className="h-3.5 w-3.5" style={{color: '#22d3ee'}} strokeWidth={1.5} />
+                        <Server className="h-3 w-3" style={{color: '#22d3ee'}} strokeWidth={1.5} />
                     </div>
-                    <span className="text-white/55">MCP Server</span>
+                    <span className="text-white/50 text-[11px]">MCP</span>
                 </div>
 
-                <div className="w-px h-4 bg-white/8 mx-1" />
+                <div className="w-px h-3.5 bg-white/10 mx-1 shrink-0" />
 
-                <span className="text-[9px] font-bold uppercase tracking-widest text-white/30">Flows</span>
-                <div className="flex items-center gap-1.5">
-                    <svg width="22" height="10">
-                        <line
-                            x1="0"
-                            y1="5"
-                            x2="22"
-                            y2="5"
-                            stroke="rgba(255,255,255,0.18)"
-                            strokeWidth="1.5"
-                            strokeDasharray="4 3"
-                        />
-                    </svg>
-                    <span className="text-white/40">membership</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <svg width="22" height="10">
-                        <line x1="0" y1="5" x2="22" y2="5" stroke="#34d399" strokeWidth="2.5" />
-                    </svg>
-                    <span style={{color: '#34d399'}}>all allowed</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <svg width="22" height="10">
-                        <line x1="0" y1="5" x2="22" y2="5" stroke="#fb923c" strokeWidth="2.5" />
-                    </svg>
-                    <span style={{color: '#fb923c'}}>some blocked</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <svg width="22" height="10">
-                        <line x1="0" y1="5" x2="22" y2="5" stroke="#f87171" strokeWidth="2.5" />
-                    </svg>
-                    <span style={{color: '#f87171'}}>mostly blocked</span>
-                </div>
+                {/* Flows legend */}
+                <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 shrink-0">Flows</span>
+                {[
+                    {stroke: 'rgba(255,255,255,0.18)', dash: '4 3', label: 'membership'},
+                    {stroke: '#a78bfa', dash: undefined, label: 'agent→agent'},
+                    {stroke: '#34d399', dash: undefined, label: 'allowed'},
+                    {stroke: '#fb923c', dash: undefined, label: 'partial block'},
+                    {stroke: '#f87171', dash: undefined, label: 'mostly blocked'}
+                ].map(({stroke, dash, label}) => (
+                    <div key={label} className="flex items-center gap-1 shrink-0">
+                        <svg width="16" height="8" className="shrink-0">
+                            <line x1="0" y1="4" x2="16" y2="4" stroke={stroke} strokeWidth="2" strokeDasharray={dash} />
+                        </svg>
+                        <span className="text-white/40 text-[11px]">{label}</span>
+                    </div>
+                ))}
+
+                <div className="w-px h-3.5 bg-white/10 mx-1 shrink-0" />
+
+                {/* Flow type filters */}
+                <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 shrink-0">Show</span>
+                {(
+                    [
+                        {type: 'agent', label: 'Agent→Agent'},
+                        {type: 'token', label: 'Token'},
+                        {type: 'mcp', label: 'MCP'}
+                    ] as const
+                ).map(({type, label}) => {
+                    const active = visibleEdgeTypes.has(type);
+                    return (
+                        <button
+                            key={type}
+                            type="button"
+                            onClick={() => toggleEdgeType(type)}
+                            className="shrink-0 cursor-pointer transition-all rounded-md px-2.5 py-1"
+                            style={{
+                                border: `1px solid ${active ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)'}`,
+                                background: active ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)',
+                                color: active ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.22)'
+                            }}
+                            title={active ? `Hide ${label} flows` : `Show ${label} flows`}
+                        >
+                            <span className="text-[11px] font-medium">{label}</span>
+                        </button>
+                    );
+                })}
 
                 <Button
                     variant="outline"

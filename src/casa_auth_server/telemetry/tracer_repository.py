@@ -26,6 +26,7 @@ from sqlalchemy import cast as sa_cast
 from sqlmodel import JSON, Column, Field, Session, SQLModel, asc, desc, func, select
 
 from casa_auth_server.core.events import (
+    AgentCallStartedEvent,
     BaseEvent,
     MCPCallStartedEvent,
     MCPToolBlockingType,
@@ -75,12 +76,13 @@ class MASTraceStat(BaseModel):
 
 
 class MASFlowEdge(BaseModel):
-    """Observed caller→callee MCP call counts for a MAS."""
+    """Observed caller→callee call counts for a MAS."""
 
     caller_app_id: str
     callee_app_id: str
     call_count: int
     blocked_count: int
+    edge_type: str = "mcp"
 
 
 class MetricsSnapshot(BaseModel):
@@ -389,6 +391,7 @@ class TracerPostgresRepository(TracerRepository):
             Trace.event["caller_app_id"].as_string().cast(String).label("caller_app_id"),
             Trace.event["callee_app_id"].as_string().cast(String).label("callee_app_id"),
             sa_cast(case((blocked_col, 1), else_=0), Integer).label("is_blocked"),
+            literal("mcp").label("edge_type"),
         ).where(
             Trace.event_type == MCPCallStartedEvent.__name__,
             Trace.event["mas_id"].as_string() == mas_id,
@@ -400,6 +403,7 @@ class TracerPostgresRepository(TracerRepository):
             Trace.event["subject_app_id"].as_string().cast(String).label("caller_app_id"),
             Trace.event["act_app_id"].as_string().cast(String).label("callee_app_id"),
             literal(0).label("is_blocked"),
+            literal("token").label("edge_type"),
         ).where(
             Trace.event_type == TokenExchangedEvent.__name__,
             Trace.event["mas_id"].as_string() == mas_id,
@@ -407,7 +411,19 @@ class TracerPostgresRepository(TracerRepository):
             Trace.event["act_app_id"].as_string().isnot(None),
         )
 
-        combined = union_all(mcp_calls, token_exchanges).subquery()
+        agent_calls = select(
+            Trace.event["caller_app_id"].as_string().cast(String).label("caller_app_id"),
+            Trace.event["callee_app_id"].as_string().cast(String).label("callee_app_id"),
+            literal(0).label("is_blocked"),
+            literal("agent").label("edge_type"),
+        ).where(
+            Trace.event_type == AgentCallStartedEvent.__name__,
+            Trace.event["mas_id"].as_string() == mas_id,
+            Trace.event["caller_app_id"].as_string().isnot(None),
+            Trace.event["callee_app_id"].as_string().isnot(None),
+        )
+
+        combined = union_all(mcp_calls, token_exchanges, agent_calls).subquery()
 
         rows = self._session.execute(
             select(
@@ -415,7 +431,8 @@ class TracerPostgresRepository(TracerRepository):
                 combined.c.callee_app_id,
                 func.count().label("call_count"),
                 func.sum(combined.c.is_blocked).label("blocked_count"),
-            ).group_by(combined.c.caller_app_id, combined.c.callee_app_id)
+                combined.c.edge_type,
+            ).group_by(combined.c.caller_app_id, combined.c.callee_app_id, combined.c.edge_type)
         ).all()
 
         return [
@@ -424,6 +441,7 @@ class TracerPostgresRepository(TracerRepository):
                 callee_app_id=row.callee_app_id,
                 call_count=row.call_count,
                 blocked_count=row.blocked_count or 0,
+                edge_type=row.edge_type,
             )
             for row in rows
             if row.caller_app_id and row.callee_app_id

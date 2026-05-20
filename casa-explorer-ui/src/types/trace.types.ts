@@ -19,7 +19,8 @@ export const EventType = {
     TokenExchanged: 'TokenExchangedEvent',
     LLMCallStarted: 'LLMCallStartedEvent',
     LLMCallEnded: 'LLMCallEndedEvent',
-    MCPCallStarted: 'MCPCallStartedEvent'
+    MCPCallStarted: 'MCPCallStartedEvent',
+    AgentCallStarted: 'AgentCallStartedEvent'
 } as const;
 
 export type EventType = (typeof EventType)[keyof typeof EventType];
