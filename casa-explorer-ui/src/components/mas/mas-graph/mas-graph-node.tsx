@@ -82,6 +82,31 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
             onMouseLeave={() => setHovered(false)}
         >
             <Handle type="target" position={Position.Top} id="top" style={{opacity: 0, width: 8, height: 8}} />
+            <Handle
+                type="target"
+                position={Position.Top}
+                id="top-left"
+                style={{opacity: 0, width: 8, height: 8, left: '33%'}}
+            />
+            <Handle
+                type="target"
+                position={Position.Top}
+                id="top-right"
+                style={{opacity: 0, width: 8, height: 8, left: '67%'}}
+            />
+            <Handle type="source" position={Position.Bottom} id="bottom" style={{opacity: 0, width: 8, height: 8}} />
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                id="bottom-left"
+                style={{opacity: 0, width: 8, height: 8, left: '33%'}}
+            />
+            <Handle
+                type="source"
+                position={Position.Bottom}
+                id="bottom-right"
+                style={{opacity: 0, width: 8, height: 8, left: '67%'}}
+            />
             <Handle type="source" position={Position.Right} id="right" style={{opacity: 0, width: 8, height: 8}} />
             <Handle
                 type="target"
@@ -89,7 +114,6 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                 id="right-target"
                 style={{opacity: 0, width: 8, height: 8}}
             />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{opacity: 0, width: 8, height: 8}} />
             <Handle type="source" position={Position.Left} id="left" style={{opacity: 0, width: 8, height: 8}} />
             <Handle type="target" position={Position.Left} id="left-target" style={{opacity: 0, width: 8, height: 8}} />
 

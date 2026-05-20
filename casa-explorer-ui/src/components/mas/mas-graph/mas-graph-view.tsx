@@ -216,26 +216,24 @@ function MASGraphViewInner({
             const pairKey = `${fe.caller_app_id}:${fe.callee_app_id}`;
             const siblings = typesByNonAgentPair.get(pairKey) ?? [fe.edge_type ?? 'mcp'];
             const idx = siblings.indexOf(fe.edge_type ?? 'mcp');
-            const nudge = siblings.length > 1 ? (idx - (siblings.length - 1) / 2) * 18 : 0;
+            const hasMultiple = siblings.length > 1;
 
-            // Stagger label positions along the edge so multiple labels don't overlap
-            const baseT = pairsWithAgentEdge.has(pairKey) ? 0.75 : 0.5;
-            const labelT = siblings.length > 1 ? baseT + (idx - (siblings.length - 1) / 2) * 0.15 : baseT;
+            // Multiple edges on same pair: exit from left/right sides, enter target from top
+            const sourceHandle = hasMultiple ? (idx % 2 === 0 ? 'right' : 'left') : 'bottom';
+            const targetHandle = 'top';
 
             return {
                 id: `flow-${fe.edge_type ?? 'mcp'}-${fe.caller_app_id}-${fe.callee_app_id}`,
                 source: `app-${fe.caller_app_id}`,
-                sourceHandle: 'bottom',
+                sourceHandle,
                 target: `app-${fe.callee_app_id}`,
-                targetHandle: 'top',
+                targetHandle,
                 type: 'flowEdge',
                 animated: true,
                 data: {
                     label: labelText,
-                    curvature: 0.25,
-                    sourceXOffset: nudge,
-                    targetXOffset: nudge,
-                    labelT
+                    sideToTop: hasMultiple,
+                    labelT: pairsWithAgentEdge.has(pairKey) ? 0.75 : 0.5
                 },
                 style: {stroke: strokeColor, strokeWidth: width, filter: `drop-shadow(0 0 6px ${glowColor})`}
             };
