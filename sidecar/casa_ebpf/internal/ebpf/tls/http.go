@@ -10,6 +10,43 @@ import (
 	"net/http"
 )
 
+type TCPDirection int
+
+const (
+	tcpDirSend TCPDirection = 0
+	tcpDirRecv TCPDirection = 1
+)
+
+type HTTPRequest struct {
+	request *http.Request
+}
+
+func NewHTTPRequest(rd io.Reader) (*HTTPRequest, error) {
+	reader := bufio.NewReader(rd)
+	req, err := http.ReadRequest(reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse HTTP request: %w", err)
+	}
+
+	err = setRequestBodyReader(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read HTTP request body: %w", err)
+	}
+
+	return &HTTPRequest{request: req}, nil
+}
+
+func (r *HTTPRequest) Body() ([]byte, error) {
+	body, err := io.ReadAll(r.request.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read request body: %w", err)
+	}
+
+	r.request.Body = io.NopCloser(r.request.Body)
+
+	return body, nil
+}
+
 type HTTPResponse struct {
 	response *http.Response
 }
@@ -25,8 +62,6 @@ func NewHTTPResponse(rd io.Reader) (*HTTPResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read HTTP response body: %w", err)
 	}
-
-	// slog.Info("http resp", "resp", resp, "body", string(body))
 
 	return &HTTPResponse{
 		response: resp,
@@ -44,6 +79,29 @@ func (r *HTTPResponse) Body() ([]byte, error) {
 	return body, nil
 }
 
+func setRequestBodyReader(req *http.Request) error {
+	rawBody, err := io.ReadAll(req.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read raw HTTP request body: %w", err)
+	}
+
+	req.Body = io.NopCloser(bytes.NewBuffer(rawBody))
+
+	if enc := req.Header.Get("Content-Encoding"); enc != "" && len(rawBody) > 0 {
+		reader, err := getBodyDecompressor(enc, bytes.NewReader(rawBody))
+		if err != nil {
+			return err
+		}
+
+		req.Body = reader
+		req.Header.Del("Content-Encoding")
+		req.Header.Del("Content-Length")
+		req.ContentLength = -1
+	}
+
+	return nil
+}
+
 func setResponseBodyReader(resp *http.Response) error {
 	rawBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -54,14 +112,7 @@ func setResponseBodyReader(resp *http.Response) error {
 
 	// http.ReadResponse does NOT auto-decompress Content-Encoding
 	// (only http.Transport does, and only for gzip). Decompress manually.
-	// body := rawBody
 	if enc := resp.Header.Get("Content-Encoding"); enc != "" && len(rawBody) > 0 {
-		// dec, err := decompressBody(enc, rawBody)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("decompress error (enc=%s, truncated body?): %w", enc, err)
-		// }
-		// body = dec
-
 		reader, err := getBodyDecompressor(enc, bytes.NewReader(rawBody))
 		if err != nil {
 			return err
@@ -72,7 +123,6 @@ func setResponseBodyReader(resp *http.Response) error {
 		resp.Header.Del("Content-Length")
 		resp.ContentLength = -1
 		resp.Uncompressed = true
-
 	}
 
 	return nil
@@ -102,39 +152,3 @@ func getBodyDecompressor(encoding string, rawReader io.Reader) (io.ReadCloser, e
 
 	return reader, nil
 }
-
-// func decompressBody(encoding string, b []byte) ([]byte, error) {
-// 	var (
-// 		reader  io.Reader
-// 		closeFn func()
-// 		err     error
-// 	)
-
-// 	switch encoding {
-// 	case "gzip":
-// 		var gr *gzip.Reader
-// 		gr, err = gzip.NewReader(bytes.NewReader(b))
-// 		reader = gr
-// 		closeFn = func() { _ = gr.Close() }
-// 	case "deflate":
-// 		fr := flate.NewReader(bytes.NewReader(b))
-// 		reader = fr
-// 		closeFn = func() { _ = fr.Close() }
-// 	default:
-// 		return b, nil
-// 	}
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if closeFn != nil {
-// 		defer closeFn()
-// 	}
-
-// 	body, err := io.ReadAll(reader)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return body, nil
-// }

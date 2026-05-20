@@ -19,13 +19,17 @@ import (
 
 type LibSSLModule struct {
 	bpfObjects BpfLibsslObjects
+	reqPipes   map[uint64]*DataPipe
 	respPipes  map[uint64]*DataPipe
+	requests   chan<- *HTTPRequest
 	responses  chan<- *HTTPResponse
 }
 
-func NewLibSSLModule(responses chan<- *HTTPResponse) *LibSSLModule {
+func NewLibSSLModule(requests chan<- *HTTPRequest, responses chan<- *HTTPResponse) *LibSSLModule {
 	return &LibSSLModule{
+		reqPipes:  make(map[uint64]*DataPipe),
 		respPipes: make(map[uint64]*DataPipe),
+		requests:  requests,
 		responses: responses,
 	}
 }
@@ -50,10 +54,12 @@ func (m *LibSSLModule) UProbes() map[string]*common.ProbeDesc {
 			Return: m.bpfObjects.UretprobeSslReadEx,
 		},
 		"SSL_write": {
-			Entry: m.bpfObjects.UprobeSslWrite,
+			Entry:  m.bpfObjects.UprobeSslWrite,
+			Return: m.bpfObjects.UretprobeSslWrite,
 		},
 		"SSL_write_ex": {
-			Entry: m.bpfObjects.UprobeSslWriteEx,
+			Entry:  m.bpfObjects.UprobeSslWriteEx,
+			Return: m.bpfObjects.UretprobeSslWriteEx,
 		},
 		"SSL_free": {
 			Entry: m.bpfObjects.UprobeSslFree,
@@ -97,16 +103,45 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 			continue
 		}
 
+		var dataPipe *DataPipe
 		pipeKey := evt.Ssl
-		if _, ok := m.respPipes[pipeKey]; !ok {
-			slog.Info("Creating data pipe", "key", pipeKey)
-			m.respPipes[pipeKey] = NewDataPipe()
+
+		switch evt.Direction {
+		case uint64(tcpDirSend):
+			if _, ok := m.reqPipes[pipeKey]; !ok {
+				slog.Info("Creating request data pipe", "key", pipeKey)
+				m.reqPipes[pipeKey] = NewDataPipe()
+			}
+
+			dataPipe = m.reqPipes[pipeKey]
+		case uint64(tcpDirRecv):
+			if _, ok := m.respPipes[pipeKey]; !ok {
+				slog.Info("Creating response data pipe", "key", pipeKey)
+				m.respPipes[pipeKey] = NewDataPipe()
+			}
+
+			dataPipe = m.respPipes[pipeKey]
+		default:
+			slog.Error("Unknow TCP direction")
+			continue
 		}
 
-		dataPipe := m.respPipes[pipeKey]
-
 		buf := toBytes(evt.Data[:evt.Len])
-		if evt.Data[0] == 'H' && evt.Data[1] == 'T' && evt.Data[2] == 'T' && evt.Data[3] == 'P' && evt.Data[4] == '/' {
+
+		if evt.Direction == uint64(tcpDirSend) && hasHTTPRequestStart(buf) {
+			go func() {
+				slog.Info("Creating HTTP Request reader", "key", pipeKey)
+				reader := bufio.NewReader(dataPipe.Reader())
+				req, err := NewHTTPRequest(reader)
+				if err != nil {
+					slog.Error("Failed to parse HTTP request", "err", err)
+					return
+				}
+
+				m.requests <- req
+				slog.Info("request event sent")
+			}()
+		} else if evt.Direction == uint64(tcpDirRecv) && hasHTTPResponseStart(buf) {
 			go func() {
 				slog.Info("Creating HTTP Response reader", "key", pipeKey)
 				reader := bufio.NewReader(dataPipe.Reader())
@@ -117,14 +152,7 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 				}
 
 				m.responses <- resp
-				slog.Info("event sent")
-
-				// body, err := resp.Body()
-				// if err != nil {
-				// 	slog.Error("Failed to read http response body", "err", err)
-				// } else {
-				// 	slog.Info("http resp", "resp", resp, "body", string(body))
-				// }
+				slog.Info("response event sent")
 			}()
 		}
 
@@ -134,7 +162,7 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 			dataPipe.Writer().Write(buf)
 		}
 
-		slog.Info("Event received", "pid", evt.PidTgid, "len", evt.Len, "original_len", evt.OriginalLen, "done", evt.Done)
+		slog.Info("Event received", "pid", evt.PidTgid, "len", evt.Len, "original_len", evt.OriginalLen, "done", evt.Done, "direction", evt.Direction)
 	}
 }
 
@@ -145,4 +173,23 @@ func toBytes(src []int8) []byte {
 	}
 
 	return dst
+}
+
+func hasHTTPRequestStart(buf []byte) bool {
+	methods := []string{
+		"GET ", "POST ", "PUT ", "DELETE ", "PATCH ",
+		"HEAD ", "OPTIONS ", "CONNECT ", "TRACE ",
+	}
+
+	for _, m := range methods {
+		if bytes.HasPrefix(buf, []byte(m)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasHTTPResponseStart(buf []byte) bool {
+	return bytes.HasPrefix(buf, []byte("HTTP/"))
 }

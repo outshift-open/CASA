@@ -36,7 +36,7 @@ func (h *ResponseHandler) Start() {
 			if err != nil {
 				slog.Error("Failed to read http response body", "err", err)
 			} else {
-				slog.Info("http resp", "body", string(body[:10]))
+				slog.Info("[ResponseHandler] HTTP RESPONSE", "body", string(body[:10]))
 			}
 		case shouldCancel := <-h.cancelChan:
 			slog.Debug(fmt.Sprintf("Received cancellation event [%t]", shouldCancel))

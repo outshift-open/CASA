@@ -34,9 +34,10 @@ func main() {
 	)
 	defer stop()
 
+	reqHandler := llm.NewRequestHandler(cancelChan, &wg)
 	respHandler := llm.NewResponseHandler(cancelChan, &wg)
 
-	module := tls.NewLibSSLModule(respHandler.Chan())
+	module := tls.NewLibSSLModule(reqHandler.Chan(), respHandler.Chan())
 
 	err = module.Load()
 	if err != nil {
@@ -61,6 +62,7 @@ func main() {
 			slog.Error("Failed to run eBPF program", "err", err)
 		}
 	}()
+	go reqHandler.Start()
 	go respHandler.Start()
 
 	slog.Info("running, press Ctrl+C to stop")

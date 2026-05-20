@@ -9,8 +9,8 @@ import (
 
 // TODO: to change
 const (
-	libPath = "/proc/37173/root/proc/5218/root/usr/lib/aarch64-linux-gnu/libssl.so.3"
-	// libPath = "/proc/67843/root/proc/9615/root/usr/lib/aarch64-linux-gnu/libssl.so.3"
+	libPath = "/proc/40356/root/proc/1/root/usr/lib/aarch64-linux-gnu/libssl.so.3"
+	// libPath = "/proc/40356/root/proc/1/root/usr/local/bin/node"
 )
 
 type Attacher interface {
