@@ -21,7 +21,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import DateTime, Integer, String, case, literal, union_all
+from sqlalchemy import DateTime, Index, Integer, String, case, literal, text, union_all
 from sqlalchemy import cast as sa_cast
 from sqlmodel import JSON, Column, Field, Session, SQLModel, asc, desc, func, select
 
@@ -48,6 +48,12 @@ class Trace(SQLModel, table=True):  # type: ignore[call-arg]
     )
     event_type: str
     event: dict[str, Any] = Field(sa_column=Column(JSON))
+
+    __table_args__ = (
+        Index("ix_trace_event_mas_id", text("(event->>'mas_id')")),
+        Index("ix_trace_created_at", "created_at"),
+        Index("ix_trace_event_type", "event_type"),
+    )
 
 
 class TraceList(BaseModel):

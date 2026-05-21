@@ -27,6 +27,27 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src')
         }
     },
+    build: {
+        chunkSizeWarningLimit: 1600,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) return;
+                    if (id.includes('elkjs') || id.includes('@xyflow')) return 'vendor-flow';
+                    if (id.includes('recharts') || id.includes('/d3-') || id.includes('/d3/')) return 'vendor-charts';
+                    if (id.includes('@dnd-kit')) return 'vendor-dnd';
+                    if (id.includes('@tanstack')) return 'vendor-query';
+                    if (id.includes('@tabler') || id.includes('lucide-react')) return 'vendor-icons';
+                    if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('/zod/')) return 'vendor-forms';
+                    if (
+                        id.includes('@radix-ui') || id.includes('radix-ui') ||
+                        id.includes('/cmdk/') || id.includes('/vaul/')
+                    ) return 'vendor-radix';
+                    if (id.includes('react-router') || id.includes('react-dom') || id.match(/\/react\//) || id.includes('/sonner/') || id.includes('next-themes')) return 'vendor-react';
+                }
+            }
+        }
+    },
     server: {
         port: 1234,
         open: true

@@ -111,7 +111,9 @@ log "Step 4 — Build control plane images"
 docker build -f deployments/docker/Dockerfile -t casa-auth-server:local .
 docker build -f deployments/docker/Dockerfile.keycloak -t casa-auth-server-keycloak:local deployments/docker
 docker build -f deployments/docker/Dockerfile.operator -t casa-operator:local .
-docker build --no-cache -f deployments/docker/Dockerfile.ui -t casa-auth-server-ui:local .
+docker build --no-cache -f deployments/docker/Dockerfile.ui \
+    --build-arg VITE_API_BASE_URL=http://api.casa.outshift.ai \
+    -t casa-auth-server-ui:local .
 docker build -f deployments/docker/Dockerfile.extauth -t ext-auth-service:local .
 
 log "Step 4 — Build demo images"
@@ -164,7 +166,11 @@ helm upgrade --install casa-dev \
     --set uiExplorer.ingress.className=nginx \
     --set uiExplorer.ingress.apiDomainName=casa.outshift.ai \
     --set uiExplorer.ingress.domainPrefix=explorer \
-    --set-string 'uiExplorer.ingress.annotations.nginx\.ingress\.kubernetes\.io/ssl-redirect=false' \
+    --set uiExplorer.nginx.apiProxyEnabled=false \
+    --set authService.ingress.enabled=true \
+    --set authService.ingress.className=nginx \
+    --set authService.ingress.apiDomainName=casa.outshift.ai \
+    --set authService.ingress.domainPrefix=api \
     --set keycloak.image.repository=casa-auth-server-keycloak \
     --set keycloak.image.tag=local \
     --set keycloak.image.pullPolicy=Never \
@@ -233,7 +239,6 @@ helm upgrade --install casa-demo \
     --set 'chatUis[0].ingress.className=nginx' \
     --set 'chatUis[0].ingress.apiDomainName=casa.outshift.ai' \
     --set 'chatUis[0].ingress.domainPrefix=chat-safe' \
-    --set-string 'chatUis[0].ingress.annotations.nginx\.ingress\.kubernetes\.io/ssl-redirect=false' \
     --set 'chatUis[1].name=compromised' \
     --set 'chatUis[1].docker.registry=' \
     --set 'chatUis[1].docker.image=demo-chat-ui' \
@@ -243,7 +248,6 @@ helm upgrade --install casa-demo \
     --set 'chatUis[1].ingress.className=nginx' \
     --set 'chatUis[1].ingress.apiDomainName=casa.outshift.ai' \
     --set 'chatUis[1].ingress.domainPrefix=chat-compromised' \
-    --set-string 'chatUis[1].ingress.annotations.nginx\.ingress\.kubernetes\.io/ssl-redirect=false' \
     --set "llmCredentials.apiBaseUrl=${CASA_LLM_API_BASE_URL}" \
     --set "llmCredentials.apiKey=${CASA_LLM_API_KEY}" \
     --set 'masSafe.name=CASA Demo Safe' \
@@ -297,7 +301,7 @@ kubectl port-forward -n "$NAMESPACE" svc/jaeger 16686:16686 &
 sudo -n kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80 &
 
 log "Step 8 — Updating /etc/hosts for ingress hostnames"
-HOSTS_LINE="127.0.0.1  explorer.casa.outshift.ai chat-safe.casa.outshift.ai chat-compromised.casa.outshift.ai"
+HOSTS_LINE="127.0.0.1  explorer.casa.outshift.ai api.casa.outshift.ai chat-safe.casa.outshift.ai chat-compromised.casa.outshift.ai"
 if grep -q "casa.outshift.ai" /etc/hosts; then
     sudo sed -i '' '/casa\.outshift\.ai/d' /etc/hosts
 fi
@@ -311,7 +315,8 @@ echo "  Keycloak          → http://localhost:8080"
 echo "  Jaeger traces     → http://localhost:16686"
 echo ""
 echo "UIs available via nginx ingress:"
-echo "  Explorer UI   → http://explorer.casa.outshift.ai"
+echo "  Explorer UI       → http://explorer.casa.outshift.ai"
+echo "  Auth API          → http://api.casa.outshift.ai"
 echo "  Safe chat UI      → http://chat-safe.casa.outshift.ai"
 echo "  Compromised UI    → http://chat-compromised.casa.outshift.ai"
 echo ""
