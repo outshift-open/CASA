@@ -157,10 +157,10 @@ export const MASGraphNode = memo(({data}: MASGraphNodeProps) => {
                 )}
             </div>
 
-            {/* Tooltip on hover — rendered as absolute overlay to avoid interfering with drag */}
+            {/* Tools panel on hover — rendered below the node */}
             {hovered && data.type === 'mcp_server' && data.tools && data.tools.length > 0 && (
                 <div
-                    className="absolute left-full ml-3 top-0 z-50 w-56 rounded-xl overflow-hidden pointer-events-none"
+                    className="absolute top-full mt-2 left-0 right-0 z-50 rounded-xl overflow-hidden pointer-events-none"
                     style={{
                         background: 'rgba(6,11,22,0.98)',
                         border: `1px solid ${border}`,

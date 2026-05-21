@@ -27,6 +27,7 @@ interface MASFlowEdgeProps {
     targetPosition: Position;
     data?: {
         label?: string;
+        labelColor?: string;
         curvature?: number;
         sourceXOffset?: number;
         targetXOffset?: number;
@@ -101,7 +102,8 @@ export const MASFlowEdge = memo(
             });
         }
 
-        const strokeColor = (style?.stroke as string) ?? '#34d399';
+        const strokeColor = (style?.stroke as string) ?? '#22d3ee';
+        const labelColor = data?.labelColor ?? strokeColor;
 
         return (
             <>
@@ -119,15 +121,15 @@ export const MASFlowEdge = memo(
                             <div
                                 style={{
                                     background: 'rgba(4,8,18,0.92)',
-                                    border: `1px solid ${strokeColor}44`,
+                                    border: `1px solid ${labelColor}44`,
                                     borderRadius: 6,
                                     padding: '3px 8px',
                                     fontSize: 11,
                                     fontWeight: 700,
-                                    color: strokeColor,
+                                    color: labelColor,
                                     whiteSpace: 'nowrap',
                                     backdropFilter: 'blur(6px)',
-                                    boxShadow: `0 0 8px ${strokeColor}33`
+                                    boxShadow: `0 0 8px ${labelColor}33`
                                 }}
                             >
                                 {data.label}

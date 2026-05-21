@@ -130,6 +130,23 @@ function MASGraphViewInner({
 
     const maxCallCount = useMemo(() => Math.max(1, ...flowEdges.map((e) => e.call_count)), [flowEdges]);
 
+    const edgeStats = useMemo(() => {
+        const stats: Record<string, {calls: number; blocked: number; allowed: number}> = {
+            agent: {calls: 0, blocked: 0, allowed: 0},
+            token: {calls: 0, blocked: 0, allowed: 0},
+            mcp: {calls: 0, blocked: 0, allowed: 0}
+        };
+        for (const fe of flowEdges) {
+            const t = fe.edge_type ?? 'mcp';
+            if (t in stats) {
+                stats[t].calls += fe.call_count;
+                stats[t].blocked += fe.blocked_count;
+                stats[t].allowed += fe.call_count - fe.blocked_count;
+            }
+        }
+        return stats;
+    }, [flowEdges]);
+
     useEffect(() => {
         if (filteredApps.length === 0) {
             setLayoutedNodes([]);
@@ -204,23 +221,40 @@ function MASGraphViewInner({
         const nonAgentObserved: Edge[] = nonAgentEdges.map((fe) => {
             const blockRate = fe.call_count > 0 ? fe.blocked_count / fe.call_count : 0;
             const width = 2 + Math.round((fe.call_count / maxCallCount) * 2);
-            const strokeColor = blockRate > 0.5 ? '#f87171' : blockRate > 0 ? '#fb923c' : '#34d399';
-            const glowColor =
-                blockRate > 0.5
-                    ? 'rgba(248,113,113,0.5)'
-                    : blockRate > 0
-                      ? 'rgba(251,146,60,0.5)'
-                      : 'rgba(52,211,153,0.5)';
-            const labelText = `${fe.call_count} call${fe.call_count !== 1 ? 's' : ''}${fe.blocked_count > 0 ? ` · ${fe.blocked_count} blocked` : ''}`;
+            const isToken = fe.edge_type === 'token';
+            const strokeColor = isToken
+                ? '#60a5fa'
+                : blockRate > 0.5
+                  ? '#f87171'
+                  : blockRate > 0
+                    ? '#fb923c'
+                    : '#22d3ee';
+            const glowColor = isToken
+                ? 'rgba(96,165,250,0.5)'
+                : blockRate > 0.5
+                  ? 'rgba(248,113,113,0.5)'
+                  : blockRate > 0
+                    ? 'rgba(251,146,60,0.5)'
+                    : 'rgba(34,211,238,0.5)';
+            const typePrefix = fe.edge_type === 'token' ? 'Token' : 'MCP';
+            const allowedCount = fe.call_count - fe.blocked_count;
+            const labelParts = [typePrefix];
+            if (isToken) {
+                labelParts.push(`${fe.call_count}`);
+            } else {
+                if (allowedCount > 0) labelParts.push(`✓ ${allowedCount}`);
+                if (fe.blocked_count > 0) labelParts.push(`✕ ${fe.blocked_count}`);
+            }
+            const labelText = labelParts.join(' · ');
 
             const pairKey = `${fe.caller_app_id}:${fe.callee_app_id}`;
             const siblings = typesByNonAgentPair.get(pairKey) ?? [fe.edge_type ?? 'mcp'];
             const idx = siblings.indexOf(fe.edge_type ?? 'mcp');
             const hasMultiple = siblings.length > 1;
 
-            // Multiple edges on same pair: exit from left/right sides, enter target from top
+            // Multiple edges on same pair: exit from left/right sides, enter target from spread top handles
             const sourceHandle = hasMultiple ? (idx % 2 === 0 ? 'right' : 'left') : 'bottom';
-            const targetHandle = 'top';
+            const targetHandle = hasMultiple ? (idx % 2 === 0 ? 'top-right' : 'top-left') : 'top';
 
             return {
                 id: `flow-${fe.edge_type ?? 'mcp'}-${fe.caller_app_id}-${fe.callee_app_id}`,
@@ -232,6 +266,7 @@ function MASGraphViewInner({
                 animated: true,
                 data: {
                     label: labelText,
+                    labelColor: isToken ? '#60a5fa' : '#22d3ee',
                     sideToTop: hasMultiple,
                     labelT: pairsWithAgentEdge.has(pairKey) ? 0.75 : 0.5
                 },
@@ -241,7 +276,7 @@ function MASGraphViewInner({
 
         const agentObserved: Edge[] = agentEdges.map((fe) => {
             const width = 2 + Math.round((fe.call_count / maxCallCount) * 2);
-            const labelText = `${fe.call_count} call${fe.call_count !== 1 ? 's' : ''}`;
+            const labelText = `Agent · ${fe.call_count}`;
 
             const srcPos = nodePos.get(fe.caller_app_id);
             const tgtPos = nodePos.get(fe.callee_app_id);
@@ -260,7 +295,7 @@ function MASGraphViewInner({
                 targetHandle,
                 type: 'flowEdge',
                 animated: true,
-                data: {label: labelText, curvature: 0.35, labelT: 0.5},
+                data: {label: labelText, labelColor: '#a78bfa', curvature: 0.35, labelT: 0.5},
                 style: {stroke: '#a78bfa', strokeWidth: width, filter: 'drop-shadow(0 0 6px rgba(167,139,250,0.5))'}
             };
         });
@@ -363,14 +398,15 @@ function MASGraphViewInner({
                 {/* Flows legend */}
                 <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 shrink-0">Flows</span>
                 {[
-                    {stroke: '#a78bfa', dash: undefined, label: 'agent→agent'},
-                    {stroke: '#34d399', dash: undefined, label: 'allowed'},
-                    {stroke: '#fb923c', dash: undefined, label: 'partial block'},
-                    {stroke: '#f87171', dash: undefined, label: 'mostly blocked'}
-                ].map(({stroke, dash, label}) => (
+                    {stroke: '#a78bfa', label: 'agent'},
+                    {stroke: '#60a5fa', label: 'token'},
+                    {stroke: '#22d3ee', label: 'MCP allowed'},
+                    {stroke: '#fb923c', label: 'MCP partial deny'},
+                    {stroke: '#f87171', label: 'MCP denied'}
+                ].map(({stroke, label}) => (
                     <div key={label} className="flex items-center gap-1 shrink-0">
                         <svg width="16" height="8" className="shrink-0">
-                            <line x1="0" y1="4" x2="16" y2="4" stroke={stroke} strokeWidth="2" strokeDasharray={dash} />
+                            <line x1="0" y1="4" x2="16" y2="4" stroke={stroke} strokeWidth="2" />
                         </svg>
                         <span className="text-white/40 text-[11px]">{label}</span>
                     </div>
@@ -382,26 +418,47 @@ function MASGraphViewInner({
                 <span className="text-[9px] font-bold uppercase tracking-widest text-white/25 shrink-0">Show</span>
                 {(
                     [
-                        {type: 'agent', label: 'Agent→Agent'},
-                        {type: 'token', label: 'Token'},
-                        {type: 'mcp', label: 'MCP'}
+                        {type: 'agent', label: 'Agent', color: '#a78bfa'},
+                        {type: 'token', label: 'Token', color: '#60a5fa'},
+                        {type: 'mcp', label: 'MCP', color: '#22d3ee'}
                     ] as const
-                ).map(({type, label}) => {
+                ).map(({type, label, color}) => {
                     const active = visibleEdgeTypes.has(type);
                     return (
                         <button
                             key={type}
                             type="button"
                             onClick={() => toggleEdgeType(type)}
-                            className="shrink-0 cursor-pointer transition-all rounded-md px-2.5 py-1"
+                            className="shrink-0 cursor-pointer transition-all rounded-md px-2.5 py-1 flex items-center gap-1.5"
                             style={{
-                                border: `1px solid ${active ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)'}`,
-                                background: active ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)',
-                                color: active ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.22)'
+                                border: `1px solid ${active ? `${color}55` : 'rgba(255,255,255,0.06)'}`,
+                                background: active ? `${color}18` : 'rgba(255,255,255,0.02)',
+                                color: active ? color : 'rgba(255,255,255,0.22)'
                             }}
                             title={active ? `Hide ${label} flows` : `Show ${label} flows`}
                         >
                             <span className="text-[11px] font-medium">{label}</span>
+                            {edgeStats[type].calls > 0 && (
+                                <span className="text-[10px] tabular-nums" style={{opacity: active ? 0.7 : 0.35}}>
+                                    {type !== 'mcp' ? (
+                                        `${edgeStats[type].calls} calls`
+                                    ) : (
+                                        <>
+                                            {edgeStats[type].allowed > 0 && (
+                                                <span style={{color: active ? '#22d3ee' : 'inherit'}}>
+                                                    {edgeStats[type].allowed} allowed
+                                                </span>
+                                            )}
+                                            {edgeStats[type].blocked > 0 && (
+                                                <span style={{color: active ? '#f87171' : 'inherit'}}>
+                                                    {edgeStats[type].allowed > 0 ? ' · ' : ''}
+                                                    {edgeStats[type].blocked} denied
+                                                </span>
+                                            )}
+                                        </>
+                                    )}
+                                </span>
+                            )}
                         </button>
                     );
                 })}
