@@ -254,20 +254,12 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
     if (event_type === EventType.TokenIssued) {
         icon = <Zap className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">Token issued</span>
+            <div className="text-[13px] text-muted-foreground flex items-center gap-x-1 flex-1 min-w-0">
+                <span className="font-medium text-foreground flex-shrink-0">Token issued</span>
                 {event.app_id && (
                     <>
-                        <span>by</span>
+                        <span className="flex-shrink-0">by</span>
                         <AppIdChip id={event.app_id} appNames={appNames} />
-                    </>
-                )}
-                {event.prompt && (
-                    <>
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
-                            Task:
-                        </span>
-                        <span className="text-foreground/70">"{event.prompt}"</span>
                     </>
                 )}
             </div>
