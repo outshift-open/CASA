@@ -261,6 +261,18 @@ helm upgrade --install casa-demo \
     --set 'masCompromised.enabledToolChecks[2]=AI_POWERED_TOOL_MATCH' \
     --set "masCompromised.llm_host=${CASA_LLM_HOST}"
 
+log "Step 6 — Patching chat-ui ingress annotations"
+kubectl annotate ingress \
+    casa-demo-chat-ui-safe \
+    casa-demo-chat-ui-compromised \
+    -n "$NAMESPACE" \
+    "nginx.ingress.kubernetes.io/ssl-redirect=false" \
+    "nginx.ingress.kubernetes.io/proxy-buffering=off" \
+    "nginx.ingress.kubernetes.io/proxy-buffer-size=128k" \
+    "nginx.ingress.kubernetes.io/proxy-read-timeout=300" \
+    "nginx.ingress.kubernetes.io/proxy-send-timeout=300" \
+    --overwrite
+
 # ---------------------------------------------------------------------------
 # 7. Verify
 # ---------------------------------------------------------------------------
