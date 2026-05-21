@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 
+import {lazy, Suspense} from 'react';
 import {createBrowserRouter} from 'react-router-dom';
 import {AppLayout} from '@/components/app-layout';
-import {DashboardPage} from '@/pages/dashboard-page';
-import {MASPage} from '@/pages/mas/mas-page';
-import {MASDetailPage} from '@/pages/mas/mas-detail-page';
-import {AuthRequestsPage} from '@/pages/auth-requests/auth-requests-page';
-import {AuthRequestDetailPage} from '@/pages/auth-requests/auth-request-detail-page';
-import {NotFoundPage} from '@/pages/not-found-page';
 import {PATHS} from './paths';
+
+const DashboardPage = lazy(() => import('@/pages/dashboard-page').then(m => ({default: m.DashboardPage})));
+const MASPage = lazy(() => import('@/pages/mas/mas-page').then(m => ({default: m.MASPage})));
+const MASDetailPage = lazy(() => import('@/pages/mas/mas-detail-page').then(m => ({default: m.MASDetailPage})));
+const AuthRequestsPage = lazy(() => import('@/pages/auth-requests/auth-requests-page').then(m => ({default: m.AuthRequestsPage})));
+const AuthRequestDetailPage = lazy(() => import('@/pages/auth-requests/auth-request-detail-page').then(m => ({default: m.AuthRequestDetailPage})));
+const NotFoundPage = lazy(() => import('@/pages/not-found-page').then(m => ({default: m.NotFoundPage})));
+
+const S = ({children}: {children: React.ReactNode}) => <Suspense fallback={null}>{children}</Suspense>;
 
 export const router = createBrowserRouter([
     {
         path: PATHS.dashboard,
         element: <AppLayout />,
         children: [
-            {index: true, element: <DashboardPage />},
-            {path: PATHS.mas.list, element: <MASPage />},
-            {path: PATHS.mas.detailPattern, element: <MASDetailPage />},
-            {path: PATHS.authRequests.list, element: <AuthRequestsPage />},
-            {path: PATHS.authRequests.detailPattern, element: <AuthRequestDetailPage />},
-            {path: '*', element: <NotFoundPage />}
+            {index: true, element: <S><DashboardPage /></S>},
+            {path: PATHS.mas.list, element: <S><MASPage /></S>},
+            {path: PATHS.mas.detailPattern, element: <S><MASDetailPage /></S>},
+            {path: PATHS.authRequests.list, element: <S><AuthRequestsPage /></S>},
+            {path: PATHS.authRequests.detailPattern, element: <S><AuthRequestDetailPage /></S>},
+            {path: '*', element: <S><NotFoundPage /></S>}
         ]
     }
 ]);

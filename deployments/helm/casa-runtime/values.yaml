@@ -103,7 +103,8 @@ uiExplorer:
   nginx:
     # When true, nginx proxies /api/ → auth-service (port 8000).
     # Build the UI image with VITE_API_BASE_URL=/api when this is enabled.
-    # When false, the UI image must be built with the full auth-service URL.
+    # When false (minikube), build with VITE_API_BASE_URL=http://api.<domain> and
+    # enable authService.ingress so the browser calls the auth-service directly.
     apiProxyEnabled: true
 
 # ─── PostgreSQL (auth-service backend) ───────────────────────────────────────
