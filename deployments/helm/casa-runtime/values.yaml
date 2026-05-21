@@ -99,7 +99,11 @@ uiExplorer:
     className: ""
     apiDomainName: ""
     domainPrefix: "casa"
-    annotations: {}
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-buffering: "off"
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
   nginx:
     # When true, nginx proxies /api/ → auth-service (port 8000).
     # Build the UI image with VITE_API_BASE_URL=/api when this is enabled.

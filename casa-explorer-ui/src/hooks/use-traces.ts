@@ -24,6 +24,7 @@ export const useTraces = (params: TraceQueryParams = {}, live = false, enabled =
         queryFn: () => traceService.getTraces(params),
         refetchInterval: live ? 1000 : false,
         placeholderData: keepPreviousData,
+        staleTime: live ? 0 : 30_000,
         enabled
     });
 };
