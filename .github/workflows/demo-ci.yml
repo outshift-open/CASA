@@ -7,9 +7,12 @@ on:
     push:
         branches:
             - main
+            - new-demo-for-code-drop
         paths:
             - "demo/src/**"
             - "demo/helm/**"
+            - "demo_new/src/**"
+            - "demo_new/helm/**"
             - ".github/workflows/demo-ci.yml"
     workflow_dispatch:
     workflow_call:
@@ -58,6 +61,38 @@ jobs:
             context: demo/src/chat-ui
             dockerfile: demo/src/chat-ui/Dockerfile
 
+    call-docker-build-push-banking-assistant:
+        name: Call Docker Build Banking Assistant
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo-new/banking-assistant"
+            context: demo_new/src/banking-assistant
+            dockerfile: demo_new/src/banking-assistant/Dockerfile
+
+    call-docker-build-push-banking-data-agent:
+        name: Call Docker Build Banking Data Agent
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo-new/banking-data-agent"
+            context: demo_new/src/banking-data-agent
+            dockerfile: demo_new/src/banking-data-agent/Dockerfile
+
+    call-docker-build-push-payments-agent:
+        name: Call Docker Build Payments Agent
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo-new/payments-agent"
+            context: demo_new/src/payments-agent
+            dockerfile: demo_new/src/payments-agent/Dockerfile
+
+    call-docker-build-push-banking-beneficiary-agent:
+        name: Call Docker Build Banking Beneficiary Agent
+        uses: ./.github/workflows/build-push-ghcr.yaml
+        with:
+            image-name: "outshift-casa/demo-new/banking-beneficiary-agent"
+            context: demo_new/src/banking-beneficiary-agent
+            dockerfile: demo_new/src/banking-beneficiary-agent/Dockerfile
+
     ################################## Helm Publish (OCI to GHCR) #####################
     ###################################################################################
     call-helm-publish-demo:
@@ -72,4 +107,20 @@ jobs:
         uses: ./.github/workflows/helm-publish.yaml
         with:
             chart-path: demo/helm
+            oci-repository: helm
+
+    call-helm-publish-demo-new:
+        name: Helm publish casa-banking (OCI GHCR)
+        needs:
+            [
+                call-docker-build-push-banking-assistant,
+                call-docker-build-push-banking-data-agent,
+                call-docker-build-push-payments-agent,
+                call-docker-build-push-banking-beneficiary-agent,
+                call-docker-build-push-mcp,
+                call-docker-build-push-chat-ui,
+            ]
+        uses: ./.github/workflows/helm-publish.yaml
+        with:
+            chart-path: demo_new/helm
             oci-repository: helm
