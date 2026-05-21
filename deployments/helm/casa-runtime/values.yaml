@@ -38,12 +38,7 @@ authService:
     className: ""
     apiDomainName: ""
     domainPrefix: "auth"
-    annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
-      nginx.ingress.kubernetes.io/proxy-buffering: "off"
-      nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    annotations: {}
   env:
     # When empty, defaults to the in-cluster auth-service URL via _helpers.tpl
     authServerUrl: ""
@@ -104,17 +99,12 @@ uiExplorer:
     className: ""
     apiDomainName: ""
     domainPrefix: "casa"
-    annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "false"
-      nginx.ingress.kubernetes.io/proxy-buffer-size: "256k"
-      nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
-      nginx.ingress.kubernetes.io/proxy-body-size: "20m"
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    annotations: {}
   nginx:
     # When true, nginx proxies /api/ → auth-service (port 8000).
     # Build the UI image with VITE_API_BASE_URL=/api when this is enabled.
-    # When false, the UI image must be built with the full auth-service URL.
+    # When false (minikube), build with VITE_API_BASE_URL=http://api.<domain> and
+    # enable authService.ingress so the browser calls the auth-service directly.
     apiProxyEnabled: true
 
 # ─── PostgreSQL (auth-service backend) ───────────────────────────────────────

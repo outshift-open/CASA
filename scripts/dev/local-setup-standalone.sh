@@ -261,7 +261,28 @@ helm upgrade --install casa-demo \
     --set 'masCompromised.enabledToolChecks[2]=AI_POWERED_TOOL_MATCH' \
     --set "masCompromised.llm_host=${CASA_LLM_HOST}"
 
-log "Step 6 — Patching chat-ui ingress annotations"
+log "Step 6 — Patching ingress annotations (minikube-specific)"
+kubectl annotate ingress \
+    casa-dev-ui-explorer \
+    -n "$NAMESPACE" \
+    "nginx.ingress.kubernetes.io/ssl-redirect=false" \
+    "nginx.ingress.kubernetes.io/proxy-buffer-size=256k" \
+    "nginx.ingress.kubernetes.io/proxy-buffers-number=8" \
+    "nginx.ingress.kubernetes.io/proxy-body-size=20m" \
+    "nginx.ingress.kubernetes.io/proxy-read-timeout=300" \
+    "nginx.ingress.kubernetes.io/proxy-send-timeout=300" \
+    --overwrite
+
+kubectl annotate ingress \
+    casa-dev-auth-service \
+    -n "$NAMESPACE" \
+    "nginx.ingress.kubernetes.io/ssl-redirect=false" \
+    "nginx.ingress.kubernetes.io/proxy-buffering=off" \
+    "nginx.ingress.kubernetes.io/proxy-buffer-size=128k" \
+    "nginx.ingress.kubernetes.io/proxy-read-timeout=300" \
+    "nginx.ingress.kubernetes.io/proxy-send-timeout=300" \
+    --overwrite
+
 kubectl annotate ingress \
     casa-demo-chat-ui-safe \
     casa-demo-chat-ui-compromised \
@@ -309,7 +330,7 @@ kubectl port-forward -n "$NAMESPACE" svc/casa-dev-postgres-auth 5432:5432 &
 kubectl port-forward -n "$NAMESPACE" svc/casa-dev-keycloak 8080:8080 &
 kubectl port-forward -n "$NAMESPACE" svc/jaeger 16686:16686 &
 
-# nginx ingress controller — exposes all 3 UIs on port 80 (requires sudo on macOS)
+# nginx ingress controller — exposes all UIs on port 80 (requires sudo on macOS)
 sudo -n kubectl port-forward -n ingress-nginx svc/ingress-nginx-controller 80:80 &
 
 log "Step 8 — Updating /etc/hosts for ingress hostnames"
