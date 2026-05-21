@@ -253,10 +253,7 @@ class TracerPostgresRepository(TracerRepository):
         if not fetch_all:
             paginated_qry = paginated_qry.offset((page - 1) * page_size).limit(page_size)
         total_qry = select(func.count()).select_from(group_by_qry)
-        event_filters = [Trace.user_input_id.in_(paginated_qry)]  # type: ignore[union-attr]
-        if mas_id is not None:
-            event_filters.append(Trace.event["mas_id"].as_string() == str(mas_id))  # type: ignore[arg-type]
-        traces_qry = select(Trace).filter(*event_filters).order_by(desc(Trace.created_at))
+        traces_qry = select(Trace).where(Trace.user_input_id.in_(paginated_qry)).order_by(desc(Trace.created_at))  # type: ignore[union-attr]
         traces = self._session.exec(traces_qry).all()
         total = self._session.exec(total_qry).one()
 
