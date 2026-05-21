@@ -65,15 +65,24 @@ export const BLOCKING_REASON_DESCRIPTIONS: Partial<Record<BlockingReason, string
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function extractToolName(s: string): string {
+    const m = s.match(/name='([^']+)'/);
+    return m ? m[1] : s;
+}
+
 export function parseToolsList(raw: string[] | string | null | undefined): string[] {
     if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [raw];
-    } catch {
-        return [raw];
-    }
+    const items = Array.isArray(raw)
+        ? raw
+        : (() => {
+              try {
+                  const parsed = JSON.parse(raw);
+                  return Array.isArray(parsed) ? parsed : [raw];
+              } catch {
+                  return [raw];
+              }
+          })();
+    return items.map(extractToolName);
 }
 
 export function downloadJson(data: unknown, filename: string) {
@@ -146,6 +155,7 @@ export function EventTimestamp({createdAt}: {createdAt: string}) {
 
 const ALWAYS_HIDDEN = new Set(['id', 'user_input_id', 'mas_id', 'created_at']);
 const JWT_FIELDS = new Set(['token', 'subject_token', 'act_token']);
+const JSON_FIELDS = new Set(['prompt']);
 const FIELD_LABELS: Record<string, string> = {prompt: 'task'};
 
 function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
@@ -159,10 +169,22 @@ function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
     }
 }
 
+function tryParseJson(val: string): unknown | null {
+    try {
+        return JSON.parse(val);
+    } catch {
+        return null;
+    }
+}
+
 function formatValue(key: string, val: unknown): string {
     if (JWT_FIELDS.has(key) && typeof val === 'string') {
         const decoded = decodeJwtPayload(val);
         return decoded ? JSON.stringify(decoded, null, 2) : val;
+    }
+    if (JSON_FIELDS.has(key) && typeof val === 'string') {
+        const parsed = tryParseJson(val);
+        return parsed !== null ? JSON.stringify(parsed, null, 2) : val;
     }
     if (Array.isArray(val)) return val.join(', ');
     if (typeof val === 'object') return JSON.stringify(val, null, 2);
@@ -178,13 +200,17 @@ export function EventAttributes({event}: {event: Trace['event']}) {
         <div className="ml-6 grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5">
             {entries.map(([key, val]) => {
                 const isJwt = JWT_FIELDS.has(key) && typeof val === 'string';
+                const isTools = key === 'tools';
+                const toolsList = isTools ? parseToolsList(val as string[] | string | null) : null;
                 const display = formatValue(key, val);
                 return (
                     <Fragment key={key}>
                         <span className="text-[10px] text-muted-foreground/70 font-mono pt-0.5 whitespace-nowrap">
                             {FIELD_LABELS[key] ?? key}
                         </span>
-                        {isJwt ? (
+                        {isTools && toolsList && toolsList.length > 0 ? (
+                            <span className="text-[10px] font-mono text-foreground/80">{toolsList.join(', ')}</span>
+                        ) : isJwt || JSON_FIELDS.has(key) ? (
                             <pre className="text-[10px] font-mono text-foreground/80 whitespace-pre-wrap break-all leading-relaxed">
                                 {display}
                             </pre>
@@ -335,14 +361,6 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                     <>
                         <span className="text-muted-foreground/40">→</span>
                         <AppIdChip id={event.callee_app_id} appNames={appNames} />
-                    </>
-                )}
-                {event.prompt && (
-                    <>
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-1">
-                            Task:
-                        </span>
-                        <span className="text-foreground/70">"{event.prompt}"</span>
                     </>
                 )}
             </div>
