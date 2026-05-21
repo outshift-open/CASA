@@ -261,7 +261,7 @@ helm upgrade --install casa-demo \
     --set 'masCompromised.enabledToolChecks[2]=AI_POWERED_TOOL_MATCH' \
     --set "masCompromised.llm_host=${CASA_LLM_HOST}"
 
-log "Step 6 — Patching ingress annotations (minikube-specific)"
+log "Step 6b. — Patching ingress annotations (minikube-specific)"
 kubectl annotate ingress \
     casa-dev-ui-explorer \
     -n "$NAMESPACE" \
