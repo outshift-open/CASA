@@ -25,12 +25,13 @@ import {
     ArrowUpDown,
     Download
 } from 'lucide-react';
+import {useQueries} from '@tanstack/react-query';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Badge} from '@/components/ui/badge';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {toast} from 'sonner';
 import {useTraces} from '@/hooks/use-traces';
-import {useMASApps} from '@/hooks/use-mas';
+import {masService} from '@/services/mas.service';
 import {EventType} from '@/types/trace.types';
 import type {Trace} from '@/types/trace.types';
 import {EventRow, downloadJson} from '@/components/traces/event-row';
@@ -172,14 +173,34 @@ export function MASTracesTab({masId}: MASTracesTabProps) {
     const [pageSize, setPageSize] = useState(5);
     const [sortAsc, setSortAsc] = useState(false);
     const {data, isLoading} = useTraces({masId, page, pageSize, sortAsc}, true);
-    const {data: appsData} = useMASApps(masId, true);
+
+    const masIds = useMemo(() => {
+        if (!data?.items) return [masId];
+        const ids = Object.values(data.items)
+            .flat()
+            .map((t) => t.event.mas_id)
+            .filter(Boolean) as string[];
+        return [...new Set([masId, ...ids])];
+    }, [data, masId]);
+
+    const appsQueries = useQueries({
+        queries: masIds.map((id) => ({
+            queryKey: ['mas', id, 'apps'],
+            queryFn: () => masService.getMASApps(id),
+            enabled: !!id
+        }))
+    });
 
     const appNames: AppNames = useMemo(() => {
-        if (!appsData) return {};
-        return Object.fromEntries(
-            appsData.filter((a) => a.id && a.name).map((a) => [a.id!, {name: a.name, type: a.type}])
-        );
-    }, [appsData]);
+        const result: AppNames = {};
+        for (const q of appsQueries) {
+            if (!q.data) continue;
+            for (const a of q.data) {
+                if (a.id && a.name) result[a.id] = {name: a.name, type: a.type};
+            }
+        }
+        return result;
+    }, [appsQueries]);
 
     const sessions = useMemo(() => {
         if (!data?.items) return [];
