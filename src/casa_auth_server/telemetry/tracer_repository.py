@@ -205,7 +205,13 @@ class TracerPostgresRepository(TracerRepository):
         if mas_id is not None:
             if str(mas_id) not in active_ids:
                 return TraceList(items={}, total=0, page=page, page_size=page_size)
-            mas_filter = Trace.event["mas_id"].as_string() == str(mas_id)  # type: ignore[assignment]
+            # Filter by sessions whose TokenIssuedEvent belongs to this MAS,
+            # so cross-MAS sub-calls don't cause the session to appear in both MAS traces.
+            origin_uids = select(Trace.user_input_id).where(
+                Trace.event_type == TokenIssuedEvent.__name__,
+                Trace.event["mas_id"].as_string() == str(mas_id),  # type: ignore[arg-type]
+            )
+            mas_filter = Trace.user_input_id.in_(origin_uids)  # type: ignore[assignment,union-attr]
         else:
             mas_filter = Trace.event["mas_id"].as_string().in_(active_ids)  # type: ignore[assignment]
 
@@ -344,7 +350,10 @@ class TracerPostgresRepository(TracerRepository):
                 Trace.event["mas_id"].as_string().label("mas_id"),
                 func.count(func.distinct(Trace.user_input_id)).label("session_count"),
             )
-            .where(Trace.event["mas_id"].as_string().in_(mas_ids))
+            .where(
+                Trace.event_type == TokenIssuedEvent.__name__,
+                Trace.event["mas_id"].as_string().in_(mas_ids),
+            )
             .group_by(Trace.event["mas_id"].as_string())
         ).all()
 

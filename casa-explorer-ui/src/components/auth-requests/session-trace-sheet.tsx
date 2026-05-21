@@ -238,18 +238,23 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
                     ) : (
                         (() => {
                             let llmCallIndex = 0;
-                            return session.events.map((trace) => {
-                                const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
-                                return (
-                                    <EventRow
-                                        key={trace.id}
-                                        trace={trace}
-                                        index={idx}
-                                        appNames={appNames}
-                                        initialExpanded={trace.id === focusTraceId}
-                                    />
-                                );
-                            });
+                            return (
+                                <div key={`${userInputId}-${focusTraceId}`}>
+                                    {session.events.map((trace) => {
+                                        const idx =
+                                            trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
+                                        return (
+                                            <EventRow
+                                                key={trace.id}
+                                                trace={trace}
+                                                index={idx}
+                                                appNames={appNames}
+                                                initialExpanded={trace.id === focusTraceId}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            );
                         })()
                     )}
                 </div>
