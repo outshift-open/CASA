@@ -15,11 +15,13 @@
  */
 
 import {useMemo} from 'react';
+import {useQueries} from '@tanstack/react-query';
 import {useNavigate} from 'react-router-dom';
 import {PATHS} from '@/router/paths';
 import {useSession} from '@/hooks/use-traces';
 import {EventType} from '@/types/trace.types';
-import {useMASById, useMASApps} from '@/hooks/use-mas';
+import {useMASById} from '@/hooks/use-mas';
+import {masService} from '@/services/mas.service';
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle} from '@/components/ui/sheet';
@@ -69,17 +71,33 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
     }, [sessionData]);
 
     const masId = session?.masId ?? undefined;
-    const {data: appsData} = useMASApps(masId);
     const {data: masData} = useMASById(masId);
 
     const masName = masData?.name ?? masId;
 
+    const masIds = useMemo(() => {
+        if (!sessionData) return [];
+        return [...new Set(sessionData.map((t) => t.event.mas_id).filter(Boolean) as string[])];
+    }, [sessionData]);
+
+    const appsQueries = useQueries({
+        queries: masIds.map((id) => ({
+            queryKey: ['mas', id, 'apps'],
+            queryFn: () => masService.getMASApps(id),
+            enabled: !!id
+        }))
+    });
+
     const appNames: AppNames = useMemo(() => {
-        if (!appsData) return {};
-        return Object.fromEntries(
-            appsData.filter((a) => a.id && a.name).map((a) => [a.id!, {name: a.name, type: a.type}])
-        );
-    }, [appsData]);
+        const result: AppNames = {};
+        for (const q of appsQueries) {
+            if (!q.data) continue;
+            for (const a of q.data) {
+                if (a.id && a.name) result[a.id] = {name: a.name, type: a.type};
+            }
+        }
+        return result;
+    }, [appsQueries]);
 
     const datetime = session?.createdAt
         ? new Date(session.createdAt).toLocaleString([], {

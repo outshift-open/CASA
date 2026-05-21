@@ -15,11 +15,13 @@
  */
 
 import {useMemo} from 'react';
+import {useQueries} from '@tanstack/react-query';
 import {useParams, useNavigate, Link} from 'react-router-dom';
 import {PATHS} from '@/router/paths';
 import {useSession} from '@/hooks/use-traces';
 import {EventType} from '@/types/trace.types';
-import {useMASApps, useMASById} from '@/hooks/use-mas';
+import {useMASById} from '@/hooks/use-mas';
+import {masService} from '@/services/mas.service';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Button} from '@/components/ui/button';
 import {ArrowLeft, Network, CheckCircle2, XCircle, Activity, Download, ShieldAlert, Info} from 'lucide-react';
@@ -39,15 +41,31 @@ export function AuthRequestDetailPage() {
         return tracesData?.find((t) => t.event.mas_id)?.event.mas_id ?? null;
     }, [tracesData]);
 
+    const masIds = useMemo(() => {
+        if (!tracesData) return [];
+        return [...new Set(tracesData.map((t) => t.event.mas_id).filter(Boolean) as string[])];
+    }, [tracesData]);
+
     const {data: masData} = useMASById(masId ?? '');
-    const {data: appsData} = useMASApps(masId ?? '');
+
+    const appsQueries = useQueries({
+        queries: masIds.map((id) => ({
+            queryKey: ['mas', id, 'apps'],
+            queryFn: () => masService.getMASApps(id),
+            enabled: !!id
+        }))
+    });
 
     const appNames: AppNames = useMemo(() => {
-        if (!appsData) return {};
-        return Object.fromEntries(
-            appsData.filter((a) => a.id && a.name).map((a) => [a.id!, {name: a.name, type: a.type}])
-        );
-    }, [appsData]);
+        const result: AppNames = {};
+        for (const q of appsQueries) {
+            if (!q.data) continue;
+            for (const a of q.data) {
+                if (a.id && a.name) result[a.id] = {name: a.name, type: a.type};
+            }
+        }
+        return result;
+    }, [appsQueries]);
 
     const session = useMemo(() => {
         if (!tracesData || tracesData.length === 0) return null;
