@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {lazy, Suspense, useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import type React from 'react';
 import {useNavigate} from 'react-router-dom';
 import {PATHS} from '@/router/paths';
@@ -42,7 +42,7 @@ import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose} from '@/components/ui/sheet';
-const MASGraphView = lazy(() => import('@/components/mas/mas-graph/mas-graph-view').then(m => ({default: m.MASGraphView})));
+import {MASGraphView} from '@/components/mas/mas-graph';
 import {toast} from 'sonner';
 import type {MAS} from '@/types/mas.types';
 import type {App, AppType, Tool} from '@/types/app.types';
@@ -348,15 +348,13 @@ export function MASAppsTable({mas, apps}: MASAppsTableProps) {
                 </div>
                 {view === 'graph' && (
                     <div className="mt-4">
-                        <Suspense fallback={null}>
-                            <MASGraphView
-                                mas={mas}
-                                apps={apps}
-                                onAppClick={openApp}
-                                searchTerm={search}
-                                selectedTypes={selectedTypes}
-                            />
-                        </Suspense>
+                        <MASGraphView
+                            mas={mas}
+                            apps={apps}
+                            onAppClick={openApp}
+                            searchTerm={search}
+                            selectedTypes={selectedTypes}
+                        />
                     </div>
                 )}
             </div>

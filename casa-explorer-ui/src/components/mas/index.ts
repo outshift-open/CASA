@@ -16,3 +16,4 @@
 
 export {MASTable, MASDataTable, createMASColumns} from './mas-list';
 export {MASInfoTab, MASAppsTab, MASScopesTab, MASTracesTab, MASDenyConditionsTab, MASAppsTable} from './mas-details';
+export {MASGraphView} from './mas-graph';

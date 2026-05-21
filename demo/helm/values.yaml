@@ -60,10 +60,6 @@ chatUis:
       domainPrefix: "chat-safe"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
-        nginx.ingress.kubernetes.io/proxy-buffering: "off"
-        nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
   - name: compromised
     docker:
       registry: ghcr.io/outshift-open
@@ -77,10 +73,6 @@ chatUis:
       domainPrefix: "chat-compromised"
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt
-        nginx.ingress.kubernetes.io/proxy-buffering: "off"
-        nginx.ingress.kubernetes.io/proxy-body-size: "50m"
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
 
 llmCredentials:
   apiBaseUrl: ""
