@@ -16,7 +16,7 @@
 
 import {useMemo} from 'react';
 import {useQueries} from '@tanstack/react-query';
-import {useParams, useNavigate, Link} from 'react-router-dom';
+import {useParams, useNavigate, useSearchParams, Link} from 'react-router-dom';
 import {PATHS} from '@/router/paths';
 import {useSession} from '@/hooks/use-traces';
 import {EventType} from '@/types/trace.types';
@@ -35,6 +35,8 @@ import {SessionRow} from '@/components/traces/session-row';
 export function AuthRequestDetailPage() {
     const {userInputId} = useParams<{userInputId: string}>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const focusTraceId = searchParams.get('traceId');
 
     const {data: tracesData, isLoading} = useSession(userInputId);
 
@@ -290,7 +292,12 @@ export function AuthRequestDetailPage() {
                         Auth Requests
                     </Link>
                 </div>
-                <SessionRow session={{...session, userInputId: userInputId ?? ''}} appNames={appNames} />
+                <SessionRow
+                    session={{...session, userInputId: userInputId ?? ''}}
+                    appNames={appNames}
+                    focusTraceId={focusTraceId}
+                    defaultExpanded
+                />
             </div>
         </div>
     );

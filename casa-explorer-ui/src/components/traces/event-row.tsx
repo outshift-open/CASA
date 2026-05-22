@@ -228,19 +228,28 @@ export function EventAttributes({event}: {event: Trace['event']}) {
 
 interface EventRowProps {
     trace: Trace;
-    index?: number;
     appNames: AppNames;
     initialExpanded?: boolean;
 }
 
-export function EventRow({trace, index, appNames, initialExpanded}: EventRowProps) {
+export function EventRow({trace, appNames, initialExpanded}: EventRowProps) {
     const {event_type, event, created_at} = trace;
     const [expanded, setExpanded] = useState(initialExpanded ?? false);
     const rowRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (initialExpanded && rowRef.current) {
-            rowRef.current.scrollIntoView({behavior: 'smooth', block: 'center'});
+            const el = rowRef.current;
+            let container: HTMLElement | null = el.parentElement;
+            while (container) {
+                const {overflowY} = getComputedStyle(container);
+                if (overflowY === 'auto' || overflowY === 'scroll') break;
+                container = container.parentElement;
+            }
+            if (!container) return;
+            const relativeTop =
+                el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+            container.scrollTo({top: relativeTop - 80, behavior: 'smooth'});
         }
     }, [initialExpanded]);
 
@@ -316,9 +325,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         icon = <Brain className="h-3 w-3 text-blue-400/70 mt-0.5 flex-shrink-0" />;
         summary = (
             <div className="text-[12px] text-muted-foreground/60 flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground/60">
-                    LLM Call {index !== undefined ? `#${index + 1}` : ''}
-                </span>
+                <span className="font-medium text-foreground/60">LLM Call</span>
                 {event.app_id && (
                     <>
                         <span className="text-muted-foreground/40">from</span>

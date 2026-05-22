@@ -24,7 +24,8 @@ export const PATHS = {
     },
     authRequests: {
         list: '/auth-requests',
-        detail: (userInputId: string) => `/auth-requests/${userInputId}`,
+        detail: (userInputId: string, traceId?: string) =>
+            `/auth-requests/${userInputId}${traceId ? `?traceId=${traceId}` : ''}`,
         detailPattern: '/auth-requests/:userInputId'
     }
 } as const;

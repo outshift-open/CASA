@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {useState} from 'react';
+import {useState, useRef, useEffect} from 'react';
 import {
     CheckCircle2,
     XCircle,
@@ -46,6 +46,21 @@ import {
     downloadJson
 } from '@/components/traces/event-row';
 
+// Scrolls el into view within the nearest scrollable ancestor, with 80px top clearance.
+function scrollIntoViewWithOffset(el: HTMLElement) {
+    let container: HTMLElement | null = el.parentElement;
+    while (container) {
+        const {overflowY} = getComputedStyle(container);
+        if (overflowY === 'auto' || overflowY === 'scroll') break;
+        container = container.parentElement;
+    }
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const relativeTop = elRect.top - containerRect.top + container.scrollTop;
+    container.scrollTo({top: relativeTop - 80, behavior: 'smooth'});
+}
+
 // ─── Chain building ───────────────────────────────────────────────────────────
 
 interface ChainStep {
@@ -56,51 +71,93 @@ interface ChainStep {
 
 function buildChain(events: Trace[]): ChainStep[] {
     const roots: ChainStep[] = [];
-    // Stack tracks ancestry: each TokenExchanged/AgentCall pushes a new scope
     const stack: ChainStep[] = [];
 
-    const currentParent = () => stack[stack.length - 1] ?? null;
+    // Pass 1: build structural scopes from TokenIssued, TokenExchanged, AgentCallStarted.
+    // These events arrive in causal order and define the nesting hierarchy.
+    const scopeByAppId = new Map<string, ChainStep>();
 
+    const currentParent = () => stack[stack.length - 1] ?? null;
     const appendChild = (step: ChainStep) => {
         const parent = currentParent();
-        if (parent) {
-            parent.children.push(step);
-        } else {
-            roots.push(step);
-        }
+        if (parent) parent.children.push(step);
+        else roots.push(step);
     };
 
     for (const trace of events) {
         const {event_type} = trace;
-
         if (event_type === EventType.TokenIssued) {
             const step: ChainStep = {kind: 'token', trace, children: []};
-            // Token issued is always a new root-level scope; clear the stack
             stack.length = 0;
             roots.push(step);
             stack.push(step);
+            // Root agent's scope — keyed by app_id
+            if (trace.event.app_id) scopeByAppId.set(trace.event.app_id, step);
         } else if (event_type === EventType.TokenExchanged) {
             const step: ChainStep = {kind: 'token', trace, children: []};
-            // Pop back to the nearest agent scope (becomes a child of it), or
-            // all the way to root if no agent is on the stack (becomes a root sibling)
-            while (stack.length > 0 && stack[stack.length - 1].kind !== 'agent') {
-                stack.pop();
+            // Find the scope that owns this exchange by subject_app_id — use scopeByAppId
+            // directly since the owning agent may no longer be on the stack (concurrent agents).
+            const subjectAppId = trace.event.subject_app_id;
+            const ownerScope = subjectAppId ? scopeByAppId.get(subjectAppId) : null;
+            if (ownerScope) {
+                ownerScope.children.push(step);
+            } else {
+                roots.push(step);
             }
-            appendChild(step);
             stack.push(step);
         } else if (event_type === EventType.AgentCallStarted) {
             const step: ChainStep = {kind: 'agent', trace, children: []};
             appendChild(step);
             stack.push(step);
-        } else if (event_type === EventType.LLMCallStarted || event_type === EventType.LLMCallEnded) {
-            const step: ChainStep = {kind: 'llm', trace, children: []};
-            appendChild(step);
-        } else if (event_type === EventType.MCPCallStarted) {
-            const step: ChainStep = {kind: 'mcp', trace, children: []};
-            appendChild(step);
+            // Sub-agent's scope — keyed by callee_app_id
+            if (trace.event.callee_app_id) scopeByAppId.set(trace.event.callee_app_id, step);
         }
     }
 
+    // Pass 2: place LLM and MCP events into their agent's scope by app_id.
+    // This is position-independent — concurrent agents interleave events, so we
+    // must not rely on stack state at the time each event was emitted.
+    for (const trace of events) {
+        const {event_type} = trace;
+        if (event_type === EventType.LLMCallStarted || event_type === EventType.LLMCallEnded) {
+            const scope = trace.event.app_id ? scopeByAppId.get(trace.event.app_id) : null;
+            const step: ChainStep = {kind: 'llm', trace, children: []};
+            if (scope) scope.children.push(step);
+            else roots.push(step);
+        } else if (event_type === EventType.MCPCallStarted) {
+            const callerId = trace.event.caller_app_id ?? trace.event.app_id;
+            const mcpToken = trace.event.token;
+            const scope = callerId ? scopeByAppId.get(callerId) : null;
+            const step: ChainStep = {kind: 'mcp', trace, children: []};
+            if (scope) {
+                // Match by act_token == token: the exchange mints a token that the MCP call presents.
+                // This is a guaranteed 1:1 correlation even when multiple exchanges target the same callee.
+                const tokenExchanged =
+                    (mcpToken &&
+                        scope.children.find(
+                            (c) =>
+                                c.kind === 'token' &&
+                                c.trace.event_type === EventType.TokenExchanged &&
+                                c.trace.event.act_token === mcpToken
+                        )) ||
+                    [...scope.children]
+                        .reverse()
+                        .find((c) => c.kind === 'token' && c.trace.event_type === EventType.TokenExchanged);
+                if (tokenExchanged) tokenExchanged.children.push(step);
+                else scope.children.push(step);
+            } else {
+                roots.push(step);
+            }
+        }
+    }
+
+    // Sort each node's children by timestamp so LLM/MCP events interleave correctly
+    // with structural events (TokenExchanged, AgentCall) within each scope.
+    function sortChildren(steps: ChainStep[]): void {
+        steps.sort((a, b) => a.trace.created_at.localeCompare(b.trace.created_at));
+        for (const s of steps) sortChildren(s.children);
+    }
+    sortChildren(roots);
     return roots;
 }
 
@@ -179,14 +236,28 @@ function DownloadButton({trace}: {trace: Trace}) {
     );
 }
 
-function TokenNode({step, appNames}: {step: ChainStep; appNames: AppNames}) {
+function TokenNode({
+    step,
+    appNames,
+    focusTraceId
+}: {
+    step: ChainStep;
+    appNames: AppNames;
+    focusTraceId?: string | null;
+}) {
     const {event_type, event} = step.trace;
     const isIssued = event_type === EventType.TokenIssued;
     const tools = parseToolsList(event.tools);
-    const [expanded, setExpanded] = useState(false);
+    const isFocused = focusTraceId === step.trace.id;
+    const [expanded, setExpanded] = useState(isFocused);
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (isFocused && ref.current) scrollIntoViewWithOffset(ref.current);
+    }, [isFocused]);
 
     return (
         <div
+            ref={ref}
             className="rounded-lg overflow-hidden opacity-80"
             style={{background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)'}}
         >
@@ -249,13 +320,27 @@ function TokenNode({step, appNames}: {step: ChainStep; appNames: AppNames}) {
     );
 }
 
-function AgentNode({step, appNames}: {step: ChainStep; appNames: AppNames}) {
+function AgentNode({
+    step,
+    appNames,
+    focusTraceId
+}: {
+    step: ChainStep;
+    appNames: AppNames;
+    focusTraceId?: string | null;
+}) {
     const {event} = step.trace;
-    const [expanded, setExpanded] = useState(false);
+    const isFocused = focusTraceId === step.trace.id;
+    const [expanded, setExpanded] = useState(isFocused);
     const hasPrompt = !!event.prompt;
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (isFocused && ref.current) scrollIntoViewWithOffset(ref.current);
+    }, [isFocused]);
 
     return (
         <div
+            ref={ref}
             className="rounded-lg overflow-hidden"
             style={{background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.45)'}}
         >
@@ -313,14 +398,20 @@ function AgentNode({step, appNames}: {step: ChainStep; appNames: AppNames}) {
     );
 }
 
-function LLMNode({step, appNames, index}: {step: ChainStep; appNames: AppNames; index?: number}) {
+function LLMNode({step, appNames, focusTraceId}: {step: ChainStep; appNames: AppNames; focusTraceId?: string | null}) {
     const {event_type, event} = step.trace;
     const isEnded = event_type === EventType.LLMCallEnded;
-    const [expanded, setExpanded] = useState(false);
+    const isFocused = focusTraceId === step.trace.id;
+    const [expanded, setExpanded] = useState(isFocused);
     const selectedTools = parseToolsList(event.tools);
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (isFocused && ref.current) scrollIntoViewWithOffset(ref.current);
+    }, [isFocused]);
 
     return (
         <div
+            ref={ref}
             className="rounded-lg overflow-hidden opacity-85 hover:opacity-100 transition-opacity"
             style={{background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.25)'}}
         >
@@ -335,9 +426,7 @@ function LLMNode({step, appNames, index}: {step: ChainStep; appNames: AppNames; 
                     <Brain className="h-3 w-3 text-blue-400/70 flex-shrink-0" />
                 )}
                 <div className="flex flex-wrap items-center gap-x-1.5 text-[12px] text-white/60 flex-1 min-w-0">
-                    <span className="font-medium text-white/60">
-                        {isEnded ? 'LLM responded' : `LLM Call${index !== undefined ? ` #${index + 1}` : ''}`}
-                    </span>
+                    <span className="font-medium text-white/60">{isEnded ? 'LLM responded' : 'LLM Call'}</span>
                     {event.app_id && (
                         <>
                             <span className="text-white/40">from</span>
@@ -371,10 +460,15 @@ function LLMNode({step, appNames, index}: {step: ChainStep; appNames: AppNames; 
     );
 }
 
-function MCPNode({step, appNames}: {step: ChainStep; appNames: AppNames}) {
+function MCPNode({step, appNames, focusTraceId}: {step: ChainStep; appNames: AppNames; focusTraceId?: string | null}) {
     const {event} = step.trace;
     const blocked = !!event.blocked;
-    const [expanded, setExpanded] = useState(false);
+    const isFocused = focusTraceId === step.trace.id;
+    const [expanded, setExpanded] = useState(isFocused);
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (isFocused && ref.current) scrollIntoViewWithOffset(ref.current);
+    }, [isFocused]);
     const reason = event.blocking_reason ? BLOCKING_REASON_LABELS[event.blocking_reason] : null;
     const reasonDesc = event.blocking_reason ? BLOCKING_REASON_DESCRIPTIONS[event.blocking_reason] : null;
 
@@ -383,7 +477,11 @@ function MCPNode({step, appNames}: {step: ChainStep; appNames: AppNames}) {
     const hoverBg = blocked ? 'hover:bg-red-500/8' : 'hover:bg-green-500/8';
 
     return (
-        <div className="rounded-lg overflow-hidden" style={{background: bgColor, border: `1px solid ${borderColor}`}}>
+        <div
+            ref={ref}
+            className="rounded-lg overflow-hidden"
+            style={{background: bgColor, border: `1px solid ${borderColor}`}}
+        >
             <button
                 type="button"
                 className={`w-full flex items-center gap-2 px-3 py-2 text-left cursor-pointer transition-colors ${hoverBg}`}
@@ -487,13 +585,13 @@ function MCPNode({step, appNames}: {step: ChainStep; appNames: AppNames}) {
 function ChainStepNode({
     step,
     appNames,
-    isLast,
-    llmIndex
+    isLast: _isLast,
+    focusTraceId
 }: {
     step: ChainStep;
     appNames: AppNames;
     isLast: boolean;
-    llmIndex?: number;
+    focusTraceId?: string | null;
 }) {
     const connectorColor =
         step.kind === 'agent'
@@ -504,19 +602,16 @@ function ChainStepNode({
                   : 'rgba(74,222,128,0.45)'
               : 'rgba(255,255,255,0.18)';
 
-    let llmCounter = 0;
-
     return (
         <div className="relative">
-            {step.kind === 'token' && <TokenNode step={step} appNames={appNames} />}
-            {step.kind === 'agent' && <AgentNode step={step} appNames={appNames} />}
-            {step.kind === 'llm' && <LLMNode step={step} appNames={appNames} index={llmIndex} />}
-            {step.kind === 'mcp' && <MCPNode step={step} appNames={appNames} />}
+            {step.kind === 'token' && <TokenNode step={step} appNames={appNames} focusTraceId={focusTraceId} />}
+            {step.kind === 'agent' && <AgentNode step={step} appNames={appNames} focusTraceId={focusTraceId} />}
+            {step.kind === 'llm' && <LLMNode step={step} appNames={appNames} focusTraceId={focusTraceId} />}
+            {step.kind === 'mcp' && <MCPNode step={step} appNames={appNames} focusTraceId={focusTraceId} />}
 
             {step.children.length > 0 && (
                 <div className="mt-1.5 space-y-1.5">
                     {step.children.map((child, i) => {
-                        const idx = child.kind === 'llm' ? llmCounter++ : undefined;
                         const isLastChild = i === step.children.length - 1;
                         const dashed = child.kind === 'llm';
                         const tx = 8; // trunk x
@@ -555,7 +650,12 @@ function ChainStepNode({
                                     {/* Dot where branch meets the card */}
                                     <circle cx={railW} cy={nodeY} r="2.5" fill={connectorColor} />
                                 </svg>
-                                <ChainStepNode step={child} appNames={appNames} isLast={isLastChild} llmIndex={idx} />
+                                <ChainStepNode
+                                    step={child}
+                                    appNames={appNames}
+                                    isLast={isLastChild}
+                                    focusTraceId={focusTraceId}
+                                />
                             </div>
                         );
                     })}
@@ -570,9 +670,10 @@ function ChainStepNode({
 interface SessionChainViewProps {
     events: Trace[];
     appNames: AppNames;
+    focusTraceId?: string | null;
 }
 
-export function SessionChainView({events, appNames}: SessionChainViewProps) {
+export function SessionChainView({events, appNames, focusTraceId}: SessionChainViewProps) {
     const chain = buildChain(events);
 
     if (chain.length === 0) {
@@ -589,6 +690,7 @@ export function SessionChainView({events, appNames}: SessionChainViewProps) {
                         step={step}
                         appNames={appNames}
                         isLast={i === chain.length - 1}
+                        focusTraceId={focusTraceId}
                     />
                 ))}
             </div>

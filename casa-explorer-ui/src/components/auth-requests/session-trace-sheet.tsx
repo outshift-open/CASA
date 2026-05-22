@@ -70,7 +70,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
             tokenCount,
             durationMs
         };
-    }, [sessionData]);
+    }, [sessionData, userInputId]);
 
     const masId = session?.masId ?? undefined;
     const {data: masData} = useMASById(masId);
@@ -142,7 +142,9 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 cursor-pointer"
-                                onClick={() => navigate(PATHS.authRequests.detail(userInputId))}
+                                onClick={() =>
+                                    navigate(PATHS.authRequests.detail(userInputId, focusTraceId ?? undefined))
+                                }
                                 title="Open full page"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />

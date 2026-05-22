@@ -18,7 +18,6 @@ import {useState} from 'react';
 import {ChevronDown, ChevronRight, CheckCircle2, XCircle, Download, List, GitBranch} from 'lucide-react';
 import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
 import {toast} from 'sonner';
-import {EventType} from '@/types/trace.types';
 import type {Trace} from '@/types/trace.types';
 import {EventRow, downloadJson} from '@/components/traces/event-row';
 import type {AppNames} from '@/components/traces/event-row';
@@ -43,10 +42,11 @@ interface SessionRowProps {
     session: SessionData;
     appNames: AppNames;
     focusTraceId?: string | null;
+    defaultExpanded?: boolean;
 }
 
-export function SessionRow({session, appNames, focusTraceId}: SessionRowProps) {
-    const [expanded, setExpanded] = useState(!!focusTraceId);
+export function SessionRow({session, appNames, focusTraceId, defaultExpanded}: SessionRowProps) {
+    const [expanded, setExpanded] = useState(defaultExpanded ?? !!focusTraceId);
     const [view, setView] = useState<SessionView>('chain');
 
     const datetime = session.createdAt
@@ -59,8 +59,6 @@ export function SessionRow({session, appNames, focusTraceId}: SessionRowProps) {
               hour12: false
           })
         : null;
-
-    let llmCallIndex = 0;
 
     return (
         <div className="border rounded-lg overflow-hidden">
@@ -162,20 +160,16 @@ export function SessionRow({session, appNames, focusTraceId}: SessionRowProps) {
                     </div>
                     <div className="px-4 pb-3 pt-2">
                         {view === 'chain' ? (
-                            <SessionChainView events={session.events} appNames={appNames} />
+                            <SessionChainView events={session.events} appNames={appNames} focusTraceId={focusTraceId} />
                         ) : (
-                            session.events.map((trace) => {
-                                const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
-                                return (
-                                    <EventRow
-                                        key={trace.id}
-                                        trace={trace}
-                                        index={idx}
-                                        appNames={appNames}
-                                        initialExpanded={trace.id === focusTraceId}
-                                    />
-                                );
-                            })
+                            session.events.map((trace) => (
+                                <EventRow
+                                    key={trace.id}
+                                    trace={trace}
+                                    appNames={appNames}
+                                    initialExpanded={trace.id === focusTraceId}
+                                />
+                            ))
                         )}
                     </div>
                 </div>

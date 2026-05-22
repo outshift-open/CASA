@@ -211,13 +211,7 @@ class TracerPostgresRepository(TracerRepository):
         if mas_id is not None:
             if str(mas_id) not in active_ids:
                 return TraceList(items={}, total=0, page=page, page_size=page_size)
-            # Filter by sessions whose TokenIssuedEvent belongs to this MAS,
-            # so cross-MAS sub-calls don't cause the session to appear in both MAS traces.
-            origin_uids = select(Trace.user_input_id).where(
-                Trace.event_type == TokenIssuedEvent.__name__,
-                Trace.event["mas_id"].as_string() == str(mas_id),  # type: ignore[arg-type]
-            )
-            mas_filter = Trace.user_input_id.in_(origin_uids)  # type: ignore[assignment,union-attr]
+            mas_filter = Trace.event["mas_id"].as_string() == str(mas_id)  # type: ignore[assignment]
         else:
             mas_filter = Trace.event["mas_id"].as_string().in_(active_ids)  # type: ignore[assignment]
 
@@ -227,7 +221,9 @@ class TracerPostgresRepository(TracerRepository):
         if q is not None:
             # Only MCPCallStarted events carry a "tool" field; restrict q to that event type
             # to avoid silently excluding all other event types whose "tool" field is null.
-            filters.append(Trace.event_type == MCPCallStartedEvent.__name__)
+            # event_type filter takes precedence if explicitly provided.
+            if event_type is None:
+                filters.append(Trace.event_type == MCPCallStartedEvent.__name__)
             filters.append(Trace.event["tool"].as_string().ilike(f"%{q}%"))  # type: ignore[arg-type]
         if event_type is not None:
             filters.append(Trace.event_type == event_type)
