@@ -47,6 +47,7 @@ interface DataTableProps<TData, TValue> {
     onSearchChange?: (value: string) => void;
     onRowClick?: (row: TData) => void;
     getRowClassName?: (row: TData) => string;
+    getRowStyle?: (row: TData) => React.CSSProperties;
     // Server-side pagination
     serverPage?: number;
     serverPageCount?: number;
@@ -68,6 +69,7 @@ export function DataTable<TData, TValue>({
     onSearchChange,
     onRowClick,
     getRowClassName,
+    getRowStyle,
     serverPage,
     serverPageCount,
     serverTotal,
@@ -179,6 +181,7 @@ export function DataTable<TData, TValue>({
                                         onRowClick && 'cursor-pointer',
                                         getRowClassName?.(row.original)
                                     )}
+                                    style={getRowStyle?.(row.original)}
                                     onClick={() => onRowClick?.(row.original)}
                                 >
                                     {row.getVisibleCells().map((cell) => (

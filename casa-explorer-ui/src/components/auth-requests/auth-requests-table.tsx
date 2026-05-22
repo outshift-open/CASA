@@ -45,6 +45,7 @@ interface AuthRequestsTableProps {
     masMap: Record<string, string>;
     appNames: AppNames;
     selectedUserInputId: string | null;
+    selectedTraceId: string | null;
     onRefresh: () => void;
     onSearchChange: (value: string | null) => void;
     onAuthFilterChange: (value: string) => void;
@@ -71,6 +72,7 @@ export function AuthRequestsTable({
     masMap,
     appNames,
     selectedUserInputId,
+    selectedTraceId,
     onRefresh,
     onSearchChange,
     onAuthFilterChange,
@@ -149,8 +151,19 @@ export function AuthRequestsTable({
                             hideSearch
                             onRowClick={onRowClick}
                             getRowClassName={(row) => {
-                                if (row.userInputId !== selectedUserInputId) return '';
-                                return 'border-l-2 border-b-0 border-[rgba(0,188,235,0.5)]';
+                                if (row.id === selectedTraceId || row.userInputId === selectedUserInputId)
+                                    return 'border-l-2 border-b-0';
+                                return '';
+                            }}
+                            getRowStyle={(row) => {
+                                if (row.id === selectedTraceId)
+                                    return {
+                                        borderLeftColor: 'rgba(0,188,235,0.9)',
+                                        backgroundColor: 'rgba(0,188,235,0.07)'
+                                    };
+                                if (row.userInputId === selectedUserInputId)
+                                    return {borderLeftColor: 'rgba(0,188,235,0.3)'};
+                                return {};
                             }}
                             serverPage={page}
                             serverPageCount={totalPages}

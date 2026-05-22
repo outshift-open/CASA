@@ -244,21 +244,32 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         }
     }, [initialExpanded]);
 
-    let borderClass = 'border-muted';
-    let expandedBgClass = 'bg-muted/10';
+    // Visual weight tiers:
+    //   MCP tool calls  → full brightness, thicker border (security decisions)
+    //   Agent calls     → medium prominence
+    //   LLM calls       → dimmed (implementation detail, not a security event)
+    //   Token events    → ghosted (plumbing)
+    let borderStyle: React.CSSProperties = {borderColor: 'rgba(255,255,255,0.08)'};
+    let borderWidth = 'border-l-2';
+    let expandedBgClass = 'bg-white/[0.02]';
     let rowBgClass = '';
-    let hoverBgClass = 'hover:bg-muted/30';
+    let hoverBgClass = 'hover:bg-white/[0.03]';
+    let rowOpacity = '';
     let icon: React.ReactNode = null;
     let summary: React.ReactNode = null;
 
     if (event_type === EventType.TokenIssued) {
-        icon = <Zap className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
+        // Ghosted — purely infrastructure
+        borderStyle = {borderColor: 'rgba(255,255,255,0.08)'};
+        rowOpacity = 'opacity-80';
+        hoverBgClass = 'hover:opacity-80 hover:bg-white/[0.02]';
+        icon = <Zap className="h-3 w-3 text-white/35 mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-[13px] text-muted-foreground flex items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground flex-shrink-0">Token issued</span>
+            <div className="text-[12px] text-white/30 flex items-center gap-x-1 flex-1 min-w-0">
+                <span className="font-medium text-white/40 flex-shrink-0">Token issued</span>
                 {event.app_id && (
                     <>
-                        <span className="flex-shrink-0">by</span>
+                        <span className="flex-shrink-0">for</span>
                         <AppIdChip id={event.app_id} appNames={appNames} />
                     </>
                 )}
@@ -266,10 +277,14 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         );
     } else if (event_type === EventType.TokenExchanged) {
         const tools = parseToolsList(event.tools);
-        icon = <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />;
+        // Ghosted — infrastructure
+        borderStyle = {borderColor: 'rgba(255,255,255,0.08)'};
+        rowOpacity = 'opacity-80';
+        hoverBgClass = 'hover:opacity-80 hover:bg-white/[0.02]';
+        icon = <ArrowRightLeft className="h-3 w-3 text-white/35 mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">Token exchanged</span>
+            <div className="text-[12px] text-white/30 flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+                <span className="font-medium text-white/40">Token exchanged</span>
                 {event.subject_app_id && (
                     <>
                         <span>by</span>
@@ -278,7 +293,7 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
                 )}
                 {event.act_app_id && (
                     <>
-                        <span className="text-muted-foreground/40">→</span>
+                        <span className="text-white/20">→</span>
                         <span>for</span>
                         <AppIdChip id={event.act_app_id} appNames={appNames} />
                     </>
@@ -292,19 +307,21 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
             </div>
         );
     } else if (event_type === EventType.LLMCallStarted) {
-        borderClass = 'border-blue-400/50';
-        expandedBgClass = 'bg-blue-500/10';
-        rowBgClass = 'bg-blue-500/10';
-        hoverBgClass = 'hover:bg-blue-500/20';
-        icon = <Brain className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
+        // Dimmed — implementation detail
+        borderStyle = {borderColor: 'rgba(96,165,250,0.25)'};
+        expandedBgClass = 'bg-blue-500/5';
+        rowBgClass = 'bg-blue-500/5';
+        rowOpacity = 'opacity-85';
+        hoverBgClass = 'hover:opacity-85 hover:bg-blue-500/10';
+        icon = <Brain className="h-3 w-3 text-blue-400/70 mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">
-                    LLM Call Started {index !== undefined ? `#${index + 1}` : ''}
+            <div className="text-[12px] text-muted-foreground/60 flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+                <span className="font-medium text-foreground/60">
+                    LLM Call {index !== undefined ? `#${index + 1}` : ''}
                 </span>
                 {event.app_id && (
                     <>
-                        <span className="text-muted-foreground/60">from</span>
+                        <span className="text-muted-foreground/40">from</span>
                         <AppIdChip id={event.app_id} appNames={appNames} />
                     </>
                 )}
@@ -312,37 +329,41 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         );
     } else if (event_type === EventType.LLMCallEnded) {
         const selectedTools = parseToolsList(event.tools);
-        borderClass = 'border-blue-400/50';
-        expandedBgClass = 'bg-blue-500/10';
-        rowBgClass = 'bg-blue-500/10';
-        hoverBgClass = 'hover:bg-blue-500/20';
-        icon = <BrainCircuit className="h-3.5 w-3.5 text-blue-400 mt-0.5 flex-shrink-0" />;
+        // Dimmed — implementation detail
+        borderStyle = {borderColor: 'rgba(96,165,250,0.25)'};
+        expandedBgClass = 'bg-blue-500/5';
+        rowBgClass = 'bg-blue-500/5';
+        rowOpacity = 'opacity-85';
+        hoverBgClass = 'hover:opacity-85 hover:bg-blue-500/10';
+        icon = <BrainCircuit className="h-3 w-3 text-blue-400/70 mt-0.5 flex-shrink-0" />;
         summary = (
-            <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">LLM responded</span>
+            <div className="text-[12px] text-muted-foreground/60 flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
+                <span className="font-medium text-foreground/60">LLM responded</span>
                 {event.app_id && (
                     <>
-                        <span className="text-muted-foreground/60">from</span>
+                        <span className="text-muted-foreground/40">from</span>
                         <AppIdChip id={event.app_id} appNames={appNames} />
                     </>
                 )}
                 {selectedTools.length > 0 && (
                     <>
-                        <span className="ml-1 text-muted-foreground/60">— requested tool</span>
+                        <span className="ml-1 text-muted-foreground/40">— selected</span>
                         <ToolChips tools={selectedTools} />
                     </>
                 )}
             </div>
         );
     } else if (event_type === EventType.AgentCallStarted) {
-        borderClass = 'border-violet-400/50';
-        expandedBgClass = 'bg-violet-500/10';
-        rowBgClass = 'bg-violet-500/10';
-        hoverBgClass = 'hover:bg-violet-500/20';
-        icon = <BotMessageSquare className="h-3.5 w-3.5 text-violet-400 mt-0.5 flex-shrink-0" />;
+        // Medium prominence
+        borderStyle = {borderColor: 'rgba(167,139,250,0.45)'};
+        borderWidth = 'border-l-2';
+        expandedBgClass = 'bg-violet-500/8';
+        rowBgClass = 'bg-violet-500/8';
+        hoverBgClass = 'hover:bg-violet-500/15';
+        icon = <BotMessageSquare className="h-3.5 w-3.5 text-violet-400/80 mt-0.5 flex-shrink-0" />;
         summary = (
             <div className="text-[13px] text-muted-foreground flex flex-wrap items-center gap-x-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">Agent call</span>
+                <span className="font-medium text-violet-200/80">Agent call</span>
                 {event.caller_app_id && (
                     <>
                         <span>by</span>
@@ -361,19 +382,29 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
         const blocked = event.blocked;
         const reason = event.blocking_reason ? BLOCKING_REASON_LABELS[event.blocking_reason] : null;
         const reasonDescription = event.blocking_reason ? BLOCKING_REASON_DESCRIPTIONS[event.blocking_reason] : null;
-        borderClass = blocked ? 'border-destructive/40' : 'border-green-500/40';
-        expandedBgClass = blocked ? 'bg-destructive/5' : 'bg-green-500/5';
-        rowBgClass = blocked ? 'bg-destructive/5' : 'bg-green-500/5';
-        hoverBgClass = blocked ? 'hover:bg-destructive/10' : 'hover:bg-green-500/10';
+        // Prominent but not blinding — security decisions stand out without overwhelming
+        borderWidth = 'border-l-[3px]';
+        borderStyle = blocked ? {borderColor: 'rgba(248,113,113,0.45)'} : {borderColor: 'rgba(34,197,94,0.35)'};
+        expandedBgClass = blocked ? 'bg-red-500/5' : 'bg-green-500/5';
+        rowBgClass = blocked ? 'bg-red-500/[0.04]' : 'bg-green-500/[0.04]';
+        hoverBgClass = blocked ? 'hover:bg-red-500/8' : 'hover:bg-green-500/8';
         icon = blocked ? (
-            <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 flex-shrink-0" />
+            <XCircle className="h-3.5 w-3.5 text-red-400/80 mt-0.5 flex-shrink-0" />
         ) : (
-            <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+            <CheckCircle2 className="h-3.5 w-3.5 text-green-400/80 mt-0.5 flex-shrink-0" />
         );
         summary = (
             <div className="text-[13px] flex flex-wrap items-center gap-x-2 gap-y-1 flex-1 min-w-0">
-                <span className="font-medium text-foreground">Tool Call</span>
-                <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px]">{event.tool ?? '—'}</code>
+                <span className={`font-medium ${blocked ? 'text-red-400/90' : 'text-green-400/90'}`}>Tool Call</span>
+                <code
+                    className={`px-1.5 py-0.5 rounded font-mono text-[11px] ${
+                        blocked
+                            ? 'bg-red-500/10 text-red-300/80 border border-red-500/20'
+                            : 'bg-green-500/10 text-green-300/80 border border-green-500/20'
+                    }`}
+                >
+                    {event.tool ?? '—'}
+                </code>
                 {(event.caller_app_id || event.callee_app_id) && (
                     <span className="text-muted-foreground/60 flex items-center gap-1">
                         <span>from</span>
@@ -411,10 +442,10 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
     if (!icon) return null;
 
     return (
-        <div ref={rowRef} className={`border-l-2 ml-2 ${borderClass}`}>
+        <div ref={rowRef} className={`${borderWidth} ml-2 transition-opacity`} style={borderStyle}>
             <button
                 type="button"
-                className={`w-full flex items-start gap-2 py-1.5 pl-4 transition-colors text-left cursor-pointer ${hoverBgClass} ${rowBgClass}`}
+                className={`w-full flex items-start gap-2 py-1.5 pl-4 transition-all text-left cursor-pointer ${hoverBgClass} ${rowBgClass} ${rowOpacity}`}
                 onClick={() => setExpanded((v) => !v)}
             >
                 {expanded ? (
@@ -428,6 +459,22 @@ export function EventRow({trace, index, appNames, initialExpanded}: EventRowProp
             </button>
             {expanded && (
                 <div className={`pl-4 pb-2 ${expandedBgClass}`}>
+                    {event_type === EventType.AgentCallStarted && event.prompt && (
+                        <div
+                            className="ml-6 mr-4 mt-1.5 mb-1 rounded-lg overflow-hidden"
+                            style={{background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.18)'}}
+                        >
+                            <div
+                                className="px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-violet-400/60"
+                                style={{borderBottom: '1px solid rgba(167,139,250,0.12)'}}
+                            >
+                                Message to agent
+                            </div>
+                            <p className="px-3 py-2 text-[11px] text-white/60 font-mono leading-relaxed whitespace-pre-wrap break-words">
+                                {event.prompt}
+                            </p>
+                        </div>
+                    )}
                     <EventAttributes event={event} />
                     <button
                         type="button"

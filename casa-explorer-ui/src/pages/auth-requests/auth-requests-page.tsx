@@ -197,6 +197,7 @@ export function AuthRequestsPage() {
                 masMap={masMap}
                 appNames={appNames}
                 selectedUserInputId={selectedUserInputId}
+                selectedTraceId={selectedTraceId}
                 onRefresh={handleRefresh}
                 onSearchChange={(v) => setParam('q', v)}
                 onAuthFilterChange={(v) => setParam('auth', v)}

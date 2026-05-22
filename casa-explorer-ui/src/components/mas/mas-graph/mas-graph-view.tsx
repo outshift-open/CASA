@@ -109,7 +109,7 @@ function MASGraphViewInner({
     const {data: flowEdges = [], isLoading: isFlowLoading} = useMASFlow(mas.id);
     const [layoutedNodes, setLayoutedNodes, onNodesChange] = useNodesState<Node>([]);
     const {fitView} = useReactFlow();
-    const [visibleEdgeTypes, setVisibleEdgeTypes] = useState(new Set(['agent', 'token', 'mcp']));
+    const [visibleEdgeTypes, setVisibleEdgeTypes] = useState(new Set(['agent', 'mcp']));
 
     const toggleEdgeType = useCallback((type: string) => {
         setVisibleEdgeTypes((prev) => {

@@ -42,7 +42,9 @@ import {Button} from '@/components/ui/button';
 import {Card} from '@/components/ui/card';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose} from '@/components/ui/sheet';
-const MASGraphView = lazy(() => import('@/components/mas/mas-graph/mas-graph-view').then(m => ({default: m.MASGraphView})));
+const MASGraphView = lazy(() =>
+    import('@/components/mas/mas-graph/mas-graph-view').then((m) => ({default: m.MASGraphView}))
+);
 import {toast} from 'sonner';
 import type {MAS} from '@/types/mas.types';
 import type {App, AppType, Tool} from '@/types/app.types';

@@ -26,8 +26,9 @@ import {Skeleton} from '@/components/ui/skeleton';
 import {Button} from '@/components/ui/button';
 import {ArrowLeft, Network, CheckCircle2, XCircle, Activity, Download, ShieldAlert, Info} from 'lucide-react';
 import {toast} from 'sonner';
-import {EventRow, downloadJson} from '@/components/traces/event-row';
+import {downloadJson} from '@/components/traces/event-row';
 import type {AppNames} from '@/components/traces/event-row';
+import {SessionRow} from '@/components/traces/session-row';
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
@@ -289,15 +290,7 @@ export function AuthRequestDetailPage() {
                         Auth Requests
                     </Link>
                 </div>
-                <div className="rounded-lg border bg-card p-4">
-                    {(() => {
-                        let llmCallIndex = 0;
-                        return session.events.map((trace) => {
-                            const idx = trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
-                            return <EventRow key={trace.id} trace={trace} index={idx} appNames={appNames} />;
-                        });
-                    })()}
-                </div>
+                <SessionRow session={{...session, userInputId: userInputId ?? ''}} appNames={appNames} />
             </div>
         </div>
     );

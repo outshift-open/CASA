@@ -38,12 +38,23 @@ export default defineConfig({
                     if (id.includes('@dnd-kit')) return 'vendor-dnd';
                     if (id.includes('@tanstack')) return 'vendor-query';
                     if (id.includes('@tabler') || id.includes('lucide-react')) return 'vendor-icons';
-                    if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('/zod/')) return 'vendor-forms';
+                    if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('/zod/'))
+                        return 'vendor-forms';
                     if (
-                        id.includes('@radix-ui') || id.includes('radix-ui') ||
-                        id.includes('/cmdk/') || id.includes('/vaul/')
-                    ) return 'vendor-radix';
-                    if (id.includes('react-router') || id.includes('react-dom') || id.match(/\/react\//) || id.includes('/sonner/') || id.includes('next-themes')) return 'vendor-react';
+                        id.includes('@radix-ui') ||
+                        id.includes('radix-ui') ||
+                        id.includes('/cmdk/') ||
+                        id.includes('/vaul/')
+                    )
+                        return 'vendor-radix';
+                    if (
+                        id.includes('react-router') ||
+                        id.includes('react-dom') ||
+                        id.match(/\/react\//) ||
+                        id.includes('/sonner/') ||
+                        id.includes('next-themes')
+                    )
+                        return 'vendor-react';
                 }
             }
         }

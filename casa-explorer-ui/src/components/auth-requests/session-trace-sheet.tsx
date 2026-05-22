@@ -19,15 +19,16 @@ import {useQueries} from '@tanstack/react-query';
 import {useNavigate} from 'react-router-dom';
 import {PATHS} from '@/router/paths';
 import {useSession} from '@/hooks/use-traces';
-import {EventType} from '@/types/trace.types';
 import {useMASById} from '@/hooks/use-mas';
 import {masService} from '@/services/mas.service';
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle} from '@/components/ui/sheet';
 import {CheckCircle2, XCircle, Network, X, ExternalLink, Activity, Download} from 'lucide-react';
-import {EventRow, downloadJson} from '@/components/traces/event-row';
+import {downloadJson} from '@/components/traces/event-row';
 import type {AppNames} from '@/components/traces/event-row';
+import {EventType} from '@/types/trace.types';
+import {SessionRow} from '@/components/traces/session-row';
 import {toast} from 'sonner';
 
 interface SessionTraceSheetProps {
@@ -56,6 +57,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
             : null;
         const durationMs = firstTs && lastTs ? lastTs - firstTs : null;
         return {
+            userInputId: userInputId ?? '',
             masId,
             prompt: tokenIssued?.event.prompt ?? null,
             createdAt: tokenIssued?.created_at ?? sessionData[0]?.created_at ?? '',
@@ -121,7 +123,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
         <Sheet open={!!userInputId} onOpenChange={(open) => !open && onClose()}>
             <SheetContent
                 side="right"
-                className="w-[1050px] sm:max-w-[1050px] flex flex-col p-0 gap-0"
+                className="w-[75vw] sm:max-w-[75vw] flex flex-col p-0 gap-0"
                 showCloseButton={false}
             >
                 {/* Top bar */}
@@ -131,9 +133,7 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
                             Session trace
                         </span>
                         {userInputId && (
-                            <code className="text-[10px] text-muted-foreground/60 font-mono">
-                                {userInputId.slice(0, 8)}…
-                            </code>
+                            <code className="text-[10px] text-muted-foreground/60 font-mono">{userInputId}</code>
                         )}
                     </div>
                     <div className="flex items-center gap-1">
@@ -236,26 +236,12 @@ export function SessionTraceSheet({userInputId, focusTraceId, onClose}: SessionT
                             <p className="text-sm">No events found for this session</p>
                         </div>
                     ) : (
-                        (() => {
-                            let llmCallIndex = 0;
-                            return (
-                                <div key={`${userInputId}-${focusTraceId}`}>
-                                    {session.events.map((trace) => {
-                                        const idx =
-                                            trace.event_type === EventType.LLMCallStarted ? llmCallIndex++ : undefined;
-                                        return (
-                                            <EventRow
-                                                key={trace.id}
-                                                trace={trace}
-                                                index={idx}
-                                                appNames={appNames}
-                                                initialExpanded={trace.id === focusTraceId}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            );
-                        })()
+                        <SessionRow
+                            key={`${userInputId}-${focusTraceId}`}
+                            session={session}
+                            appNames={appNames}
+                            focusTraceId={focusTraceId}
+                        />
                     )}
                 </div>
 
