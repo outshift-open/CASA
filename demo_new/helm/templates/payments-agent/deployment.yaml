@@ -12,43 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+{{- range list .Values.bankingPaymentsAgentA .Values.bankingPaymentsAgentB }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.bankingPaymentsAgent.serviceName }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ .serviceName }}
+  namespace: {{ $.Release.Namespace }}
   labels:
-    app: {{ .Values.bankingPaymentsAgent.serviceName }}
+    app: {{ .serviceName }}
     version: v1
 spec:
-  replicas: {{ .Values.bankingPaymentsAgent.replicas }}
+  replicas: {{ .replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.bankingPaymentsAgent.serviceName }}
+      app: {{ .serviceName }}
   template:
     metadata:
       labels:
-        app: {{ .Values.bankingPaymentsAgent.serviceName }}
+        app: {{ .serviceName }}
         version: v1
     spec:
-      {{- if .Values.bankingPaymentsAgent.docker.registry }}
+      {{- if .docker.registry }}
       imagePullSecrets:
         - name: regcred
       {{- end }}
       containers:
-      - name: {{ .Values.bankingPaymentsAgent.serviceName }}
-        image: {{ if .Values.bankingPaymentsAgent.docker.registry }}{{ .Values.bankingPaymentsAgent.docker.registry }}/{{ end }}{{ .Values.bankingPaymentsAgent.docker.image }}:{{ .Values.bankingPaymentsAgent.tagversion }}
-        imagePullPolicy: {{ if .Values.bankingPaymentsAgent.docker.registry }}Always{{ else }}Never{{ end }}
+      - name: {{ .serviceName }}
+        image: {{ if .docker.registry }}{{ .docker.registry }}/{{ end }}{{ .docker.image }}:{{ .tagversion }}
+        imagePullPolicy: {{ if .docker.registry }}Always{{ else }}Never{{ end }}
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
           allowPrivilegeEscalation: false
         ports:
-        - containerPort: {{ .Values.bankingPaymentsAgent.servicePort }}
+        - containerPort: {{ .servicePort }}
           name: http
         env:
         - name: MCP_SERVER_URL
-          value: {{ .Values.bankingPaymentsAgent.mcpServerUrl | quote }}
+          value: {{ .mcpServerUrl | quote }}
         - name: OPENAI_API_BASE
           valueFrom:
             secretKeyRef:
@@ -66,3 +68,4 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+{{- end }}

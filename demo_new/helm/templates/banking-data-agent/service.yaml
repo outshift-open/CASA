@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+{{- range list .Values.bankingDataAgentA .Values.bankingDataAgentB }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.bankingDataAgent.serviceName }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ .serviceName }}
+  namespace: {{ $.Release.Namespace }}
   labels:
-    app: {{ .Values.bankingDataAgent.serviceName }}
+    app: {{ .serviceName }}
 spec:
   selector:
-    app: {{ .Values.bankingDataAgent.serviceName }}
+    app: {{ .serviceName }}
   ports:
   - name: http
-    port: {{ .Values.bankingDataAgent.servicePort }}
+    port: {{ .servicePort }}
     targetPort: http
+{{- end }}

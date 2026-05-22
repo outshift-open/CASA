@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+{{- range list .Values.mcpA .Values.mcpB }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.mcp.serviceName }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ .serviceName }}
+  namespace: {{ $.Release.Namespace }}
   labels:
-    app: {{ .Values.mcp.serviceName }}
+    app: {{ .serviceName }}
 spec:
   selector:
-    app: {{ .Values.mcp.serviceName }}
+    app: {{ .serviceName }}
   ports:
   - name: http
-    port: {{ .Values.mcp.servicePort }}
+    port: {{ .servicePort }}
     targetPort: http
+{{- end }}

@@ -15,131 +15,172 @@
 namespace: casa-dev
 
 masSafe:
-  name: "CASA Banking Demo Safe"
-  enabledToolChecks:
-    - DETERMINISTIC_TOOL_SELECTED
-    - AI_POWERED_TOOL_MATCH
-  llm_host: ""
+    name: "CASA Banking Demo Safe"
+    enabledToolChecks:
+        - DETERMINISTIC_TOOL_SELECTED
+        - AI_POWERED_TOOL_MATCH
+    llm_host: ""
 
 masCompromised:
-  name: "CASA Banking Demo Compromised"
-  enabledToolChecks:
-    - DETERMINISTIC_TOOL_SELECTED
-    - AI_POWERED_TOOL_MATCH
-  llm_host: ""
+    name: "CASA Banking Demo Compromised"
+    enabledToolChecks:
+        - DETERMINISTIC_TOOL_SELECTED
+        - AI_POWERED_TOOL_MATCH
+    llm_host: ""
 
 bankingAssistantSafe:
-  replicas: 1
-  serviceName: banking-assistant-safe
-  servicePort: 8082
-  compromisedMode: "false"
-  bankingDataAgentUrl: "http://banking-data-agent:8083"
-  paymentsAgentUrl: "http://banking-payments-agent:8084"
-  beneficiaryAgentUrl: "http://banking-beneficiary-agent:8085"
-  docker:
-    registry: ghcr.io/outshift-open
-    image: outshift-casa/demo-new/banking-assistant
-    suffix: ''
-  tagversion: latest
+    replicas: 1
+    serviceName: banking-assistant-safe
+    appName: banking-assistant
+    servicePort: 8082
+    compromisedMode: "false"
+    bankingDataAgentUrl: "http://banking-data-agent-a:8083"
+    paymentsAgentUrl: "http://banking-payments-agent-a:8084"
+    beneficiaryAgentUrl: "http://banking-beneficiary-agent-safe:8085"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/banking-assistant
+        suffix: ""
+    tagversion: latest
 
 bankingAssistantCompromised:
-  replicas: 1
-  serviceName: banking-assistant-compromised
-  servicePort: 8082
-  compromisedMode: "true"
-  bankingDataAgentUrl: "http://banking-data-agent:8083"
-  paymentsAgentUrl: "http://banking-payments-agent:8084"
-  beneficiaryAgentUrl: "http://banking-beneficiary-agent-compromised:8085"
-  docker:
-    registry: ghcr.io/outshift-open
-    image: outshift-casa/demo-new/banking-assistant
-    suffix: ''
-  tagversion: latest
+    replicas: 1
+    serviceName: banking-assistant-compromised
+    servicePort: 8082
+    compromisedMode: "true"
+    bankingDataAgentUrl: "http://banking-data-agent-b:8083"
+    paymentsAgentUrl: "http://banking-payments-agent-b:8084"
+    beneficiaryAgentUrl: "http://banking-beneficiary-agent-compromised:8085"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/banking-assistant
+        suffix: ""
+    tagversion: latest
 
-bankingDataAgent:
-  replicas: 1
-  serviceName: banking-data-agent
-  servicePort: 8083
-  mcpServerUrl: "http://banking-mcp:3000/mcp"
-  docker:
-    registry: ghcr.io/outshift-open
-    image: outshift-casa/demo-new/banking-data-agent
-    suffix: ''
-  tagversion: latest
+bankingDataAgentA:
+    replicas: 1
+    serviceName: banking-data-agent-a
+    appName: data-agent
+    servicePort: 8083
+    mcpServerUrl: "http://banking-mcp-a:3000/mcp"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/banking-data-agent
+        suffix: ""
+    tagversion: latest
 
-bankingPaymentsAgent:
-  replicas: 1
-  serviceName: banking-payments-agent
-  servicePort: 8084
-  mcpServerUrl: "http://banking-mcp:3000/mcp"
-  docker:
-    registry: ghcr.io/outshift-open
-    image: outshift-casa/demo-new/payments-agent
-    suffix: ''
-  tagversion: latest
+bankingDataAgentB:
+    replicas: 1
+    serviceName: banking-data-agent-b
+    appName: data-agent
+    servicePort: 8083
+    mcpServerUrl: "http://banking-mcp-b:3000/mcp"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/banking-data-agent
+        suffix: ""
+    tagversion: latest
+
+bankingPaymentsAgentA:
+    replicas: 1
+    serviceName: banking-payments-agent-a
+    appName: payments-agent
+    servicePort: 8084
+    mcpServerUrl: "http://banking-mcp-a:3000/mcp"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/payments-agent
+        suffix: ""
+    tagversion: latest
+
+bankingPaymentsAgentB:
+    replicas: 1
+    serviceName: banking-payments-agent-b
+    appName: payments-agent
+    servicePort: 8084
+    mcpServerUrl: "http://banking-mcp-b:3000/mcp"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/payments-agent
+        suffix: ""
+    tagversion: latest
 
 bankingBeneficiaryAgent:
-  replicas: 1
-  serviceName: banking-beneficiary-agent
-  servicePort: 8085
-  compromisedMode: "false"
-  mcpServerUrl: "http://banking-mcp:3000/mcp"
-  docker:
-    registry: ghcr.io/outshift-open
-    image: outshift-casa/demo-new/banking-beneficiary-agent
-    suffix: ''
-  tagversion: latest
+    replicas: 1
+    serviceName: banking-beneficiary-agent-safe
+    appName: beneficiary-agent
+    servicePort: 8085
+    compromisedMode: "false"
+    mcpServerUrl: "http://banking-mcp-a:3000/mcp"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/banking-beneficiary-agent
+        suffix: ""
+    tagversion: latest
 
 bankingBeneficiaryAgentCompromised:
-  replicas: 1
-  serviceName: banking-beneficiary-agent-compromised
-  servicePort: 8085
-  compromisedMode: "true"
-  mcpServerUrl: "http://banking-mcp:3000/mcp"
-  docker:
-    registry: ghcr.io/outshift-open
-    image: outshift-casa/demo-new/banking-beneficiary-agent
-    suffix: ''
-  tagversion: latest
+    replicas: 1
+    serviceName: banking-beneficiary-agent-compromised
+    appName: beneficiary-agent-compromised
+    servicePort: 8085
+    compromisedMode: "true"
+    mcpServerUrl: "http://banking-mcp-b:3000/mcp"
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo-new/banking-beneficiary-agent
+        suffix: ""
+    tagversion: latest
 
-mcp:
-  replicas: 1
-  serviceName: banking-mcp
-  servicePort: 3000
-  docker:
-    registry: ghcr.io/outshift-open
-    image: outshift-casa/demo/mcp
-    suffix: ''
-  tagversion: latest
+mcpA:
+    replicas: 1
+    serviceName: banking-mcp-a
+    appName: banking-mcp
+    servicePort: 3000
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo/mcp
+        suffix: ""
+    tagversion: latest
+
+mcpB:
+    replicas: 1
+    serviceName: banking-mcp-b
+    appName: banking-mcp
+    servicePort: 3000
+    docker:
+        registry: ghcr.io/outshift-open
+        image: outshift-casa/demo/mcp
+        suffix: ""
+    tagversion: latest
 
 chatUis:
-  - name: safe
-    docker:
-      registry: ghcr.io/outshift-open
-      image: outshift-casa/demo/chat-ui
-    tagversion: latest
-    agentUrl: /safe-agent
-    ingress:
-      enabled: false
-      className: "nginx"
-      apiDomainName: ""
-      domainPrefix: "chat-safe"
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt
-  - name: compromised
-    docker:
-      registry: ghcr.io/outshift-open
-      image: outshift-casa/demo/chat-ui
-    tagversion: latest
-    agentUrl: /compromised-agent
-    ingress:
-      enabled: false
-      className: "nginx"
-      apiDomainName: ""
-      domainPrefix: "chat-compromised"
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt
+    - name: safe
+      docker:
+          registry: ghcr.io/outshift-open
+          image: outshift-casa/demo/chat-ui
+      tagversion: latest
+      agentUrl: /safe-agent
+      ingress:
+          enabled: false
+          className: "nginx"
+          apiDomainName: ""
+          domainPrefix: "chat-safe"
+          annotations:
+              cert-manager.io/cluster-issuer: letsencrypt
+    - name: compromised
+      docker:
+          registry: ghcr.io/outshift-open
+          image: outshift-casa/demo/chat-ui
+      tagversion: latest
+      agentUrl: /compromised-agent
+      ingress:
+          enabled: false
+          className: "nginx"
+          apiDomainName: ""
+          domainPrefix: "chat-compromised"
+          annotations:
+              cert-manager.io/cluster-issuer: letsencrypt
 
 llmCredentials:
-  apiBaseUrl: ""
-  apiKey: ""
+    apiBaseUrl: ""
+    apiKey: ""
