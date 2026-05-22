@@ -22,7 +22,7 @@ export const useTraces = (params: TraceQueryParams = {}, live = false, enabled =
     return useQuery({
         queryKey: ['traces', params],
         queryFn: () => traceService.getTraces(params),
-        refetchInterval: live ? 1000 : false,
+        refetchInterval: live ? (query) => (query.state.error ? false : 1000) : false,
         placeholderData: keepPreviousData,
         enabled
     });
