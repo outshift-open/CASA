@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>Continuous Agent Semantic Authorization</h1>
+  <h1>Continuous Agent Semantic Authorization (CASA)</h1>
 
   <h2>CASA checks every agent tool call against the user’s original intent before the tool runs.</h2>
 
@@ -29,7 +29,7 @@
 
 ---
 
-## Why CASA
+## Why Continuous Agent Semantic Authorization
 
 Modern AI applications are increasingly composed of agents, MCP servers, and orchestration layers that collaborate autonomously. Standard identity solutions were not built for this: they assume human users, static roles, and predictable access patterns. An agent that has been granted access to a tool can use that tool for anything — regardless of what the user actually asked for.
 
