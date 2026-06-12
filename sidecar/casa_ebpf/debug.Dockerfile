@@ -12,7 +12,7 @@ RUN go env -w GOMODCACHE=/gomod-cache
 
 USER root
 
-RUN apk update && apk add make
+RUN apk update && apk add make bpftool
 
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 

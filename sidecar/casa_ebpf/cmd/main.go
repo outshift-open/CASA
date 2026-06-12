@@ -2,15 +2,21 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"os/signal"
+	"path"
 	"sync"
 	"syscall"
 
 	"github.com/cilium/ebpf/rlimit"
+	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/discover"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf"
+	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/process"
+
+	ebpfcommon "github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf/common"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf/tls"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/llm"
 )
@@ -22,11 +28,8 @@ func main() {
 		log.Fatal("Removing memlock:", err)
 	}
 
-	attacher := ebpf.NewAttacher()
-
 	cancelChan := make(chan bool, 1)
 	wg := sync.WaitGroup{}
-
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
@@ -34,36 +37,68 @@ func main() {
 	)
 	defer stop()
 
-	reqHandler := llm.NewRequestHandler(cancelChan, &wg)
-	respHandler := llm.NewResponseHandler(cancelChan, &wg)
+	pidsRegistry := ebpfcommon.NewNamespacePIDsRegistry()
 
-	module := tls.NewLibSSLModule(reqHandler.Chan(), respHandler.Chan())
+	pinPath, err := makeBPFFSPath("/sys/fs/bpf/")
+	if err != nil {
+		log.Fatal("Failed to create bpffs path", err)
+	}
 
-	err = module.Load()
+	reqHandler := llm.NewRequestHandler(cancelChan)
+	respHandler := llm.NewResponseHandler(cancelChan)
+
+	module := tls.NewLibSSLModule(pidsRegistry, reqHandler.Chan(), respHandler.Chan())
+
+	err = module.Load(&pinPath)
 	if err != nil {
 		slog.Error("Failed to load eBPF program", "err", err)
 		os.Exit(1)
 	}
 
-	closers, err := attacher.Attach([]ebpf.Module{module})
-	if err != nil {
-		slog.Error("Failed to attach eBPF module", "err", err)
-		os.Exit(1)
-	}
-	defer func() {
-		for _, closer := range closers {
-			closer.Close()
-		}
-	}()
+	processMgr := process.NewManager()
 
-	go func() {
+	attacher := ebpf.NewAttacher([]ebpf.Module{module}, processMgr)
+
+	scanner := discover.Scanner{}
+	processEventsCh := scanner.Scan(ctx, &wg, processMgr)
+
+	wg.Go(func() {
 		err := module.Run(ctx)
 		if err != nil {
 			slog.Error("Failed to run eBPF program", "err", err)
 		}
+	})
+	wg.Go(reqHandler.Start)
+	wg.Go(respHandler.Start)
+
+	wg.Go(func() {
+		for {
+			select {
+			case <-ctx.Done():
+				slog.Debug("Context canceled.")
+				return
+			case processEvents := <-processEventsCh:
+				for _, event := range processEvents {
+					switch event.Type {
+					case discover.EventCreated:
+						err := attacher.AttachToProcess(event.Obj.PID, event.Obj.Ns)
+						if err != nil {
+							slog.Error("Failed to attach eBPF module", "pid", event.Obj.PID, "err", err)
+							continue
+						}
+
+					case discover.EventDeleted:
+						slog.Info("Process deleted")
+						attacher.DetachFromProcess(event.Obj.PID, event.Obj.Ns)
+					}
+				}
+			}
+		}
+	})
+
+	defer func() {
+		_ = attacher.DetachAll()
 	}()
-	go reqHandler.Start()
-	go respHandler.Start()
 
 	slog.Info("running, press Ctrl+C to stop")
 
@@ -72,4 +107,14 @@ func main() {
 	wg.Wait()
 
 	slog.Info("shutting down")
+}
+
+func makeBPFFSPath(bpfFsPath string) (string, error) {
+	pinPath := path.Join(bpfFsPath, "casa")
+
+	if err := os.MkdirAll(pinPath, 0o1700); err != nil {
+		return "", fmt.Errorf("creating bpffs casa path: %w", err)
+	}
+
+	return pinPath, nil
 }

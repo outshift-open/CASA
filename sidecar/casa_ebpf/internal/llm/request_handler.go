@@ -3,7 +3,6 @@ package llm
 import (
 	"fmt"
 	"log/slog"
-	"sync"
 
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf/tls"
 )
@@ -11,14 +10,12 @@ import (
 type RequestHandler struct {
 	reqChan    chan *tls.HTTPRequest
 	cancelChan chan bool
-	wg         *sync.WaitGroup
 }
 
-func NewRequestHandler(cancelChan chan bool, wg *sync.WaitGroup) *RequestHandler {
+func NewRequestHandler(cancelChan chan bool) *RequestHandler {
 	return &RequestHandler{
 		reqChan:    make(chan *tls.HTTPRequest, 1024),
 		cancelChan: cancelChan,
-		wg:         wg,
 	}
 }
 
@@ -27,8 +24,6 @@ func (h *RequestHandler) Chan() chan<- *tls.HTTPRequest {
 }
 
 func (h *RequestHandler) Start() {
-	h.wg.Add(1)
-
 	for {
 		select {
 		case req := <-h.reqChan:
@@ -41,7 +36,6 @@ func (h *RequestHandler) Start() {
 		case shouldCancel := <-h.cancelChan:
 			slog.Debug(fmt.Sprintf("Received cancellation event [%t]", shouldCancel))
 			if shouldCancel {
-				h.wg.Done()
 				return
 			}
 		}

@@ -10,32 +10,44 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/ringbuf"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf/common"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf/logger"
+	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/process"
 )
 
 //go:generate $BPF2GO -cc $BPF_CLANG -cflags $BPF_CFLAGS -target amd64,arm64 BpfLibssl ../../../bpf/tls/libssl.c -- -I../../../bpf
 
 type LibSSLModule struct {
-	bpfObjects BpfLibsslObjects
-	reqPipes   map[uint64]*DataPipe
-	respPipes  map[uint64]*DataPipe
-	requests   chan<- *HTTPRequest
-	responses  chan<- *HTTPResponse
+	bpfObjects   BpfLibsslObjects
+	pidsRegistry common.PIDsRegistry
+	reqPipes     map[uint64]*DataPipe
+	respPipes    map[uint64]*DataPipe
+	requests     chan<- *HTTPRequest
+	responses    chan<- *HTTPResponse
 }
 
-func NewLibSSLModule(requests chan<- *HTTPRequest, responses chan<- *HTTPResponse) *LibSSLModule {
+func NewLibSSLModule(pidsRegistry common.PIDsRegistry, requests chan<- *HTTPRequest, responses chan<- *HTTPResponse) *LibSSLModule {
 	return &LibSSLModule{
-		reqPipes:  make(map[uint64]*DataPipe),
-		respPipes: make(map[uint64]*DataPipe),
-		requests:  requests,
-		responses: responses,
+		pidsRegistry: pidsRegistry,
+		reqPipes:     make(map[uint64]*DataPipe),
+		respPipes:    make(map[uint64]*DataPipe),
+		requests:     requests,
+		responses:    responses,
 	}
 }
 
-func (m *LibSSLModule) Load() error {
-	err := LoadBpfLibsslObjects(&m.bpfObjects, nil)
+func (m *LibSSLModule) Load(pinPath *string) error {
+	if pinPath == nil {
+		return errors.New("pinPath should not be nil")
+	}
+
+	err := LoadBpfLibsslObjects(&m.bpfObjects, &ebpf.CollectionOptions{
+		Maps: ebpf.MapOptions{
+			PinPath: *pinPath,
+		},
+	})
 	if err != nil {
 		return fmt.Errorf("failed to load eBPF program tls.Tracer: %w", err)
 	}
@@ -43,31 +55,43 @@ func (m *LibSSLModule) Load() error {
 	return nil
 }
 
-func (m *LibSSLModule) UProbes() map[string]*common.ProbeDesc {
-	return map[string]*common.ProbeDesc{
-		"SSL_read": {
-			Entry:  m.bpfObjects.UprobeSslRead,
-			Return: m.bpfObjects.UretprobeSslRead,
-		},
-		"SSL_read_ex": {
-			Entry:  m.bpfObjects.UprobeSslReadEx,
-			Return: m.bpfObjects.UretprobeSslReadEx,
-		},
-		"SSL_write": {
-			Entry:  m.bpfObjects.UprobeSslWrite,
-			Return: m.bpfObjects.UretprobeSslWrite,
-		},
-		"SSL_write_ex": {
-			Entry:  m.bpfObjects.UprobeSslWriteEx,
-			Return: m.bpfObjects.UretprobeSslWriteEx,
-		},
-		"SSL_free": {
-			Entry: m.bpfObjects.UprobeSslFree,
-		},
-		"SSL_shutdown": {
-			Entry: m.bpfObjects.UprobeSslShutdown,
+func (m *LibSSLModule) UProbes() common.LibUProbeDescs {
+	return common.LibUProbeDescs{
+		"libssl.so": {
+			"SSL_read": {
+				Entry:  m.bpfObjects.UprobeSslRead,
+				Return: m.bpfObjects.UretprobeSslRead,
+			},
+			"SSL_read_ex": {
+				Entry:  m.bpfObjects.UprobeSslReadEx,
+				Return: m.bpfObjects.UretprobeSslReadEx,
+			},
+			"SSL_write": {
+				Entry:  m.bpfObjects.UprobeSslWrite,
+				Return: m.bpfObjects.UretprobeSslWrite,
+			},
+			"SSL_write_ex": {
+				Entry:  m.bpfObjects.UprobeSslWriteEx,
+				Return: m.bpfObjects.UretprobeSslWriteEx,
+			},
+			"SSL_free": {
+				Entry: m.bpfObjects.UprobeSslFree,
+			},
+			"SSL_shutdown": {
+				Entry: m.bpfObjects.UprobeSslShutdown,
+			},
 		},
 	}
+}
+
+func (m *LibSSLModule) AllowPID(pid process.PID, ns uint32) {
+	m.pidsRegistry.AllowPID(pid, ns)
+	common.RebuildAllowedPIDs(m.pidsRegistry, m.bpfObjects.AllowedPids)
+}
+
+func (m *LibSSLModule) BlockPID(pid process.PID, ns uint32) {
+	m.pidsRegistry.BlockPID(pid, ns)
+	common.RebuildAllowedPIDs(m.pidsRegistry, m.bpfObjects.AllowedPids)
 }
 
 func (m *LibSSLModule) Run(ctx context.Context) error {

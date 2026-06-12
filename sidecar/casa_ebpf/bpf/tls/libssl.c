@@ -4,8 +4,10 @@
 #include <core/bpf_helpers.h>
 #include <core/bpf_tracing.h>
 
-#include<common/http.h>
+#include <common/http.h>
 #include <logger/bpf_dbg.h>
+
+#include <pid/pid.h>
 
 #include <tls/ssl_args.h>
 
@@ -37,6 +39,7 @@ static __always_inline void handle_http_response(struct pt_regs *ctx,
     event->len = buf_len;
     event->original_len = bytes_len;
     event->direction = (u64)direction;
+    event->done = 0;
 
     bpf_probe_read(event->data, buf_len, (void *)args->buf);
 
@@ -46,6 +49,10 @@ static __always_inline void handle_http_response(struct pt_regs *ctx,
 SEC("uprobe/libssl.so:SSL_read")
 int BPF_UPROBE(uprobe_ssl_read, void *ssl, void *buf, int num) {
     const u64 id = bpf_get_current_pid_tgid();
+
+    if (!allowed_pid(id)) {
+        return 0;
+    }
 
     bpf_dbg_printk("=== uprobe SSL_read id=%d ssl=%llx ===", id, ssl);
 
@@ -61,6 +68,10 @@ int BPF_UPROBE(uprobe_ssl_read, void *ssl, void *buf, int num) {
 SEC("uretprobe/libssl.so:SSL_read")
 int BPF_URETPROBE(uretprobe_ssl_read, int ret) {
     const u64 id = bpf_get_current_pid_tgid();
+
+    if (!allowed_pid(id)) {
+        return 0;
+    }
 
     ssl_args_t *args = bpf_map_lookup_elem(&active_ssl_read_args, &id);
 
@@ -81,6 +92,10 @@ SEC("uprobe/libssl.so:SSL_read_ex")
 int BPF_UPROBE(uprobe_ssl_read_ex, void *ssl, void *buf, size_t num, size_t *readbytes) {
     const u64 id = bpf_get_current_pid_tgid();
 
+    if (!allowed_pid(id)) {
+        return 0;
+    }
+
     bpf_dbg_printk("=== uprobe SSL_read_ex id=%d ssl=%llx ===", id, ssl);
 
     ssl_args_t args = {};
@@ -96,6 +111,10 @@ int BPF_UPROBE(uprobe_ssl_read_ex, void *ssl, void *buf, size_t num, size_t *rea
 SEC("uretprobe/libssl.so:SSL_read_ex")
 int BPF_URETPROBE(uretprobe_ssl_read_ex, int ret) {
     const u64 id = bpf_get_current_pid_tgid();
+
+    if (!allowed_pid(id)) {
+        return 0;
+    }
 
     ssl_args_t *args = bpf_map_lookup_elem(&active_ssl_read_args, &id);
 
@@ -120,6 +139,10 @@ int BPF_UPROBE(uprobe_ssl_write, void *ssl, const void *buf, int num) {
     (void)ctx;
     const u64 id = bpf_get_current_pid_tgid();
 
+    if (!allowed_pid(id)) {
+        return 0;
+    }
+
     bpf_dbg_printk("=== uprobe SSL_write id=%d ssl=%llx ===", id, ssl);
 
     ssl_args_t args = {};
@@ -136,6 +159,10 @@ SEC("uretprobe/libssl.so:SSL_write")
 int BPF_URETPROBE(uretprobe_ssl_write, int ret) {
     (void)ctx;
     const u64 id = bpf_get_current_pid_tgid();
+
+    if (!allowed_pid(id)) {
+        return 0;
+    }
 
     ssl_args_t *args = bpf_map_lookup_elem(&active_ssl_write_args, &id);
 
@@ -156,6 +183,10 @@ SEC("uprobe/libssl.so:SSL_write_ex")
 int BPF_UPROBE(uprobe_ssl_write_ex, void *ssl, const void *buf, size_t num, size_t *written) {
     const u64 id = bpf_get_current_pid_tgid();
 
+    if (!allowed_pid(id)) {
+        return 0;
+    }
+
     bpf_dbg_printk("=== uprobe SSL_write_ex id=%d ssl=%llx ===", id, ssl);
 
     ssl_args_t args = {};
@@ -171,6 +202,10 @@ int BPF_UPROBE(uprobe_ssl_write_ex, void *ssl, const void *buf, size_t num, size
 SEC("uretprobe/libssl.so:SSL_write_ex")
 int BPF_URETPROBE(uretprobe_ssl_write_ex, int ret) {
     const u64 id = bpf_get_current_pid_tgid();
+
+    if (!allowed_pid(id)) {
+        return 0;
+    }
 
     ssl_args_t *args = bpf_map_lookup_elem(&active_ssl_write_args, &id);
 
@@ -194,6 +229,10 @@ SEC("uprobe/libssl.so:SSL_free")
 int BPF_UPROBE(uprobe_ssl_free, void *ssl) {
     const u64 id = bpf_get_current_pid_tgid();
 
+    if (!allowed_pid(id)) {
+        return 0;
+    }
+
     bpf_dbg_printk("=== uprobe SSL_free id=%d ssl=%llx ===", id, ssl);
 
     struct tls_data_event *event = bpf_ringbuf_reserve(&tls_events, sizeof(struct tls_data_event), 0);
@@ -215,6 +254,10 @@ int BPF_UPROBE(uprobe_ssl_free, void *ssl) {
 SEC("uprobe/libssl.so:SSL_shutdown")
 int BPF_UPROBE(uprobe_ssl_shutdown, void *ssl) {
     const u64 id = bpf_get_current_pid_tgid();
+
+    if (!allowed_pid(id)) {
+        return 0;
+    }
 
     bpf_dbg_printk("=== uprobe SSL_shutdown id=%d ssl=%llx ===", id, ssl);
 
