@@ -13,6 +13,9 @@ type Process interface {
 	// Exe returns executable path of the process.
 	Exe() (string, error)
 
+	// AbsoluteExe returns the absolute executable path of the process (i.e: /proc/(pid)/exe).
+	AbsoluteExe() string
+
 	// Maps get memory maps of the process with "execute" perm (e.g: on Linux from /proc/(pid)/maps)
 	ExeMaps() ([]*ProcessExeMap, error)
 

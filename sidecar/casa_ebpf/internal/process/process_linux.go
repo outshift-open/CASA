@@ -39,6 +39,10 @@ func (p *linuxProcess) Exe() (string, error) {
 	return p.process.Exe()
 }
 
+func (p *linuxProcess) AbsoluteExe() string {
+	return fmt.Sprintf("/proc/%d/exe", p.pid)
+}
+
 func (p *linuxProcess) ExeMaps() ([]*ProcessExeMap, error) {
 	proc, err := procfs.NewProc(int(p.pid))
 	if err != nil {

@@ -38,36 +38,44 @@ func NewAttacher(modules []Module, processMgr process.Manager) Attacher {
 
 type libUProbes struct {
 	libPath string
-	uprobes map[string]*common.ProbeDesc
+	uprobes []map[string]*common.ProbeDesc // multiple probes can be attached to one function
 }
 
-func (a *attacher) getUProbesForProcess(pid process.PID, ns uint32, maps []*process.ProcessExeMap, exeIno uint64) map[uint64]*libUProbes {
+func (a *attacher) getUProbesForProcess(pid process.PID, ns uint32, maps []*process.ProcessExeMap, exeIno uint64, exePath string) map[uint64]*libUProbes {
 	modules := map[uint64]*libUProbes{}
 
 	for _, module := range a.modules {
 		module.AllowPID(pid, ns)
 		if um, ok := module.(UProbesModule); ok {
 			for libName, uprobes := range um.UProbes() {
+				binIno := exeIno
+				binPath := exePath
+
 				libMap, ok := a.matchUProbeLibMap(libName, maps)
-				if !ok {
-					slog.Debug(fmt.Sprintf("Ignoring library %s", libName))
-					continue
-				}
+				if ok {
+					// This is a robust way to find the lib/exe binary, especially in Docker where libMap.Path is relative.
+					libPath := fmt.Sprintf("/proc/%d/map_files/%x-%x", pid, libMap.StartAddr, libMap.EndAddr)
 
-				libIno := exeIno
-
-				// This is a robust way to find the lib/exe binary, especially in Docker where libMap.Path is relative.
-				libPath := fmt.Sprintf("/proc/%d/map_files/%x-%x", pid, libMap.StartAddr, libMap.EndAddr)
-
-				libStat, err := os.Stat(libPath)
-				if err == nil {
-					stat, ok := libStat.Sys().(*syscall.Stat_t)
-					if ok {
-						libIno = stat.Ino
+					libStat, err := os.Stat(libPath)
+					if err == nil {
+						stat, ok := libStat.Sys().(*syscall.Stat_t)
+						if ok {
+							binIno = stat.Ino
+							binPath = libPath
+						}
 					}
 				}
 
-				modules[libIno] = &libUProbes{libPath: libPath, uprobes: uprobes}
+				if binIno == exeIno {
+					slog.Debug(fmt.Sprintf("%s not linked, trying to find the symbols in the executable", libName))
+				}
+
+				mod, ok := modules[binIno]
+				if ok {
+					mod.uprobes = append(mod.uprobes, uprobes)
+				} else {
+					modules[binIno] = &libUProbes{libPath: binPath, uprobes: []map[string]*common.ProbeDesc{uprobes}}
+				}
 			}
 		}
 	}
@@ -91,7 +99,9 @@ func (a *attacher) AttachToProcess(pid process.PID, ns uint32) error {
 		return fmt.Errorf("failed to get exe INode: %w", err)
 	}
 
-	procUprobes := a.getUProbesForProcess(pid, ns, maps, exeIno)
+	exePath := proc.AbsoluteExe()
+
+	procUprobes := a.getUProbesForProcess(pid, ns, maps, exeIno, exePath)
 
 	for libIno, lib := range procUprobes {
 		if ref, ok := a.libRefs[libIno]; ok {
@@ -102,22 +112,13 @@ func (a *attacher) AttachToProcess(pid process.PID, ns uint32) error {
 
 		ref := NewLibRef(libIno)
 
-		ex, err := link.OpenExecutable(lib.libPath)
+		exe, err := link.OpenExecutable(lib.libPath)
 		if err != nil {
 			return fmt.Errorf("failed to open executable: %w", err)
 		}
 
-		for symbol, uprobe := range lib.uprobes {
-			closers, err := a.attachUprobe(ex, symbol, uprobe)
-			if err != nil {
-				for _, closer := range closers {
-					closer.Close()
-				}
-
-				slog.Debug("Error attaching uprobe", "func", symbol, "err", err)
-			} else {
-				ref.AddClosers(closers)
-			}
+		for _, uprobes := range lib.uprobes {
+			ref.AddClosers(a.attachUprobes(exe, uprobes))
 		}
 
 		a.libRefs[libIno] = ref
@@ -125,6 +126,25 @@ func (a *attacher) AttachToProcess(pid process.PID, ns uint32) error {
 	}
 
 	return nil
+}
+
+func (a *attacher) attachUprobes(exe *link.Executable, uprobes map[string]*common.ProbeDesc) []io.Closer {
+	closers := []io.Closer{}
+
+	for symbol, uprobe := range uprobes {
+		cc, err := a.attachUprobe(exe, symbol, uprobe)
+		if err != nil {
+			for _, closer := range cc {
+				closer.Close()
+			}
+
+			slog.Debug("Error attaching uprobe", "func", symbol, "err", err)
+		} else {
+			closers = append(closers, cc...)
+		}
+	}
+
+	return closers
 }
 
 func (a *attacher) attachUprobe(exe *link.Executable, symbol string, uprobe *common.ProbeDesc) ([]io.Closer, error) {
