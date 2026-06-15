@@ -25,10 +25,10 @@ const config = {
     favicon: "img/favicon.ico",
 
     url: "https://outshift-open.github.io",
-    baseUrl: "/CASA/",
+    baseUrl: "/outshift-casa/",
 
     organizationName: "outshift-open",
-    projectName: "CASA",
+    projectName: "outshift-casa",
 
     onBrokenLinks: "warn",
     onBrokenMarkdownLinks: "warn",
@@ -52,7 +52,7 @@ const config = {
                 docs: {
                     sidebarPath: require.resolve("./sidebars.js"),
                     editUrl:
-                        "https://github.com/outshift-open/CASA/tree/main/docs/ui/",
+                        "https://github.com/outshift-open/outshift-casa/tree/main/docs/ui/",
                     routeBasePath: "/",
                 },
                 blog: false,
@@ -81,7 +81,7 @@ const config = {
                         label: "Docs",
                     },
                     {
-                        href: "https://github.com/outshift-open/CASA",
+                        href: "https://github.com/outshift-open/outshift-casa",
                         label: "GitHub",
                         position: "right",
                     },
@@ -109,7 +109,7 @@ const config = {
                         items: [
                             {
                                 label: "GitHub Issues",
-                                href: "https://github.com/outshift-open/CASA/issues",
+                                href: "https://github.com/outshift-open/outshift-casa/issues",
                             },
                             {
                                 label: "Contributing",
@@ -122,7 +122,7 @@ const config = {
                         items: [
                             {
                                 label: "GitHub",
-                                href: "https://github.com/outshift-open/CASA",
+                                href: "https://github.com/outshift-open/outshift-casa",
                             },
                         ],
                     },
