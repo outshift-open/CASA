@@ -37,7 +37,7 @@ dependencies = [
     "sqlalchemy>=2.0.43",
     "python-keycloak>=5.8.1",
     "requests>=2.32.5",
-    "python-multipart>=0.0.20",
+    "python-multipart>=0.0.31",
     "psycopg2-binary>=2.9.11",
     "python-dotenv==1.2.1",
     "sqlmodel>=0.0.27",
