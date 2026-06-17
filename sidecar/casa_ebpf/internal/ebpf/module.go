@@ -22,9 +22,21 @@ type Module interface {
 	BlockPID(pid process.PID, ns uint32)
 }
 
+type KProbesModule interface {
+	Module
+	KProbes() map[string]*common.ProbeDesc
+}
+
 type UProbesModule interface {
 	Module
 	UProbes() common.LibUProbeDescs
+}
+
+type SockOpsModule interface {
+	Module
+	// SockOps returns a list of programs that need to be loaded as a
+	// BPF_PROG_TYPE_SOCK_OPS eBPF programs
+	SockOps() []common.SockOps
 }
 
 type LibRef struct {

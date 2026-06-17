@@ -1,6 +1,8 @@
 package common
 
-import "github.com/cilium/ebpf"
+import (
+	"github.com/cilium/ebpf"
+)
 
 type ProbeDesc struct {
 	Entry  *ebpf.Program
@@ -8,3 +10,8 @@ type ProbeDesc struct {
 }
 
 type LibUProbeDescs map[string]map[string]*ProbeDesc
+
+type SockOps struct {
+	Program  *ebpf.Program
+	AttachAs ebpf.AttachType
+}

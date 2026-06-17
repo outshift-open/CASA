@@ -1,6 +1,7 @@
 package ebpf
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -10,11 +11,13 @@ import (
 	"syscall"
 
 	"github.com/cilium/ebpf/link"
+	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/container"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf/common"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/process"
 )
 
 type Attacher interface {
+	LoadModules(pinPath *string) error
 	AttachToProcess(pid process.PID, ns uint32) error
 	DetachFromProcess(pid process.PID, ns uint32) error
 	DetachAll() error
@@ -25,6 +28,7 @@ type attacher struct {
 	processMgr  process.Manager
 	libRefs     map[uint64]*LibRef
 	libsPerProc map[process.PID][]uint64
+	closers     []io.Closer
 }
 
 func NewAttacher(modules []Module, processMgr process.Manager) Attacher {
@@ -33,7 +37,109 @@ func NewAttacher(modules []Module, processMgr process.Manager) Attacher {
 		processMgr:  processMgr,
 		libRefs:     map[uint64]*LibRef{},
 		libsPerProc: map[process.PID][]uint64{},
+		closers:     []io.Closer{},
 	}
+}
+
+func (a *attacher) LoadModules(pinPath *string) error {
+	errCount := 0
+	for _, module := range a.modules {
+		err := module.Load(pinPath)
+		if err != nil {
+			slog.Warn("Unable to load module", "err", err)
+			errCount++
+			continue
+		}
+
+		if kp, ok := module.(KProbesModule); ok {
+			err := a.attachKProbes(kp)
+			if err != nil {
+				return fmt.Errorf("unable to attach kprobe module: %w", err)
+			}
+		}
+
+		if som, ok := module.(SockOpsModule); ok {
+			err := a.attachSockOps(som)
+			if err != nil {
+				slog.Warn("unable to attach sock ops module", "err", err)
+				continue
+			}
+		}
+	}
+
+	if len(a.modules) == errCount {
+		return errors.New("failed to attach all ebpf modules")
+	}
+
+	return nil
+}
+
+func (a *attacher) attachKProbes(module KProbesModule) error {
+	for symbol, kprobe := range module.KProbes() {
+		if kprobe.Entry != nil {
+			kp, err := link.Kprobe(symbol, kprobe.Entry, nil)
+			if err != nil {
+				return fmt.Errorf("failed to attach kprobe %s: %w", symbol, err)
+			}
+
+			a.addCloser(kp)
+		}
+
+		if kprobe.Return != nil {
+			kp, err := link.Kretprobe(symbol, kprobe.Return, nil)
+			if err != nil {
+				return fmt.Errorf("failed to attach kretprobe %s: %w", symbol, err)
+			}
+
+			a.addCloser(kp)
+		}
+	}
+
+	return nil
+}
+
+func (a *attacher) attachSockOps(module SockOpsModule) error {
+	cgroupPath, err := findCgroupPath()
+	if err != nil {
+		return fmt.Errorf("unable to get cgroup path: %w", err)
+	}
+
+	for _, sockOp := range module.SockOps() {
+		slog.Info("Attaching sock ops", "path", cgroupPath)
+
+		l, err := link.AttachCgroup(link.CgroupOptions{
+			Path:    cgroupPath,
+			Program: sockOp.Program,
+			Attach:  sockOp.AttachAs,
+		})
+		if err != nil {
+			slog.Warn("Unable to attach sock ops", "err", err)
+			continue
+		}
+
+		a.addCloser(l)
+	}
+
+	return nil
+}
+
+func (a *attacher) addCloser(closer io.Closer) {
+	a.closers = append(a.closers, closer)
+}
+
+func findCgroupPath() (string, error) {
+	cgroupPath := "/sys/fs/cgroup"
+
+	isCgroupV2Enabled, err := container.IsCgroupV2Enabled()
+	if err != nil {
+		return "", err
+	}
+
+	if !isCgroupV2Enabled {
+		cgroupPath = filepath.Join(cgroupPath, "unified")
+	}
+
+	return cgroupPath, nil
 }
 
 type libUProbes struct {
@@ -204,12 +310,16 @@ func (a *attacher) DetachAll() error {
 	for ino, ref := range a.libRefs {
 		slog.Debug("Closing the links to library uprobes", "ino", ino)
 		for _, closer := range ref.Closers() {
-			closer.Close()
+			_ = closer.Close()
 		}
 	}
 
 	a.libRefs = map[uint64]*LibRef{}
 	a.libsPerProc = map[process.PID][]uint64{}
+
+	for _, closer := range a.closers {
+		_ = closer.Close()
+	}
 
 	return nil
 }

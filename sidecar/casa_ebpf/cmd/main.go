@@ -49,15 +49,15 @@ func main() {
 
 	module := tls.NewLibSSLModule(pidsRegistry, reqHandler.Chan(), respHandler.Chan())
 
-	err = module.Load(&pinPath)
-	if err != nil {
-		slog.Error("Failed to load eBPF program", "err", err)
-		os.Exit(1)
-	}
-
 	processMgr := process.NewManager()
 
 	attacher := ebpf.NewAttacher([]ebpf.Module{module}, processMgr)
+
+	err = attacher.LoadModules(&pinPath)
+	if err != nil {
+		slog.Error("Failed to load all eBPF modules", "err", err)
+		os.Exit(1)
+	}
 
 	scanner := discover.Scanner{}
 	processEventsCh := scanner.Scan(ctx, &wg, processMgr)

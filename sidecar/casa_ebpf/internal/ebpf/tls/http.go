@@ -17,6 +17,13 @@ const (
 	tcpDirRecv TCPDirection = 1
 )
 
+type EventType int
+
+const (
+	eventTypeData EventType = 0
+	eventTypeTP   EventType = 1
+)
+
 type HTTPRequest struct {
 	request *http.Request
 }
@@ -45,6 +52,10 @@ func (r *HTTPRequest) Body() ([]byte, error) {
 	r.request.Body = io.NopCloser(r.request.Body)
 
 	return body, nil
+}
+
+func (r *HTTPRequest) Headers() http.Header {
+	return r.request.Header
 }
 
 type HTTPResponse struct {

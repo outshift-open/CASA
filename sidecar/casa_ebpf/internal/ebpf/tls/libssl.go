@@ -17,7 +17,7 @@ import (
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/process"
 )
 
-//go:generate $BPF2GO -cc $BPF_CLANG -cflags $BPF_CFLAGS -target amd64,arm64 BpfLibssl ../../../bpf/tls/libssl.c -- -I../../../bpf
+//go:generate $BPF2GO -cc $BPF_CLANG -cflags $BPF_CFLAGS -target amd64,arm64 BpfLibssl ../../../bpf/tls/tls.c -- -I../../../bpf
 
 type LibSSLModule struct {
 	bpfObjects   BpfLibsslObjects
@@ -55,6 +55,23 @@ func (m *LibSSLModule) Load(pinPath *string) error {
 	return nil
 }
 
+func (m *LibSSLModule) KProbes() map[string]*common.ProbeDesc {
+	return map[string]*common.ProbeDesc{
+		"tcp_recvmsg": {
+			Entry: m.bpfObjects.KprobeTcpRecvmsgTls,
+		},
+		"sock_recvmsg": {
+			Entry: m.bpfObjects.KprobeSockRecvmsgTls,
+		},
+		"tcp_sendmsg": {
+			Entry: m.bpfObjects.KprobeTcpSendmsgTls,
+		},
+		"tcp_rate_check_app_limited": {
+			Entry: m.bpfObjects.KprobeTcpRateCheckAppLimitedTls,
+		},
+	}
+}
+
 func (m *LibSSLModule) UProbes() common.LibUProbeDescs {
 	return common.LibUProbeDescs{
 		"libssl.so": {
@@ -80,6 +97,15 @@ func (m *LibSSLModule) UProbes() common.LibUProbeDescs {
 			"SSL_shutdown": {
 				Entry: m.bpfObjects.UprobeSslShutdown,
 			},
+		},
+	}
+}
+
+func (m *LibSSLModule) SockOps() []common.SockOps {
+	return []common.SockOps{
+		{
+			Program:  m.bpfObjects.ParseObiTpOption,
+			AttachAs: ebpf.AttachCGroupSockOps,
 		},
 	}
 }
@@ -124,6 +150,27 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 
 		if err := binary.Read(bytes.NewBuffer(record.RawSample), binary.LittleEndian, &evt); err != nil {
 			slog.Error("Failed to parse ringbuf event", "err", err)
+			continue
+		}
+
+		if evt.Type == uint64(eventTypeTP) {
+			slog.Info(
+				"TP Event received",
+				"pid",
+				evt.PidTgid,
+				"trace_id",
+				evt.Tp.TraceId,
+				"span_id",
+				evt.Tp.SpanId,
+				"conn.s_addr",
+				evt.Conn.S_addr,
+				"conn.s_port",
+				evt.Conn.S_port,
+				"conn.d_addr",
+				evt.Conn.D_addr,
+				"conn.d_port",
+				evt.Conn.D_port,
+			)
 			continue
 		}
 
@@ -186,7 +233,27 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 			dataPipe.Writer().Write(buf)
 		}
 
-		slog.Info("Event received", "pid", evt.PidTgid, "len", evt.Len, "original_len", evt.OriginalLen, "done", evt.Done, "direction", evt.Direction)
+		slog.Info(
+			"Event received",
+			"pid",
+			evt.PidTgid,
+			"len",
+			evt.Len,
+			"original_len",
+			evt.OriginalLen,
+			"done",
+			evt.Done,
+			"direction",
+			evt.Direction,
+			"conn.s_addr",
+			evt.Conn.S_addr,
+			"conn.s_port",
+			evt.Conn.S_port,
+			"conn.d_addr",
+			evt.Conn.D_addr,
+			"conn.d_port",
+			evt.Conn.D_port,
+		)
 	}
 }
 

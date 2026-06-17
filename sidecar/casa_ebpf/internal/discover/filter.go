@@ -96,7 +96,7 @@ func (pf *processFilter) Run(ctx context.Context) {
 
 func (pf *processFilter) filterProcess(attrs *ProcessAttrs) bool {
 	// TODO: build a simple filtering engine
-	if attrs.ContainerInfo != nil && attrs.ContainerInfo.ID == "5bca9aa1f21e" {
+	if attrs.ContainerInfo != nil && attrs.ContainerInfo.ID == "cd0a3f1e0162" {
 		slog.Info("Process matched", "pid", attrs.ID)
 		return true
 	}
