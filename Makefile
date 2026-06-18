@@ -229,3 +229,7 @@ mas-helm-uninstall:
 ext-auth-generate-mocks:
 > docker run --rm -v $(PWD):/src -w /src/sidecar/ext_auth vektra/mockery:3
 .PHONY: ext-auth-generate-mocks
+
+casa-ebpf-generate-mocks:
+> docker run --rm -v $(PWD):/src -w /src/sidecar/casa_ebpf vektra/mockery:3
+.PHONY: casa-ebpf-generate-mocks

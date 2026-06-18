@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: casa-ebpf-debug
+  namespace: casa-ebpf-debug
+spec:
+  restartPolicy: Never
+  hostPID: true
+  serviceAccountName: casa
+  # nodeSelector:
+  #   kubernetes.io/arch: arm64
+  containers:
+    - name: casa-ebpf-debug
+      image: casa_ebpf_debug:latest
+      imagePullPolicy: IfNotPresent
+      securityContext:
+        privileged: true
+      ports:
+        - containerPort: 2345
+          hostPort: 2345
+          protocol: TCP
+      env:
+        - name: CASA_EBPF_CONFIG_PATH
+          value: sample.yaml
+      volumeMounts:
+        # - name: sys
+        #   mountPath: /sys
+        - name: proc
+          mountPath: /host/proc
+        - name: kernel-debug
+          mountPath: /sys/kernel/debug
+        - name: kernel-tracing
+          mountPath: /sys/kernel/tracing
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+        - name: kernel-security
+          mountPath: /sys/kernel/security
+          readOnly: true
+        - name: cgroup
+          mountPath: /sys/fs/cgroup
+        - name: kernel-bpf
+          mountPath: /sys/fs/bpf
+  volumes:
+    # - name: sys
+    #   hostPath:
+    #     path: /sys
+    #     type: Directory
+    - name: proc
+      hostPath:
+        path: /proc
+        type: Directory
+    - name: kernel-debug
+      hostPath:
+        path: /sys/kernel/debug
+        type: Directory
+    - name: kernel-tracing
+      hostPath:
+        path: /sys/kernel/tracing
+        type: Directory
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+        type: Socket
+    - name: kernel-security
+      hostPath:
+        path: /sys/kernel/security
+        type: Directory
+    - name: cgroup
+      hostPath:
+        path: /sys/fs/cgroup
+        type: Directory
+    - name: kernel-bpf
+      hostPath:
+        path: /sys/fs/bpf
+        type: Directory

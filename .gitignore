@@ -294,3 +294,10 @@ values-local.yaml
 LOCAL_SETUP.md
 local-setup.sh
 scripts/local-setup-standalone.sh
+
+**/bin
+
+*_bpfel.go
+*_bpfel.o
+*_bpfel.go.d
+*_bpfeb.go.d
