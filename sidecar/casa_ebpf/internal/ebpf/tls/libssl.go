@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -26,15 +27,22 @@ type LibSSLModule struct {
 	respPipes    map[uint64]*DataPipe
 	requests     chan<- *HTTPRequest
 	responses    chan<- *HTTPResponse
+	traceparents chan<- *TraceparentValue
 }
 
-func NewLibSSLModule(pidsRegistry common.PIDsRegistry, requests chan<- *HTTPRequest, responses chan<- *HTTPResponse) *LibSSLModule {
+func NewLibSSLModule(
+	pidsRegistry common.PIDsRegistry,
+	requests chan<- *HTTPRequest,
+	responses chan<- *HTTPResponse,
+	traceparents chan<- *TraceparentValue,
+) *LibSSLModule {
 	return &LibSSLModule{
 		pidsRegistry: pidsRegistry,
 		reqPipes:     make(map[uint64]*DataPipe),
 		respPipes:    make(map[uint64]*DataPipe),
 		requests:     requests,
 		responses:    responses,
+		traceparents: traceparents,
 	}
 }
 
@@ -171,7 +179,19 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 				"conn.d_port",
 				evt.Conn.D_port,
 			)
-			// TODO: call the auth API to store it
+
+			tp := TraceparentValue{
+				TraceID: hex.EncodeToString(evt.Tp.TraceId[:]),
+				SpanID:  hex.EncodeToString(evt.Tp.SpanId[:]),
+				Conn: &ConnectionInfo{
+					SrcAddr: evt.Conn.S_addr,
+					DstAddr: evt.Conn.D_addr,
+					SrcPort: evt.Conn.S_port,
+					DstPort: evt.Conn.D_port,
+				},
+			}
+
+			m.traceparents <- &tp
 			continue
 		}
 
@@ -204,7 +224,12 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 			go func() {
 				slog.Info("Creating HTTP Request reader", "key", pipeKey)
 				reader := bufio.NewReader(dataPipe.Reader())
-				req, err := NewHTTPRequest(reader)
+				req, err := NewHTTPRequest(reader, &ConnectionInfo{
+					SrcAddr: evt.Conn.S_addr,
+					DstAddr: evt.Conn.D_addr,
+					SrcPort: evt.Conn.S_port,
+					DstPort: evt.Conn.D_port,
+				})
 				if err != nil {
 					slog.Error("Failed to parse HTTP request", "err", err)
 					return
@@ -217,7 +242,12 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 			go func() {
 				slog.Info("Creating HTTP Response reader", "key", pipeKey)
 				reader := bufio.NewReader(dataPipe.Reader())
-				resp, err := NewHTTPResponse(reader)
+				resp, err := NewHTTPResponse(reader, &ConnectionInfo{
+					SrcAddr: evt.Conn.S_addr,
+					DstAddr: evt.Conn.D_addr,
+					SrcPort: evt.Conn.S_port,
+					DstPort: evt.Conn.D_port,
+				})
 				if err != nil {
 					slog.Error("Failed to parse HTTP response", "err", err)
 					return

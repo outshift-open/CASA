@@ -97,12 +97,15 @@ int parse_obi_tp_option(struct bpf_sock_ops *skops) {
         return 1;
     }
 
+    bpf_dbg_printk("=== sockops id=%d, sock=%llx ===", id, sk);
+
     struct obi_tp_option opt = {};
     opt.kind = k_tcp_option_kind_otel;
 
     const long ret = bpf_load_hdr_opt(skops, &opt, sizeof(opt), 0);
 
     if (ret == -ENOMSG) {
+        bpf_dbg_printk("error parsing OBI TCP option: %d", ret);
         return 1;
     }
 
@@ -115,6 +118,8 @@ int parse_obi_tp_option(struct bpf_sock_ops *skops) {
 
     if (tp_str) {
         bpf_dbg_printk("found TP in TCP options: %s", tp_str);
+    } else {
+        bpf_dbg_printk("could not find TP in TCP options");
     }
 
     struct tls_data_event *event = bpf_ringbuf_reserve(&tls_events, sizeof(struct tls_data_event), 0);

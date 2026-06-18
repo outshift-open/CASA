@@ -54,7 +54,7 @@ static __always_inline ssl_pid_connection_info_t * fetch_ssl_conn_mapping(void *
     return conn;
 }
 
-static __always_inline void handle_http_response(struct pt_regs *ctx,
+static __always_inline void handle_http_operation(struct pt_regs *ctx,
                                                  u64 id,
                                                  const ssl_args_t *args,
                                                  size_t bytes_len,
@@ -139,7 +139,7 @@ int BPF_URETPROBE(uretprobe_ssl_read, int ret) {
         return 0;
     }
 
-    handle_http_response(ctx, id, args, ret, TCP_RECV);
+    handle_http_operation(ctx, id, args, ret, TCP_RECV);
     bpf_map_delete_elem(&active_ssl_read_args, &id);
 
     return 0;
@@ -186,7 +186,7 @@ int BPF_URETPROBE(uretprobe_ssl_read_ex, int ret) {
     size_t bytes_len = 0;
     bpf_probe_read(&bytes_len, sizeof(bytes_len), (void *)args->len_ptr);
 
-    handle_http_response(ctx, id, args, bytes_len, TCP_RECV);
+    handle_http_operation(ctx, id, args, bytes_len, TCP_RECV);
     bpf_map_delete_elem(&active_ssl_read_args, &id);
 
     return 0;
@@ -231,7 +231,7 @@ int BPF_URETPROBE(uretprobe_ssl_write, int ret) {
         return 0;
     }
 
-    handle_http_response(ctx, id, args, ret, TCP_SEND);
+    handle_http_operation(ctx, id, args, ret, TCP_SEND);
     bpf_map_delete_elem(&active_ssl_write_args, &id);
 
     return 0;
@@ -277,7 +277,7 @@ int BPF_URETPROBE(uretprobe_ssl_write_ex, int ret) {
     size_t bytes_len = 0;
     bpf_probe_read(&bytes_len, sizeof(bytes_len), (void *)args->len_ptr);
 
-    handle_http_response(ctx, id, args, bytes_len, TCP_SEND);
+    handle_http_operation(ctx, id, args, bytes_len, TCP_SEND);
     bpf_map_delete_elem(&active_ssl_write_args, &id);
 
     return 0;

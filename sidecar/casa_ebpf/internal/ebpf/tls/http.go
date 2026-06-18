@@ -24,11 +24,25 @@ const (
 	eventTypeTP   EventType = 1
 )
 
-type HTTPRequest struct {
-	request *http.Request
+type ConnectionInfo struct {
+	SrcAddr [16]uint8
+	DstAddr [16]uint8
+	SrcPort uint16
+	DstPort uint16
 }
 
-func NewHTTPRequest(rd io.Reader) (*HTTPRequest, error) {
+type TraceparentValue struct {
+	TraceID string
+	SpanID  string
+	Conn    *ConnectionInfo
+}
+
+type HTTPRequest struct {
+	request *http.Request
+	conn    *ConnectionInfo
+}
+
+func NewHTTPRequest(rd io.Reader, conn *ConnectionInfo) (*HTTPRequest, error) {
 	reader := bufio.NewReader(rd)
 	req, err := http.ReadRequest(reader)
 	if err != nil {
@@ -40,7 +54,11 @@ func NewHTTPRequest(rd io.Reader) (*HTTPRequest, error) {
 		return nil, fmt.Errorf("failed to read HTTP request body: %w", err)
 	}
 
-	return &HTTPRequest{request: req}, nil
+	return &HTTPRequest{request: req, conn: conn}, nil
+}
+
+func (r *HTTPRequest) Conn() *ConnectionInfo {
+	return r.conn
 }
 
 func (r *HTTPRequest) Body() ([]byte, error) {
@@ -60,9 +78,10 @@ func (r *HTTPRequest) Headers() http.Header {
 
 type HTTPResponse struct {
 	response *http.Response
+	conn     *ConnectionInfo
 }
 
-func NewHTTPResponse(rd io.Reader) (*HTTPResponse, error) {
+func NewHTTPResponse(rd io.Reader, conn *ConnectionInfo) (*HTTPResponse, error) {
 	reader := bufio.NewReader(rd)
 	resp, err := http.ReadResponse(reader, nil)
 	if err != nil {
@@ -76,7 +95,12 @@ func NewHTTPResponse(rd io.Reader) (*HTTPResponse, error) {
 
 	return &HTTPResponse{
 		response: resp,
+		conn:     conn,
 	}, nil
+}
+
+func (r *HTTPResponse) Conn() *ConnectionInfo {
+	return r.conn
 }
 
 func (r *HTTPResponse) Body() ([]byte, error) {

@@ -62,10 +62,13 @@ func main() {
 		os.Exit(-1)
 	}
 
-	reqHandler := llm.NewRequestHandler(cancelChan)
-	respHandler := llm.NewResponseHandler(cancelChan)
+	llmCallStore := llm.NewInMemoryCallStore()
 
-	module := tls.NewLibSSLModule(pidsRegistry, reqHandler.Chan(), respHandler.Chan())
+	reqHandler := llm.NewRequestHandler(cancelChan, llmCallStore)
+	respHandler := llm.NewResponseHandler(cancelChan, llmCallStore)
+	tpHandler := llm.NewTraceparentHandler(cancelChan, llmCallStore)
+
+	module := tls.NewLibSSLModule(pidsRegistry, reqHandler.Chan(), respHandler.Chan(), tpHandler.Chan())
 
 	processMgr := process.NewManager()
 
@@ -88,6 +91,7 @@ func main() {
 	})
 	wg.Go(reqHandler.Start)
 	wg.Go(respHandler.Start)
+	wg.Go(tpHandler.Start)
 
 	wg.Go(func() {
 		for {
