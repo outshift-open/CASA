@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/cilium/ebpf/rlimit"
+	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/config"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/discover"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/ebpf"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/process"
@@ -25,8 +26,24 @@ func main() {
 	// Remove resource limits for kernels <5.11.
 	err := rlimit.RemoveMemlock()
 	if err != nil {
-		log.Fatal("Removing memlock:", err)
+		slog.Error("Error removing memlock", "err", err)
+		os.Exit(-1)
 	}
+
+	configPath := flag.String("config", "", "path to the configuration file")
+	flag.Parse()
+
+	if cfg := os.Getenv("CASA_EBPF_CONFIG_PATH"); cfg != "" {
+		configPath = &cfg
+	}
+
+	cfg, err := config.LoadConfig(*configPath)
+	if err != nil {
+		slog.Error("Failed to load config", "err", err)
+		os.Exit(-1)
+	}
+
+	slog.Info("Configuration loaded", "path", *configPath)
 
 	cancelChan := make(chan bool, 1)
 	wg := sync.WaitGroup{}
@@ -41,7 +58,8 @@ func main() {
 
 	pinPath, err := makeBPFFSPath("/sys/fs/bpf/")
 	if err != nil {
-		log.Fatal("Failed to create bpffs path", err)
+		slog.Error("Failed to create bpffs path", "err", err)
+		os.Exit(-1)
 	}
 
 	reqHandler := llm.NewRequestHandler(cancelChan)
@@ -59,7 +77,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	scanner := discover.Scanner{}
+	scanner := discover.NewScanner(cfg)
 	processEventsCh := scanner.Scan(ctx, &wg, processMgr)
 
 	wg.Go(func() {

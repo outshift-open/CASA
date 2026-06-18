@@ -33,6 +33,7 @@ func (h *ResponseHandler) Start() {
 			} else {
 				slog.Info("[ResponseHandler] HTTP RESPONSE", "body", string(body[:10]))
 			}
+			// TODO: call the auth API to store it
 		case shouldCancel := <-h.cancelChan:
 			slog.Debug(fmt.Sprintf("Received cancellation event [%t]", shouldCancel))
 			if shouldCancel {

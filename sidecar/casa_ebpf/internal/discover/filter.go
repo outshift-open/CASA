@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"path"
+	"slices"
 	"sync"
 
+	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/config"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/container"
 	"github.com/outshift-open/CASA/sidecar/casa_ebpf/internal/process"
 )
@@ -16,6 +19,7 @@ type processFilter struct {
 	wg               *sync.WaitGroup
 	matchedProcesses map[process.PID]ProcessInfo
 	processMgr       process.Manager
+	config           *config.Config
 }
 
 func RunProcessFilter(
@@ -23,6 +27,7 @@ func RunProcessFilter(
 	inCh <-chan []*WatchEvent[ProcessAttrs],
 	wg *sync.WaitGroup,
 	processMgr process.Manager,
+	config *config.Config,
 ) <-chan []*WatchEvent[ProcessInfo] {
 	outputCh := make(chan []*WatchEvent[ProcessInfo], 10)
 	filter := processFilter{
@@ -31,6 +36,7 @@ func RunProcessFilter(
 		wg:               wg,
 		matchedProcesses: map[process.PID]ProcessInfo{},
 		processMgr:       processMgr,
+		config:           config,
 	}
 
 	wg.Add(1)
@@ -95,13 +101,35 @@ func (pf *processFilter) Run(ctx context.Context) {
 }
 
 func (pf *processFilter) filterProcess(attrs *ProcessAttrs) bool {
-	// TODO: build a simple filtering engine
-	if attrs.ContainerInfo != nil && attrs.ContainerInfo.ID == "cd0a3f1e0162" {
-		slog.Info("Process matched", "pid", attrs.ID)
-		return true
+	for _, criteria := range pf.config.Discovery.Criteria {
+		if slices.Contains(criteria.TargetPIDs, uint32(attrs.ID)) {
+			slog.Info("Process matched with PID", "pid", attrs.ID)
+			return true
+		}
+
+		if attrs.ContainerInfo != nil &&
+			(attrs.ContainerInfo.ID == criteria.ContainerID || pf.matchString(criteria.ContainerName, attrs.ContainerInfo.Name)) {
+			slog.Info("Process matched with container info", "pid", attrs.ID)
+			return true
+		}
+
+		if attrs.KubernetesInfo != nil &&
+			(attrs.KubernetesInfo.Namespace == criteria.K8SNamespace || pf.matchString(criteria.K8SPodName, attrs.KubernetesInfo.PodName)) {
+			slog.Info("Process matched with Kubernetes info", "pid", attrs.ID)
+			return true
+		}
 	}
 
 	return false
+}
+
+func (pf *processFilter) matchString(pattern string, value string) bool {
+	ok, err := path.Match(pattern, value)
+	if err != nil {
+		return false
+	}
+
+	return ok
 }
 
 func (pf *processFilter) newProcessInfo(attrs *ProcessAttrs) (*ProcessInfo, error) {

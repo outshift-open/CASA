@@ -33,6 +33,7 @@ func (h *RequestHandler) Start() {
 			} else {
 				slog.Info("[RequestHandler] HTTP REQUEST", "body", string(body), "headers", req.Headers())
 			}
+			// TODO: call the auth API to store it
 		case shouldCancel := <-h.cancelChan:
 			slog.Debug(fmt.Sprintf("Received cancellation event [%t]", shouldCancel))
 			if shouldCancel {

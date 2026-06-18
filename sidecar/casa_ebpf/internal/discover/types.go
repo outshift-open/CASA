@@ -14,10 +14,18 @@ type ContainerInfo struct {
 	ComposeService string
 }
 
+type KubernetesInfo struct {
+	PodName        string
+	Namespace      string
+	PodAnnotations map[string]string
+	PodLabels      map[string]string
+}
+
 type ProcessAttrs struct {
-	ID            process.PID
-	StartedTime   time.Time
-	ContainerInfo *ContainerInfo
+	ID             process.PID
+	StartedTime    time.Time
+	ContainerInfo  *ContainerInfo
+	KubernetesInfo *KubernetesInfo
 }
 
 type ProcessInfo struct {

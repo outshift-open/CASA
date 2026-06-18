@@ -171,6 +171,7 @@ func (m *LibSSLModule) Run(ctx context.Context) error {
 				"conn.d_port",
 				evt.Conn.D_port,
 			)
+			// TODO: call the auth API to store it
 			continue
 		}
 

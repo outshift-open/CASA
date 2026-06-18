@@ -1,0 +1,11 @@
+discovery:
+  criteria:
+    # - target_pids: [161834]
+    # - container_id: cd0a3f1e0162
+    # - container_name: distracted_almeida
+    - k8s_pod_name: python-dockerfile-app-*
+    # - target_pids: [9001]
+    #   container_name: worker
+    #   container_id: def456
+    #   k8s_namespace: jobs
+    #   k8s_pod_name: worker-55ccdd88f9-q1w2e
