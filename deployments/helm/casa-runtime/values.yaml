@@ -311,7 +311,7 @@ sidecar:
       name: "obi"
     image:
       repository: ghcr.io/open-telemetry/opentelemetry-ebpf-instrumentation/ebpf-instrument
-      tag: main@sha256:0325b9d2a875f919f6f1f1cbeff0e9ce127e31670812e75347e13e008441274e
+      tag: v0.9.0
       pullPolicy: IfNotPresent
     privileged: true
     extraCapabilities:
@@ -344,6 +344,7 @@ sidecar:
           instrument:
             - k8s_pod_name: "casa-demo-*"
             - k8s_pod_name: "demo-agent-*"
+            - k8s_pod_name: "banking-*"
         routes:
           unmatched: heuristic
         attributes:

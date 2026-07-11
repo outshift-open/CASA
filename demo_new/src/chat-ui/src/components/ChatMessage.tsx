@@ -1,0 +1,74 @@
+/**
+ * Copyright 2026 Cisco Systems, Inc. and its affiliates
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { useMemo } from 'react'
+import { marked } from 'marked'
+import { cn } from '@/lib/utils'
+import type { Message } from '@/types'
+
+marked.setOptions({ breaks: true })
+
+interface ChatMessageProps {
+  message: Message
+}
+
+function formatTime(date: Date) {
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+export function ChatMessage({ message }: ChatMessageProps) {
+  const isUser = message.role === 'user'
+  const html = useMemo(() => marked.parse(message.content) as string, [message.content])
+
+  return (
+    <div
+      className={cn(
+        'flex items-end gap-2 animate-fade-in',
+        isUser ? 'flex-row-reverse' : 'flex-row'
+      )}
+    >
+      {!isUser && (
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold bg-safe-muted text-safe">
+          AI
+        </div>
+      )}
+
+      <div className={cn('flex flex-col gap-1', isUser ? 'items-end' : 'items-start')}>
+        <div
+          className={cn(
+            'max-w-[520px] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm',
+            isUser
+              ? 'rounded-br-sm bg-primary text-primary-foreground'
+              : 'rounded-bl-sm bg-white border border-border text-slate-800'
+          )}
+        >
+          {isUser ? (
+            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          ) : (
+            <div
+              className="prose prose-sm prose-slate max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-2"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          )}
+        </div>
+        <span className="text-[11px] px-1 flex items-center gap-1">
+          {message.error && <span className="text-danger">Failed to send</span>}
+          <span className="text-slate-400">{formatTime(message.timestamp)}</span>
+        </span>
+      </div>
+    </div>
+  )
+}
